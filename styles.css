@@ -1,0 +1,2612 @@
+/* Phase 6 : le jeu devient interactif. Portrait d'abord, comme le demande
+   CLAUDE.md — le plateau garde toujours la plus grande part de l'ecran ;
+   la barre de statut reste fine et n'empiete pas dessus. */
+
+/* Seuil de bascule telephone/ordinateur (phase 11, regle CLAUDE.md : "un
+   seul seuil de bascule ... choisi une fois pour tout le projet"). 700px
+   est plus large que n'importe quel telephone tenu en portrait, plus
+   etroit que la plupart des ecrans d'ordinateur : au-dela, on considere
+   qu'il y a la place d'afficher une barre laterale a demeure. Les phases
+   d'interface suivantes (ex. phase 22, reglages) doivent reutiliser ce
+   meme seuil plutot qu'en choisir un autre. */
+
+:root {
+  /* ===== REGLAGE : taille de l'apercu dans "Variantes", "Puzzles" et
+     "Mes parties" =====
+     C'est LA seule valeur a changer pour l'essayer plus grand ou plus
+     petit ; elle vaut pour les trois dialogues a la fois et donne un carre
+     (largeur = hauteur). Voir #apercu-variante plus bas pour pourquoi cette
+     taille est figee et reservee en permanence.
+     Reperes : 90px = tres compact, on distingue les camps sans plus ; 140px
+     = l'ancienne valeur, lisible mais elle poussait la liste ; 120px est le
+     compromis retenu par defaut. En dessous de ~70px, le dessin ne veut
+     plus rien dire. */
+  --taille-apercu: 120px;
+
+  /* Vert des DEMANDES : tout ce qui attend une reponse de l'utilisateur
+     (choix d'une branche, confirmation, abandon/nulle) passe en vert, pour
+     qu'on voie qu'il faut agir dessus (saab). Un seul vert, partout. */
+  --vert-demande: #1f7a3a;
+}
+
+html {
+  /* Dit au navigateur que cette page gere elle-meme ses couleurs sombres,
+     pour qu'il n'essaie pas de les "corriger" tout seul (vu sur Opera :
+     un mode sombre automatique qui eclaircit les couleurs a faible
+     contraste, rendant les billes noires presque blanches). */
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  /* `svh` = "small viewport height" : la hauteur de la fenetre quand la
+     barre d'adresse du telephone est DEPLOYEE. saab a signale que le bas de
+     la page etait rogne par cette barre en portrait — c'est ce que fait
+     `100%` (comme `100vh`), qui compte la hauteur SANS elle alors qu'elle
+     reste affichee. `svh` est la seule des trois unites a ne jamais rogner
+     ni sauter : `lvh` rogne pareil, `dvh` suit la barre et fait bouger toute
+     la mise en page pendant qu'on fait defiler. `height: 100%` juste
+     au-dessus reste comme repli pour un navigateur trop ancien pour `svh`
+     (avant Safari 15.4 / Chrome 108). */
+  height: 100svh;
+  background: #595959; /* rappelle le bois sombre du plateau physique */
+}
+
+/* Bug trouve par saab : glisser sur un bandeau de titre (une simple ligne
+   de texte, jamais concue pour etre selectionnee) demarre une SELECTION
+   DE TEXTE plutot qu'un vrai glisser-deposer — celle-ci peut s'etendre
+   sur toute la page (plateau, navigation...) et, combinee a une capture
+   de pointeur restee engagee ailleurs (voir interface/sequence.js,
+   activerRedimensionnementLargeur/Hauteur), a fini par bloquer tout clic
+   nulle part, jusqu'au rechargement complet. Aucune de ces bandes n'a de
+   texte utile a selectionner : autant empecher la selection d'y demarrer
+   du tout, plutot que de compter uniquement sur le correctif de capture. */
+h2,
+button,
+#etat-sauvegarde,
+#arbre-entete,
+#arbre-poignee-hauteur,
+#arbre-poignee-largeur,
+.nom-joueur,
+.pendule-camp {
+  user-select: none;
+}
+
+/* `display` de `body` (grid sur telephone, flex-row sur ordinateur) est
+   declare ENTIEREMENT DANS chacune des deux media queries plus bas,
+   jamais ici : deux valeurs concurrentes pour la meme propriete sur le
+   meme selecteur, meme dans des media queries differentes, se
+   departagent par ordre d'apparition dans le fichier plutot que par leur
+   condition — piege deja rencontre 3 fois dans ce projet (voir
+   #arbre-panneau plus bas). Aucune regle non conditionnelle ici change ce
+   risque en certitude. #colonne-gauche, #colonne-principale et
+   #arbre-panneau restent les memes elements HTML dans les deux cas :
+   seule leur disposition change — et la barre de navigation, elle,
+   change reellement de parent (voir interface/disposition.js), pour
+   rester au bas du plateau sur telephone (le pouce) mais liberer cette
+   hauteur au plateau sur ordinateur, ou elle rejoint le bas du panneau
+   Sequence. */
+
+/* Reservee pour de futurs boutons — la barre d'outils a 18 boutons de
+   KAAWA doit bien aller quelque part (question ouverte de CLAUDE.md,
+   jamais tranchee) ; premier occupant (phase 12) : les boutons de
+   sauvegarde.
+   Elle a retreci deux fois, toujours pour la meme raison — le plateau
+   d'abord. D'abord `flex: 1 1 auto`, qui la faisait grandir TOUT LE TEMPS
+   et pas seulement une fois le plateau a son maximum (185px mesures sur un
+   ecran de 1000px pour des libelles qui en demandaient 110) ; puis les
+   libelles eux-memes, remplaces par des icones dans les DEUX mises en page
+   (voir plus bas) — 44px suffisent desormais partout. C'est #colonne-droite
+   qui reste collee a droite quand il reste de la place (`margin-left: auto`,
+   plus bas). */
+#colonne-gauche {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 4px; /* reduit deux fois (8 -> 6 -> 4, saab : "diminue les paddings") */
+}
+
+/* Espace ENTRE les groupes (voir .groupe-boutons juste apres) : plus large
+   que l'espace, resserre, entre deux boutons d'un MEME groupe — c'est ce
+   qui fait lire "New" / "Mes parties, Variantes, Puzzles" / "Conseils" /
+   "Sequence, Commentaires, Occurrences" / "Exporter, Importer" comme 5
+   ensembles distincts plutot qu'une seule liste plate (demande precise de
+   saab, avec cet ordre exact). */
+#boutons-sauvegarde {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Le cadre visuel d'UN groupe : une bordure discrete, pas un fond distinct
+   (la colonne entiere garde le meme fond sombre) — juste assez pour
+   separer les groupes au coup d'oeil, meme en mode icones seules
+   (telephone/paysage, ou les libelles sont invisibles et l'ordre des
+   icones est le seul repere). */
+.groupe-boutons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+#boutons-sauvegarde button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Signal "actif" en orange, partage par tous les boutons bascule de cette
+   colonne qui n'ouvrent pas de panneau propre a leur etat (Menaces,
+   Conseils) : un appui montre/dessine, le meme reappui cache/efface (voir
+   interface/menaces.js, interface/next-move.js). Meme orange que
+   .bouton-favori-actif — un seul signal "actif" dans toute l'appli. */
+#boutons-sauvegarde button.bouton-actif {
+  background: #cc6a00;
+  color: #0a0a0a;
+  border-color: #cc6a00;
+}
+
+.icone-bouton {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Icone "en hexagone" (Nouvelle partie, Variantes, Puzzles, Mes parties) :
+   clin d'oeil au plateau lui-meme, un hexagone fait de cases rondes —
+   demande par saab, pour les 4 boutons qui CHOISISSENT ou CHARGENT une
+   position de depart (une partie neuve, une variante, un puzzle, une
+   partie deja jouee), a la difference des autres boutons de la colonne
+   qui sont de simples actions/outils.
+   `.icone-bouton.icone-hexagone` (2 classes, pas juste `.icone-hexagone`)
+   BUG TROUVE (saab : "les icones sont que sur le haut du grand hexagone
+   gris") : `.icone-bouton { display: inline; }` plus bas (regle du mode
+   icones seules) a la MEME specificite qu'un `.icone-hexagone` a une
+   seule classe et le suit dans le fichier — il l'emportait donc toujours,
+   ecrasant le `inline-flex` necessaire au centrage et laissant l'emoji
+   suivre le flux normal du texte (colle en haut). Piege de specificite
+   deja rencontre plusieurs fois dans ce projet (voir CLAUDE.md) : 2
+   classes suffisent a gagner quel que soit l'ordre des regles.
+   Taille agrandie deux fois (24 -> 30 -> 34px, emoji 14 -> 22 -> 25px,
+   saab la seconde fois : "bien centres mais ne remplissent pas le grand
+   hexagone gris, en les agrandissant un peu ça devrait etre bon") pour
+   que l'emoji couvre vraiment l'hexagone au lieu d'y laisser du gris
+   visible sur les bords — 34px reste sous les 36px de hauteur du bouton
+   lui-meme (#boutons-sauvegarde button, plus haut), rien ne deborde. */
+/* Icones dessinees a la main de Sequence/Commentaires/Occurrences (voir
+   index.html) : de vrais <svg>, pas du texte — `vertical-align` seul
+   suffit a les centrer correctement dans le bouton flex, contrairement a
+   un emoji qui suit `font-size`/`line-height` (voir .icone-bouton
+   au-dessus). */
+.icone-bouton.icone-carre {
+  vertical-align: middle;
+}
+
+/* Fond gris CLAIR (#8a8a8a, signale par saab : "le gris des cases",
+   meme couleur que .case sur le plateau) plutot que le gris fonce
+   d'origine — desormais partagee par 4 boutons (Nouvelle partie,
+   Variantes, Puzzles, Mes parties), les 4 qui CHOISISSENT ou CHARGENT une
+   position de depart, jamais les simples actions/outils du reste de la
+   colonne. */
+.icone-bouton.icone-hexagone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  font-size: 25px;
+  line-height: 1;
+  background: #8a8a8a;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* UNE BANDE D'ICONES, DANS LES DEUX MISES EN PAGE. Les libelles en toutes
+   lettres n'existaient qu'ici, sur ordinateur, et coutaient ~100px de large
+   au plateau en permanence pour sept mots qu'on lit une fois. saab a demande
+   d'etendre au paysage et au PC le principe deja en place en portrait :
+   icones a demeure, libelles a la demande. Le bouton "☰" les deploie
+   temporairement PAR-DESSUS le plateau (position:fixed) plutot que
+   d'elargir la colonne — sinon le plateau retrecirait a chaque ouverture,
+   l'effet inverse de ce qu'on cherche. Le survol, lui, ne suffirait pas :
+   un telephone n'a pas de curseur (CLAUDE.md, "rien d'important au survol
+   seul") — d'ou un vrai bouton, et un `title` sur chaque icone en plus.
+   Rien de tout ceci n'est dans une media query : ces proprietes n'ont
+   qu'une seule valeur pour les deux mises en page, et les declarer sans
+   condition evite le piege de specificite documente plus haut. */
+#bouton-etendre-colonne {
+  display: block;
+  min-height: 36px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#boutons-sauvegarde button {
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.icone-bouton {
+  display: inline;
+}
+
+.libelle-bouton {
+  display: none;
+}
+
+#colonne-gauche.colonne-gauche-etendue {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 200px;
+  z-index: 20;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.colonne-gauche-etendue .libelle-bouton {
+  display: inline;
+}
+
+.colonne-gauche-etendue #boutons-sauvegarde button {
+  justify-content: flex-start;
+  padding: 0 10px;
+}
+
+/* Dialogues (phase 12, "Mes parties" ; phase 13, "Variantes") — classe
+   commune plutot que deux blocs identiques : les deux sont des fenetres
+   flottantes sur ordinateur (regle CLAUDE.md sur les popups) ; le fond
+   assombri (::backdrop) et la fermeture par Echap sont geres par le
+   navigateur lui-meme, <dialog> est natif. */
+.dialogue {
+  border: none;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  /* Reduit (16px -> 8px, saab : "trop d'espace vide, ne pas gaspiller") */
+  padding: 8px;
+  width: 90vw;
+  max-width: 480px;
+  max-height: 80vh;
+}
+
+.dialogue::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.dialogue h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.bouton-dialogue {
+  min-height: 30px;
+  padding: 0 10px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+/* Dialogue de confirmation (interface/confirmation.js) : ses deux boutons
+   cote a cote plutot qu'empiles l'un sous l'autre (le comportement par
+   defaut de .bouton-dialogue, pense pour un seul bouton "Fermer"). */
+.boutons-dialogue-cote-a-cote {
+  display: flex;
+  gap: 8px;
+}
+
+/* Plein ecran sur telephone, meme si les boutons qui ouvrent ces
+   dialogues n'existent encore que sur ordinateur (#colonne-gauche) —
+   regle CLAUDE.md ("les popups deviennent des panneaux plein ecran sur
+   telephone"), appliquee par avance pour ne pas avoir a y repenser le
+   jour ou ces boutons deviennent accessibles sur telephone aussi. */
+@media (max-width: 699px) {
+  .dialogue {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  /* `[open]` INDISPENSABLE ici, pas seulement `.dialogue` : un <dialog>
+     ferme vaut `display:none` par la feuille de style du navigateur, et
+     une simple classe (.dialogue) l'emporte sur cette regle-la. Sans
+     `[open]`, les TROIS dialogues restaient donc affiches en permanence,
+     ouverts ou non — bug signale par saab sur telephone (popup "toujours
+     la", meme apres "Fermer", meme apres un rechargement complet ; boutons
+     qui s'allument sans effet visible ; apercu des variantes qu'il fallait
+     aller chercher en faisant defiler la page, puisque trois boites de
+     828 px s'empilaient dans le flux). Introduit au correctif precedent en
+     voulant regler le debordement de "Mes parties" ci-dessous : la mise en
+     colonne etait bonne, c'est de l'avoir posee sur l'etat FERME aussi qui
+     ne l'etait pas.
+
+     Raison d'etre de cette mise en colonne : sans elle, le titre, la liste
+     et le bouton s'empilent dans le flux normal — une longue liste peut
+     alors depasser les 100vh fixes du dialogue et pousser le haut hors de
+     l'ecran. En colonne flex avec overflow cache, seule .liste-dialogue
+     (flex:1, voir plus bas) peut deborder, et elle defile toute seule. */
+  .dialogue[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* A l'interieur d'un dialogue plein ecran, la liste prend tout l'espace
+     restant entre le titre et le bouton (au lieu de sa propre limite fixe
+     de 50vh, pensee pour un dialogue centre plus petit sur ordinateur). */
+  .liste-dialogue {
+    flex: 1 1 auto;
+    min-height: 0; /* sinon flex:1 ignore l'espace disponible, meme piege que #plateau */
+    max-height: none;
+  }
+}
+
+/* Liste a l'interieur d'un dialogue (les parties enregistrees, les
+   variantes...) : meme comportement de defilement partout. */
+.liste-dialogue {
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ligne-liste {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border-bottom: 1px solid #3a3a3a;
+  font-size: 12px;
+}
+
+.ligne-liste-texte {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ligne-liste button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 8px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Suppression de plusieurs parties (interface/mes-parties.js) : la barre de
+   boutons au-dessus de la liste, et la case a cocher de chaque ligne (assez
+   grande pour le doigt : 22 px dans une zone de 44 px de haut). */
+.barre-parties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.barre-parties .bouton-dialogue {
+  min-height: 44px;
+  margin-top: 0;
+}
+
+.barre-parties .bouton-dialogue:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#bouton-supprimer-parties:not(:disabled) {
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+}
+
+.case-partie {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+
+.ligne-partie {
+  min-height: 44px;
+}
+
+/* La partie active (celle qu'on est en train de jouer), ou la variante
+   qu'on vient de previsualiser (un premier clic charge un second clic la
+   confirme, voir interface/variantes.js) : meme orange que
+   .arbre-courant/.au-trait ailleurs dans KAAH, meme signal "c'est ici
+   que je suis en ce moment". */
+.ligne-partie-active,
+.ligne-partie-previsualisee,
+.ligne-variante-previsualisee {
+  border-left: 3px solid #cc6a00;
+  padding-left: 6px;
+}
+
+/* Avertissement affiche seulement pendant une confirmation de reprise
+   automatique (interface/mes-parties.js, ouvrirPourConfirmationReprise) —
+   meme orange que le reste des signaux "c'est ici" de KAAH. */
+.message-reprise {
+  margin: 0 0 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #3a2a10;
+  color: #e8a33d;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.ligne-partie-label {
+  flex: 0 0 auto;
+  color: #cc6a00;
+  font-weight: bold;
+}
+
+/* Etoile favori (interface/variantes.js) : ★ et ☆ se confondent presque
+   a la taille normale des boutons (signale par saab) — agrandie et
+   distinguee surtout par la couleur, pas seulement par le caractere.
+   Grise et discrete quand vide, VERTE pleine quand favorite.
+   BUG TROUVE (saab : "tu n'as pas agrandi l'etoile ni mis en vert" — la
+   toute premiere correction n'avait en realite jamais pris effet) :
+   `.ligne-liste button` (element + classe, specificite 0,1,1) l'emportait
+   silencieusement sur `.bouton-favori` (classe seule, 0,1,0) pour
+   font-size ET color, quel que soit l'ordre du fichier — exactement le
+   piege de specificite deja rencontre plusieurs fois dans ce projet.
+   `.ligne-liste button.bouton-favori` (element + 2 classes) corrige ca en
+   etant, cette fois, reellement plus specifique. */
+.ligne-liste button.bouton-favori {
+  min-width: 32px;
+  font-size: 20px;
+  line-height: 1;
+  color: #8a8a8a;
+}
+
+/* 3 classes (pas 2) : garantit de l'emporter sur la regle de base
+   ci-dessus quel que soit l'ordre du fichier, meme si les deux ont ici la
+   meme specificite "sur le papier" avec seulement 2 classes chacune —
+   voir CLAUDE.md, jamais compter sur l'ordre entre regles de meme poids. */
+.ligne-liste button.bouton-favori.bouton-favori-actif {
+  color: #2ecc55;
+  border-color: #2ecc55;
+}
+
+/* Apercu de la position previsualisee, dans "Variantes" comme dans
+   "Puzzles" (interface/variantes.js, interface/puzzles.js) : un second
+   <svg>, independant du plateau principal — jamais anime, jamais partage
+   avec lui (voir CLAUDE.md, un seul plateau persistant).
+   TAILLE FIGEE, et surtout RESERVEE EN PERMANENCE, meme quand aucun apercu
+   n'est affiche : c'est tout l'objet du reglage ci-dessous. Sans ca,
+   l'apercu apparaissait au premier clic et poussait toute la liste vers le
+   bas — la ligne qu'on venait de choisir partait hors ecran et il fallait
+   faire defiler pour la retrouver et la confirmer (signale par saab). Il
+   occupe donc sa place des l'ouverture, pleine ou vide, et plus rien ne
+   bouge entre les deux clics. */
+#apercu-variante,
+#apercu-puzzle,
+#apercu-partie {
+  display: block;
+  flex: 0 0 auto;
+  width: var(--taille-apercu);
+  height: var(--taille-apercu);
+  margin: 0 auto 6px;
+  background: #2b2b2b;
+  border-radius: 6px;
+  /* Cliquer l'apercu vaut confirmation (idee de saab) : le curseur le dit. */
+  cursor: pointer;
+}
+
+/* Panneau "Choisir une branche" (interface/embranchement.js) : MEME regle
+   que #panneau-conseils juste en dessous (jamais un <dialog> qui recouvre
+   le plateau) — voir l'en-tete de ce fichier-la pour l'historique. Premier
+   enfant de #colonne-droite dans le HTML : s'affiche donc EN HAUT de cette
+   colonne par defaut, au-dessus des autres panneaux (signale par saab,
+   "place ta fenetre sur les autres fenetres mais pas sur le plateau"),
+   comme le popup de bifurcation de KAAWA lui-meme (positionne en haut a
+   droite). `order: -2` sur telephone (voir plus bas) : encore au-dessus du
+   `order: -1` de #panneau-conseils, pour rester le plus prioritaire des
+   deux si jamais les deux etaient ouverts en meme temps. */
+#panneau-embranchement {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 13px/1.2 sans-serif;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+/* Une demande en attente de reponse : en vert (voir --vert-demande). */
+#panneau-embranchement,
+#dialogue-confirmation {
+  background: var(--vert-demande);
+}
+
+#panneau-embranchement h2 {
+  margin: 0 0 2px;
+  font-size: 14px;
+}
+
+#panneau-embranchement[hidden] {
+  display: none;
+}
+
+/* Une branche par ligne : "▲" (Remonter, invisible si moteur.
+   peutRemonterNoeud le refuse — reserve quand meme sa place, meme regle
+   que .arbre-repli/.arbre-supprimer dans la Sequence) puis le coup
+   lui-meme (Valider), qui prend le reste de la largeur. */
+.ligne-embranchement {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ligne-embranchement .bouton-dialogue {
+  flex: 1;
+  margin-top: 0;
+}
+
+/* La branche qu'on vient de "Remonter" (interface/embranchement.js) : un
+   encadrement, pas un fond — le meme principe que .arbre-courant (le coup
+   actif) ailleurs dans KAAH, mais PAS en orange (signale par saab,
+   "l'orange" designant deja autre chose partout dans l'appli) : le gris
+   clair des cases du plateau (.case), pour rester un signal neutre de
+   "c'est celle-ci qui bouge" plutot qu'un signal de "camp"/"actif". */
+.bouton-dialogue-remontee {
+  outline: 2px solid #8a8a8a;
+  outline-offset: -2px;
+}
+
+/* Panneau "Conseils" (phase 15, interface/next-move.js). N'est PLUS une
+   popup : il l'a ete (centre, puis colle en bas a droite, puis en haut a
+   droite) et c'etait a chaque fois la mauvaise piste — ce panneau sert a
+   lire des fleches DESSINEES SUR LE PLATEAU, le recouvrir cache
+   exactement ce qu'on veut voir (saab : "le plus important dans cette
+   appli c'est de voir le plateau... c'est pas vraiment pratique, non ?").
+   Il prend donc sa place DANS la mise en page, comme #arbre-panneau :
+   a cote du plateau sur ordinateur, en dessous sur telephone (ou le
+   plateau est plafonne a un carre, voir #plateau plus bas — il reste donc
+   de la hauteur). Proprietes communes ici, placement dans chacune des deux
+   media queries. */
+#panneau-conseils {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0; /* sinon la liste interieure pousse le panneau au lieu de defiler */
+  padding: 4px; /* resserre (6 -> 4, saab : "le plus serre possible autour du plateau") */
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 13px/1.2 sans-serif;
+}
+
+#panneau-conseils h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+/* `[hidden]` doit l'emporter sur la regle ci-dessus (specificite d'un ID) :
+   sans cette regle-ci, le panneau resterait affiche en permanence — c'est
+   exactement le piege qui a fait rester les trois popups a l'ecran sur
+   telephone au correctif precedent. */
+#panneau-conseils[hidden] {
+  display: none;
+}
+
+/* Panneau "Occurrences" (phase 18, suite, interface/occurrences.js) : MEME
+   traitement que #panneau-conseils juste au-dessus — un panneau docke,
+   jamais une popup. */
+#panneau-occurrences {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 13px/1.2 sans-serif;
+}
+
+#panneau-occurrences h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+/* Meme piege de specificite que #panneau-conseils[hidden] plus haut : voir
+   ce commentaire-la, exactement la meme raison. */
+#panneau-occurrences[hidden] {
+  display: none;
+}
+
+#occurrences-entete {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 0 6px;
+  flex: 0 0 auto;
+}
+
+.compteur-occurrences {
+  font-size: 12px;
+  font-weight: bold;
+  color: #9a9a9a;
+}
+
+/* Seuil de nulle atteint (meme SEUIL_NULLE que interface/nulle.js) : la
+   couleur d'alerte deja etablie pour un compteur qui approche une regle du
+   jeu (voir .piste-alerte, .nom-en-danger). */
+.compteur-occurrences-seuil {
+  color: #4aa8ff;
+}
+
+#liste-occurrences {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ligne-occurrence {
+  min-height: 24px;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ligne-occurrence:hover {
+  background: #2b2b2b;
+}
+
+/* Code couleur calque sur KAAWA (kaa_tab_manager_ClO_Co.py,
+   setup_occurrences_tab) : PAS le meme code a 4 couleurs que la
+   Sequence/Commentaires (courant/origine/chemin/branche, rendu/arbre-ligne.js)
+   — ici, KAAWA ne distingue que la SECTION, jamais la branche individuelle
+   de chaque ligne. Blanc pour Occ (position exacte), jaune attenue pour
+   Ref (posRef seulement) — memes couleurs que la-bas ((1,1,1) et
+   (0.8,0.8,0.5)). */
+.ligne-occurrence-occ {
+  color: #e4e4e4;
+}
+
+.ligne-occurrence-ref {
+  color: #cccc80;
+}
+
+/* Seuil de nulle atteint sur CETTE ligne (son propre rang "oN" >=
+   SEUIL_NULLE_PAR_DEFAUT, pas la section) : bleu par-dessus le blanc/jaune
+   ci-dessus — demande par saab, "dans Occurrences on passe seulement
+   o>=3 en bleu, on garde les couleurs existantes si o<3". 3 classes,
+   comme .ligne-liste button.bouton-favori.bouton-favori-actif plus haut :
+   l'emporte sur .ligne-occurrence-occ/-ref (2 classes chacune) quel que
+   soit l'ordre du fichier. */
+.ligne-occurrence-occ.ligne-occurrence-seuil,
+.ligne-occurrence-ref.ligne-occurrence-seuil {
+  color: #4aa8ff;
+}
+
+.separateur-occurrences {
+  margin: 4px 0 2px;
+  font-size: 11px;
+  font-weight: bold;
+  /* Meme olive attenue que le separateur "--- Ref ... ---" de KAAWA
+     ((0.6, 0.6, 0.3)), pas le gris neutre utilise ailleurs pour ce genre
+     de texte secondaire. */
+  color: #999933;
+}
+
+/* Barre d'outils du mode Commentaires (phase 18, interface/commentaires.js) :
+   recherche, tout replier/deplier, copier — masquee en mode Sequence (voir
+   interface/saisie.js, `elementsCommentaires.barre`). Meme piege de
+   specificite que #panneau-conseils[hidden] plus haut : `[hidden]` doit
+   l'emporter sur la regle de disposition ci-dessous. */
+#commentaires-barre {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  flex: 0 0 auto;
+}
+
+#commentaires-barre[hidden] {
+  display: none;
+}
+
+#commentaires-recherche {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 24px;
+  padding: 0 6px;
+  background: #2b2b2b;
+  color: #e4e4e4;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+#commentaires-repli-tout,
+#commentaires-copier {
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: 0 6px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Meme conteneur que #arbre (mode Sequence) : les deux vivent cote a
+   cote dans #arbre-panneau, un seul visible a la fois (voir
+   interface/saisie.js, `basculerPanneauArbre`). */
+#commentaires-liste {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px;
+}
+
+#commentaires-liste[hidden] {
+  display: none;
+}
+
+.commentaires-lignes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* UNE SEULE LIGNE par coup — etiquette et commentaire cote a cote, jamais
+   l'un au-dessus de l'autre (signale par saab : ca doublait la hauteur de
+   chaque ligne, surtout quand le commentaire est vide). */
+.ligne-commentaire {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bouton-repli-commentaire,
+.bouton-deplier-commentaire {
+  flex: 0 0 auto;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #e4e4e4;
+  font-size: 12px; /* comme .arbre-repli de la Sequence */
+  cursor: pointer;
+}
+
+.bouton-repli-invisible {
+  visibility: hidden;
+  cursor: default;
+}
+
+/* Simple enveloppe d'alignement/troncature desormais : la couleur, le
+   curseur et le fond viennent de `.arbre-noeud` + la classe de couleur
+   (rendu/arbre-ligne.js, `classeCouleur`) sur le SPAN du coup a
+   l'interieur — reconstruit exactement comme la Sequence, voir l'en-tete
+   de rendu/commentaires-html.js. Le coup REGARDE EN CE MOMENT y recoit
+   donc automatiquement le meme orange que .arbre-courant dans la
+   Sequence, sans regle a part ici. */
+.etiquette-commentaire {
+  flex: 0 0 auto;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+/* Le tag "Occ pN oM"/"Ref pN oM" auto-calcule (rendu/commentaires-html.js,
+   interface/commentaires.js), separe du coup ET du commentaire ecrit a la
+   main — demande par saab, "coherent avec KAAWA" : le jaune que KAAWA
+   utilise pour un compteur Occ/Ref sous son seuil
+   (kaa_tab_manager_ClO_Co.py, "[color=FFD700]"). Le bleu du meme fichier
+   reste reserve au seuil de nulle atteint ailleurs dans KAAH (voir
+   .compteur-occurrences-seuil) : jamais deux signaux bleus differents. */
+.etiquette-occurrence-tag {
+  color: #ffd700;
+  font-size: 11px;
+}
+
+/* Seuil de nulle atteint sur CE tag (le compte TOTAL du groupe Occ ou Ref,
+   pas le rang affiche) : bleu plutot que jaune, meme convention que KAAWA
+   (kaa_tab_manager_ClO_Co.py, header_text, "[color=0080FF]") et que
+   .compteur-occurrences-seuil, deja utilisee ailleurs dans KAAH pour ce
+   meme signal — jamais un troisieme bleu different quelque part d'autre. */
+.etiquette-occurrence-tag-seuil {
+  color: #4aa8ff;
+}
+
+/* Une seule ligne par defaut ("deployer a la demande si texte long",
+   demande par saab) : `rows` (pose en JS, rendu/commentaires-html.js) fixe
+   1 ou 3, `resize` reste vertical pour un ajustement fin a la main en plus
+   du bouton +/-. */
+.texte-commentaire {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 2px 6px;
+  background: #2b2b2b;
+  color: #e4e4e4;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  font: 12px/1.3 sans-serif;
+  resize: vertical;
+}
+
+.texte-commentaire-deplie {
+  min-height: 48px;
+}
+
+/* Tableau des conseils (Coup, Gagne, Nul, Perdu — saab a demande cet ordre
+   precis : Nul avant Perdu, "qui montre plus une regression"), en colonnes
+   plutot qu'une simple ligne de texte (signale par saab). Une classe a
+   part de .ligne-liste (qui reste en flex pour Mes parties/Variantes) :
+   seul ce dialogue a besoin de colonnes alignees. */
+.ligne-conseil {
+  display: grid;
+  /* Un coup Nacre fait TOUJOURS 4 caracteres (ex. "a1d4") : 6ch suffit
+     largement, inutile de reserver 1fr (signale par saab, "la colonne
+     Coup est inutilement trop large"). */
+  grid-template-columns: 6ch repeat(3, 28px);
+  gap: 4px;
+  text-align: right;
+}
+
+.ligne-conseil-entete {
+  font-weight: bold;
+  color: #9a9a9a;
+  border-bottom: 1px solid #5a5a5a;
+}
+
+.ligne-conseil .ligne-liste-texte {
+  text-align: left;
+}
+
+/* Couleur du coup lui-meme : la meme que sa fleche sur le plateau (meme
+   signal, deux endroits — voir classeDominanceConseil,
+   interface/next-move.js). Les 3 colonnes de chiffres, elles, gardent
+   CHACUNE sa propre couleur fixe (signale par saab : "les G, P, N avec
+   leur propre couleur"), jamais celle de la dominance du coup. */
+.texte-conseil-victoire { color: #2ecc55; }
+.texte-conseil-defaite { color: #e04040; }
+.texte-conseil-nulle { color: #4aa8ff; }
+.texte-conseil-egalite { color: #9a9a9a; }
+
+.valeur-gagne { color: #2ecc55; font-variant-numeric: tabular-nums; }
+.valeur-nul { color: #4aa8ff; font-variant-numeric: tabular-nums; }
+.valeur-perdu { color: #e04040; font-variant-numeric: tabular-nums; }
+
+/* Fleches sur le plateau principal (rendu/conseils.js). `pointer-events:
+   none` : une fleche ne doit jamais voler un clic destine a la case ou a
+   la bille en dessous. Plus epaisses que les traits fins deja prevus pour
+   les sumitos/ejections (a venir) — signale par saab, comme dans KAAWA ;
+   doublees une seconde fois (1.6 -> 3.2, encore trop fines au premier
+   essai). Opaque par defaut (voir .fleche-conseil-translucide plus bas :
+   ce n'est que dans le contexte de "Tout afficher" qu'une fleche doit
+   s'attenuer). */
+.fleche-conseil {
+  pointer-events: none;
+  stroke-width: 3.2;
+}
+
+.fleche-conseil-dominante {
+  stroke-width: 5.2;
+}
+
+/* "Tout afficher" (interface/next-move.js) : toile de fond attenuee pour
+   laisser deviner les cases en dessous (signale par saab, en vue d'un
+   futur affichage des coordonnees) — sauf le coup qu'on vient de choisir,
+   dessine SANS cette classe, opaque, par-dessus les autres. */
+.fleche-conseil-translucide {
+  opacity: 0.35;
+}
+
+.fleche-conseil-victoire, .fleche-conseil-pointe-victoire { stroke: #2ecc55; fill: #2ecc55; }
+.fleche-conseil-defaite, .fleche-conseil-pointe-defaite { stroke: #e04040; fill: #e04040; }
+.fleche-conseil-nulle, .fleche-conseil-pointe-nulle { stroke: #4aa8ff; fill: #4aa8ff; }
+.fleche-conseil-egalite, .fleche-conseil-pointe-egalite { stroke: #9a9a9a; fill: #9a9a9a; }
+
+/* Fleches de menaces (phase 19, rendu/menaces.js) : les "traits fins ...
+   pour les sumitos/ejections" deja annonces dans le commentaire de
+   .fleche-conseil plus haut. Plus fines et plus translucides que les
+   fleches de Conseils : elles restent affichees en permanence tant que
+   le bouton "!?" est actif, sur potentiellement plusieurs poussees a la
+   fois — jamais aussi appuyees qu'une suggestion qu'on regarde seule. */
+.fleche-menace {
+  pointer-events: none;
+  stroke-width: 1.6;
+  opacity: 0.6;
+}
+
+/* Vert = poussee du camp AU TRAIT ("ami"), orange = poussee de l'AUTRE
+   camp ("ennemi") — code couleur de PLAN.md, memes verts/orange KAAWA
+   que .fleche-conseil-victoire et .arbre-courant ailleurs dans KAAH. */
+.fleche-menace-ami, .fleche-menace-pointe-ami { stroke: #2ecc55; fill: #2ecc55; }
+.fleche-menace-ennemi, .fleche-menace-pointe-ennemi { stroke: #cc6a00; fill: #cc6a00; }
+
+/* Rouge = cette poussee ejecte une bille, superposee a la fleche
+   ami/ennemi ci-dessus (voir rendu/menaces.js) — plus epaisse et plus
+   opaque si l'ejection donnerait la victoire immediate ("fin de partie",
+   PLAN.md), exactement comme la "grosse pointe" de KAAWA. */
+.fleche-menace-ejection, .fleche-menace-pointe-ejection { stroke: #e04040; fill: #e04040; }
+.fleche-menace-ejection {
+  stroke-width: 2.2;
+  opacity: 0.75;
+}
+
+.fleche-menace-ejection-fin, .fleche-menace-pointe-ejection-fin { stroke: #e04040; fill: #e04040; }
+.fleche-menace-ejection-fin {
+  stroke-width: 3.6;
+  opacity: 0.95;
+}
+
+/* Bandeau d'un puzzle en cours (phase 16, interface/puzzles.js) : l'objectif
+   puis le verdict, dans la colonne de droite pour ne prendre aucune hauteur
+   au plateau. Masque en permanence hors puzzle — `[hidden]` avec la MEME
+   specificite que la regle qui le peint, sans quoi il resterait affiche
+   quoi qu'il arrive (piege de specificite deja rencontre cinq fois ici). */
+#bandeau-puzzle {
+  /* Ne doit JAMAIS peser sur la largeur de sa colonne : `min-width: 0` le
+     laisse retrecir sous la taille de son texte, et le texte va alors a la
+     ligne au lieu de pousser. Sans les deux, une phrase de verdict un peu
+     longue elargissait la colonne et retrecissait le plateau (signale par
+     saab, en portrait) — or le plateau reste fixe toute la partie. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 4px 6px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 12px/1.3 sans-serif;
+  border-left: 1px solid #3a3a3a;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+#bandeau-puzzle[hidden] {
+  display: none;
+}
+
+/* Memes trois couleurs que partout ailleurs dans KAAH (vert = gagne, rouge
+   = perdu), pour que le verdict se lise sans avoir a lire. */
+.bandeau-puzzle-resolu { color: #2ecc55; }
+.bandeau-puzzle-perdu { color: #e04040; }
+
+/* L'objectif, a droite du nom dans la liste des puzzles : pousse au bout de
+   la ligne (flex, voir .ligne-liste) et un cran plus discret que le nom —
+   c'est un renseignement, pas le titre. */
+.objectif-puzzle {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 8px;
+  color: #9a9a9a;
+  white-space: nowrap;
+}
+
+#colonne-principale {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* peut retrecir si #arbre-panneau prend de la place a cote */
+  min-width: 0;
+}
+
+/* La colonne de droite : Sequence et Conseils EMPILES, jamais de part et
+   d'autre du plateau (voir index.html pour le pourquoi). Elle n'a aucune
+   largeur propre — ce sont ses deux panneaux qui la donnent, et elle tombe
+   donc a zero quand les deux sont replies, rendant toute la largeur au
+   plateau. */
+#colonne-droite {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 699px) {
+  /* Grid plutot que flex : #colonne-gauche (icones) et #colonne-principale
+     (plateau) cote a cote sur la meme ligne, #arbre-panneau en pleine
+     largeur en dessous, apparaissant/disparaissant tout seul selon qu'il
+     est visible ou masque (`display:none` sur un item de grid libere sa
+     ligne automatiquement, contrairement a un flex-item qu'il aurait
+     fallu gerer a la main) — corrige le plateau qui prenait avant toute
+     la largeur ET toute la hauteur (les boutons de #colonne-gauche
+     restaient invisibles), signale par saab. */
+  body {
+    display: grid;
+    /* 44px (pas 56 — saab : "diminuer la largeur") : le minimum tactile
+       de CLAUDE.md, jamais moins pour rester au doigt. Un repli complet
+       a une simple poignee a ete essaye puis abandonne (saab : "le
+       bouton fonctionne mal, certainement zone trop petite... le plateau
+       est assez grand avec des petites icones") — voir JOURNAL.md. */
+    /* `minmax(0, 1fr)` et NON `1fr` : un `1fr` nu vaut `minmax(auto, 1fr)`,
+       donc il s'elargit pour loger le contenu le plus large de la colonne —
+       une phrase un peu longue dans un panneau suffisait a pousser la
+       colonne, donc a retrecir le plateau (signale par saab sur le bandeau
+       des puzzles). Avec un minimum de 0, la colonne vaut exactement
+       "l'ecran moins les icones", quoi qu'on y mette : le plateau, dont la
+       largeur en decoule (voir #plateau plus bas), ne peut plus bouger de la
+       partie. C'est la protection generale, valable pour tout panneau
+       futur — pas un correctif pour le seul bandeau des puzzles. */
+    grid-template-columns: 44px minmax(0, 1fr);
+    /* Le plateau, de taille fixe (voir #plateau plus bas), laisse de la
+       hauteur en dessous : les deux panneaux (Conseils puis Sequence, voir
+       #colonne-droite) s'y rangent, sans jamais recouvrir le plateau. */
+    grid-template-areas: 'boutons plateau' 'boutons panneaux';
+    /* `auto 1fr` et non `auto auto` : la premiere ligne fait exactement la
+       hauteur du plateau (fixe, voir #plateau plus bas), la seconde prend
+       TOUT le reste — ni plus (les panneaux ne peuvent plus pousser la page
+       au-dela de l'ecran) ni moins. Une ligne vide ne coute rien : le
+       plateau, lui, ne grandit pas pour autant. */
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    /* La PAGE elle-meme ne doit jamais defiler sur telephone : chaque
+       panneau qui peut deborder (colonne d'icones, listes des panneaux
+       de droite) a deja son propre `overflow-y: auto` pour defiler SUR
+       LUI-MEME. Sans ce `overflow: hidden` ICI, un residu de quelques
+       dizaines de pixels reste scrollable au niveau de la page meme quand
+       #colonne-gauche gere deja tres bien son propre debordement en
+       interne (constate en mesurant `document.documentElement.
+       scrollHeight` : plus grand que `window.innerHeight` malgre un
+       `#colonne-gauche` par ailleurs correctement borne — un des ecueils
+       connus de CSS Grid avec un item qui couvre plusieurs lignes ET son
+       propre `overflow:auto`) : n'importe quel geste demarrant en dehors
+       d'un panneau a overflow propre pouvait alors faire defiler LA PAGE
+       ENTIERE, deplaçant plateau et panneaux avec elle (signale par saab :
+       "faire defiler les icones [faisait] bouger les autres fenetres"). */
+    overflow: hidden;
+  }
+
+  /* `min-height: 0` : MEME piege que #colonne-droite juste en dessous (et
+     deja documente ailleurs dans ce fichier) — sans lui, un element de
+     grid refuse de descendre sous la hauteur de son CONTENU. `boutons`
+     couvre les deux lignes de la grille (voir grid-template-areas
+     au-dessus), donc sans ce `min-height`, une colonne d'icones trop
+     longue pour l'ecran agrandissait la ligne entiere au lieu de defiler
+     sur elle-meme. `overscroll-behavior: contain` en plus : sans lui,
+     arriver en bout de liste transmet le geste de defilement plus loin
+     (ici sans effet puisque la page ne defile plus du tout, voir le
+     `overflow: hidden` de `body` juste au-dessus — garde de secours si ce
+     dernier venait a changer). */
+  #colonne-gauche {
+    display: flex;
+    flex-direction: column;
+    grid-area: boutons;
+    gap: 4px;
+    padding: 2px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #1a1a1a;
+  }
+
+  #colonne-principale {
+    grid-area: plateau;
+    min-width: 0;
+  }
+
+  /* `min-height: 0` : sans lui, un element de grid refuse de descendre sous
+     la taille de son contenu et les panneaux repousseraient le bas de la
+     page hors de l'ecran. Avec, ils se partagent exactement la ligne que la
+     grille leur donne, et ce sont leurs listes qui defilent. */
+  #colonne-droite {
+    grid-area: panneaux;
+    min-height: 0;
+  }
+
+  /* Encore au-dessus du `order: -1` de #panneau-conseils juste en dessous :
+     un embranchement en cours de choix est plus prioritaire que Conseils
+     si jamais les deux etaient ouverts a la fois (voir l'en-tete de
+     #panneau-embranchement, styles.css plus haut). */
+  #panneau-embranchement {
+    order: -2;
+  }
+
+  /* Sous le plateau, jamais par-dessus (voir l'en-tete de #panneau-conseils
+     plus haut) : c'est toute la raison d'etre du plafonnement du plateau a
+     un carre juste en dessous. `order` le fait passer AVANT la Sequence
+     dans la colonne, alors qu'il vient apres elle dans le HTML (ou c'est
+     l'ordre de l'ordinateur qui compte : Conseils sous la Sequence) —
+     ici, ce qui commente le plateau doit rester colle au plateau. */
+  #panneau-conseils {
+    order: -1;
+    flex: 0 1 auto;
+    min-height: 0;
+    border-top: 1px solid #3a3a3a;
+  }
+
+  /* Occurrences reste dans l'ordre naturel du HTML (apres Sequence et
+     Conseils) : une information secondaire, pas besoin de la coller au
+     plateau comme Conseils.
+     `flex: 1 1 auto` (pas juste `0 1 auto` comme les deux autres
+     panneaux) : CE panneau-ci absorbe tout ce que Sequence/Commentaires
+     et Conseils laissent de libre dans la colonne — sans ca, un plafond
+     fixe (`max-height`) le laissait plus petit que l'espace vraiment
+     disponible des que les panneaux au-dessus etaient courts, ouvrant un
+     VIDE entre eux et lui (signale par saab : "le Occurrence doit coller
+     a Sequence/Commentaire ... sinon il y a un vide entre les 2"). Aucun
+     plafond ici non plus (saab : "ne pas mettre de limite") : au-dela de
+     cet espace libre, seule la poignee (interface/occurrences.js,
+     activerRedimensionnementOccurrencesPortrait) peut l'agrandir encore,
+     en reduisant Sequence/Commentaires a la place. */
+  #panneau-occurrences {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-top: 1px solid #3a3a3a;
+  }
+
+  /* EN PORTRAIT, LA LARGEUR COMMANDE : le plateau prend toute la largeur
+     que lui laisse la colonne d'icones, et sa hauteur s'en deduit par sa
+     proportion (rendu/plateau-svg.js). Il ne peut donc plus ni s'etirer ni
+     se tasser selon le nombre de lignes des Conseils ou de la Sequence —
+     la demande exacte de saab, "fixer le plateau ... en portrait il prend
+     toute la largeur (moins colonne icones)". */
+  #plateau {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    max-width: 100%; /* la poignee ci-dessous peut demander plus que la largeur ne permet, voir interface/sequence.js */
+    /* SANS CA, la poignee de hauteur (phase 18) n'avait aucun effet : en
+       flex, `align-items: stretch` (herite de #colonne-principale) etire
+       un enfant `width:auto` a 100% du conteneur QUEL QUE SOIT
+       l'aspect-ratio, au lieu de laisser celui-ci deduire la largeur de la
+       hauteur explicite qu'on vient de poser. Sans consequence a
+       width:100% (l'etat normal, non redimensionne) : centrer un element
+       deja plein-largeur ne change rien a l'oeil. */
+    align-self: center;
+  }
+
+  /* Poignee de hauteur du plateau (phase 18) : exception assumee a "le
+     plateau garde sa taille maximale", demandee par saab lui-meme pour
+     voir plusieurs lignes de Commentaires a la fois — jamais pendant une
+     partie en cours. `#etat-sauvegarde`/`#plateau`/cette poignee sont tous
+     enfants directs de #colonne-principale (flex column, voir plus haut) :
+     la reduire libere mecaniquement de la hauteur pour la ligne de grille
+     suivante, sans toucher a `grid-template-rows`. */
+  /* BUG TROUVE (saab, en test reel sur telephone : "les poignees en
+     portrait ne fonctionnent pas") : 14px de haut, c'est bien EN DESSOUS
+     du minimum tactile de 44px (CLAUDE.md) — un doigt rate cette bande
+     bien plus souvent qu'il ne la touche, ce qui pouvait donner
+     l'impression d'une poignee cassee plutot que juste trop fine a
+     saisir. `padding` (compte dans le hit-test de l'element, donc dans la
+     zone que `poignee.addEventListener('pointerdown', ...)` recoit,
+     interface/sequence.js) elargit la zone de PRISE a 44px sans agrandir
+     le TRAIT VISIBLE (`background-clip: content-box` ne peint que les
+     14px du milieu) — exception assumee a "le plateau garde sa taille
+     maximale" (deja acceptee pour cette poignee elle-meme, phase 18) :
+     44px de haut pour une poignee reste moins cher que la moitie du
+     panneau qu'elle sert a redimensionner. */
+  #plateau-poignee-hauteur {
+    display: block;
+    flex: 0 0 auto;
+    height: 14px;
+    padding: 15px 0;
+    box-sizing: content-box;
+    margin-top: 2px;
+    border-radius: 3px;
+    background: #3a3a3a;
+    background-clip: content-box;
+    cursor: ns-resize;
+    touch-action: none; /* le glisser ne doit pas aussi faire defiler la page */
+  }
+
+  /* Poignee de hauteur MAXIMALE d'Occurrences (phase 18, correctif) : meme
+     style que #plateau-poignee-hauteur juste au-dessus (zone de prise a
+     44px, meme raison), mais EN HAUT du panneau qu'elle controle (dernier
+     de la colonne, voir index.html) — voir interface/occurrences.js pour
+     le detail et pourquoi. */
+  #occurrences-poignee-hauteur {
+    display: block;
+    flex: 0 0 auto;
+    height: 14px;
+    padding: 15px 0;
+    box-sizing: content-box;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    background: #3a3a3a;
+    background-clip: content-box;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+}
+
+@media (min-width: 700px) {
+  body {
+    display: flex;
+    flex-direction: row;
+  }
+
+  /* Poignee de hauteur du plateau (phase 18) : n'existe qu'EN PORTRAIT
+     TELEPHONE (voir la media query max-width, display:block) — aucun sens
+     ici, ou c'est deja la hauteur de l'ECRAN qui commande la taille du
+     plateau. Declaree ICI, jamais en regle inconditionnelle : deux regles
+     `display` de meme specificite pour le meme selecteur se departagent
+     par ordre d'apparition dans le fichier plutot que par leur condition —
+     piege deja rencontre plusieurs fois dans ce projet (voir la note en
+     tete de fichier). */
+  #plateau-poignee-hauteur {
+    display: none;
+  }
+
+  /* Meme raison que #plateau-poignee-hauteur juste au-dessus : n'existe
+     qu'en portrait telephone, voir interface/occurrences.js. */
+  #occurrences-poignee-hauteur {
+    display: none;
+  }
+
+  #colonne-principale {
+    /* Largeur par defaut confortable plutot qu'une croissance sans
+       limite : au-dela, c'est #colonne-gauche qui absorbe l'espace en
+       trop (voir plus haut), pas le plateau qui grossit demesurement.
+       `flex:1 1 auto` le laisse quand meme grandir jusque-la sur un
+       ecran de taille normale, et retrecir sans probleme sur un ecran
+       plus etroit (700-900px) ou #colonne-gauche n'a de toute facon rien
+       a absorber. */
+    flex: 1 1 auto;
+    max-width: 900px;
+    /* Le plateau ne fait plus toute la largeur de la colonne (sa largeur se
+       deduit de sa hauteur, voir #plateau juste en dessous) : sans ca il
+       resterait colle a gauche, avec tout le vide d'un seul cote. */
+    align-items: center;
+  }
+
+  /* EN PAYSAGE, LA HAUTEUR COMMANDE — symetrique du portrait : le plateau
+     prend toute la hauteur de l'ecran et sa largeur s'en deduit (saab, "en
+     paysage toute la hauteur"). C'est ce qui permet de sortir la barre de
+     titre de cette colonne (interface/disposition.js l'envoie en haut a
+     droite) : chaque pixel de hauteur rendu ici agrandit vraiment le
+     plateau. `max-width: 100%` pour le cas inverse, un ecran plus haut que
+     large ou c'est la largeur qui manque : la proportion tient alors par la
+     largeur, et la hauteur suit. */
+  #plateau {
+    flex: 0 0 auto;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+  }
+
+  /* La colonne est une bande d'icones ici aussi desormais (voir plus haut) :
+     une largeur figee, la meme qu'en portrait, plutot qu'une largeur "au
+     contenu" qui varierait avec les icones. Les boutons gardent leurs 36px
+     de haut : cette media query couvre aussi le TELEPHONE COUCHE, ou c'est
+     un doigt qui vise, pas une souris. */
+  #colonne-gauche {
+    /* `border-box` : sans lui, les 4px de padding s'ajoutent aux 44 et la
+       bande en fait 52 — la colonne doit mesurer exactement la meme chose
+       qu'en portrait, ou c'est une piste de grille de 44px. */
+    box-sizing: border-box;
+    flex: 0 0 44px;
+  }
+
+  /* `flex: 0 0 auto` et AUCUNE largeur a elle : la colonne ne mesure que ce
+     que ses deux panneaux mesurent (voir leurs largeurs juste en dessous),
+     et tombe donc a zero des que les deux sont replies — toute la largeur
+     revient alors au plateau. `align-self` pour qu'elle ne s'etire pas sur
+     toute la hauteur pour rien. */
+  /* En haut de la colonne de droite sur ordinateur (interface/disposition.js
+     l'y monte), plus au-dessus du plateau ou il lui volait de la hauteur.
+     `width` FIXE et etroit, jamais `auto` : le nom complet d'une partie
+     KAAWA fait facilement 400 caracteres, et une largeur "au contenu"
+     elargirait toute la colonne — donc retrecirait le plateau, exactement ce
+     qu'on cherche a eviter. Il est donc tronque avec "…", son texte entier
+     restant lisible au survol (attribut `title`, voir index.html) ; le
+     `min-width: 100%` le laisse quand meme s'etirer a la largeur de la
+     Sequence quand elle est ouverte en dessous. */
+  #etat-sauvegarde,
+  #bandeau-puzzle {
+    box-sizing: border-box;
+    width: 180px;
+    min-width: 100%;
+  }
+
+  #etat-sauvegarde {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 1px solid #3a3a3a;
+    border-bottom: 1px solid #3a3a3a;
+  }
+
+  #colonne-droite {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    max-height: 100vh;
+    /* Reste collee au bord droit meme quand il reste de la place libre
+       (plateau deja a sa largeur maximale de 900px, voir
+       #colonne-principale) : sans ca, l'espace en trop se poserait APRES
+       elle et la decollerait du bord. */
+    margin-left: auto;
+  }
+
+  /* SOUS la Sequence, dans la meme colonne de droite — jamais a gauche du
+     plateau, qui y perdait de la largeur alors qu'il restait de la place
+     libre a droite (saab). Pas de largeur propre : il s'etire a celle de la
+     colonne, que la Sequence fixe quand elle est ouverte ; `min-width` ne
+     sert que pour le cas ou il est seul. */
+  #panneau-conseils {
+    flex: 0 1 auto;
+    min-width: 176px;
+    max-height: 50vh;
+    /* Les bordures vivent sur les panneaux, jamais sur #colonne-droite :
+       celle-ci mesure zero quand les deux sont replies, et un filet de 1px
+       resterait sinon a l'ecran sans rien border. */
+    border-top: 1px solid #3a3a3a;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  /* Meme traitement que #panneau-conseils juste au-dessus, troisieme
+     panneau de la colonne. */
+  #panneau-occurrences {
+    flex: 0 1 auto;
+    min-width: 176px;
+    max-height: 40vh;
+    border-top: 1px solid #3a3a3a;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  /* Sur ordinateur, la sequence RESTE masquable (saab : "penser a
+     rajouter le bouton Sequence aussi sur pc et tel paysage, ca peut
+     servir" — pour liberer toute la largeur au plateau quand on regarde
+     les fleches de "Tout afficher", par exemple). `#arbre-panneau[hidden]`
+     doit donc vraiment passer a `display:none` ici aussi — jamais force a
+     `display:flex` comme avant. */
+  #arbre-panneau {
+    display: flex;
+    /* 330px : la grille a 10 colonnes (.arbre-lignes) resserree fait 321px
+       avec le padding d'#arbre — elle tenait avant en 400px, largeur que
+       saab a demande de rendre au plateau ("reduis les espaces inutiles
+       dans certaines colonnes du tableau"). `width`, et non plus
+       `flex-basis` : ce panneau n'est plus un enfant direct de `body` mais
+       de #colonne-droite, une colonne — un flex-basis y reglerait sa
+       HAUTEUR. La variable, elle, est posee sur la racine par la poignee de
+       largeur (interface/sequence.js) : une variable plutot qu'un
+       `style.width` direct, pour qu'une largeur choisie sur ordinateur ne
+       vienne pas figer le panneau en passant en portrait, ou il doit
+       reprendre toute la largeur de l'ecran. */
+    width: var(--largeur-sequence, 330px);
+    min-width: 0; /* sinon un texte non coupable (l'en-tete, une longue position compressee) elargit le panneau au-dela de sa largeur fixe */
+    /* La moitie de l'ecran par defaut (pas toute la hauteur, comme avant) :
+       laisse de la place pour de futures pages en dessous (menaces phase
+       19, notes phase 26...) — #arbre-poignee-hauteur, ci-dessous, permet
+       de l'ajuster a la main. */
+    height: 50vh;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  /* `[hidden]` (specificite ID+attribut) l'emporte sur la regle ci-dessus
+     (specificite ID seule) quel que soit l'ordre du fichier — meme
+     technique que #arbre-panneau[hidden] en telephone plus haut. */
+  #arbre-panneau[hidden] {
+    display: none;
+  }
+
+  /* AUCUNE regle pour #bouton-sequence ici, et c'est voulu : il vit en
+     PERMANENCE dans la colonne de gauche (index.html), ordinateur comme
+     telephone — il prend donc deja exactement l'habillage de ses voisins
+     (`#boutons-sauvegarde button`, plus haut), meme taille, meme couleur,
+     meme groupe que Commentaires/Occurrences. Deux essais precedents (le
+     bouton par defaut du navigateur au bas de #navigation, puis un
+     bouton habille a la main en 88x44 sous le plateau) avaient chacun
+     leur defaut : invisible pour le premier (saab, "je ne vois presque
+     pas le btn Sequence sur telephone paysage en plein ecran"), une bande
+     de 52px prise au plateau pour le second — d'ou le regroupement
+     definitif dans la colonne d'icones (correctif de disposition,
+     phase 18). */
+
+  /* Poignee de hauteur (interface/sequence.js,
+     activerRedimensionnementHauteur) : seulement utile sur ordinateur, ou
+     la sequence n'occupe qu'une partie de la hauteur. */
+  #arbre-poignee-hauteur {
+    display: block;
+    flex: 0 0 auto;
+    height: 10px;
+    cursor: ns-resize;
+    background: #3a3a3a;
+    touch-action: none; /* le glisser ne doit pas aussi faire defiler la page sur un ecran tactile */
+  }
+
+  /* Poignee de largeur (interface/sequence.js,
+     activerRedimensionnementLargeur) : a cheval sur la bordure gauche du
+     panneau (`left: -4px` sur une bordure a 0, voir plus bas) pour une
+     zone de prise confortable sans deplacer visuellement rien d'autre.
+     Invisible par defaut (fond transparent) : seul le curseur ew-resize la
+     revele avant de la saisir, un trait vertical permanent alourdirait la
+     bordure existante pour rien. */
+  #arbre-poignee-largeur {
+    display: block;
+  }
+
+  #arbre-poignee-largeur:hover,
+  #arbre-poignee-largeur:active {
+    background: #3a3a3a;
+  }
+}
+
+/* Confirmation de la sauvegarde automatique (voir index.html,
+   actualiserEtatSauvegarde). Discrete (petit, gris) : une confirmation de
+   routine. Le tour, le camp au trait et le resultat de fin de partie —
+   qui vivaient avant dans un #statut separe, retire a la demande de saab
+   pour rendre cette hauteur au plateau — s'affichent desormais DANS le
+   plateau lui-meme, voir rendu/ejections.js. */
+#etat-sauvegarde {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  background: #1a1a1a;
+  color: #888;
+  font: 11px sans-serif;
+  text-align: center;
+}
+
+#etat-sauvegarde.etat-sauvegarde-erreur {
+  color: #e0a040; /* orange, alerte douce : rien n'est perdu (la partie continue), juste pas enregistre */
+}
+
+/* La TAILLE du plateau se declare entierement dans chacune des deux media
+   queries (largeur imposee en portrait, hauteur imposee en paysage), jamais
+   ici : une regle sans condition, placee plus bas dans le fichier, gagnerait
+   sur les deux — c'est exactement ce qui se passait avant (`flex: 1 1 auto`
+   ecrit ici annulait le `flex: 0 1 auto` de la media query telephone, d'ou
+   un plateau qui prenait toute la hauteur laissee libre et rebondissait des
+   qu'un panneau changeait de taille).
+   Sa PROPORTION, elle, est posee une fois pour toutes par
+   rendu/plateau-svg.js (fixerProportionsPlateau) : c'est elle qui deduit la
+   seconde dimension de la premiere, et qui rend le plateau insensible a
+   tout ce qui l'entoure. */
+#plateau {
+  min-height: 0; /* sans quoi la hauteur disponible est ignoree en SVG */
+}
+
+
+/* Barre de navigation dans l'historique (phase 9). Sur telephone, reste
+   au bas de #colonne-principale (regle CLAUDE.md, "les onglets ... en bas
+   de l'ecran sur telephone" — la ou le pouce arrive). Sur ordinateur,
+   interface/disposition.js la deplace au bas d'#arbre-panneau : meme
+   element, memes ecouteurs de clic, juste un autre parent — voir ce
+   fichier. Aucune regle CSS specifique a l'un ou l'autre parent : les
+   deux sont des colonnes flex, elle s'y comporte pareil. */
+#navigation {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap; /* 5 boutons peuvent depasser la largeur d'un telephone etroit */
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  background: #1a1a1a;
+}
+
+/* Seule la taille change entre telephone et ordinateur (chacune dans sa
+   propre media query plus bas, jamais ici — meme discipline que partout
+   ailleurs dans ce fichier) : le reste est identique quel que soit le
+   parent d'#navigation (voir interface/disposition.js). */
+#navigation button {
+  padding: 0 4px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+}
+
+#navigation button:disabled {
+  opacity: 0.35; /* deja au debut ou a la fin : visible sans avoir a cliquer pour le savoir */
+}
+
+@media (max-width: 699px) {
+  #navigation button {
+    min-width: 44px; /* regle des 44 px, CLAUDE.md : precision du doigt, pas de la souris */
+    /* DEROGATION ASSUMEE a la regle des 44px de CLAUDE.md, et seulement sur
+       la HAUTEUR : saab l'a demandee explicitement ("penser a reduire la
+       hauteur des btn de la barre de Navigation"). La largeur reste a 44px,
+       et c'est elle qui compte le plus ici — les six boutons sont cote a
+       cote sur une seule rangee, un doigt rate un voisin bien plus
+       facilement qu'il ne rate la rangee entiere. A remonter a 44 si saab
+       trouve la barre moins confortable a l'usage. */
+    min-height: 38px;
+    /* Police reduite (16 -> 13px, saab : "essaye de reduire la largeur
+       pour qu'ils tiennent sur une ligne") : la HAUTEUR minimale de 44px
+       reste, seul le texte ("Annuler"...) devient plus etroit, assez
+       pour eviter le retour a la ligne des 5 boutons. */
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 700px) {
+  #navigation button {
+    /* La regle des 44px (CLAUDE.md) vise le confort du doigt sur
+       telephone ; a la souris, plus petit suffit et laisse plus de place
+       a la sequence, sous laquelle ce bandeau vit desormais sur
+       ordinateur (signale par saab, "optimiser le plus d'info en
+       hauteur"). */
+    min-width: 28px;
+    min-height: 24px;
+    font-size: 12px;
+  }
+}
+
+/* Barre laterale Sequence (phase 9 -> 11 : l'arbre des coups). Colonne a
+   elle seule : #arbre-entete reste fixe en haut (comme le bouton
+   "[ POS. START ]" de KAAWA, toujours visible meme en defilant), #arbre
+   defile tout seul. Repliee par defaut sur telephone (attribut `hidden`)
+   pour laisser toute la place au plateau. */
+/* Seulement les proprietes IDENTIQUES sur telephone et sur ordinateur :
+   flex, max-height et border-top/border-left sont chacune reservees a
+   une seule des deux media queries (telephone ci-dessous, ordinateur plus
+   haut) — jamais ici, voir la note plus haut sur pourquoi les melanger
+   avait annule des correctifs precedents. */
+#arbre-panneau {
+  display: flex;
+  flex-direction: column;
+  position: relative; /* ancre #arbre-poignee-largeur, positionnee en absolu sur sa bordure gauche */
+  background: #1a1a1a;
+  color: #e4e4e4;
+  /* Interligne resserre (1.4 -> 1.15, saab : "optimiser le plus d'info en
+     hauteur") : chaque coup de la sequence prend un peu moins de place,
+     plus de coups tiennent sans defiler. */
+  font: 14px/1.15 sans-serif;
+}
+
+@media (max-width: 699px) {
+  /* `flex: 0 1 auto` (plus `1 1 auto` comme avant) : ce panneau ne prend
+     QUE ce que son propre contenu demande (et defile si ca depasse),
+     jamais plus — c'est desormais #panneau-occurrences, tout en bas de la
+     colonne, qui absorbe l'espace libre restant (voir plus bas). Avec
+     flex-grow ici, ce panneau s'etirait pour rien des que son contenu
+     etait court, repoussant Occurrences plus bas et ouvrant un vide entre
+     les deux (signale par saab). Une hauteur choisie a la main par sa
+     PROPRE poignee (interface/occurrences.js,
+     activerRedimensionnementOccurrencesPortrait, qui reduit CE panneau
+     pour agrandir Occurrences) reste bien sur possible : flex-basis
+     `auto` respecte un `style.height` pose en ligne, flex-shrink continue
+     de s'appliquer si la colonne manque quand meme de place. */
+  #arbre-panneau {
+    flex: 0 1 auto;
+    min-height: 0;
+    border-top: 1px solid #3a3a3a;
+  }
+
+  /* BUG LATENT trouve en construisant cette meme media query (le plateau
+     prenait avant toute la hauteur disponible, masquant sans le vouloir
+     ce meme defaut) : la regle non conditionnelle #arbre-panneau plus bas
+     fixe `display:flex` avec une specificite d'ID (1 ID), superieure a
+     celle de `[hidden] { display:none }` du navigateur (1 attribut) — le
+     panneau restait donc TOUJOURS affiche sur telephone, `hidden` ou pas,
+     juste ecrase a une hauteur quasi nulle par l'ancienne disposition en
+     flex. Il faut au moins la MEME specificite (ID + attribut) pour
+     gagner face a la regle non conditionnelle, quel que soit l'ordre des
+     regles dans le fichier — meme technique que .nom-joueur-noir.au-trait
+     .nom-en-danger plus haut. */
+  #arbre-panneau[hidden] {
+    display: none;
+  }
+}
+
+#arbre-entete {
+  flex: 0 0 auto;
+  padding: 6px; /* horizontal reduit de 10 a 6 (saab) : la grille en dessous a peu de marge a 400px de large */
+  font-weight: bold;
+  border-bottom: 1px solid #3a3a3a;
+  cursor: pointer;
+  /* Une ligne, tronquee avec "…" (saab : "ne pas passer sur 2 [lignes],
+     il suffit de tronquer la fin") plutot que de laisser une position
+     compressee tres longue elargir le panneau ou passer sur plusieurs
+     lignes — le texte complet reste disponible via `title` (voir
+     interface/sequence.js), au survol sur ordinateur. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#arbre {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  /* Filet de secours pour #arbre-poignee-largeur : la grille a 10 colonnes
+     (.arbre-lignes) fait ~388px de large, mais rien n'empeche saab de
+     reduire le panneau en dessous a la main — dans ce cas, un defilement
+     horizontal LOCAL a la liste vaut mieux qu'un debordement visuel. */
+  overflow-x: auto;
+  padding: 6px 4px; /* reduit une seconde fois (8/6 -> 6/4) avec les colonnes elles-memes */
+}
+
+/* Cachees sur telephone (la sequence y prend deja toute sa place possible,
+   max-height:35vh, rien a redimensionner a la main), visibles sur
+   ordinateur (voir la media query plus haut, qui les met a `display:
+   block`) — DANS LEUR PROPRE media query, jamais en regle inconditionnelle :
+   c'est exactement le piege deja documente plus haut (une regle sans
+   condition, plus bas dans le fichier, gagne quelle que soit la media
+   query qui entoure l'autre declaration de la meme propriete). Trouve en
+   testant la poignee de hauteur elle-meme : invisible sur ordinateur
+   malgre le `display: block` de la media query, pour cette raison precise
+   — la poignee de largeur, ajoutee plus tard, suit direct le meme moule. */
+@media (max-width: 699px) {
+  #arbre-poignee-hauteur,
+  #arbre-poignee-largeur {
+    display: none;
+  }
+}
+
+/* Poignee de largeur (interface/sequence.js,
+   activerRedimensionnementLargeur) : a cheval sur la bordure gauche du
+   panneau (voir #arbre-panneau, position:relative) pour une zone de prise
+   confortable sans rien deplacer visuellement ; `display` lui-meme est
+   regle par les deux media queries ci-dessus/ci-dessous, jamais ici (meme
+   piege que partout ailleurs dans ce fichier). */
+#arbre-poignee-largeur {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 8px;
+  cursor: ew-resize;
+  touch-action: none; /* le glisser ne doit pas aussi faire defiler la page sur un ecran tactile */
+}
+
+/* Grille a 10 colonnes fixes : [repli, numero, coup, suffixes, ✕] pour
+   Noir, les 5 memes pour Blanc. Chaque ligne de l'arbre fournit exactement
+   ces 10 elements (voir rendu/arbre-html.js, ajouterSegment) : un element
+   absent (pas de repli, pas de ✕...) reste quand meme present mais
+   invisible (`.invisible`), jamais omis — sinon les colonnes suivantes se
+   decalent d'une ligne a l'autre (signale par saab). Memes raisons pour
+   l'absence totale d'indentation par profondeur (un premier essai
+   imbriquait un niveau par tour, ce qui finissait par sortir de l'ecran) :
+   la profondeur se lit dans le numero de tour, une branche dans sa
+   couleur et son icone (●/○). La colonne "suffixes" est volontairement
+   plus etroite que la date qu'elle affiche parfois (voir .arbre-suffixes
+   plus bas) : la date y passe sur deux lignes, ce que (eject)/[fin], plus
+   courts, n'ont pas besoin de faire. */
+.arbre-lignes {
+  display: grid;
+  /* La colonne coup NE PEUT PAS etre juste "auto" (essaye, puis annule) :
+     .arbre-noeud a `overflow-wrap: anywhere` (utile pour ne jamais faire
+     deborder le panneau, voir plus bas), ce qui rend son min-content
+     minuscule (le texte peut se couper n'importe ou) — une colonne "auto"
+     se base sur ce min-content et s'effondrait, forcant CHAQUE coup sur
+     4 ou 5 lignes au lieu d'une. 70px est mesure sur le plus long texte
+     reel (icone de branche + prefixe blanc + coordonnees, ex. "○ -h9h8") :
+     large plutot que juste, un chiffre pile ajuste re-cassera au moindre
+     coup plus long. Les colonnes repli/suppression sont a 22px tout rond,
+     la taille min-width des boutons eux-memes (voir plus bas) : un
+     chiffre plus petit ferait deborder le bouton de sa colonne, une
+     colonne figee ne s'elargit pas pour un contenu qui deborde.
+
+     Resserrees d'un cran (22/24/70/40 -> 18/20/62/34, soit 365px -> 321px)
+     a la demande de saab : "reduis les espaces inutiles dans certaines
+     colonnes du tableau", pour rendre la difference au plateau. Les 62px de
+     la colonne coup restent mesures sur le plus long texte reel ci-dessus,
+     avec de la marge ; les 18px des colonnes repli/suppression restent
+     egaux au min-width des boutons eux-memes, pour la meme raison qu'avant. */
+  grid-template-columns: 18px 20px 62px 34px 18px 18px 20px 62px 34px 18px;
+  align-items: center;
+  /* Reduit de 2 a 1px (saab : "essaye de reduire un peu la largeur [sur
+     telephone], joue sur les espaces entre les colonnes") — les largeurs
+     de colonnes elles-memes restent figees, deja mesurees au plus juste
+     (voir le commentaire au-dessus). */
+  column-gap: 1px;
+  row-gap: 1px;
+}
+
+/* min-height reduit de 28 a 20px (saab : "optimiser le plus d'info en
+   hauteur") : la precision de la souris n'a pas besoin de la regle des
+   44px de CLAUDE.md, reservee au doigt sur telephone — ce panneau n'existe
+   de toute facon que sur ordinateur. */
+.arbre-repli,
+.arbre-supprimer {
+  min-width: 18px; /* egal a leur colonne dans .arbre-lignes, voir plus haut */
+  min-height: 20px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.arbre-repli {
+  color: #e4e4e4;
+}
+
+.arbre-supprimer {
+  color: #a33;
+  font-size: 13px;
+}
+
+/* Garde sa place dans la grille (voir l'en-tete du fichier) sans se voir
+   ni reagir au clic. */
+.invisible {
+  visibility: hidden;
+  cursor: default;
+}
+
+.arbre-numero {
+  color: #888;
+  font-size: 13px;
+}
+
+.arbre-noeud {
+  cursor: pointer;
+  padding: 0 3px; /* vertical retire (saab : "optimiser le plus d'info en hauteur") ; horizontal resserre de 6 a 3 avec la colonne */
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+  /* Alignee sur la taille d'.arbre-suffixes (saab : "diminuer la taille
+     des coordonnees pour etre comme celle de eject/date") — heritait avant
+     des 14px de base d'#arbre-panneau. */
+  font-size: 11px;
+}
+
+/* Ejection " (b-w)", fin de partie " [N]"/"[T]" et date de creation d'une
+   feuille (format KAAWA AAMMJJHHMM, voir interface/sequence.js) : une
+   seule colonne, presente meme vide (voir rendu.creerSuffixes /
+   creerSuffixesVide). La date, la plus longue des trois, y passe sur deux
+   lignes (colonne volontairement etroite, voir .arbre-lignes plus haut). */
+.arbre-suffixes {
+  color: #999;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+/* Quatre couleurs, meme principe et meme ordre de priorite que l'onglet
+   Sequence de KAAWA (_render_tree_recursive) : le noeud courant l'emporte
+   sur tout le reste, puis l'origine (la partie REELLEMENT jouee), puis le
+   chemin qui y mene, une branche d'exploration sinon. */
+.arbre-courant {
+  background: #cc6a00; /* orange KAAWA */
+  color: #0a0a0a;
+  font-weight: bold;
+}
+
+.arbre-origine {
+  color: #2ecc55; /* vert KAAWA : la ligne reellement jouee */
+  font-weight: bold;
+}
+
+.arbre-chemin {
+  color: #e4e4e4; /* blanc KAAWA : menage vers le noeud courant */
+}
+
+.arbre-branche {
+  color: #b070e0; /* violet KAAWA : une branche d'exploration quelconque */
+}
+
+#arbre-entete.arbre-courant {
+  background: #cc6a00;
+  color: #0a0a0a;
+}
+
+.case {
+  fill: #8a8a8a;
+  stroke: #5a5a5a;
+  stroke-width: 0.5;
+}
+
+/* Grand cercle de case du plateau PRINCIPAL seulement (phase 19ter,
+   rendu/relief-plateau.js pose cette classe EN PLUS de .case, jamais sur
+   les apercus qui n'appellent pas cette fonction). CORRIGE (saab : "le
+   ratio des cases vides doit etre de 0.5 par rapport aux billes... ca
+   cache les triangles") : ce grand cercle RESTE la vraie zone tactile
+   (44px, CLAUDE.md) et le support de .case-possible/.case-selectionnee
+   ci-dessous, mais devient TRANSPARENT au repos — le petit trou visuel
+   (.case-dimple, plus bas, bien plus petit) le remplace a l'oeil, laissant
+   voir le relief triangulaire autour. Declaree ici, AVANT .case-possible
+   et .case-selectionnee : meme specificite qu'elles, l'ordre du fichier
+   leur laisse le dernier mot sans y toucher. */
+.case-relief {
+  fill: transparent;
+  stroke: none;
+  /* Sans ca, un cercle a fill/stroke transparents ne recoit plus AUCUN
+     clic (SVG, pointer-events par defaut : visiblePainted, qui exige un
+     remplissage ou un contour peint) — casserait le clic sur toute case
+     vide du plateau principal. */
+  pointer-events: all;
+}
+
+/* Case surlignee par interface/saisie.js : une destination possible pour
+   la bille selectionnee. Declaree apres .case pour l'emporter (meme
+   specificite CSS, l'ordre du fichier tranche). */
+.case-possible {
+  cursor: pointer;
+}
+
+/* Case de la bille selectionnee (rendu/selection.js) : un anneau, jamais
+   un remplissage — sa propre couleur de case reste visible dessous,
+   contrairement a .case-possible. Meme orange cuivre que KAAWA
+   (BG_COLOR, kaa_constants_ClO_Co.py : rgb(200, 127, 50)). Declaree apres
+   .case pour l'emporter (meme specificite, l'ordre du fichier tranche —
+   comme .case-possible juste au-dessus). */
+.case-selectionnee {
+  stroke: #c87f32;
+  stroke-width: 1.6;
+}
+
+.bille-cercle {
+  stroke: #000;
+  stroke-width: 0.5;
+  cursor: pointer;
+}
+
+/* Le glissement d'une bille : rendu/animation.js se contente de changer
+   style.transform, c'est cette transition qui fait qu'on la voit bouger
+   au lieu de sauter. Duree a garder synchronisee avec DUREE_ANIMATION_MS
+   dans animation.js (le delai avant de retirer une bille ejectee du DOM). */
+.bille {
+  transition: transform 300ms ease-out;
+}
+
+.bille-noir .bille-cercle {
+  fill: #1f1f1f;
+}
+
+.bille-blanc .bille-cercle {
+  fill: #e4e4e4;
+}
+
+/* Aspect visuel du plateau PRINCIPAL, phase 19ter (rendu/relief-plateau.js) —
+   jamais sur les apercus, qui n'appellent pas dessinerReliefPlateau. Fond
+   hexagonal derriere les cases : sa propre ombre portee, un contour
+   discret. */
+.fond-plateau {
+  fill: #828282;
+  filter: url(#ombre-fond-plateau);
+}
+
+/* Trou perfore au centre de chaque case (phase 19ter, rendu/relief-plateau.js) :
+   la PAROI (l'anneau, degrade sombre en haut-gauche, clair en bas-droite) puis
+   le FOND, un cercle plus petit en #5A5A5A qui prend l'ombre de la paroi
+   (filtre ombre-fond-trou). Jamais cliquables : le grand cercle transparent
+   en dessous (.case-relief) recoit les clics. */
+.case-dimple {
+  fill: url(#degrade-paroi-trou);
+  pointer-events: none;
+}
+
+.case-fond-trou {
+  fill: #5a5a5a;
+  filter: url(#ombre-fond-trou);
+  pointer-events: none;
+}
+
+/* Relief ENTRE les cases (rendu/relief-cylindres.js) : un cylindre biseaute
+   par triangle. Les 3 faces biseautees portent leur gris en attribut (il
+   depend de leur orientation) ; ici le dessus plat, aux coins arrondis, et
+   un fin contour de cylindre. Une seule ombre portee sur tout le groupe. */
+.relief-cylindres {
+  filter: url(#ombre-relief-plateau);
+}
+
+.relief-dessus {
+  fill: #8c8c8c;
+}
+
+.relief-contour {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: 0.25;
+  stroke-width: 0.2;
+}
+
+/* Billes du plateau PRINCIPAL uniquement : degrade radial (effet glace,
+   eclairage haut-gauche comme le reste du plateau) et ombre portee.
+   Selecteur ANCESTRE sur #plateau, jamais une classe posee sur chaque
+   bille : couvre aussi bien les billes de depart que celles qui
+   reapparaissent plus tard (annuler un coup, rendu/plateau-svg.js,
+   synchroniserBilles), sans jamais avoir besoin d'y repenser. Specificite
+   volontairement plus forte que .bille-noir/.bille-blanc .bille-cercle
+   (un ID en plus) : l'emporte sans dependre de l'ordre du fichier. */
+#plateau .bille {
+  filter: url(#ombre-bille-plateau);
+}
+
+/* Contour fin et gris (#646464), pas le trait noir epais des apercus : un
+   trait noir ne fait pas realiste sur une bille glacee (signale par saab). */
+#plateau .bille-cercle {
+  stroke: #646464;
+  stroke-width: 0.25;
+}
+
+#plateau .bille-noir .bille-cercle {
+  fill: url(#degrade-bille-noir);
+}
+
+#plateau .bille-blanc .bille-cercle {
+  fill: url(#degrade-bille-blanc);
+}
+
+/* Pistes des billes ejectees (phase 11, rendu/ejections.js), en haut et en
+   bas du plateau : une case vide par ejection possible, remplie de la
+   couleur de la bille au fur et a mesure. */
+.piste-case {
+  fill: #8a8a8a;
+  stroke: #5a5a5a;
+  stroke-width: 0.4;
+}
+
+/* Le cercle de chaque case de piste est TOUJOURS de la couleur du camp qui
+   possede la piste, vide ou remplie ; la case se remplit, elle, de la couleur
+   des billes ejectees (saab). Noir joue en bas : la piste du bas, celle des
+   billes BLANCHES qu'il a ejectees, a donc un cercle noir, et inversement. */
+.piste-ejection-noir .piste-case {
+  stroke: #e4e4e4;
+  stroke-width: 0.6;
+}
+
+.piste-ejection-blanc .piste-case {
+  stroke: #1f1f1f;
+  stroke-width: 0.6;
+}
+
+.piste-ejection-noir .piste-remplie {
+  fill: #1f1f1f;
+}
+
+.piste-ejection-blanc .piste-remplie {
+  fill: #e4e4e4;
+}
+
+/* Alerte sur une piste : il ne reste plus qu'une ejection avant la
+   defaite du camp ADVERSE (seuil SEUIL_ALERTE_EJECTIONS, 5 sur 6 — meme
+   seuil que KAAWA). Vert, pas rouge : le rouge est reserve au nom du
+   camp qui, LUI, est en danger (voir .nom-en-danger) — deux signaux
+   distincts, comme dans KAAWA. */
+/* L'alerte est un SECOND anneau vert, a l'INTERIEUR du cercle du camp (qui
+   reste donc toujours visible, saab), et non plus un contour qui le
+   remplacait. Un anneau par case (rendu/pistes-triangle.js), cache tant que
+   l'alerte n'est pas donnee. */
+.piste-anneau-alerte {
+  display: none;
+  fill: none;
+  stroke: #2ecc55;
+  stroke-width: 0.8;
+  pointer-events: none;
+}
+
+.piste-anneau-alerte.piste-alerte {
+  display: inline;
+}
+
+/* Ligne d'un joueur (rendu/ligne-joueur.js) : un cadre REMPLI de la couleur
+   des billes du camp (verifie dans kaa_constants_ClO_Co.py : PLAYER_B_TEXT =
+   #1f1f1f, PLAYER_W_TEXT = #e4e4e4), le nom en gris. Seul le NOM passe en
+   rouge en danger. Le cadre ORANGE, comme
+   les boutons actifs, n'entoure que "Tour N"/"Gagne"/"Nulle" et n'existe que
+   pour le camp qui a la main : c'est lui qui dit a qui c'est de jouer. Le
+   rouge du nom (3 classes) l'emporte sur sa couleur de camp (2 classes) sans
+   dependre de l'ordre du fichier. `cursor: pointer` : le cadre du nom et
+   celui du tour se cliquent (saisie du nom ; choix abandon/nulle). */
+.nom-joueur {
+  font: 5px sans-serif;
+}
+
+.nom-fond,
+.nom-tour-cadre {
+  cursor: pointer;
+}
+
+.nom-joueur-noir .nom-fond {
+  fill: #1f1f1f;
+}
+
+.nom-joueur-blanc .nom-fond {
+  fill: #e4e4e4;
+}
+
+/* Le nom est gris sur les deux cadres, comme les chiffres des pendules : c'est
+   le cadre qui porte la couleur du camp (saab). */
+.nom-joueur-noir .nom-texte,
+.nom-joueur-blanc .nom-texte {
+  fill: #828282;
+}
+
+.nom-joueur.nom-en-danger .nom-texte {
+  fill: #e04040;
+  font-weight: bold;
+}
+
+.nom-texte,
+.nom-tour {
+  pointer-events: none; /* le clic est recu par le cadre en dessous */
+}
+
+.nom-tour-cadre {
+  fill: #cc6a00;
+}
+
+.nom-tour {
+  fill: #0a0a0a;
+}
+
+.nom-tour-options {
+  font-size: 4px;
+}
+
+/* Abandon / nulle (rendu/abandon-nulle.js) : deux choix gris a droite du nom,
+   puis une confirmation qui recouvre la ligne dans un cadre vert avec deux
+   boutons gris (saab). */
+.option-fin,
+.confirmation-bouton {
+  cursor: pointer;
+}
+
+.option-fin-fond,
+.confirmation-bouton-fond {
+  fill: #828282;
+}
+
+.option-fin-texte,
+.confirmation-bouton-texte {
+  fill: #0a0a0a;
+  font: 4.4px sans-serif;
+  pointer-events: none;
+}
+
+.confirmation-fond {
+  fill: #1f7a3a;
+}
+
+.confirmation-question {
+  fill: #ffffff;
+  font: bold 4.4px sans-serif;
+  pointer-events: none;
+}
+
+/* Temps restant de chaque camp (interface/pendules.js), affiche a cote de
+   sa piste d'ejection — remplace l'ancien bandeau HTML #pendules. Taille
+   augmentee (8px -> 11px, signale par saab) tout en restant sous
+   .nombre-ejecte, comme dans KAAWA (font_size_ejected > clock font_big >
+   font_size_player_name, verifie dans kaa_board_widget_ClO_Co.py). Pas de
+   `fill` ici (voir .pendule-camp-noir/-blanc plus bas) : meme technique
+   que .nom-joueur/.nom-joueur-noir, une specificite volontairement
+   FAIBLE pour que l'alerte (2 classes) l'emporte toujours, quel que soit
+   l'ordre des regles dans le fichier. */
+.pendule-camp {
+  /* 10 px (11 avant) : les bandes vertes "||" de chaque cote des chiffres ont besoin de
+     leur place dans l'epaisseur du cadre (rendu/pendule.js). */
+  font: 10px sans-serif;
+}
+
+/* Le CADRE de la pendule est de la couleur des billes du camp (voir
+   .cadre-pendule-noir/-blanc plus bas) et les CHIFFRES sont gris (saab). */
+.pendule-camp-noir,
+.pendule-camp-blanc {
+  fill: #828282;
+}
+
+/* Alerte sous le seuil (interface/pendules.js, SECONDES_ALERTE_PENDULE) :
+   2 classes, l'emporte sur les 2 regles par-camp ci-dessus quel que soit
+   l'ordre des regles dans le fichier (meme technique que .nom-en-danger). */
+.pendule-camp.pendule-alerte {
+  fill: #e04040;
+  font-weight: bold;
+}
+
+/* Cadre-bouton autour de chaque pendule (rendu/pendule.js,
+   dessinerPendule) : gris, cliquable — sert de Start/Pause (signale par
+   saab, voir interface/saisie.js, basculerPause). */
+.bouton-pendule {
+  cursor: pointer;
+}
+
+.cadre-pendule {
+  /* Le gris des cases du plateau (.case), pas un gris fonce quelconque —
+     saab : le gris fonce manquait de contraste avec le noir du texte. */
+  fill: #8a8a8a;
+  stroke: #5a5a5a;
+  stroke-width: 0.3;
+}
+
+/* Le vert des demandes (--vert-demande) tant qu'on attend un clic pour demarrer
+   ou reprendre les pendules (au depart, et en pause) ; deux bandes vertes "||"
+   au-dessus et au-dessous des chiffres quand elles tournent (interface/
+   pendules.js, signalerEtatPause). 2 classes : l'emporte sur .cadre-pendule-noir/
+   -blanc quel que soit l'ordre du fichier. */
+.bouton-pendule.pendule-en-attente .cadre-pendule {
+  fill: var(--vert-demande);
+}
+
+.bouton-pendule.pendule-en-attente .pendule-camp {
+  fill: #e4e4e4;
+}
+
+.pendule-bande {
+  display: none;
+  fill: var(--vert-demande);
+  pointer-events: none;
+}
+
+.pendule-en-marche .pendule-bande {
+  display: inline;
+}
+
+/* Cadre de la couleur des billes du camp (saab), chiffres gris. */
+.cadre-pendule-noir {
+  fill: #1f1f1f;
+}
+
+.cadre-pendule-blanc {
+  fill: #e4e4e4;
+}
+
+/* Compte numerique des billes ejectees (rendu.dessinerNombreEjecte), a
+   gauche de sa piste — retire par erreur dans un correctif precedent en
+   le croyant redondant avec la piste visuelle ; KAAWA l'affiche bel et
+   bien, en plus gros que le nom du joueur (verifie dans son code source,
+   font_size_ejected largement superieur a font_size_player_name), remis
+   ici avec la meme hierarchie. Pas de `fill` ici : voir
+   .nombre-ejecte-noir/-blanc plus bas, meme technique que .pendule-camp. */
+.nombre-ejecte {
+  font: bold 14px sans-serif;
+}
+
+/* Le compte est le SCORE du camp qui possede la piste (celui qui a ejecte ces
+   billes), donc de SA couleur : Blanc en haut, Noir en bas (saab). */
+.nombre-ejecte-noir { fill: #e4e4e4; }
+.nombre-ejecte-blanc { fill: #1f1f1f; }
+
+/* Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du plateau
+   (rendu/ejections.js, dessinerCompteurOccurrences) — comme KAAWA
+   (kaa_board_widget_ClO_Co.py, _add_occurrence_label), etendu aux 4
+   compteurs. `fill` (pas `color`) : c'est un <text>/<tspan> SVG, meme
+   raison que .nombre-ejecte-noir/-blanc juste au-dessus. */
+.compteur-occurrences-plateau {
+  font: 6px sans-serif;
+  fill: #ffd700; /* jaune KAAWA par defaut, voir le <tspan> individuel pour le seuil */
+}
+
+/* Bordure de coordonnees permanente (a-i/1-9), phase 19bis :
+   rendu/coordonnees-bord.js. Gris neutre — un simple repere, jamais une
+   information de jeu (pas de rouge, de vert ni d'orange a lui reserver). */
+.coordonnee-bord {
+  font: 5px sans-serif;
+  fill: #cfcfcf;
+}
+
+/* Les chiffres, inclines, touchaient un peu les cylindres : plus petits que
+   les lettres, qui elles ne les touchent pas (signale par saab). */
+.coordonnee-bord-chiffre {
+  font-size: 4px;
+}
+
+/* Coordonnees EN COURS DE PARTIE, phase 19bis (rendu/coordonnees-jeu.js) :
+   sur les billes du camp au trait (contraste inverse de la bille, comme
+   .nom-joueur-noir/-blanc) et sur les cases de destination possibles (en
+   blanc sur le vert de .case-possible). `pointer-events: none` sur les
+   deux : ce texte ne doit jamais voler le clic a la bille ou a la case
+   sous lui (la case de destination est un <text> A PART, siblings du
+   <circle> dans le meme <svg>, pas un enfant — sans ca, cliquer pile sur
+   la lettre manquerait le data-notation de la vraie case). */
+.coordonnee-bille,
+.coordonnee-destination {
+  font: bold 5px sans-serif;
+  pointer-events: none;
+}
+
+.bille-noir .coordonnee-bille {
+  fill: #e4e4e4;
+}
+
+.bille-blanc .coordonnee-bille {
+  fill: #1f1f1f;
+}
+
+.coordonnee-destination {
+  fill: #fff;
+}
+
+/* Case d'arrivee possible : un rond vert TRANSLUCIDE de la taille du trou,
+   pose PAR-DESSUS sa coordonnee (rendu/coordonnees-jeu.js), qui la rend verte
+   par transparence (saab). */
+.voile-destination {
+  fill: #00aa3e;
+  fill-opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Fleche (chevron) du dernier coup, phase 19bis (rendu/fleche-dernier-coup.js) :
+   contraste inverse de la bille qui la porte, meme principe que
+   .coordonnee-bille juste au-dessus. `fill: none` : seul le CONTOUR du
+   chevron doit se voir, jamais un triangle plein. */
+.fleche-dernier-coup {
+  fill: none;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.bille-noir .fleche-dernier-coup {
+  stroke: #e4e4e4;
+}
+
+.bille-blanc .fleche-dernier-coup {
+  stroke: #1f1f1f;
+}
+
+/* Poussee qui ejecte : rouge, TOUJOURS (voir rendu/fleche-dernier-coup.js) —
+   sur les deux camps, jamais le contraste noir/blanc habituel. 3 classes
+   pour l'emporter sur .bille-noir/.bille-blanc .fleche-dernier-coup
+   ci-dessus, quel que soit l'ordre du fichier (meme piege de specificite
+   que .nom-joueur-noir.au-trait.nom-en-danger, deja rencontre). */
+.bille-noir .fleche-dernier-coup.fleche-dernier-coup-ejection,
+.bille-blanc .fleche-dernier-coup.fleche-dernier-coup-ejection {
+  stroke: #e04040;
+}
+
+/* Seuil de nulle atteint sur CE segment (Occ, Ref, Br_Occ ou Br_Ref
+   individuellement) : meme bleu que .compteur-occurrences-seuil et
+   .etiquette-occurrence-tag-seuil, un seul signal bleu dans toute
+   l'appli. Porte sur le <tspan> du chiffre concerne, jamais sur toute la
+   ligne : Occ peut avoir atteint son seuil sans que Ref (ou l'inverse)
+   ait atteint le sien. */
+.compteur-occurrences-plateau-seuil {
+  fill: #4aa8ff;
+}
+
+/* Grand bouton rond de pause (rendu/pendule.js, afficherPause) : masque
+   tout le plateau, vert avec deux barres blanches ("||") — signale par
+   saab. `pointer-events` sur le groupe entier via le clic delegue de
+   interface/saisie.js (svg.addEventListener('click', ...), pas besoin
+   d'un ecouteur ici). */
+.fond-pause {
+  fill: #000;
+  opacity: 0.75;
+}
+
+.bouton-pause-rond {
+  fill: var(--vert-demande); /* le meme vert que toutes les demandes (choisi par saab) */
+  cursor: pointer;
+}
+
+.barre-pause {
+  fill: #fff;
+  pointer-events: none; /* le clic doit atteindre le rond en dessous, pas s'arreter sur une barre */
+}
+
+/* Colonne d'icones (saab : "les cadres de tous les 12 boutons ... toucher la
+   bordure noire du groupe") : plus de marge ENTRE le cadre d'un bouton et la
+   bordure de son groupe, ni autour des groupes. Barre de defilement cachee : la
+   colonne defile toujours (doigt, molette) mais une barre classique lui
+   mangeait 15 px de large. */
+#colonne-gauche {
+  padding: 2px;
+  scrollbar-width: none;
+}
+
+#colonne-gauche::-webkit-scrollbar {
+  display: none;
+}
+
+.groupe-boutons {
+  padding: 0;
+  gap: 2px;
+  overflow: hidden;
+}
+
+/* Les trois icones dessinees a la main (Sequence, Commentaires,
+   Occurrences) : plus grandes, elles paraissaient petites dans le cadre
+   agrandi. */
+.icone-bouton.icone-carre {
+  width: 32px;
+  height: 32px;
+}
+
+/* Le bouton Annuler de la navigation est TOUJOURS vert (saab) — sauf quand il
+   n'y a rien a annuler (au depart, ou sur un coup d'origine deja depasse) : il
+   est alors grise comme les autres (#navigation button:disabled). Le cadre
+   "Tour N A/N", lui, ne devient vert que tant qu'un abandon ou une nulle attend
+   sa reponse. */
+#nav-annuler:not(:disabled) {
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+  color: #ffffff;
+}
+
+.nom-joueur.demande-en-cours .nom-tour-cadre {
+  fill: var(--vert-demande);
+}
+
+.nom-joueur.demande-en-cours .nom-tour {
+  fill: #ffffff;
+}
+
+/* Aide simplifiee (interface/aide.js) : le titre et Fermer restent FIXES en haut,
+   le corps defile au milieu avec sa barre TOUJOURS visible (`overflow-y: scroll`),
+   Fermer aussi en bas — on n'a jamais a defiler pour fermer (saab). Les rubriques
+   se touchent sur toute leur largeur (44 px). `[open]` : sans lui, `display: flex`
+   afficherait la boite meme fermee. */
+.dialogue-aide[open] {
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  overflow: hidden;
+  font: 14px sans-serif;
+  line-height: 1.4;
+}
+
+.aide-entete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aide-entete .bouton-dialogue {
+  flex: 0 0 auto;
+  margin-top: 0;
+  min-height: 44px;
+}
+
+.aide-corps {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: scroll;
+}
+
+.dialogue-aide summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.dialogue-aide ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.dialogue-aide li {
+  margin-bottom: 6px;
+}
+
+.aide-version {
+  margin: 0 0 4px;
+  color: #9a9a9a;
+  font-size: 12px;
+}
+
+#bouton-fermer-aide {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+/* Boite des sons (interface/reglages-sons.js) : une ligne = un reglage, toute
+   la ligne se touche (44 px). Le "Son global" decoche grise les autres. */
+#liste-sons {
+  /* Deux colonnes quand la boite est assez large : sept lignes de 44 px ne
+     tiennent pas sur un telephone couche (375 px de haut). */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  column-gap: 8px;
+}
+
+.ligne-reglage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.ligne-reglage input {
+  width: 22px;
+  height: 22px;
+}
+
+.reglages-inactifs .ligne-reglage:not(:first-child) {
+  opacity: 0.4;
+}
+
+/* Champ de saisie du nom d'un joueur (interface/noms-joueurs.js). */
+#champ-nom-joueur {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 0 8px;
+  font-size: 16px; /* 16 px : en dessous, Safari/iOS agrandit la page a la prise de focus */
+  color: #e4e4e4;
+  background: #2a2a2a;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+}
+
+#champ-nom-joueur::placeholder {
+  color: #8a8a8a;
+}
+
+/* En face-a-face, la boite de saisie de Blanc est lue depuis SON cote. */
+.dialogue-retourne {
+  transform: rotate(180deg);
+}
+
+/* Mode FACE-A-FACE (phase 20, interface/face-a-face.js) : deux joueurs de
+   chaque cote d'un telephone pose a plat. Le PLATEAU ne tourne jamais ;
+   Blanc joue depuis le HAUT (rendu/ejections.js), donc lit tout a l'envers
+   sans ces regles. `transform-box: fill-box` + `transform-origin: center` :
+   on tourne CHAQUE element SVG autour de son propre centre, sans toucher a
+   sa position (x/y). */
+body.face-a-face #nom-blanc {
+  transform: rotate(180deg);
+  transform-box: view-box; /* avec le transform-origin pose en ligne : (0, y de la ligne), voir rendu/ligne-joueur.js */
+}
+
+body.face-a-face .bille-blanc .coordonnee-bille,
+body.face-a-face .coordonnee-destination-blanc {
+  transform: rotate(180deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Lecture verticale (saab) : ce qui est a GAUCHE du plateau se lit de BAS en
+   HAUT (-90), ce qui est a DROITE de HAUT en BAS (+90). Les compteurs
+   d'ejection sont dans les coins de gauche (rendu/pistes-triangle.js). */
+body.face-a-face .nombre-ejecte {
+  transform: rotate(-90deg);
+  transform-box: view-box; /* avec le transform-origin pose en ligne : le point d'ancrage du compte, voir rendu/pistes-triangle.js */
+}
+
+/* Icones de la colonne de gauche, lues de bas en haut ; le hamburger
+   (#bouton-etendre-colonne, sans <svg>) reste droit (saab). On tourne le
+   <svg> LUI-MEME, autour de son propre centre : tourner le <span> qui le
+   contient (25x34, avec le dessin en haut) decalait le dessin de 4,5 px hors
+   du centre de son bouton (mesure). */
+/* Chaque icone est tournee UNE SEULE FOIS, celle qui porte le dessin :
+   - l'<svg> imbrique dans un <span> (hexagones, Face-a-face) ;
+   - l'<svg> qui est lui-meme l'icone (Sequence, Commentaires, Occurrences) ;
+   - le <span> de texte (`.icone-texte` : Conseils, Menaces, Exporter, Importer).
+   Tourner aussi le <span> qui contient un <svg> doublait la rotation (180 au lieu
+   de 90 pour l'icone Face-a-face, saab). */
+body.face-a-face #colonne-gauche .icone-bouton svg,
+body.face-a-face #colonne-gauche svg.icone-bouton {
+  transform: rotate(-90deg);
+}
+
+body.face-a-face #colonne-gauche .icone-texte {
+  display: inline-block;
+  transform: rotate(-90deg);
+}
+
+@media (min-width: 700px) {
+  /* La colonne d'icones doit pouvoir defiler : un telephone couche fait
+     moins de 400 px de haut pour une douzaine d'icones (elle n'avait cette
+     regle qu'en portrait, plus haut). Aucun rapport avec le face-a-face, mais
+     c'est ce mode qui a revele l'oubli. */
+  #colonne-gauche {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Fenetres de droite (Sequence, Commentaires, Conseils, Occurrences...) :
+     la colonne est mise en page A PLAT dans une boite de la taille de
+     l'ECRAN tourne (largeur = hauteur de l'ecran, hauteur = epaisseur voulue),
+     puis tournee de +90 autour de son coin haut-droit et redescendue : elle
+     occupe alors une bande verticale a droite, ses lignes se lisent de haut
+     en bas. Plus fiable qu'`writing-mode` : la mise en page interne (flex,
+     grilles, defilement) reste celle d'une colonne ordinaire. Un clic suit la
+     rotation tout seul.
+     L'EPAISSEUR (la largeur a l'ecran) est TOUT l'espace libre : ecran, moins
+     la colonne d'icones (44), moins la barre de navigation, moins le plateau
+     (100vh x son rapport largeur/hauteur, voir interface/face-a-face.js) ;
+     `max(200px, ...)` pour ne jamais tomber a rien sur un ecran presque carre. */
+  body.face-a-face {
+    /* Meme epaisseur que les pendules (voir interface/face-a-face.js), plus les
+       2 x 2 px de marge de la barre. */
+    --epaisseur-bouton-navigation-fa: calc(100vh * var(--rapport-pendule, 0.07));
+    --largeur-navigation-fa: calc(var(--epaisseur-bouton-navigation-fa) + 4px);
+    --epaisseur-fenetres-fa: max(200px, calc(100vw - 44px - var(--largeur-navigation-fa) - 100vh * var(--rapport-plateau, 1.08)));
+    padding-right: calc(var(--epaisseur-fenetres-fa) + var(--largeur-navigation-fa));
+  }
+
+  body.face-a-face #colonne-droite {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100vh;
+    height: var(--epaisseur-fenetres-fa);
+    max-height: none;
+    margin: 0;
+    transform-origin: top right;
+    transform: translateY(100vh) rotate(90deg);
+  }
+
+  /* Dans la boite a plat, chaque fenetre prend toute la largeur (= la hauteur
+     de l'ecran) et se partage la hauteur (= l'espace libre a l'ecran). Les
+     regles ordinateur d'origine (largeur fixe, 50vh, 40vh) supposaient une
+     colonne haute et etroite. La Sequence garde une hauteur de DEPART que la
+     poignee peut changer (`flex: 1 1 auto` sur une hauteur nulle : elle
+     partage a parts egales tant qu'on n'a pas tire). */
+  body.face-a-face #arbre-panneau {
+    width: 100%;
+    height: 0;
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid #3a3a3a;
+  }
+
+  body.face-a-face #panneau-conseils,
+  body.face-a-face #panneau-occurrences {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+    flex: 1 1 0;
+    border-left: none;
+  }
+
+  /* La poignee de LARGEUR n'a plus de sens (les fenetres remplissent tout
+     l'espace libre) ; celle de HAUTEUR reste, a la fin de la boite a plat donc
+     sur le bord GAUCHE de la fenetre a l'ecran, plus epaisse au doigt
+     (interface/sequence.js inverse le sens du glisser dans ce mode). */
+  body.face-a-face #arbre-poignee-largeur {
+    display: none;
+  }
+
+  /* Menu DEPLOYE (bouton hamburger) : les icones ne bougent pas, seuls les
+     LIBELLES s'orientent vers le camp qui a le trait — comme d'habitude pour
+     Noir (en bas), retournes de 180 degres pour Blanc (en haut) qui demande
+     (saab). `.trait-blanc` est posee sur <body> par interface/face-a-face.js. */
+  body.face-a-face #colonne-gauche.colonne-gauche-etendue .libelle-bouton {
+    display: inline-block;
+  }
+
+  body.face-a-face.trait-blanc #colonne-gauche.colonne-gauche-etendue .libelle-bouton {
+    transform: rotate(180deg);
+  }
+
+  body.face-a-face #arbre-poignee-hauteur {
+    height: 18px;
+  }
+
+  /* Barre de navigation (interface/disposition.js, replacerNavigation) : au
+     milieu du plateau — Annuler, le bouton du milieu, pile sur son centre, a
+     egale distance des deux joueurs — contre la colonne des fenetres, lue de
+     haut en bas comme elle. `writing-mode: vertical-rl` la met a la verticale
+     sans calcul : les boutons se suivent de haut en bas et chaque libelle se
+     lit de haut en bas. Elle a sa PROPRE bande (--largeur-navigation-fa, deja
+     reservee par le padding de <body>) : posee sur le dessin, elle recouvrait
+     les pendules des coins de droite. Epaisseur des pendules (saab) : DEROGATION
+     ASSUMEE a la regle des 44 px de CLAUDE.md, demandee par saab ("comme celle
+     des pendules"), comme celle deja faite sur la hauteur de ces boutons. */
+  body.face-a-face > #navigation {
+    position: fixed;
+    top: 50%;
+    right: var(--epaisseur-fenetres-fa);
+    width: var(--largeur-navigation-fa);
+    box-sizing: border-box;
+    padding: 2px;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    flex-wrap: nowrap;
+    z-index: 5;
+  }
+
+  body.face-a-face > #navigation button {
+    min-width: var(--epaisseur-bouton-navigation-fa);
+    min-height: var(--epaisseur-bouton-navigation-fa);
+    padding: 0;
+    font-size: 11px;
+  }
+}

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAAH sur PC</title>
+<style>
+  body { font: 18px/1.5 sans-serif; max-width: 42em; margin: 0 auto; padding: 16px; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 1.5em; margin-top: 0; }
+  h2 { font-size: 1.2em; margin-top: 1.6em; border-bottom: 2px solid #1f7a3a; padding-bottom: 4px; }
+  li { margin-bottom: 8px; }
+  code, pre { background: #eee; border-radius: 4px; }
+  code { padding: 1px 4px; word-break: break-all; }
+  pre { padding: 10px; white-space: pre-wrap; }
+  .note { background: #fff4d6; border-left: 5px solid #cc6a00; padding: 8px 12px; margin: 12px 0; }
+  .plus-tard { background: #f2f2f2; border-left: 5px solid #888; padding: 4px 14px; margin-top: 24px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e4e4e4; }
+    code, pre { background: #333; }
+    .note { background: #4a3b16; }
+    .plus-tard { background: #2a2a2a; }
+  }
+</style>
+</head>
+<body>
+
+<h1>KAAH sur PC (Windows, Mac, Linux)</h1>
+<p>Mode d'emploi pour les testeurs. Vous avez reçu un fichier <b>KAAH.zip</b> : c'est tout ce qu'il faut.
+Aucune connexion internet n'est nécessaire.</p>
+
+<h2>Ouvrir KAAH (2 minutes)</h2>
+<ol>
+<li>Enregistrez <b>KAAH.zip</b> sur votre ordinateur (Bureau ou Documents).</li>
+<li><b>Extrayez-le</b> (ne l'ouvrez pas directement depuis le zip) :
+  <ul>
+  <li>Windows : clic droit sur le fichier → <b>Extraire tout…</b> → <b>Extraire</b>.</li>
+  <li>Mac : double-clic sur le fichier.</li>
+  </ul></li>
+<li>Ouvrez le dossier extrait, puis faites un <b>double-clic sur <code>index.html</code></b>.
+  Il s'ouvre dans votre navigateur.
+  <ul><li>S'il s'ouvre dans un éditeur de texte : clic droit → <b>Ouvrir avec</b> → Chrome, Edge, Firefox ou Safari.</li></ul></li>
+<li>Le plateau d'Abalone apparaît, avec les billes noires en bas.</li>
+<li>Pour le retrouver facilement : clic droit sur <code>index.html</code> → <b>Envoyer vers</b> → <b>Bureau (créer un raccourci)</b>.</li>
+</ol>
+<div class="note"><b>Bon à savoir.</b> Vos parties sont enregistrées <b>dans le navigateur utilisé</b>. Si vous ouvrez KAAH avec un
+autre navigateur, vous ne verrez pas les mêmes parties. Dans ce mode, KAAH ne s'installe pas : c'est normal, il se joue très bien.
+La fenêtre d'aide (bouton <b>i?</b>) indiquera « Version : inconnue » : c'est normal aussi.</div>
+
+<h2>Ce qu'il faut vérifier</h2>
+<p>Pour chaque ligne : ✔ ça marche, ✘ ça ne marche pas (dites pourquoi).</p>
+<ol>
+<li>Le plateau s'affiche, les billes sont bien placées.</li>
+<li>Vous jouez 3 coups (touchez une bille, puis une case verte).</li>
+<li>Vous fermez le navigateur puis rouvrez <code>index.html</code> : la partie est reprise là où vous l'avez laissée.</li>
+<li><b>Changez la taille de la fenêtre</b> (agrandissez, réduisez, étirez en hauteur puis en largeur) : le plateau reste un hexagone
+  régulier et les billes restent bien dans leurs cases.</li>
+<li>Touchez une pendule : les deux passent de <b>vert</b> à noir/blanc avec deux traits verts ; touchez-la encore : elles redeviennent vertes (pause).</li>
+<li>Le bouton <b>Sons</b> ouvre la liste ; un coup fait un bruit (son de l'ordinateur allumé).</li>
+<li>Le bouton <b>Exporter</b> télécharge un fichier de partie (<code>.json</code>).</li>
+<li>Le bouton <b>i?</b> ouvre l'aide ; vous pouvez la fermer avec <b>Fermer</b> (en haut ou en bas) ou la touche <b>Échap</b>.</li>
+</ol>
+
+<h2>Si ça ne marche pas</h2>
+<ul>
+<li>Page blanche ou plateau absent : rechargez la page (touche <b>F5</b>). Sinon, notez le message d'erreur.</li>
+<li>Les sons ne sortent pas : vérifiez le volume, puis cliquez d'abord une fois dans la page.</li>
+</ul>
+
+<h2>À me renvoyer</h2>
+<p>Copiez ce modèle, remplissez-le et envoyez-le moi :</p>
+<pre>Ordinateur (marque, modèle) :
+Système et version (Windows 11, macOS 14...) :
+Navigateur et version :
+Résultat des 8 vérifications (✔ ou ✘) :
+Ce qui n'a pas marché (avec une capture d'écran si possible) :</pre>
+
+<div class="plus-tard">
+<h2>Plus tard : installer KAAH comme une application (avec une adresse https)</h2>
+<p>Ce mode ne sera possible que lorsque KAAH sera publié à une adresse internet en <b>https</b> (adresse prévue :
+<b>https://saabalone.github.io/KAAH_Test/</b>). Il permet une vraie installation et un fonctionnement hors ligne.</p>
+<ol>
+<li>Ouvrez <b>Chrome</b> ou <b>Edge</b> et tapez l'adresse. Attendez que le plateau s'affiche complètement (la première fois, KAAH se copie sur l'ordinateur).</li>
+<li>Dans la <b>barre d'adresse, à droite</b>, cliquez sur l'icône d'installation (un petit écran avec une flèche vers le bas), puis <b>Installer</b>.
+  <ul>
+  <li>Edge : menu <b>⋯</b> → <b>Applications</b> → <b>Installer ce site en tant qu'application</b>.</li>
+  <li>Chrome, si l'icône n'apparaît pas : menu <b>⋮</b> → <b>Diffuser, enregistrer et partager</b> → <b>Installer la page en tant qu'application</b>.</li>
+  </ul></li>
+<li>Une fenêtre <b>KAAH</b> s'ouvre, sans barre d'adresse. Une icône est ajoutée au bureau ou au menu Démarrer.</li>
+<li><b>Test hors ligne</b> : fermez KAAH, coupez la connexion (Wi-Fi ou câble), relancez KAAH depuis son icône : il doit s'ouvrir et se jouer.</li>
+</ol>
+<p>Firefox (ordinateur) ne sait pas installer. Safari (Mac) : menu <b>Fichier</b> → <b>Ajouter au Dock</b>.</p>
+<p><b>Mettre à jour</b> : ouvrez KAAH avec internet, fermez-le complètement, rouvrez-le (une ou deux fois). Le numéro de version est en haut de la fenêtre <b>Aide</b>.</p>
+</div>
+</body>
+</html>

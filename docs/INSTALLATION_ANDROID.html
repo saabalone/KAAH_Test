@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAAH sur Android</title>
+<style>
+  body { font: 18px/1.5 sans-serif; max-width: 42em; margin: 0 auto; padding: 16px; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 1.5em; margin-top: 0; }
+  h2 { font-size: 1.2em; margin-top: 1.6em; border-bottom: 2px solid #1f7a3a; padding-bottom: 4px; }
+  li { margin-bottom: 8px; }
+  code, pre { background: #eee; border-radius: 4px; }
+  code { padding: 1px 4px; word-break: break-all; }
+  pre { padding: 10px; white-space: pre-wrap; }
+  .note { background: #fff4d6; border-left: 5px solid #cc6a00; padding: 8px 12px; margin: 12px 0; }
+  .plus-tard { background: #f2f2f2; border-left: 5px solid #888; padding: 4px 14px; margin-top: 24px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e4e4e4; }
+    code, pre { background: #333; }
+    .note { background: #4a3b16; }
+    .plus-tard { background: #2a2a2a; }
+  }
+</style>
+</head>
+<body>
+
+<h1>KAAH sur Android</h1>
+<p>Mode d'emploi pour les testeurs. Vous avez reçu un fichier <b>KAAH.zip</b> : c'est tout ce qu'il faut.
+Aucune connexion internet n'est nécessaire.</p>
+<div class="note"><b>Important.</b> Ouvrir un fichier local dans un navigateur est <b>moins bien pris en charge sur Android</b> que sur
+ordinateur : selon le téléphone et le navigateur, ça marche ou pas. <b>C'est justement ce que nous testons.</b>
+Si ça ne marche pas, notez précisément ce qui se passe et dans quel navigateur.</div>
+
+<h2>Ouvrir KAAH (5 minutes)</h2>
+<ol>
+<li>Enregistrez <b>KAAH.zip</b> dans le dossier <b>Téléchargements</b> du téléphone (depuis un message, un mail, ou par câble USB).</li>
+<li>Ouvrez l'application <b>Fichiers</b>, allez dans <b>Téléchargements</b>, touchez <b>KAAH.zip</b> puis <b>Extraire</b>.
+  Un dossier <b>KAAH</b> apparaît. Ne le déplacez pas.</li>
+<li>Ouvrez un navigateur (<b>Chrome</b>, ou <b>Opera</b>, ou <b>Firefox</b>) et, dans la <b>barre d'adresse</b>, tapez :
+  <pre>file:///storage/emulated/0/Download/KAAH/index.html</pre>
+  Si votre dossier n'est pas dans Téléchargements, adaptez le chemin. Pour le connaître : dans <b>Fichiers</b>,
+  appui long sur <code>index.html</code> → <b>Détails</b> (ou <b>Infos</b>) → chemin.</li>
+<li>Le plateau d'Abalone apparaît, avec les billes noires en bas.</li>
+<li>Pour le retrouver : ajoutez la page aux <b>favoris</b> du navigateur.</li>
+</ol>
+<p><b>Si le navigateur refuse</b> (message « accès refusé », « fichier introuvable » ou page vide) : essayez un autre navigateur
+(Opera a fonctionné lors de nos essais), et notez le message exact.</p>
+<p>N'ouvrez pas <code>index.html</code> en le touchant directement dans l'application Fichiers : cela ne marche en général pas
+(avertissement <code>content://</code>).</p>
+<div class="note"><b>Bon à savoir.</b> Vos parties sont enregistrées dans <b>le navigateur utilisé</b>. Changer de navigateur, c'est changer de parties.
+La fenêtre d'aide (bouton <b>i?</b>) indiquera « Version : inconnue » : c'est normal.</div>
+
+<h2>Ce qu'il faut vérifier</h2>
+<p>Pour chaque ligne : ✔ ça marche, ✘ ça ne marche pas (dites pourquoi).</p>
+<ol>
+<li>Le plateau s'affiche, les billes sont bien placées. Dans quel navigateur ?</li>
+<li>Vous jouez 3 coups (touchez une bille, puis une case verte). Les cases et les boutons sont assez grands pour votre doigt.</li>
+<li>Vous quittez le navigateur puis rouvrez la page : la partie est reprise.</li>
+<li>Touchez une pendule : les deux passent de <b>vert</b> à noir/blanc avec deux traits verts ; touchez-la encore : elles redeviennent vertes (pause).</li>
+<li>Le bouton <b>Sons</b> ouvre la liste ; un coup fait un bruit (volume des médias allumé).</li>
+<li>Le bouton <b>Face-à-face</b> : essayez à deux, téléphone à plat, écran en paysage. Tout est lisible de chaque côté ?</li>
+<li>En <b>portrait</b>, puis en <b>paysage</b>, le <b>zoom à deux doigts</b> fonctionne. (Attendu : il ne fonctionne pas en face-à-face paysage.)</li>
+<li>Le bouton <b>i?</b> ouvre l'aide ; vous pouvez la fermer avec <b>Fermer</b>, en haut ou en bas.</li>
+<li>Le téléphone est-il <b>lent</b> ? (jouer un coup, ouvrir la Séquence : réponse immédiate ou avec un temps d'attente ?)</li>
+</ol>
+
+<h2>Si ça ne marche pas</h2>
+<ul>
+<li><b>La page ne réagit plus</b> (ce problème a été vu une fois) : appuyez sur la commande <b>Retour</b> du téléphone, puis revenez sur la page KAAH.
+  Notez ce que vous faisiez juste avant.</li>
+<li>Les sons ne sortent pas : touchez d'abord l'écran une fois, puis vérifiez le volume « médias ».</li>
+</ul>
+
+<h2>À me renvoyer</h2>
+<p>Copiez ce modèle, remplissez-le et envoyez-le moi :</p>
+<pre>Téléphone (marque, modèle) :
+Android (version) :
+Navigateur et version :
+Adresse tapée (et si elle a fonctionné) :
+Résultat des 9 vérifications (✔ ou ✘) :
+Ce qui n'a pas marché (avec une capture d'écran si possible) :</pre>
+
+<div class="plus-tard">
+<h2>Plus tard : installer KAAH comme une application (avec une adresse https)</h2>
+<p>Ce mode ne sera possible que lorsque KAAH sera publié à une adresse internet en <b>https</b> (adresse prévue :
+<b>https://saabalone.github.io/KAAH_Test/</b>). Il permet une vraie installation, sans le Play Store, et un fonctionnement hors ligne.
+Il faut internet une seule fois, le temps de l'installation. Navigateur conseillé : <b>Chrome</b>.</p>
+<ol>
+<li>Ouvrez <b>Chrome</b> et tapez l'adresse. Attendez que le plateau s'affiche complètement (la première fois, KAAH se copie sur le téléphone).</li>
+<li>Touchez le menu <b>⋮</b> (en haut à droite), puis <b>Installer l'application</b> (ou, selon la version : <b>Ajouter à l'écran d'accueil</b>, puis <b>Installer</b>).</li>
+<li>Confirmez avec <b>Installer</b>. L'icône <b>KAAH</b> apparaît sur l'écran d'accueil.</li>
+<li><b>Lancez KAAH depuis son icône</b> (et non depuis Chrome) : il s'ouvre en plein écran, sans barre d'adresse.</li>
+<li><b>Test hors ligne</b> : fermez KAAH, activez le <b>mode avion</b>, relancez KAAH depuis son icône : il doit s'ouvrir et se jouer.</li>
+</ol>
+<p>Autres navigateurs : <b>Samsung Internet</b> : menu ☰ → Ajouter la page à → Écran d'accueil. <b>Opera</b> : menu → Écran d'accueil.
+<b>Firefox</b> : menu ⋮ → Installer.</p>
+<p><b>Mettre à jour</b> : ouvrez KAAH avec internet, fermez-le complètement (retirez-le des applications récentes), rouvrez-le, une ou deux fois.
+Le numéro de version est en haut de la fenêtre <b>Aide</b>.</p>
+</div>
+</body>
+</html>

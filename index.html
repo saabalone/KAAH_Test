@@ -1,0 +1,1387 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KAAH</title>
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Rend l'application installable (phase 8). -->
+  <link rel="manifest" href="./pwa/manifeste.webmanifest" />
+  <meta name="theme-color" content="#1a1a1a" />
+  <link rel="icon" href="./pwa/icones/favicon-32.png" />
+
+  <!-- Safari/iOS ne lit pas le manifeste pour l'icone ni le mode
+       "application" : il lui faut ces balises a lui, en plus. -->
+  <link rel="apple-touch-icon" href="./pwa/icones/icone-apple-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<body>
+  <!-- Colonne de gauche : sur ordinateur, reservee pour de futurs boutons
+       (la barre d'outils a 18 boutons de KAAWA doit bien aller quelque
+       part un jour — question ouverte de CLAUDE.md), en texte complet.
+       Sur telephone (phase 15, correctif disposition), une etroite
+       colonne d'ICONES a cote du plateau — saab a signale que ces
+       boutons restaient invisibles en portrait (le plateau prenait toute
+       la largeur). `#bouton-etendre-colonne` (telephone seulement, voir
+       interface/disposition.js) deploie temporairement les libelles
+       par-dessus le plateau, sans jamais reduire sa taille au repos —
+       CLAUDE.md, "rien d'important au survol seul" : un vrai bouton,
+       jamais un simple hover, un telephone n'ayant pas de curseur. -->
+  <div id="colonne-gauche">
+    <button id="bouton-etendre-colonne" title="Voir le nom des boutons" aria-label="Voir le nom des boutons">☰</button>
+    <!-- 5 GROUPES ESPACES (phase 18, correctif de disposition) : demande
+         explicite de saab, un ordre precis plutot que la liste plate
+         d'avant — "[New] [Mes parties, Variantes, Pzl] [Conseil, Menaces]
+         [Seq, Com, Occ] [Exporter, Importer]". Chaque `.groupe-boutons`
+         encadre visuellement ses boutons (styles.css) ; l'espace ENTRE
+         les groupes vient du `gap` d'#boutons-sauvegarde lui-meme, plus
+         grand que celui, resserre, entre deux boutons d'un MEME groupe.
+         Menaces (phase 19) rejoint desormais le groupe de Conseils, comme
+         prevu. Sequence a quitte la barre de Navigation pour rejoindre ce groupe
+         (voir interface/disposition.js) : desormais UN SEUL endroit pour
+         les 3 boutons de panneau lies au coup regarde, plutot qu'un
+         quatrieme separe dans une autre barre. -->
+    <div id="boutons-sauvegarde">
+      <div class="groupe-boutons">
+        <button id="bouton-nouvelle-partie" title="Recommencer une partie neuve (celle-ci reste dans Mes parties)">
+          <!-- Icone dessinee a la main (demande de saab, plutot que l'emoji
+               "nouveau" generique 🆕) : un petit rond coupe en diagonale,
+               blanc/noir, pour rappeler d'un coup d'oeil "une position de
+               depart sur un plateau" — la Marguerite Belge, seule position
+               de depart possible ici pour l'instant. Le fond hexagonal gris
+               vient deja de .icone-hexagone (styles.css), inchange. -->
+          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <defs>
+                <clipPath id="icone-nouvelle-partie-diag">
+                  <rect x="0" y="12.5" width="25" height="15" transform="rotate(45 12.5 12.5)"/>
+                </clipPath>
+              </defs>
+              <circle cx="12.5" cy="12.5" r="10" fill="#e4e4e4" stroke="#888" stroke-width="0.6"/>
+              <circle cx="12.5" cy="12.5" r="10" fill="#1a1a1a" clip-path="url(#icone-nouvelle-partie-diag)"/>
+            </svg>
+          </span>
+          <span class="libelle-bouton">Nouvelle partie</span>
+        </button>
+      </div>
+      <div class="groupe-boutons">
+        <button id="bouton-mes-parties" title="Voir et charger les parties enregistrees">
+          <!-- Icone dessinee a la main (demande de saab, plutot que
+               l'emoji jaune 📁) : un dossier tout simple, noir et blanc,
+               dans le meme hexagone gris que les 3 autres boutons de
+               position de depart. -->
+          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <path d="M4 6 L12 6 L14 9 L21 9 L21 19 L4 19 Z" fill="#e4e4e4" stroke="#1a1a1a" stroke-width="1"/>
+            </svg>
+          </span>
+          <span class="libelle-bouton">Mes parties</span>
+        </button>
+        <button id="bouton-variantes" title="Choisir une position de depart parmi les variantes de KAAWA">
+          <!-- Icone dessinee a la main (demande de saab, plutot que l'emoji
+               generique 🔀) : 3 mini-plateaux en V, comme un choix parmi
+               plusieurs positions de depart — Marguerite Belge (coupee en
+               diagonale, comme #bouton-nouvelle-partie) en haut a gauche,
+               Standard (coupee a l'horizontale, pour la distinguer au
+               premier coup d'oeil) en haut a droite, un "?" en bas pour les
+               71 autres variantes. Tres petit (saab : "peut-etre un peu
+               trop petit, fais au mieux") mais chaque rond reste lisible
+               par sa seule silhouette blanc/noir. -->
+          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <defs>
+                <clipPath id="icone-variantes-diag">
+                  <rect x="0" y="8" width="25" height="12" transform="rotate(45 7 8)"/>
+                </clipPath>
+                <clipPath id="icone-variantes-horiz">
+                  <rect x="0" y="8" width="25" height="12"/>
+                </clipPath>
+              </defs>
+              <circle cx="7" cy="8" r="5" fill="#e4e4e4" stroke="#888" stroke-width="0.5"/>
+              <circle cx="7" cy="8" r="5" fill="#1a1a1a" clip-path="url(#icone-variantes-diag)"/>
+              <circle cx="18" cy="8" r="5" fill="#e4e4e4" stroke="#888" stroke-width="0.5"/>
+              <circle cx="18" cy="8" r="5" fill="#1a1a1a" clip-path="url(#icone-variantes-horiz)"/>
+              <circle cx="12.5" cy="18" r="5" fill="#3a3a3a" stroke="#888" stroke-width="0.5"/>
+              <text x="12.5" y="20.6" font-size="6.5" font-weight="bold" fill="#e4e4e4" text-anchor="middle">?</text>
+            </svg>
+          </span>
+          <span class="libelle-bouton">Variantes</span>
+        </button>
+        <button id="bouton-puzzles" title="Choisir un puzzle de KAAWA : gagner en un nombre de tours impose">
+          <!-- Icone dessinee a la main (demande de saab, plutot que
+               l'emoji colore 🧩) : un carre, bord gauche tout simple, et
+               3 pastilles CENTREES sur les 3 autres bords, 5/6 du diametre
+               visible (celle du haut ressort, celles de droite et du bas
+               rentrent). CORRIGE (saab : "enleve le trait noir du tour,
+               mets en noir toute la partie sous la diagonale du carre de
+               haut gauche a bas droite, et si possible un peu de relief
+               avec une ombre si l'eclairage vient du haut gauche") :
+               jamais de `stroke` ; le meme dessin est peint deux fois,
+               une fois entierement clair, une fois entierement sombre
+               MAIS DECOUPEE par un clip-path diagonal (meme technique que
+               le rond de #bouton-nouvelle-partie) pour ne garder que sa
+               moitie bas-droite — clair en haut a gauche, sombre en bas a
+               droite, comme une bille eclairee d'en haut a gauche. Le
+               relief vient d'un `feDropShadow` decale vers le bas-droite
+               (`filter`, ombre portee), coherent avec cette meme lumiere. -->
+          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <defs>
+                <clipPath id="icone-puzzle-diag">
+                  <rect x="0" y="12.5" width="25" height="15" transform="rotate(45 12.5 12.5)"/>
+                </clipPath>
+                <filter id="icone-puzzle-ombre" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0.8" dy="0.8" stdDeviation="0.5" flood-color="#000" flood-opacity="0.5"/>
+                </filter>
+              </defs>
+              <g filter="url(#icone-puzzle-ombre)">
+                <path d="M6 6
+                         L10.71 6 A2.4 2.4 0 1 1 14.29 6
+                         L19 6
+                         L19 10.71 A2.4 2.4 0 1 0 19 14.29
+                         L19 19
+                         L14.29 19 A2.4 2.4 0 1 0 10.71 19
+                         L6 19 Z"
+                      fill="#e4e4e4"/>
+                <path d="M6 6
+                         L10.71 6 A2.4 2.4 0 1 1 14.29 6
+                         L19 6
+                         L19 10.71 A2.4 2.4 0 1 0 19 14.29
+                         L19 19
+                         L14.29 19 A2.4 2.4 0 1 0 10.71 19
+                         L6 19 Z"
+                      fill="#1a1a1a" clip-path="url(#icone-puzzle-diag)"/>
+              </g>
+            </svg>
+          </span>
+          <span class="libelle-bouton">Puzzles</span>
+        </button>
+      </div>
+      <div class="groupe-boutons">
+        <button id="bouton-conseils" title="Voir les coups suggeres par la base de KAAWA pour cette position">
+          <span class="icone-bouton icone-texte" aria-hidden="true">💡</span><span class="libelle-bouton">Conseils</span>
+        </button>
+        <!-- Menaces (phase 19) : une cible noir et blanc percee de trois fleches,
+             rouge / verte / orange — les couleurs des fleches de menaces
+             (voir interface/menaces.js). Dessinee a la main comme les icones de
+             la Sequence, a la place de l'ancien texte "!?". -->
+        <button id="bouton-menaces" title="Afficher/masquer les poussees possibles des deux camps">
+          <svg class="icone-bouton icone-carre" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="25" height="25" rx="3" fill="#1a1a1a" stroke="#3a3a3a"/>
+            <circle cx="12" cy="15" r="9.2" fill="#e4e4e4" stroke="#888" stroke-width="0.5"/>
+            <circle cx="12" cy="15" r="6.6" fill="#1f1f1f"/>
+            <circle cx="12" cy="15" r="4.1" fill="#e4e4e4"/>
+            <circle cx="12" cy="15" r="1.7" fill="#1f1f1f"/>
+            <line x1="12.5" y1="12.5" x2="23.1" y2="3.3" stroke="#e04040" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M20.8 5.4 L25.2 4.3 M20.8 5.4 L22.4 1.1" stroke="#e04040" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <line x1="8.5" y1="17.5" x2="2.8" y2="8.4" stroke="#2ecc55" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4.4 11 L4.1 6.5 M4.4 11 L0.5 8.8" stroke="#2ecc55" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <line x1="15" y1="18" x2="23.1" y2="22.3" stroke="#cc6a00" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M20.3 20.8 L22.9 24.5 M20.3 20.8 L24.8 20.8" stroke="#cc6a00" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="libelle-bouton">Menaces</span>
+        </button>
+      </div>
+      <div class="groupe-boutons">
+        <!-- Icones dessinees a la main (demande de saab, plutot que des
+             emoji approximatifs) : un petit "tableau" sombre a 3 lignes,
+             une par couleur de la Sequence (vert = origine, blanc =
+             chemin, violet = branche — memes couleurs et meme ordre de
+             priorite que rendu/arbre-ligne.js/classeCouleur), un ✕ rouge
+             en bout de ligne comme le vrai bouton de suppression. Chaque
+             icone ne differe des deux autres QUE par l'element central de
+             chaque ligne :
+               - Sequence : un trait, la couleur de sa ligne — sauf la
+                 derniere (violet), en orange et plus epais, pour
+                 representer le coup ACTIF (meme orange que .arbre-courant
+                 partout ailleurs dans KAAH) ;
+               - Commentaires : "Bla" (deux petits traits de texte), en
+                 blanc sur les 3 lignes — un commentaire ne porte aucune
+                 des 3 couleurs, seul le coup auquel il est attache en
+                 porte une ;
+               - Occurrences : "3", en bleu sur les 3 lignes — le seuil de
+                 nulle par repetition (meme bleu que
+                 .compteur-occurrences-seuil, "un seul signal bleu dans
+                 toute l'appli"). -->
+        <button id="bouton-sequence" title="Afficher/masquer la sequence des coups">
+          <svg class="icone-bouton icone-carre" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="25" height="25" rx="3" fill="#1a1a1a" stroke="#3a3a3a"/>
+            <circle cx="5.5" cy="7" r="1.8" fill="#2ecc55"/>
+            <line x1="9" y1="7" x2="17" y2="7" stroke="#2ecc55" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M19.5 4.7 L23.5 9.3 M23.5 4.7 L19.5 9.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="13" r="1.8" fill="#e4e4e4"/>
+            <line x1="9" y1="13" x2="17" y2="13" stroke="#e4e4e4" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M19.5 10.7 L23.5 15.3 M23.5 10.7 L19.5 15.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="19" r="1.8" fill="#b070e0"/>
+            <line x1="9" y1="19" x2="17" y2="19" stroke="#cc6a00" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M19.5 16.7 L23.5 21.3 M23.5 16.7 L19.5 21.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span class="libelle-bouton">Sequence</span>
+        </button>
+        <button id="bouton-commentaires" title="Voir et ecrire un commentaire pour chaque coup de la partie">
+          <svg class="icone-bouton icone-carre" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="25" height="25" rx="3" fill="#1a1a1a" stroke="#3a3a3a"/>
+            <circle cx="5.5" cy="7" r="1.8" fill="#2ecc55"/>
+            <line x1="9" y1="5.7" x2="17" y2="5.7" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="9" y1="8.3" x2="14" y2="8.3" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M19.5 4.7 L23.5 9.3 M23.5 4.7 L19.5 9.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="13" r="1.8" fill="#e4e4e4"/>
+            <line x1="9" y1="11.7" x2="17" y2="11.7" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="9" y1="14.3" x2="14" y2="14.3" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M19.5 10.7 L23.5 15.3 M23.5 10.7 L19.5 15.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="19" r="1.8" fill="#b070e0"/>
+            <line x1="9" y1="17.7" x2="17" y2="17.7" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="9" y1="20.3" x2="14" y2="20.3" stroke="#e4e4e4" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M19.5 16.7 L23.5 21.3 M23.5 16.7 L19.5 21.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span class="libelle-bouton">Commentaires</span>
+        </button>
+        <button id="bouton-occurrences" title="Voir les autres coups qui partagent cette position, ailleurs dans la partie">
+          <svg class="icone-bouton icone-carre" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="25" height="25" rx="3" fill="#1a1a1a" stroke="#3a3a3a"/>
+            <circle cx="5.5" cy="7" r="1.8" fill="#2ecc55"/>
+            <text x="9" y="9.6" font-size="7" font-weight="bold" fill="#4aa8ff">3</text>
+            <path d="M19.5 4.7 L23.5 9.3 M23.5 4.7 L19.5 9.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="13" r="1.8" fill="#e4e4e4"/>
+            <text x="9" y="15.6" font-size="7" font-weight="bold" fill="#4aa8ff">3</text>
+            <path d="M19.5 10.7 L23.5 15.3 M23.5 10.7 L19.5 15.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="5.5" cy="19" r="1.8" fill="#b070e0"/>
+            <text x="9" y="21.6" font-size="7" font-weight="bold" fill="#4aa8ff">3</text>
+            <path d="M19.5 16.7 L23.5 21.3 M23.5 16.7 L19.5 21.3" stroke="#a33" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span class="libelle-bouton">Occurrences</span>
+        </button>
+      </div>
+      <!-- Face-a-face (phase 20) : deux joueurs de chaque cote d'un telephone
+           pose a plat — voir interface/face-a-face.js. UN seul bouton : le
+           plateau ne tourne jamais ; noms et coordonnees s'orientent, les
+           fenetres de droite se retournent toutes seules vers le joueur qui
+           doit jouer. Icone dessinee a la main (demande de saab, plutot que
+           l'emoji de deux silhouettes de face) : deux tetes DE PROFIL qui se
+           regardent, l'une noire, l'autre blanche. -->
+      <div class="groupe-boutons">
+        <button id="bouton-face-a-face" title="Face-a-face : deux joueurs de chaque cote du telephone (noms, coordonnees et fenetres orientes vers celui qui joue)">
+          <span class="icone-bouton" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <defs>
+                <path id="icone-profil" d="M3 24 V17.5 C3 15.5 4.5 14.5 5 13 C2.5 12 1.5 9.5 2 7 C2.7 3.8 5.5 2 8.5 2.5 C11 3 12 5 12 6.5 L14 9.2 L12.2 10 L12.6 12 L11.5 12.5 C11.6 13.3 11 14 10 14.2 V17.5 C12 18.3 13 20 13 21.5 V24 Z"/>
+              </defs>
+              <use href="#icone-profil" transform="translate(0.3 1.2) scale(0.86)" fill="#1a1a1a" stroke="#888" stroke-width="0.7"/>
+              <use href="#icone-profil" transform="translate(24.7 1.2) scale(-0.86 0.86)" fill="#e4e4e4" stroke="#888" stroke-width="0.7"/>
+            </svg>
+          </span><span class="libelle-bouton">Face-a-face</span>
+        </button>
+      </div>
+      <!-- Sons (phase 21) : la boite des interrupteurs, interface/reglages-sons.js. -->
+      <div class="groupe-boutons">
+        <button id="bouton-sons" title="Regler les sons : un interrupteur par son">
+          <span class="icone-bouton icone-texte" aria-hidden="true">🔊</span><span class="libelle-bouton">Sons</span>
+        </button>
+      </div>
+      <div class="groupe-boutons">
+        <button id="bouton-exporter" title="Telecharger la partie en cours, au format de KAAWA">
+          <span class="icone-bouton icone-texte" aria-hidden="true">💾</span><span class="libelle-bouton">Exporter</span>
+        </button>
+        <button id="bouton-importer" title="Charger un fichier de partie (KAAH ou KAAWA)">
+          <span class="icone-bouton icone-texte" aria-hidden="true">📂</span><span class="libelle-bouton">Importer</span>
+        </button>
+      </div>
+      <!-- Aide (phase 26, partielle) : "i?" comme dans KAAWA. -->
+      <div class="groupe-boutons">
+        <button id="bouton-aide" title="Aide : jouer, boutons, installation, problemes connus">
+          <span class="icone-bouton icone-texte" aria-hidden="true">i?</span><span class="libelle-bouton">Aide</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste "Mes parties" (phase 12, suite) : toutes les parties jouees,
+       chacune sauvegardee automatiquement (aucun geste manuel, voir
+       interface/sauvegarde.js), entre lesquelles basculer depuis KAAH
+       lui-meme — voir interface/mes-parties.js. <dialog> natif : la
+       fenetre flottante et son fond assombri (::backdrop) sont geres par
+       le navigateur, ESC la ferme tout seul. Passe en plein ecran sur
+       telephone (styles.css), comme toute popup — regle CLAUDE.md, meme
+       si le bouton qui l'ouvre n'existe encore que sur ordinateur. -->
+  <dialog id="dialogue-mes-parties" class="dialogue">
+    <h2>Mes parties</h2>
+    <!-- Visible seulement quand ce dialogue s'ouvre TOUT SEUL au demarrage
+         pour confirmer une partie reprise automatiquement (phase 12,
+         correctif) — jamais quand saab l'ouvre lui-meme depuis la colonne
+         de gauche pour simplement consulter la liste. Voir
+         interface/mes-parties.js, ouvrirPourConfirmationReprise : saab a
+         signale pouvoir croire par erreur qu'il demarre une partie neuve
+         alors qu'une partie est en fait reprise en silence. -->
+    <p id="message-reprise-partie" class="message-reprise" hidden></p>
+    <!-- Apercu de la partie previsualisee (meme principe qu'#apercu-variante
+         et #apercu-puzzle) : la position a LA FIN DE LA BRANCHE PRINCIPALE
+         (celle reellement jouee, `cheminOrigine` — jamais une branche
+         d'essai), pas necessairement la position actuelle si la partie a
+         ete rouverte au milieu de son arbre.
+         Billes ejectees (rendu/ejections-apercu.js) : dessinees DANS ce
+         meme <svg>, en 2 colonnes bas-gauche, comme KAAWA (son
+         MiniBoard._draw) — pas un <svg> a part, voir ce fichier. -->
+    <svg id="apercu-partie"></svg>
+    <!-- Suppression de plusieurs parties d'un coup (saab : une par une, c'etait
+         penible) : une case a cocher par ligne, ces trois boutons, puis une
+         confirmation verte. Voir interface/mes-parties.js. -->
+    <div id="barre-parties" class="barre-parties">
+      <button id="bouton-tout-selectionner-parties" class="bouton-dialogue" type="button">Tout sélectionner</button>
+      <button id="bouton-tout-deselectionner-parties" class="bouton-dialogue" type="button">Tout désélectionner</button>
+      <button id="bouton-supprimer-parties" class="bouton-dialogue" type="button" disabled>Supprimer la sélection</button>
+    </div>
+    <div id="liste-parties" class="liste-dialogue"></div>
+    <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Dialogue "Variantes" (phase 13) : les positions de depart de
+       KAAWA (donnees/kaa-variantes.js), avec un apercu au premier clic
+       et un chargement au second — voir interface/variantes.js. Favoris
+       adaptes au navigateur plutot que le systeme a 3 fichiers de KAAWA
+       (choix de saab, "essayons ta methode"). -->
+  <dialog id="dialogue-variantes" class="dialogue">
+    <h2>Variantes</h2>
+    <!-- Pas de viewBox ici : dessinerPlateau (interface/variantes.js) le
+         pose lui-meme des le premier apercu, comme pour le plateau
+         principal (rendu/plateau-svg.js, ajusterViewBox). -->
+    <svg id="apercu-variante"></svg>
+    <div id="liste-variantes" class="liste-dialogue"></div>
+    <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Dialogue "Puzzles" (phase 16) : les 104 puzzles de KAAWA
+       (donnees/kaa-puzzles.js). Meme geste que les Variantes juste au-dessus
+       — apercu au premier clic, chargement au second — mais chaque ligne
+       affiche EN CLAIR son objectif ("Noir gagne en 3 tours") plutot que le
+       marqueur xtrNx du nom de fichier. Voir interface/puzzles.js. -->
+  <dialog id="dialogue-puzzles" class="dialogue">
+    <h2>Puzzles</h2>
+    <svg id="apercu-puzzle"></svg>
+    <div id="liste-puzzles" class="liste-dialogue"></div>
+    <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Confirmation avant une action irreversible (Annuler le dernier
+       coup, supprimer une branche de la Sequence) — remplace
+       window.confirm(), dont les boutons ("OK"/"Annuler", au choix du
+       navigateur) preteraient a confusion avec le bouton de navigation
+       "Annuler" qui declenche cette meme boite. Voir interface/confirmation.js. -->
+  <!-- Aide simplifiee (phase 26, partielle) : juste ce qui sert a tester KAAH
+       aujourd'hui. Voir interface/aide.js. Les explications d'installation
+       detaillees sont dans docs/ (INSTALLATION_PC.md, _ANDROID.md, _IOS.md). -->
+  <dialog id="dialogue-aide" class="dialogue dialogue-aide">
+    <!-- Titre et bouton Fermer FIXES en haut, corps qui defile au milieu (avec sa
+         barre de defilement TOUJOURS visible), Fermer aussi en bas : on ne doit
+         jamais avoir a defiler pour pouvoir fermer (saab). Echap ferme aussi. -->
+    <div class="aide-entete">
+      <div>
+        <h2>Aide de KAAH</h2>
+        <p id="version-kaah" class="aide-version"></p>
+      </div>
+      <button id="bouton-fermer-aide-haut" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+    <div class="aide-corps">
+    <details open>
+      <summary>Jouer un coup</summary>
+      <ul>
+        <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
+        <li>Les pendules (cadres gris à droite du plateau) démarrent quand on en touche une. Touchez-la encore pour mettre en pause : le plateau se cache.</li>
+        <li><b>Tour n A/N</b> (cadre orange sous le plateau) : touchez-le pour proposer <b>Nulle</b> ou <b>Abandonner</b>, puis Valider ou Refuser.</li>
+        <li>Touchez le cadre d'un joueur pour changer son nom.</li>
+        <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
+        <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler).</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Les boutons de la colonne de gauche</summary>
+      <ul>
+        <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
+        <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
+        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.</li>
+        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).</li>
+        <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
+        <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
+        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.</li>
+        <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
+        <li><b>Sons</b> : un interrupteur par son.</li>
+        <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Revenir en arrière, Annuler, branches</summary>
+      <ul>
+        <li><b>|&lt;&lt;</b> début, <b>&lt;&lt;</b> coup précédent, <b>&gt;&gt;</b> coup suivant, <b>&gt;&gt;|</b> dernier coup. On peut naviguer sans rien perdre.</li>
+        <li>Jouer un autre coup depuis une position passée crée une <b>branche</b> : les anciens coups restent dans la Séquence.</li>
+        <li><b>Annuler</b> (vert) <b>supprime</b> le dernier coup, après confirmation. Il est grisé quand il n'y a rien à annuler.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Mode Face-à-face</summary>
+      <ul>
+        <li>Posez le téléphone à plat entre les deux joueurs. Le plateau ne bouge jamais ; les noms, les coordonnées et les fenêtres se lisent de chaque côté (à gauche du plateau de bas en haut, à droite de haut en bas).</li>
+        <li>Le bouton est un interrupteur. Sur Android l'écran se met en paysage tout seul ; <b>sur iPhone, tournez le téléphone à la main</b> (et désactivez le verrouillage de rotation).</li>
+        <li>Menu ☰ déplié : les libellés se retournent vers Blanc quand c'est à Blanc de jouer.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Enregistrement des parties</summary>
+      <ul>
+        <li>Chaque coup est enregistré automatiquement <b>dans le navigateur de cet appareil</b> (pas de compte, pas d'internet).</li>
+        <li>Si vous videz les données du navigateur, les parties disparaissent : utilisez <b>Exporter</b> pour garder une partie importante.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Ouvrir KAAH sans internet</summary>
+      <ul>
+        <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).</li>
+        <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).</li>
+        <li><b>iPhone</b> : pas de méthode simple sans adresse internet (voir le mode d'emploi iPhone dans le dossier <b>docs</b>).</li>
+        <li>Ouvert ainsi, KAAH se joue très bien mais ne s'installe pas comme une application ; la version s'affiche « inconnue » : c'est normal. L'installation sur l'écran d'accueil, avec fonctionnement hors ligne complet, viendra avec une adresse https.</li>
+        <li>Les modes d'emploi complets (PC, Android, iPhone) sont dans le dossier <b>docs</b>.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Problèmes connus</summary>
+      <ul>
+        <li><b>Android</b> : la page a pu se figer (plus aucune réaction). Le bouton Retour du téléphone puis un retour sur la page la débloque. Une cause probable (la question « nulle » en boîte du navigateur) a été supprimée : dites-moi si cela se reproduit.</li>
+        <li><b>iPhone</b> : pas de verrouillage automatique en paysage ; le premier son ne sort qu'après un premier toucher.</li>
+        <li><b>Face-à-face en paysage</b> : le zoom à deux doigts ne fonctionne pas (il fonctionne dans les autres modes).</li>
+        <li>Les sons « Occ » se déclenchent peut-être trop souvent : à revoir.</li>
+        <li>Cette aide est volontairement courte.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Signaler un problème</summary>
+      <ul>
+        <li>Indiquez : le <b>modèle</b> de l'appareil et sa version (Android 14, iOS 17...), le <b>navigateur</b> utilisé, la <b>version de KAAH</b> (en haut de cette fenêtre), ce que vous avez fait, ce qui s'est passé, et une capture d'écran si possible.</li>
+        <li>Si cela concerne une partie : <b>Exporter</b> la partie et envoyez le fichier.</li>
+      </ul>
+    </details>
+
+    </div>
+    <button id="bouton-fermer-aide" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Reglage des sons (interface/reglages-sons.js). -->
+  <dialog id="dialogue-sons" class="dialogue">
+    <h2>Sons</h2>
+    <div id="liste-sons"></div>
+    <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Nom d'un joueur (interface/noms-joueurs.js) : un clic sur le cadre de
+       son nom, sur le plateau, ouvre ce champ. Le texte grise du champ est
+       pose par le script ("Nom du Joueur (Noir)" / "(Blanc)"). -->
+  <dialog id="dialogue-nom-joueur" class="dialogue">
+    <input id="champ-nom-joueur" type="text" maxlength="30" autocomplete="off" />
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-valider-nom-joueur" class="bouton-dialogue" type="button">Valider</button>
+      <button id="bouton-fermer-nom-joueur" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
+  <dialog id="dialogue-confirmation" class="dialogue">
+    <p id="message-confirmation"></p>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-confirmer-suppression" class="bouton-dialogue" type="button">Supprimer</button>
+      <button id="bouton-refuser-suppression" class="bouton-dialogue" type="button">Refuser</button>
+    </div>
+  </dialog>
+
+
+  <!-- Colonne principale : nom de la partie active, plateau, et la
+       navigation SUR TELEPHONE seulement (interface/disposition.js la
+       deplace au bas d'#arbre-panneau sur ordinateur, voir plus bas).
+       Separee de #arbre-panneau pour que styles.css puisse les mettre
+       cote a cote sur ordinateur, l'un sous l'autre sur telephone — voir
+       CLAUDE.md, "les onglets de la barre laterale passent en bas de
+       l'ecran sur telephone ... et sur le cote sur ordinateur". -->
+  <div id="colonne-principale">
+    <!-- Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
+         (voir moteur/nom-partie.js) — saab a signale ne voir aucune
+         indication de ce genre, ni de confirmation que la partie est
+         bien enregistree ; mis a jour a chaque coup/navigation par
+         index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
+    <div id="etat-sauvegarde"></div>
+    <svg id="plateau" role="img" aria-label="Plateau d'Abalone"></svg>
+    <!-- Poignee de hauteur du plateau, TELEPHONE SEULEMENT (phase 18) :
+         exception assumee a la regle "le plateau garde sa taille maximale"
+         — saab a demande de pouvoir le reduire a la main en portrait,
+         pour lire plusieurs lignes de Commentaires a la fois (pas utile
+         en pleine partie, seulement pour relire/annoter). Reduire
+         `#plateau` libere mecaniquement de la hauteur pour la ligne de
+         grille suivante (Sequence/Commentaires), sans toucher a
+         `grid-template-rows` — voir interface/sequence.js,
+         activerRedimensionnementPlateauPortrait, et styles.css. -->
+    <div id="plateau-poignee-hauteur" title="Glisser pour reduire le plateau et voir plus de lignes en dessous"></div>
+  </div>
+
+  <!-- Ces boutons vivent ici dans le HTML (sur telephone, c'est leur
+       place finale, au bas du plateau) mais interface/disposition.js les
+       deplace au bas d'#arbre-panneau des qu'on passe sur ordinateur —
+       voir ce fichier pour pourquoi. -->
+  <div id="navigation">
+    <button id="nav-debut" title="Revenir au debut">|&lt;&lt;</button>
+    <button id="nav-precedent" title="Coup precedent">&lt;&lt;</button>
+    <button id="nav-annuler" title="Annuler le dernier coup">Annuler</button>
+    <button id="nav-suivant" title="Coup suivant">&gt;&gt;</button>
+    <button id="nav-fin" title="Aller au dernier coup">&gt;&gt;|</button>
+  </div>
+
+  <!-- TOUT ce qui entoure le plateau tient dans cette seule colonne, a
+       droite : la Sequence et les Conseils l'un SOUS l'autre, jamais l'un
+       a gauche et l'autre a droite. saab a signale qu'un panneau Conseils
+       pose a gauche retirait de la largeur au plateau alors qu'il restait
+       de la place libre a droite — "c'est perturbant pour un conseil ;-)".
+       Regle qui en decoule, valable pour la suite : le plateau garde sa
+       taille maximale, c'est a ce qui l'entoure de s'adapter. -->
+  <div id="colonne-droite">
+    <!-- Choix de branche en naviguant ("Coup suivant"/"Dernier coup"
+         arrivant sur un embranchement) — voir interface/embranchement.js.
+         UN PANNEAU DE PLUS DANS CETTE COLONNE, JAMAIS UN <dialog> (signale
+         par saab : ne doit jamais recouvrir le plateau, seulement les
+         autres panneaux de cette colonne si besoin) : place EN PREMIER
+         pour s'afficher au-dessus d'eux. -->
+    <div id="panneau-embranchement" hidden>
+      <h2>Choisir une branche</h2>
+      <div id="liste-embranchement" class="liste-dialogue"></div>
+      <button id="bouton-annuler-embranchement" class="bouton-dialogue" type="button">Annuler</button>
+    </div>
+    <!-- Bandeau d'un puzzle EN COURS (phase 16) : l'objectif, puis le
+         verdict des que la partie bascule. Masque en permanence hors
+         puzzle — une partie ordinaire n'en voit jamais rien. Ici, dans la
+         colonne de droite, pour ne pas prendre de hauteur au plateau (voir
+         #etat-sauvegarde, meme raison). -->
+    <div id="bandeau-puzzle" hidden></div>
+    <!-- Barre laterale Sequence/Commentaires (phases 11 et 18) : UN SEUL
+         panneau physique pour les deux, jamais empiles — saab a demande de
+         reprendre le principe de KAAWA (deux onglets d'une seule zone)
+         plutot que deux panneaux distincts qui auraient montre deux fois
+         le meme arbre. `#bouton-sequence` et `#bouton-commentaires`
+         (tous deux dans la colonne de gauche depuis le correctif de
+         disposition, phase 18 — plus de bouton separe dans la barre de
+         Navigation) bascule chacun ce panneau sur son propre mode ; un
+         second clic sur le meme bouton le referme (voir
+         interface/saisie.js, seul endroit qui connait les deux modes a la
+         fois). Sur telephone, repliee par defaut (attribut `hidden`) pour
+         laisser toute la place au plateau. Sur ordinateur, styles.css
+         l'affiche a demeure, sur une moitie de la hauteur et une largeur
+         fixe par defaut ; #arbre-poignee-hauteur et #arbre-poignee-largeur
+         (ordinateur seulement) ajustent chacune des deux a la main,
+         plutot que de zoomer avec le navigateur — elles s'appliquent aux
+         DEUX modes, un seul panneau derriere. #plateau-poignee-hauteur
+         (telephone seulement, phase 18) fait l'inverse en portrait :
+         reduire le plateau pour agrandir cette zone, utile pour lire
+         plusieurs commentaires a la fois quand on n'est pas en train de
+         jouer — exception assumee a la regle du plateau fixe, voir
+         styles.css. -->
+    <div id="arbre-panneau" hidden>
+      <div id="arbre-poignee-largeur" title="Glisser pour changer la largeur de la sequence"></div>
+      <div id="arbre-entete" title="Revenir a la position de depart"></div>
+      <!-- Barre d'outils du mode Commentaires seulement (recherche, tout
+           replier/deplier, copier) — masquee en mode Sequence, voir
+           interface/saisie.js. -->
+      <div id="commentaires-barre" hidden>
+        <button id="commentaires-repli-tout" type="button">▼ Tout replier</button>
+        <input id="commentaires-recherche" type="text" placeholder="Recherche... (ex: occ)" />
+        <button id="commentaires-copier" type="button">Copier</button>
+      </div>
+      <div id="arbre"></div>
+      <div id="commentaires-liste" hidden></div>
+      <div id="arbre-poignee-hauteur" title="Glisser pour changer la hauteur de la sequence"></div>
+    </div>
+
+    <!-- Panneau "Conseils" (phase 15) : les coups suggeres par la base
+         KAA_NEXT_MOVE_REF_Best_Stat.csv de KAAWA (donnees/kaa-next-move.js),
+         avec leurs victoires/defaites/nulles — voir interface/next-move.js.
+         PAS un <dialog>, contrairement aux deux plus haut (il l'a ete, puis
+         ne l'est plus) : ce panneau sert justement a lire des indications
+         DESSINEES SUR LE PLATEAU, le recouvrir n'aurait aucun sens (saab :
+         "le plus important dans cette appli c'est de voir le plateau"). Sur
+         telephone il remonte au-dessus de la Sequence (`order`, styles.css)
+         pour rester juste sous le plateau.
+
+         PLUS DE "Tout afficher" NI DE "Fermer" (correctif de disposition,
+         saab : "un appui sur le btn Conseil passe en orange (car actif) et
+         doit afficher toutes les fleches, un nouvel appui enleve les
+         fleches et le orange") : `#bouton-conseils` (colonne de gauche)
+         fait maintenant les deux a lui seul, comme Commentaires/Occurrences/
+         Sequence — un seul bouton par panneau dans toute la colonne. -->
+    <div id="panneau-conseils" hidden>
+      <h2>Conseils</h2>
+      <!-- Coup, Gagne, Nul, Perdu — cet ordre precis (Nul avant Perdu) demande
+           par saab, voir interface/next-move.js. En-tete fixe, jamais
+           reconstruite (contrairement a #liste-conseils, qui change a
+           chaque coup). -->
+      <div class="ligne-liste ligne-conseil ligne-conseil-entete">
+        <span>Coup</span><span>G</span><span>N</span><span>P</span>
+      </div>
+      <div id="liste-conseils" class="liste-dialogue"></div>
+    </div>
+
+    <!-- Panneau "Occurrences" (phase 18, suite) : Occ/Ref (la sequence en
+         cours) et Br_Occ/Br_Ref (tout l'arbre explore), plus la liste des
+         AUTRES coups qui partagent la position ou la posRef du coup
+         regarde, cliquables pour y sauter — voir interface/occurrences.js.
+         Calque sur l'onglet "Occurrences" de KAAWA. -->
+    <div id="panneau-occurrences" hidden>
+      <!-- Poignee de hauteur MAXIMALE, TELEPHONE SEULEMENT (phase 18,
+           correctif) : exception assumee, meme famille que
+           #plateau-poignee-hauteur — saab a signale que le plafond fixe de
+           ce panneau (styles.css, 30vh) ne montrait presque aucune ligne
+           quand Sequence/Commentaires ou Conseils sont ouverts a cote en
+           portrait. Voir interface/occurrences.js,
+           activerRedimensionnementOccurrencesPortrait. -->
+      <div id="occurrences-poignee-hauteur" title="Glisser pour changer la hauteur maximale des occurrences"></div>
+      <h2>Occurrences</h2>
+      <div id="occurrences-entete"></div>
+      <div id="liste-occurrences"></div>
+    </div>
+  </div>
+
+  <!-- Scripts classiques (pas type="module") : c'est ce qui permet
+       d'ouvrir ce fichier par simple double-clic, sans serveur — voir
+       CLAUDE.md, "pourquoi pas de modules ES ici". L'ORDRE COMPTE : un
+       fichier qui utilise les fonctions d'un autre doit venir apres lui. -->
+  <script src="./moteur/plateau.js"></script>
+  <script src="./moteur/regles.js"></script>
+  <script src="./moteur/fleche-dernier-coup.js"></script>
+  <script src="./moteur/partie.js"></script>
+  <script src="./moteur/arbre.js"></script>
+  <script src="./moteur/notation.js"></script>
+  <script src="./moteur/pendules.js"></script>
+  <script src="./moteur/sauvegarde.js"></script>
+  <script src="./moteur/nom-partie.js"></script>
+  <script src="./moteur/variantes.js"></script>
+  <script src="./moteur/permutations.js"></script>
+  <script src="./moteur/next-move.js"></script>
+  <script src="./moteur/puzzles.js"></script>
+  <script src="./moteur/nulle.js"></script>
+  <script src="./moteur/occurrences.js"></script>
+  <script src="./moteur/menaces.js"></script>
+  <script src="./donnees/kaa-variantes.js"></script>
+  <script src="./donnees/kaa-next-move.js"></script>
+  <script src="./donnees/kaa-puzzles.js"></script>
+  <script src="./rendu/plateau-svg.js"></script>
+  <script src="./rendu/relief-cylindres.js"></script>
+  <script src="./rendu/cadre-plateau.js"></script>
+  <script src="./rendu/relief-plateau.js"></script>
+  <script src="./rendu/cache-relief.js"></script>
+  <script src="./rendu/selection.js"></script>
+  <script src="./rendu/coordonnees-bord.js"></script>
+  <script src="./rendu/coordonnees-jeu.js"></script>
+  <script src="./rendu/fleche-dernier-coup.js"></script>
+  <script src="./rendu/ejections.js"></script>
+  <script src="./rendu/ligne-joueur.js"></script>
+  <script src="./rendu/abandon-nulle.js"></script>
+  <script src="./rendu/pistes-triangle.js"></script>
+  <script src="./rendu/ejections-apercu.js"></script>
+  <script src="./rendu/pendule.js"></script>
+  <script src="./rendu/animation.js"></script>
+  <script src="./rendu/arbre-ligne.js"></script>
+  <script src="./rendu/arbre-html.js"></script>
+  <script src="./rendu/commentaires-html.js"></script>
+  <script src="./rendu/conseils.js"></script>
+  <script src="./rendu/menaces.js"></script>
+  <script src="./interface/pendules.js"></script>
+  <script src="./interface/sequence.js"></script>
+  <script src="./interface/disposition.js"></script>
+  <script src="./interface/face-a-face.js"></script>
+  <script src="./interface/sauvegarde.js"></script>
+  <script src="./interface/fichiers.js"></script>
+  <script src="./interface/mes-parties.js"></script>
+  <script src="./interface/variantes.js"></script>
+  <script src="./interface/next-move.js"></script>
+  <script src="./interface/puzzles.js"></script>
+  <script src="./interface/nulle.js"></script>
+  <script src="./interface/sons.js"></script>
+  <script src="./interface/reglages-sons.js"></script>
+  <script src="./interface/aide.js"></script>
+  <script src="./interface/abandon-nulle.js"></script>
+  <script src="./interface/noms-joueurs.js"></script>
+  <script src="./interface/commentaires.js"></script>
+  <script src="./interface/occurrences.js"></script>
+  <script src="./interface/menaces.js"></script>
+  <script src="./interface/confirmation.js"></script>
+  <script src="./interface/embranchement.js"></script>
+  <script src="./interface/saisie.js"></script>
+
+  <script>
+    // Marguerite Belge : la position de depart par defaut de KAAWA.
+    const MARGUERITE_BELGE = '0a12b123c23g78h789i89_0a45b456c56g45h456i56';
+    const EVENEMENT_PAR_DEFAUT = 'Amical';
+    const NOMS_PAR_DEFAUT = { noir: 'Joueur 1', blanc: 'Joueur 2' };
+    // Reglages par defaut de KAAWA (5 minutes, +2s par coup joue). Un
+    // reglage par l'utilisateur viendra avec les Options (phase 22) ; en
+    // attendant, c'est fige ici — sauf partie reprise, qui garde les
+    // siens (voir plus bas).
+    const REGLAGES_PENDULES_PAR_DEFAUT = { mode: 'pendule', tempsInitial: 300, bonusParCoup: 2, bonusParEjection: 0, delai: 0 };
+
+    // Sauvegarde automatique (phase 12) : s'il y a une partie active, on
+    // reprend celle-la plutot que la Marguerite Belge neuve — mais
+    // seulement le plateau et l'arbre de coups ; les pendules redemarrent
+    // a plein temps (limite assumee, voir interface/sauvegarde.js).
+    //
+    // Rassemble dans une fonction (et non une suite de `const`) pour
+    // pouvoir la rejouer une seconde fois avec `null` si la premiere
+    // tentative echoue (voir plus bas) : une entree corrompue (partie
+    // active illisible, jamais vu en pratique mais signale par saab sur
+    // une vieille version — "impossible de redemarrer, le refresh est tjs
+    // pareil") ne doit JAMAIS bloquer durablement l'application. Sans
+    // cette garde, une exception ici (levee par `donneesVersArbre` ou par
+    // un champ manquant comme `.Players`/`.Timer`) plantait TOUT LE
+    // SCRIPT avant que le moindre bouton ait pu recevoir son
+    // ecouteur — d'ou des icones visibles mais inertes, et un rechargement
+    // qui retombait indefiniment sur la MEME entree corrompue.
+    function construireDonneesDepart(donneesReprises) {
+      // Une variante choisie (phase 13, dialogue Variantes) ne compte que
+      // pour une partie neuve : une partie reprise a deja sa propre
+      // position, `prendrePositionDepartSuivante` n'est meme pas appelee
+      // dans ce cas (elle resterait donc posee pour le PROCHAIN "Nouvelle
+      // partie", ce qui n'est pas le but).
+      const positionChoisie = donneesReprises ? null : prendrePositionDepartSuivante();
+      const dateDebut = donneesReprises?.Date ?? formaterDateKAAWA(new Date());
+      const evenement = donneesReprises?.Event ?? EVENEMENT_PAR_DEFAUT;
+      const variantName = donneesReprises?.VariantName ?? positionChoisie?.nom ?? 'Marguerite Belge';
+      const joueurs = donneesReprises
+        ? { noir: donneesReprises.Players.P1_black, blanc: donneesReprises.Players.P2_white }
+        : { ...NOMS_PAR_DEFAUT }; // une COPIE : la saisie d'un nom (interface/noms-joueurs.js) modifie cet objet, jamais la constante
+      const reglagesPendules = donneesReprises
+        ? {
+            mode: donneesReprises.Timer.mode,
+            tempsInitial: donneesReprises.Timer.settings.p1_initial,
+            bonusParCoup: donneesReprises.Timer.settings.p1_bonus,
+            bonusParEjection: donneesReprises.Timer.settings.p1_bonus_eject,
+          }
+        : REGLAGES_PENDULES_PAR_DEFAUT;
+      // Les DEUX COMPTEURS EN DIRECT (pas les reglages, deja lus juste
+      // au-dessus) : `Chrono` porte deja ce compteur dans le format KAAWA
+      // (total_p1/p2_remaining), jusqu'ici jamais relu au chargement — saab
+      // a signale que fermer/rouvrir l'appli (ou reprendre depuis "Mes
+      // parties") remettait les pendules a plein temps, "pas bon" surtout
+      // apres avoir du fermer/rouvrir suite a un blocage de l'ecran. Une
+      // valeur negative ou absente (vieille sauvegarde d'avant ce correctif)
+      // retombe sur `tempsInitial`, jamais un chiffre errone.
+      const pendulesReprises = donneesReprises?.Chrono && {
+        tempsNoir: donneesReprises.Chrono.total_p1_remaining ?? reglagesPendules.tempsInitial,
+        tempsBlanc: donneesReprises.Chrono.total_p2_remaining ?? reglagesPendules.tempsInitial,
+      };
+      const arbreDepart = donneesReprises ? donneesVersArbre(donneesReprises) : undefined;
+      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart };
+    }
+
+    let donneesReprises = chargerPartieActive();
+    let etatDepart;
+    try {
+      etatDepart = construireDonneesDepart(donneesReprises);
+    } catch (erreur) {
+      // Abandonne la partie active plutot que d'y rester bloque pour de
+      // bon : voir le commentaire au-dessus. Le rappel avec `null` ne peut
+      // jamais lui-meme echouer (chaque valeur y retombe sur son defaut).
+      console.error('Partie active illisible, elle est abandonnee :', erreur);
+      oublierPartieActive();
+      donneesReprises = null;
+      etatDepart = construireDonneesDepart(null);
+    }
+    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart } =
+      etatDepart;
+
+    // Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
+    // (voir moteur/nom-partie.js) — saab a demande cette convention
+    // precise plutot qu'un texte invente, et signale ne voir aucune
+    // confirmation que la partie est bien enregistree. `donnees` vient
+    // du meme appel que la sauvegarde elle-meme (voir plus bas) : jamais
+    // recalcule deux fois pour la meme chose.
+    const elementEtatSauvegarde = document.getElementById('etat-sauvegarde');
+    function actualiserEtatSauvegarde(reussie, donnees) {
+      const nom = nomDeFichierKAAWA(donnees);
+      elementEtatSauvegarde.textContent = reussie ? nom : `${nom} — sauvegarde impossible (stockage du navigateur indisponible)`;
+      // Le CSS tronque cette ligne a "…" sur ordinateur (elle y tient dans
+      // une colonne etroite, voir styles.css) : le texte entier reste
+      // consultable au survol, jamais indispensable au jeu lui-meme
+      // (CLAUDE.md, "rien d'important au survol seul").
+      elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
+      elementEtatSauvegarde.classList.toggle('etat-sauvegarde-erreur', !reussie);
+    }
+    // Au demarrage, rien n'a encore ete ecrit pour de vrai s'il n'y a pas
+    // de partie reprise (rien a perdre avant le premier coup) : un texte
+    // neutre plutot qu'un nom pour une partie qui n'existe pas encore.
+    elementEtatSauvegarde.textContent = donneesReprises ? nomDeFichierKAAWA(donneesReprises) : 'Nouvelle partie (pas encore jouee)';
+    elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
+
+    const svg = document.getElementById('plateau');
+    dessinerPlateau(svg);
+    // Aspect visuel (phase 19ter) : fond, relief entre les cases, degrades —
+    // juste apres dessinerPlateau, avant de poser les billes (rendu/relief-
+    // plateau.js). Jamais sur les apercus (Mes parties/Variantes/Puzzles),
+    // qui appellent seulement dessinerPlateau.
+    dessinerReliefPlateau(svg);
+    // Bordure de coordonnees a-i/1-9 (phase 19bis), toujours visible : doit
+    // etre la PREMIERE bande ajoutee au viewBox (voir
+    // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
+    // d'occurrences, pour rester la plus proche du plateau.
+    dessinerCoordonneesBord(svg);
+    dessinerPistesEjection(svg, joueurs);
+    // Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du
+    // plateau (phase 18, correctif) — comme dessinerPistesEjection,
+    // agrandit le viewBox : doit donc aussi passer AVANT
+    // fixerProportionsPlateau. Voir rendu/ejections.js.
+    dessinerCompteurOccurrences(svg);
+    // En dernier : la proportion definitive du plateau n'est connue qu'une
+    // fois les bandes d'ejection ET le compteur d'occurrences loges dans
+    // le viewBox (voir rendu/plateau-svg.js, fixerProportionsPlateau).
+    fixerProportionsPlateau(svg);
+    // Le decor (fond, relief, trous) fige en une image : voir rendu/cache-relief.js.
+    // Apres tout ce qui touche au viewBox.
+    figerLeDecor(svg);
+    // Poignee de hauteur du plateau, telephone seulement (phase 18) — voir
+    // interface/sequence.js pour le detail et l'exception qu'elle assume.
+    activerRedimensionnementPlateauPortrait(svg, document.getElementById('plateau-poignee-hauteur'));
+    // Poignee du panneau Occurrences, telephone seulement (phase 18,
+    // correctif) : reduit Sequence/Commentaires pour lui faire de la place
+    // — voir interface/occurrences.js.
+    activerRedimensionnementOccurrencesPortrait(
+      document.getElementById('arbre-panneau'),
+      document.getElementById('occurrences-poignee-hauteur')
+    );
+
+    // Vrai des qu'un `location.reload()` volontaire va suivre (voir
+    // `demarrerRechargement` plus bas et l'ecouteur `visibilitychange`) :
+    // empeche la sauvegarde-avant-fermeture de s'executer une derniere
+    // fois sur le rechargement lui-meme, avec l'ARBRE EN MEMOIRE d'AVANT
+    // (perime des l'instant ou l'id actif a change ou va changer) — voir
+    // l'ecouteur pour l'incident precis que ce drapeau evite.
+    let rechargementImminent = false;
+    // A appeler juste avant CHAQUE `location.reload()` de ce fichier (et
+    // de interface/mes-parties.js, qui recoit ce meme drapeau) : jamais un
+    // `location.reload()` nu ailleurs dans ce fichier desormais.
+    function demarrerRechargement() {
+      rechargementImminent = true;
+      location.reload();
+    }
+
+    // Declare avant `partie` : le rappel `surChangement` ci-dessous (qui
+    // s'execute apres chaque coup) en a besoin, mais `conseils` lui-meme
+    // n'est cree qu'apres `partie` (il a besoin de partie.jouerCoupTexte).
+    let conseils;
+    // Meme raison (phase 19) : `menaces` a aussi besoin de `partie` pour
+    // connaitre la position REGARDEE (obtenirArbre), mais le rappel
+    // `surChangement` ci-dessous doit deja pouvoir l'appeler.
+    let menaces;
+
+    // Les puzzles sont lus AVANT la partie : celle-ci peut deja en etre un
+    // (une partie reprise, ou un puzzle qu'on vient de choisir), et son
+    // bandeau a besoin de la solution en cache des le premier affichage.
+    let puzzlesDisponibles = [];
+    try {
+      puzzlesDisponibles = lirePuzzles(KAA_PZL_KAA);
+    } catch (erreur) {
+      console.error('Puzzles illisibles :', erreur);
+    }
+
+    // Confirmation avant Annuler/supprimer une branche (correctif de
+    // disposition) : ne depend de rien d'autre, peut se creer avant
+    // `partie` — voir interface/confirmation.js.
+    const confirmation = demarrerConfirmation({
+      dialogue: document.getElementById('dialogue-confirmation'),
+      message: document.getElementById('message-confirmation'),
+      confirmer: document.getElementById('bouton-confirmer-suppression'),
+      refuser: document.getElementById('bouton-refuser-suppression'),
+    });
+
+    // Choix de branche en naviguant (correctif de disposition) : ne depend
+    // de rien d'autre non plus, meme raison qu'au-dessus — voir
+    // interface/embranchement.js.
+    const embranchement = demarrerEmbranchement({
+      panneau: document.getElementById('panneau-embranchement'),
+      liste: document.getElementById('liste-embranchement'),
+      annuler: document.getElementById('bouton-annuler-embranchement'),
+    });
+
+    // Les sons (phase 21) : avant la partie, qui les joue.
+    const sons = demarrerSons();
+    demarrerReglagesSons(
+      {
+        bouton: document.getElementById('bouton-sons'),
+        dialogue: document.getElementById('dialogue-sons'),
+        liste: document.getElementById('liste-sons'),
+        fermer: document.getElementById('bouton-fermer-sons'),
+      },
+      sons
+    );
+
+    // Aide simplifiee (phase 26, partielle) : interface/aide.js.
+    demarrerAide({
+      bouton: document.getElementById('bouton-aide'),
+      dialogue: document.getElementById('dialogue-aide'),
+      version: document.getElementById('version-kaah'),
+      fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
+    });
+
+    const partie = demarrerPartie(
+      svg,
+      lirePosition(positionChoisie?.texteBrut ?? MARGUERITE_BELGE),
+      {
+        debut: document.getElementById('nav-debut'),
+        precedent: document.getElementById('nav-precedent'),
+        suivant: document.getElementById('nav-suivant'),
+        fin: document.getElementById('nav-fin'),
+        annuler: document.getElementById('nav-annuler'),
+      },
+      confirmation.demander,
+      embranchement.demander,
+      {
+        // Ces deux <text> vivent DANS le plateau (dessinerPistesEjection
+        // ci-dessus les a deja crees) : interface/pendules.js n'a besoin
+        // de rien savoir de plus, il leur ecrit du texte comme a de
+        // simples <span>.
+        noir: document.getElementById('pendule-noir'),
+        blanc: document.getElementById('pendule-blanc'),
+      },
+      reglagesPendules,
+      pendulesReprises,
+      {
+        conteneur: document.getElementById('arbre'),
+        entete: document.getElementById('arbre-entete'),
+        panneau: document.getElementById('arbre-panneau'),
+        bouton: document.getElementById('bouton-sequence'),
+        poigneeHauteur: document.getElementById('arbre-poignee-hauteur'),
+        poigneeLargeur: document.getElementById('arbre-poignee-largeur'),
+      },
+      {
+        bouton: document.getElementById('bouton-commentaires'),
+        conteneur: document.getElementById('commentaires-liste'),
+        barre: document.getElementById('commentaires-barre'),
+        barreRecherche: document.getElementById('commentaires-recherche'),
+        boutonReplierTout: document.getElementById('commentaires-repli-tout'),
+        boutonCopier: document.getElementById('commentaires-copier'),
+      },
+      {
+        bouton: document.getElementById('bouton-occurrences'),
+        panneau: document.getElementById('panneau-occurrences'),
+        entete: document.getElementById('occurrences-entete'),
+        liste: document.getElementById('liste-occurrences'),
+      },
+      arbreDepart,
+      (arbre, perteAuTemps) => {
+        sauvegarderMaintenant(arbre, perteAuTemps);
+        // `conseils` n'existe pas encore au tout premier appel (voir plus
+        // bas, cree apres `partie`) : ce rappel ne peut de toute facon
+        // etre declenche qu'apres un coup ou une navigation, donc apres
+        // que tout le reste de ce script ait fini de s'executer.
+        conseils?.actualiser();
+        // La position regardee a change : les fleches de menaces
+        // affichees (si le bouton "!?" est actif) ne valent plus rien,
+        // voir interface/menaces.js.
+        menaces?.actualiser();
+        actualiserBandeauPuzzle(arbre);
+      },
+      sons.jouer
+    );
+
+    // Puzzle en cours (phase 16). Rien de nouveau n'est stocke pour le
+    // retenir : le nom de la partie EST le nom du puzzle (il voyage deja
+    // dans `variantName`, donc dans la sauvegarde), et c'est lui qui porte
+    // le marqueur `xtrNx` — exactement comme KAAWA, qui relit son
+    // `game_position_name` a chaque fois plutot que de garder un drapeau a
+    // jour. Une partie reprise retrouve donc son puzzle toute seule.
+    const objectifPuzzle = lireNomPuzzle(variantName);
+    const puzzleEnCours = objectifPuzzle && {
+      ...objectifPuzzle,
+      nom: variantName,
+      // La solution en cache, elle, ne voyage pas dans la sauvegarde : on
+      // la retrouve dans le fichier, par le nom. Absente (puzzle inconnu de
+      // ce fichier) = puzzle jouable mais non verifiable, comme les 101
+      // puzzles sur 104 qui n'en ont de toute facon aucune.
+      branchesSolution: puzzlesDisponibles.find((puzzle) => puzzle.nom === variantName)?.branchesSolution ?? [],
+    };
+
+    // Lequel des 4 boutons "position de depart" represente la partie
+    // ACTUELLEMENT jouee (signale par saab : "on saura sur quoi on
+    // joue") — calcule UNE SEULE FOIS au demarrage a partir de ce qui a
+    // determine cette position, jamais mis a jour en cours de partie
+    // (jouer un coup ne change pas l'origine de la partie, seul un
+    // rechargement le peut). Priorite : un puzzle reste un puzzle meme
+    // repris depuis "Mes parties" (coherent avec `puzzleEnCours`
+    // au-dessus, qui a la meme priorite) ; sinon une variante nommee
+    // CHOISIE explicitement (jamais vrai pour une partie reprise, voir
+    // `positionChoisie` plus haut) ; sinon toute partie EFFECTIVEMENT
+    // reprise depuis le stockage (`donneesReprises`, qu'elle vienne d'un
+    // demarrage silencieux ou d'un choix explicite dans "Mes parties") ;
+    // sinon une Marguerite Belge neuve, jamais rechargee depuis, reste
+    // "Nouvelle partie".
+    const boutonPositionDepartActif = puzzleEnCours
+      ? 'bouton-puzzles'
+      : positionChoisie
+        ? 'bouton-variantes'
+        : donneesReprises
+          ? 'bouton-mes-parties'
+          : 'bouton-nouvelle-partie';
+    document.getElementById(boutonPositionDepartActif).classList.add('bouton-actif');
+
+    const elementBandeauPuzzle = document.getElementById('bandeau-puzzle');
+
+    // Les coups deja joues, dans l'ordre, depuis la racine jusqu'au noeud
+    // regarde : la sequence que moteur.etatDuPuzzle compare a la solution.
+    function coupsJoues(arbre) {
+      const coups = [];
+      let noeud = arbre.racine;
+      for (const index of arbre.chemin) {
+        noeud = noeud.enfants[index];
+        coups.push(noeud.coup);
+      }
+      return coups;
+    }
+
+    function etatDuPuzzleCourant(arbre) {
+      const etat = etatCourant(arbre);
+      // Les ejections DU camp qui doit gagner sont celles des billes de
+      // l'AUTRE camp : Noir gagne en ejectant des billes blanches.
+      const ejectionsDuGagnant =
+        puzzleEnCours.campGagnant === 'noir' ? etat.billesEjecteesBlanches : etat.billesEjecteesNoires;
+      return etatDuPuzzle(puzzleEnCours, {
+        coupsJoues: coupsJoues(arbre),
+        ejectionsDuGagnant,
+        vainqueur: etat.vainqueur,
+      });
+    }
+
+    function actualiserBandeauPuzzle(arbre) {
+      if (!puzzleEnCours) {
+        afficherEtatPuzzle(elementBandeauPuzzle, null, null);
+        return;
+      }
+      afficherEtatPuzzle(elementBandeauPuzzle, puzzleEnCours, etatDuPuzzleCourant(arbre));
+    }
+
+    // Un puzzle perdu ferme le jeu EN AVANT, sans rien empecher en arriere
+    // (saab : "quand c'est perdu on ne peut plus jouer en avant, on peut
+    // seulement revenir en arriere pour faire d'autres branches d'essais").
+    // Relu a chaque clic sur la position REGARDEE : reculer d'un coup rouvre
+    // donc le jeu tout seul, et la branche d'essai part de la.
+    partie.definirPositionSansSuite(
+      () => puzzleEnCours !== null && etatDuPuzzleCourant(partie.obtenirArbre()).resultat === 'perdu'
+    );
+
+    actualiserBandeauPuzzle(partie.obtenirArbre());
+
+    // Les memes metadonnees servent a l'auto-sauvegarde (ci-dessus),
+    // Exporter et "Mes parties" : une seule fonction plutot que trois
+    // objets litteraux a garder synchronises.
+    function metadonneesActuelles(finDePartie) {
+      return {
+        date: dateDebut,
+        event: evenement,
+        variantName,
+        joueurs,
+        reglagesPendules,
+        finDePartie,
+        // Les deux compteurs EN DIRECT, ecrits dans `Chrono` (voir
+        // moteur.arbreVersDonnees) : c'est ce que `pendulesReprises`
+        // plus haut relit au prochain demarrage, pour ne plus jamais
+        // remettre les pendules a plein temps en fermant/rouvrant l'appli.
+        pendulesActuelles: partie.obtenirPendulesActuelles(),
+      };
+    }
+
+    // Sauvegarde immediate (phase 12, correctif de disposition) : factorisee
+    // pour etre appelee a la fois apres chaque coup/navigation (ci-dessus)
+    // ET juste avant que la page se cache (voir l'ecouteur `visibilitychange`
+    // plus bas) — jamais la meme regle ecrite deux fois. Cette seconde
+    // occasion est celle qui compte vraiment pour les pendules : sans elle,
+    // le compteur EN DIRECT sauvegarde resterait celui du DERNIER COUP JOUE,
+    // pas celui de l'instant ou l'appli a ete quittee (le temps de reflexion
+    // passe depuis ne serait jamais compte) — voir metadonneesActuelles,
+    // pendulesActuelles.
+    function sauvegarderMaintenant(arbre, perteAuTemps) {
+      const donnees = arbreVersDonnees(arbre, metadonneesActuelles(perteAuTemps));
+      actualiserEtatSauvegarde(sauvegarderPartieActive(donnees), donnees);
+    }
+
+    demarrerDispositionNavigation(
+      document.getElementById('navigation'),
+      document.getElementById('colonne-principale'),
+      document.getElementById('arbre-panneau'),
+      document.getElementById('etat-sauvegarde'),
+      document.getElementById('colonne-droite')
+    );
+    demarrerExtensionColonneGauche(
+      document.getElementById('bouton-etendre-colonne'),
+      document.getElementById('colonne-gauche')
+    );
+
+    // Boutons de la colonne de gauche (phase 12) : voir
+    // interface/sauvegarde.js pour le detail de chaque fonction.
+    //
+    // CORRIGE (saab : "une securite sur New, si appui par inadvertance
+    // pendant qu'on est sur une partie, il faudrait un avertissement") :
+    // demande confirmation SEULEMENT si une partie est deja en cours
+    // (`obtenirIdPartieActive()` non nul — une partie neuve jamais jouee
+    // n'a rien a perdre, la confirmer serait un geste pour rien). La
+    // partie en cours n'est de toute facon jamais perdue pour de bon
+    // (elle reste dans "Mes parties"), le message le rappelle : c'est
+    // uniquement contre un clic malencontreux qui ferait perdre de vue la
+    // partie qu'on etait en train de jouer, pas contre une vraie perte de
+    // donnees.
+    document.getElementById('bouton-nouvelle-partie').addEventListener('click', () => {
+      const demarrer = () => {
+        oublierPartieActive();
+        demarrerRechargement();
+      };
+      if (obtenirIdPartieActive()) {
+        confirmation.demander(
+          'Demarrer une nouvelle partie ? La partie en cours restera dans Mes parties, mais vous n\'y serez plus.',
+          demarrer,
+          'Nouvelle partie'
+        );
+      } else {
+        demarrer();
+      }
+    });
+    document.getElementById('bouton-exporter').addEventListener('click', () => {
+      const donnees = arbreVersDonnees(partie.obtenirArbre(), metadonneesActuelles(partie.obtenirPerteAuTemps()));
+      telechargerPartie(donnees, `${variantName}_${dateDebut}`);
+    });
+    document.getElementById('bouton-importer').addEventListener('click', () => {
+      demarrerImportation(
+        (donnees) => {
+          // Verifie que le fichier est bien lisible AVANT d'en faire une
+          // nouvelle partie : mieux vaut un message d'erreur qu'une
+          // entree a moitie fausse dans "Mes parties".
+          try {
+            donneesVersArbre(donnees);
+          } catch (erreur) {
+            window.alert(`Fichier illisible : ${erreur.message}`);
+            return;
+          }
+          const id = creerNouvellePartie(donnees);
+          if (!id) {
+            window.alert("Impossible d'enregistrer cette partie (stockage du navigateur indisponible).");
+            return;
+          }
+          definirIdPartieActive(id);
+          // Confirmation explicite avant de recharger : un rechargement
+          // silencieux peut donner l'impression que rien ne s'est passe
+          // (signale par saab, "je ne sais pas faire").
+          window.alert('Partie importee. La page va se recharger pour l\'afficher.');
+          demarrerRechargement();
+        },
+        (message) => window.alert(message)
+      );
+    });
+
+    // Face-a-face (phase 20) : avant tout affichage, pour que les classes de
+    // <body> soient deja posees quand la partie oriente ses noms.
+    demarrerFaceAFace(document.getElementById('bouton-face-a-face'));
+    // Nom d'un joueur : un clic sur son cadre, sur le plateau (interface/
+    // noms-joueurs.js). Changer un nom change la sauvegarde (Players) et le
+    // nom de la partie affiche : on sauvegarde donc tout de suite.
+    demarrerNomsJoueurs(
+      svg,
+      {
+        dialogue: document.getElementById('dialogue-nom-joueur'),
+        champ: document.getElementById('champ-nom-joueur'),
+        valider: document.getElementById('bouton-valider-nom-joueur'),
+        fermer: document.getElementById('bouton-fermer-nom-joueur'),
+      },
+      joueurs,
+      NOMS_PAR_DEFAUT,
+      () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps())
+    );
+    const listeParties = demarrerListeParties(
+      {
+        bouton: document.getElementById('bouton-mes-parties'),
+        dialogue: document.getElementById('dialogue-mes-parties'),
+        message: document.getElementById('message-reprise-partie'),
+        apercu: document.getElementById('apercu-partie'),
+        liste: document.getElementById('liste-parties'),
+        fermer: document.getElementById('bouton-fermer-mes-parties'),
+        toutSelectionner: document.getElementById('bouton-tout-selectionner-parties'),
+        toutDeselectionner: document.getElementById('bouton-tout-deselectionner-parties'),
+        supprimer: document.getElementById('bouton-supprimer-parties'),
+      },
+      demarrerRechargement,
+      confirmation.demander
+    );
+    // Une partie reprise en silence peut donner l'impression d'une partie
+    // neuve si on ne fait pas attention (signale par saab) : le dialogue
+    // "Mes parties" s'ouvre alors tout seul, deja previsualise sur la
+    // partie active, pour qu'on la VOIE avant de continuer a y jouer.
+    // Rien n'est perdu si on ne fait rien : la partie est deja chargee,
+    // "Fermer" (refuser) la laisse telle quelle.
+    //
+    // `prendreRepriseDejaConfirmee()` saute cette confirmation UNE FOIS
+    // (voir interface/sauvegarde.js) : si ce rechargement fait justement
+    // suite a un choix explicite dans "Mes parties" (interface/
+    // mes-parties.js, `confirmer`), on vient DEJA de confirmer — la
+    // redemander ici serait le second clic inutile signale par saab.
+    if (donneesReprises && !prendreRepriseDejaConfirmee()) {
+      listeParties.ouvrirPourConfirmationReprise();
+    }
+
+    // Variantes (phase 13) : lues une seule fois au demarrage. Protege
+    // par un try/catch — un fichier de donnees corrompu ne doit pas
+    // empecher de jouer, seulement priver du dialogue Variantes.
+    let variantesDisponibles = [];
+    try {
+      variantesDisponibles = lireVariantes(KAA_VARIANTS_KAA);
+    } catch (erreur) {
+      console.error('Variantes illisibles :', erreur);
+    }
+    demarrerSelectionVariantes(
+      {
+        bouton: document.getElementById('bouton-variantes'),
+        dialogue: document.getElementById('dialogue-variantes'),
+        liste: document.getElementById('liste-variantes'),
+        apercu: document.getElementById('apercu-variante'),
+        fermer: document.getElementById('bouton-fermer-variantes'),
+      },
+      variantesDisponibles,
+      (variante) => {
+        // Meme principe que "Nouvelle partie" : rien n'est perdu, la
+        // partie en cours reste dans "Mes parties" sous son propre nom.
+        const charger = () => {
+          oublierPartieActive();
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom);
+          demarrerRechargement();
+        };
+        // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
+        // une partie en cours, elle est remplacee, il faut faire la meme
+        // securite qu'on a fait sur Nouvelle partie") : meme garde,
+        // seulement si une partie est deja en cours.
+        if (obtenirIdPartieActive()) {
+          confirmation.demander(
+            'Charger cette variante ? La partie en cours restera dans Mes parties, mais vous n\'y serez plus.',
+            charger,
+            'Charger'
+          );
+        } else {
+          charger();
+        }
+      }
+    );
+
+    demarrerSelectionPuzzles(
+      {
+        bouton: document.getElementById('bouton-puzzles'),
+        dialogue: document.getElementById('dialogue-puzzles'),
+        liste: document.getElementById('liste-puzzles'),
+        apercu: document.getElementById('apercu-puzzle'),
+        fermer: document.getElementById('bouton-fermer-puzzles'),
+      },
+      puzzlesDisponibles,
+      (puzzle) => {
+        // Meme chemin qu'une variante : le NOM choisi devient le nom de la
+        // partie, et c'est lui qui portera le marqueur xtrNx d'un bout a
+        // l'autre (voir puzzleEnCours plus haut).
+        const charger = () => {
+          oublierPartieActive();
+          definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom);
+          demarrerRechargement();
+        };
+        // Meme securite que Variantes/Nouvelle partie, voir plus haut.
+        if (obtenirIdPartieActive()) {
+          confirmation.demander(
+            'Charger ce puzzle ? La partie en cours restera dans Mes parties, mais vous n\'y serez plus.',
+            charger,
+            'Charger'
+          );
+        } else {
+          charger();
+        }
+      }
+    );
+
+    // Conseils (phase 15) : la base Next Move de KAAWA. Analysee en
+    // ARRIERE-PLAN (setTimeout, jamais au fil du chargement de la page) :
+    // mesure reelle sur cette machine, voir JOURNAL.md — les pendules
+    // demarrent donc sans attendre une seule milliseconde de plus.
+    let baseNextMove = new Map(); // vide tant que l'analyse n'est pas terminee
+    setTimeout(() => {
+      baseNextMove = analyserBaseNextMove(KAA_NEXT_MOVE_CSV);
+    }, 0);
+
+    conseils = demarrerConseils(
+      svg,
+      {
+        bouton: document.getElementById('bouton-conseils'),
+        panneau: document.getElementById('panneau-conseils'),
+        liste: document.getElementById('liste-conseils'),
+      },
+      () => baseNextMove,
+      () => {
+        // Le camp au trait autant que la position : la position compressee
+        // ne dit pas a qui c'est de jouer, et la base contient des coups
+        // des DEUX camps sous la meme cle (voir moteur/next-move.js).
+        const etat = etatCourant(partie.obtenirArbre());
+        return { position: ecrirePosition(etat), joueurAuTrait: etat.joueurAuTrait };
+      },
+      (coupTexte) => partie.jouerCoupTexte(coupTexte)
+    );
+
+    // Menaces (phase 19) : les poussees possibles des deux camps sur la
+    // position REGARDEE, jamais seulement les coups du joueur au trait —
+    // voir moteur/menaces.js.
+    menaces = demarrerMenaces(
+      svg,
+      { bouton: document.getElementById('bouton-menaces') },
+      () => etatCourant(partie.obtenirArbre())
+    );
+
+    // Sauvegarde juste avant que la page se cache (correctif de disposition) :
+    // changer d'appli, verrouiller le telephone, ou le forcer a se fermer
+    // apres un blocage de l'ecran — dans tous ces cas `visibilitychange`
+    // se declenche AVANT que la page ne soit vraiment coupee (contrairement
+    // a `beforeunload`/`pagehide`, pas fiables sur mobile des qu'un
+    // navigateur decide de tuer un onglet en arriere-plan sans evenement).
+    // Capture donc les pendules au plus pres de l'instant reel de fermeture,
+    // pas seulement au dernier coup joue (voir sauvegarderMaintenant).
+    //
+    // BUG TROUVE en testant : `location.reload()` declenche AUSSI
+    // `visibilitychange`. Un premier correctif ne verifiait que
+    // `obtenirIdPartieActive()` (protegeait "Nouvelle partie"/Variantes/
+    // Puzzles/"Refuser", qui appellent tous `oublierPartieActive()` avant
+    // de recharger) — mais PAS "Mes parties" -> confirmer une AUTRE partie
+    // (interface/mes-parties.js, `confirmer`) : celle-ci change l'id actif
+    // vers la partie CHOISIE avant de recharger, sans jamais l'oublier.
+    // `obtenirIdPartieActive()` restait donc non-null, et cet ecouteur
+    // sauvegardait l'ARBRE ENCORE EN MEMOIRE (celui de la partie qu'on
+    // vient de QUITTER) SOUS L'ID DE LA PARTIE QU'ON VIENT DE CHOISIR —
+    // l'ecrasant avec de mauvaises donnees just avant meme que le
+    // rechargement ait pu la charger pour de vrai (signale par saab : "je
+    // voulais reprendre une partie... [elle] n'existe plus"). Meme risque
+    // latent sur "Importer", qui change aussi l'id actif avant de
+    // recharger.
+    // CORRIGE : un drapeau explicite (`rechargementImminent`,
+    // `demarrerRechargement` plus haut), pose avant CHAQUE rechargement
+    // volontaire de ce fichier ET de interface/mes-parties.js, quelle que
+    // soit la raison — plus fiable qu'inferer l'intention depuis l'id
+    // actif, qui ne dit pas la meme chose selon le chemin emprunte.
+    document.addEventListener('visibilitychange', () => {
+      if (rechargementImminent) return;
+      if (document.visibilityState === 'hidden' && obtenirIdPartieActive()) {
+        sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps());
+      }
+    });
+
+    // Enregistre le service worker (installation et hors ligne, phase 8).
+    // Ne fonctionne que via une vraie adresse http(s) (localhost compris) :
+    // ne rien faire d'autre en cas d'echec, ouvrir le fichier directement
+    // reste le mode d'emploi normal de KAAH et marche tres bien sans ca.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
