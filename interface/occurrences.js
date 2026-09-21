@@ -83,7 +83,7 @@ function demarrerAffichageOccurrences(svg, elements, rappels) {
   // racine, sinon son numero de tour et son texte Nacre — meme convention
   // que interface/commentaires.js.
   function etiquetteDuNoeud(arbre, chemin) {
-    if (chemin.length === 0) return 'Depart';
+    if (chemin.length === 0) return 'Départ';
     return `${numeroDeTour(chemin.length)}. ${noeudA(arbre, chemin).coup}`;
   }
 
@@ -102,7 +102,7 @@ function demarrerAffichageOccurrences(svg, elements, rappels) {
 
     if (autresExacts.length === 0 && compteurs.branches.noeudsRefSeuls.length === 0) {
       const vide = document.createElement('p');
-      vide.textContent = 'Aucune autre occurrence trouvee.';
+      vide.textContent = 'Aucune autre occurrence trouvée.';
       elements.liste.appendChild(vide);
       return;
     }
@@ -117,7 +117,7 @@ function demarrerAffichageOccurrences(svg, elements, rappels) {
     if (compteurs.branches.noeudsRefSeuls.length > 0) {
       const separateur = document.createElement('p');
       separateur.className = 'separateur-occurrences';
-      separateur.textContent = '--- Ref (meme posRef) ---';
+      separateur.textContent = '--- Ref (même posRef) ---';
       elements.liste.appendChild(separateur);
       compteurs.branches.noeudsRefSeuls.forEach((n, index) => {
         const rang = index + 1;

@@ -137,7 +137,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     if (ids.length === 0) return;
     const contientLaPartieEnCours = ids.includes(obtenirIdPartieActive());
     demanderConfirmation(
-      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} Cette action est irreversible.`,
+      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} Cette action est irréversible.`,
       () => supprimerSelection(ids),
       'Supprimer'
     );
@@ -178,7 +178,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     actualiserBarre(parties.length);
     if (parties.length === 0) {
       const vide = document.createElement('p');
-      vide.textContent = "Aucune partie jouee pour l'instant.";
+      vide.textContent = "Aucune partie jouée pour l'instant.";
       elements.liste.appendChild(vide);
       return;
     }

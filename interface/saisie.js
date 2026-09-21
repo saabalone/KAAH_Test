@@ -246,7 +246,7 @@ function demarrerPartie(
   const sequence = demarrerAffichageSequence(elementsArbre, texteEnTete, {
     surClicNoeud: (chemin) => naviguer((a) => allerAuNoeud(a, chemin)),
     surClicSupprimer: (chemin) => {
-      demanderConfirmation('Supprimer ce coup et tout ce qui en depend ? Cette action est irreversible.', () =>
+      demanderConfirmation('Supprimer ce coup et tout ce qui en dépend ? Cette action est irréversible.', () =>
         naviguer((a) => supprimerBranche(a, chemin))
       );
     },
@@ -493,7 +493,7 @@ function demarrerPartie(
   }
   elementsNavigation.annuler.addEventListener('click', () => {
     if (!peutSupprimerNoeud(arbre, arbre.chemin)) return;
-    demanderConfirmation('Annuler le dernier coup ? Cette action est irreversible.', () =>
+    demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () =>
       naviguer((a) => supprimerBranche(a, a.chemin))
     );
   });
@@ -612,7 +612,7 @@ function demarrerPartie(
     notifierChangement();
     if (repetition) {
       demanderConfirmation(
-        `Position repetee ${repetition.occurrences} fois : declarer la partie nulle ?`,
+        `Position répétée ${repetition.occurrences} fois : déclarer la partie nulle ?`,
         () => terminerPartie('D'),
         'Accepter'
       );

@@ -15,7 +15,7 @@
 // qui a deja pose le cadre et ajuste le viewBox dessus.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : casesBordDuPlateau
-// (moteur/plateau.js), positionEcran, creerElementSVG (rendu/plateau-svg.js),
+// (moteur/plateau.js), positionEcran, sensDuPlateau, creerElementSVG (rendu/plateau-svg.js),
 // calculerCadrePlateau, coteDeLaCoordonnee, positionDansLeCadre
 // (rendu/cadre-plateau.js) viennent de fichiers charges avant celui-ci dans
 // index.html.
@@ -82,7 +82,11 @@ function dessinerCoordonneesBord(svg) {
     const encre = centreDeLEncre(element, texte);
     element.setAttribute('x', centre.x - encre.x);
     element.setAttribute('y', centre.y - encre.y);
-    // L'inclinaison tourne autour du centre de l'encre, pas de l'origine du texte.
-    if (estUnChiffre) element.setAttribute('transform', `rotate(${ROTATION_CHIFFRE_BORD} ${centre.x} ${centre.y})`);
+    // L'inclinaison tourne autour du centre de l'encre, pas de l'origine du texte. Un
+    // plateau retourne (Revanche en face-a-face, orienterPlateau) tourne AVEC ses
+    // coordonnees : chacune est aussi retournee de 180 degres, pour se lire depuis le
+    // joueur qui a maintenant les Noirs (saab : un vrai plateau tourne avec ses lettres).
+    const angle = (estUnChiffre ? ROTATION_CHIFFRE_BORD : 0) + (sensDuPlateau === -1 ? 180 : 0);
+    if (angle !== 0) element.setAttribute('transform', `rotate(${angle} ${centre.x} ${centre.y})`);
   }
 }

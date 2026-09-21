@@ -124,7 +124,7 @@ function creerBoutonSupprimer(chemin, arbre, rappels) {
     bouton.disabled = true;
     return bouton;
   }
-  bouton.title = 'Supprimer ce coup (et tout ce qui en depend)';
+  bouton.title = 'Supprimer ce coup (et tout ce qui en dépend)';
   bouton.addEventListener('click', (evenement) => {
     evenement.stopPropagation();
     rappels.surClicSupprimer(chemin);
@@ -145,7 +145,7 @@ function creerBoutonRepli(cle, aDesEnfants, replie, rappels) {
     return bouton;
   }
   bouton.textContent = replie ? '▶' : '▼';
-  bouton.title = replie ? 'Deplier cette branche' : 'Replier cette branche';
+  bouton.title = replie ? 'Déplier cette branche' : 'Replier cette branche';
   bouton.addEventListener('click', (evenement) => {
     evenement.stopPropagation();
     rappels.surClicRepli(cle);

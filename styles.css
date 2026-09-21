@@ -2378,11 +2378,13 @@ button,
   color: #ffffff;
 }
 
-.nom-joueur.demande-en-cours .nom-tour-cadre {
+.nom-joueur.demande-en-cours .nom-tour-cadre,
+.nom-joueur.attend-choix-fin .nom-tour-cadre {
   fill: var(--vert-demande);
 }
 
-.nom-joueur.demande-en-cours .nom-tour {
+.nom-joueur.demande-en-cours .nom-tour,
+.nom-joueur.attend-choix-fin .nom-tour {
   fill: #ffffff;
 }
 

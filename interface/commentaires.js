@@ -116,14 +116,14 @@ function demarrerAffichageCommentaires(elements, rappels) {
 
   function marcherPourCopie(noeud, chemin, profondeur, lignes) {
     const indentation = '  '.repeat(profondeur);
-    const prefixe = chemin.length === 0 ? 'Depart' : `${numeroDeTour(chemin.length)}. ${noeud.coup}`;
+    const prefixe = chemin.length === 0 ? 'Départ' : `${numeroDeTour(chemin.length)}. ${noeud.coup}`;
     lignes.push(noeud.commentaire ? `${indentation}${prefixe} | ${noeud.commentaire}` : `${indentation}${prefixe}`);
     noeud.enfants.forEach((enfant, index) => marcherPourCopie(enfant, [...chemin, index], profondeur + 1, lignes));
   }
 
   function confirmerCopie() {
     const texteDepart = elements.boutonCopier.textContent;
-    elements.boutonCopier.textContent = 'Copie !';
+    elements.boutonCopier.textContent = 'Copié !';
     setTimeout(() => {
       elements.boutonCopier.textContent = texteDepart;
     }, 1200);

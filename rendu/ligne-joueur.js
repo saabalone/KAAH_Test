@@ -127,10 +127,13 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false,
     groupe.classList.toggle('au-trait', estAuTrait);
     let numero = '';
     if (gagnant === 'nul') numero = 'Nulle';
-    else if (gagnant === camp) numero = 'Gagne';
+    else if (gagnant === camp) numero = 'Gagné';
     else if (estAuTrait) numero = `Tour ${tour}`;
     ecrireSiChange(groupe.querySelector('.nom-tour-numero'), numero);
     const suffixe = optionsFin && numero !== '' ? ' Options' : '';
+    // « Gagné Options » / « Nulle Options » attend un geste (Revanche, Same, Change) :
+    // vert comme toute demande en attente (saab).
+    groupe.classList.toggle('attend-choix-fin', suffixe !== '');
     ecrireSiChange(groupe.querySelector('.nom-tour-options'), suffixe);
     disposerLigneNom(groupe);
   }

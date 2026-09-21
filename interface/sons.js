@@ -30,7 +30,7 @@ const CLE_STOCKAGE_SONS = 'kaah-reglages-sons';
 const REGLAGES_SONS = [
   { cle: 'sound.enabled', libelle: 'Son global' },
   { cle: 'sound.move', libelle: 'Coup', fichier: 'move' },
-  { cle: 'sound.eject', libelle: 'Ejection', fichier: 'eject' },
+  { cle: 'sound.eject', libelle: 'Éjection', fichier: 'eject' },
   { cle: 'sound.game_over', libelle: 'Fin de partie', fichier: 'game_over' },
   { cle: 'sound.occ_change', libelle: 'Occ change', fichier: 'occ_change' },
   { cle: 'sound.occ_draw', libelle: 'Occ draw', fichier: 'occ_draw' },

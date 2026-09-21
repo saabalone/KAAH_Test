@@ -6,4 +6,4 @@
 // de chaque version sont dans VERSIONS_TEST.md.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
-const VERSION_KAAH_TEST = 1;
+const VERSION_KAAH_TEST = 2;
