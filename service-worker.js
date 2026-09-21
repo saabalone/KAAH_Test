@@ -14,10 +14,10 @@
 // un correctif dans styles.css ou interface/*.js n'atteindrait jamais les
 // utilisateurs deja installes sans ce changement de nom.
 //
-// Le numero vient de version.js (une seule source, aussi lue par l'Aide) : c'est lui
-// qu'il faut augmenter, pas cette ligne.
+// Le nom vient de version.js (une seule source, aussi lue par l'Aide) : c'est lui
+// qu'il faut changer, pas cette ligne.
 importScripts('./version.js');
-const NOM_CACHE = `kaah-test-v${VERSION_KAAH_TEST}`;
+const NOM_CACHE = `kaah-${NOM_VERSION_KAAH_TEST}`;
 
 const FICHIERS_A_CACHER = [
   './',

@@ -5,7 +5,7 @@
 // (KAA_aide.txt) restent a faire, phase 26.
 //
 // Ce fichier n'a qu'un travail : afficher, dans la boite, la VERSION de KAAH
-// que fait tourner cet appareil (« KAAH_Test v1 »), pour que chaque rapport de test dise
+// que fait tourner cet appareil (« KAAH_Test_ph21_v1 »), pour que chaque rapport de test dise
 // laquelle. Elle vient de version.js, donc elle s'affiche aussi quand KAAH est ouvert par
 // double-clic. Si l'appareil a un cache installe d'une AUTRE version (service worker pas
 // encore mis a jour), on le dit : la page affichee et le cache ne sont alors pas les memes.
@@ -17,13 +17,13 @@
 function demarrerAide(elements) {
   function afficherVersion() {
     elements.version.textContent = 'Version : recherche...';
-    const versionAffichee = `KAAH_Test v${VERSION_KAAH_TEST}`;
+    const versionAffichee = NOM_VERSION_KAAH_TEST;
     elements.version.textContent = `Version : ${versionAffichee}`;
     const chercher = 'caches' in window ? window.caches.keys() : Promise.resolve([]);
     chercher
       .then((noms) => {
         const nomCache = noms.find((n) => n.startsWith('kaah-'));
-        if (nomCache && nomCache !== `kaah-test-v${VERSION_KAAH_TEST}`) {
+        if (nomCache && nomCache !== `kaah-${NOM_VERSION_KAAH_TEST}`) {
           elements.version.textContent = `Version : ${versionAffichee} (cache installé : ${nomCache} — fermez KAAH, rouvrez-le avec internet)`;
         }
       })

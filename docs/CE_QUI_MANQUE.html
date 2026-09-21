@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ce qui n'est pas encore dans KAAH</title>
+<style>
+  body { font: 18px/1.5 sans-serif; max-width: 42em; margin: 0 auto; padding: 16px; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 1.5em; margin-top: 0; }
+  h2 { font-size: 1.2em; margin-top: 1.6em; border-bottom: 2px solid #1f7a3a; padding-bottom: 4px; }
+  li { margin-bottom: 8px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  .note { background: #fff4d6; border-left: 5px solid #cc6a00; padding: 8px 12px; margin: 12px 0; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e4e4e4; }
+    th { background: #333; }
+    td, th { border-color: #666; }
+    .note { background: #4a3b16; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Ce qui n'est pas encore dans KAAH</h1>
+
+<p>KAAH est le portage sur téléphone de <b>KAAWA</b> (le jeu d'Abalone multivariant sur ordinateur). Le travail se fait par
+<b>phases</b>. La version que vous testez, <b>KAAH_Test_ph21_v1</b>, est arrivée à la <b>phase 21</b> sur 29 : tout ce qui est
+listé dans « Déjà là » fonctionne, tout ce qui est listé dans « Pas encore là » <b>n'existe pas encore</b> — inutile de le
+chercher, ce n'est pas un bogue.</p>
+
+<div class="note"><b>Votre aide est précieuse :</b> si vous connaissez KAAWA, dites-moi <b>ce qui manque</b> et que vous utilisez
+(une fonction, un bouton, un réglage, un détail) et qui ne figure <b>ni</b> dans « Déjà là » <b>ni</b> dans « Pas encore là ».
+Je n'y ai peut-être pas pensé.</div>
+
+<h2>Déjà là (phases 1 à 21)</h2>
+<ul>
+<li>Le plateau de 61 cases, les coups (1 à 3 billes, latéral, en ligne, poussée, éjection), la victoire à 6 billes éjectées.</li>
+<li>Les billes qui glissent, l'installation sur téléphone et le mode hors ligne.</li>
+<li>Annuler, revenir en arrière, avancer, aller au début / à la fin.</li>
+<li>Les pendules (avec pause), l'arbre de branches et l'onglet Séquence, les commentaires par coup.</li>
+<li>La sauvegarde automatique de chaque partie, « Mes parties », Exporter / Importer au format de KAAWA, suppression de
+plusieurs parties à la fois.</li>
+<li>Les variantes (positions de départ de KAAWA) et les 104 puzzles, classés par catégories, avec favoris.</li>
+<li>Les permutations et la position canonique, la base de coups (Conseils), le compteur d'occurrences, la nulle par répétition.</li>
+<li>L'analyse des menaces, les coordonnées du plateau, la flèche du dernier coup, l'aspect du plateau en relief.</li>
+<li>Le mode face-à-face (deux joueurs de chaque côté du téléphone), abandon, nulle, Fin de partie : Revanche / Same / Change.</li>
+<li>Les sons (avec un interrupteur par son), le renommage des joueurs, l'aide simplifiée.</li>
+</ul>
+
+<h2>Pas encore là (phases 22 à 29, dans l'ordre prévu)</h2>
+<table>
+<tr><th>Phase</th><th>Ce que ce sera</th></tr>
+<tr><td><b>22</b> — Les réglages</td><td>Un panneau de réglages : couleurs des billes et du plateau, tailles, infobulles, pendules, seuils, sons ; plusieurs
+fichiers de réglages (import / export au format de KAAWA). Un <b>mode simple</b> qui retire le relief du plateau pour les téléphones lents.</td></tr>
+<tr><td><b>23</b> — Créer une partie</td><td>Coller une suite de coups (notation <b>Nacre</b> ou <b>AbaPro</b>, branches séparées par « | ») et la rejouer. C'est aussi là que naîtront les
+positions « My » (vos propres positions) et leur bouton de classement.</td></tr>
+<tr><td><b>24</b> — Mode correspondance</td><td>Le code <b>KAA1</b> de KAAWA : créer une partie, produire un code à envoyer à l'adversaire, recevoir son code et rejouer son coup.</td></tr>
+<tr><td><b>25</b> — Corbeille et fichiers</td><td>Suppression réversible des variantes, puzzles et parties (une corbeille), import de fichiers <code>.json</code> et <code>.csv</code>.</td></tr>
+<tr><td><b>26</b> — Notes et aide</td><td>Le bloc-notes personnel <b>NP</b>, et l'aide complète de KAAWA adaptée à KAAH (l'aide actuelle est une version courte).</td></tr>
+<tr><td><b>27</b> — Popup Permutations</td><td>Afficher les 12 permutations (rotations et miroirs) d'une position, et les 12 avec les camps inversés, avec un aperçu miniature.</td></tr>
+<tr><td><b>28</b> — Solveur de puzzles</td><td>Vérifier ou résoudre un puzzle par le calcul, dans le téléphone (lent : jusqu'à plusieurs dizaines de secondes pour les puzzles à 6 tours).</td></tr>
+<tr><td><b>29</b> — Adversaire artificiel</td><td>Jouer seul contre la machine, en plusieurs niveaux (du plus simple au plus réfléchi).</td></tr>
+</table>
+
+<h2>Petits points connus, pas encore réglés</h2>
+<ul>
+<li>Le zoom à deux doigts ne marche pas en face-à-face, écran en paysage.</li>
+<li>Le son du compteur d'occurrences se déclenche peut-être trop souvent (à revoir).</li>
+<li>Pas de son à la fin d'un puzzle.</li>
+<li>Les boutons Abandonner et Nulle sont plus petits que les 44 pixels conseillés pour un doigt (choix pour tenir dans le coin du compteur).</li>
+<li>Un abandon n'est possible que pour le joueur qui a la main (c'est ce que le fichier de KAAWA sait enregistrer).</li>
+<li>Pas de « Copier séquence Nacre » ni « Copier séquence AbaPro » (seul « Copier » du panneau Commentaires existe).</li>
+<li>Les billes éjectées disparaissent sans suivre un chemin jusqu'à leur piste.</li>
+</ul>
+
+<h2>Ce qui ne sera pas repris de KAAWA, et pourquoi</h2>
+<table>
+<tr><th>Fonction de KAAWA</th><th>Raison</th></tr>
+<tr><td>Système de plugins</td><td>Une page web hors ligne ne peut pas charger du code écrit après coup. Le plugin Permut devient la phase 27.</td></tr>
+<tr><td>Accès direct aux dossiers de KAAWA (parties, sons)</td><td>Une page web n'a pas accès au disque : Mes parties (mémoire du navigateur) et Exporter / Importer les remplacent.</td></tr>
+<tr><td>Le solveur en programme Windows</td><td>Un navigateur ne lance pas de programme Windows : il est réécrit en JavaScript (phase 28).</td></tr>
+</table>
+
+<h2>Et vous, qu'est-ce qui manque ?</h2>
+<p>Notez-le dans votre rapport (ligne « Ce qui vous manque ») : le nom de la fonction dans KAAWA, ce qu'elle fait, et à quel
+moment vous en avez besoin. Merci !</p>
+
+</body>
+</html>
