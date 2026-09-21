@@ -169,6 +169,7 @@ function lirePuzzles(donnees) {
       position: lirePosition(entree.pos),
       texteBrut: entree.pos,
       createur: entree.creator ?? '',
+      categorie: entree.type ?? '', // PZL_E, Mini_PZL_M... (moteur/classement.js)
       toursMaximum: objectif.toursMaximum,
       campGagnant: objectif.campGagnant,
       branchesSolution: lireBranchesSolution(entree.sol_starts, objectif.campGagnant),

@@ -161,6 +161,9 @@ function arbreVersDonnees(arbre, metadonnees) {
     },
     Chrono: { total_p1_remaining: pendulesActuelles.tempsNoir, total_p2_remaining: pendulesActuelles.tempsBlanc },
     NullesRefusees: arbre.nullesRefusees,
+    // Champ propre a KAAH (comme NullesRefusees, KAAWA l'ignore) : la Revanche en
+    // face-a-face retourne le plateau de 180 degres (moteur/revanche.js).
+    PlateauRetourne: metadonnees.plateauRetourne ?? false,
   };
 }
 

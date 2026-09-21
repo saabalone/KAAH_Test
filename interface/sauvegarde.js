@@ -103,9 +103,12 @@ const CLE_POSITION_DEPART = 'kaah-position-depart-suivante';
 // dans le dialogue Variantes (interface/variantes.js, phase 13) pour
 // demarrer une partie neuve sur une autre position que la Marguerite
 // Belge par defaut.
-function definirPositionDepartSuivante(texteBrut, nom) {
+// `suite` (facultatif, phase 20bis : Revanche / Same) : ce que la partie suivante
+// garde de la precedente — { joueurs, reglagesPendules, plateauRetourne }. Sans
+// elle, c'est une partie neuve avec les valeurs par defaut, comme « Charger ».
+function definirPositionDepartSuivante(texteBrut, nom, suite = {}) {
   try {
-    window.localStorage.setItem(CLE_POSITION_DEPART, JSON.stringify({ texteBrut, nom }));
+    window.localStorage.setItem(CLE_POSITION_DEPART, JSON.stringify({ texteBrut, nom, ...suite }));
   } catch {
     // Tant pis : la partie demarrera simplement sur la position par
     // defaut, comme si aucune variante n'avait ete choisie.

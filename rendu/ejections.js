@@ -55,7 +55,6 @@ const RAYON_PISTE = RAYON_CASE * 0.4;
 const HAUTEUR_BANDE = RAYON_PISTE * 2.6;
 const SEUIL_ALERTE_EJECTIONS = EJECTIONS_POUR_GAGNER - 1; // 5 : plus qu'une ejection avant la defaite
 
-const NOM_PAR_DEFAUT = { noir: 'Joueur 1', blanc: 'Joueur 2' };
 const NOM_CAMP = { noir: 'Noir', blanc: 'Blanc' };
 
 // Agrandit le viewBox du plateau pour faire de la place a la ligne de nom,
@@ -76,23 +75,29 @@ function agrandirViewBoxPourNoms(svg) {
 // droite), et les deux lignes de nom. A appeler une seule fois, juste apres
 // dessinerCoordonneesBord. `noms` : { noir, blanc }, facultatif.
 //
-// Convention KAAH pour la position (KAAWA la fait dependre de la rotation
-// de l'ecran) : Noir joue en bas, Blanc en haut, comme le reste du plateau —
-// donc la piste des billes BLANCHES (trophees de Noir) est en bas, celle des
-// billes NOIRES (trophees de Blanc) en haut.
-function dessinerPistesEjection(svg, noms = NOM_PAR_DEFAUT) {
+// `campDuHaut` : le camp assis en haut — Blanc d'habitude ; Noir apres une Revanche
+// en face-a-face (plateau retourne, rendu/plateau-svg.js, orienterPlateau). Les
+// pendules, pistes et noms ne bougent PAS quand le plateau se retourne (saab : une
+// pendule ne doit jamais se retrouver du cote des icones) ; ce sont les camps qui
+// changent de place.
+// Trophees d'un joueur = les billes de la couleur ADVERSE qu'il a ejectees : la
+// piste du haut est donc celle des billes du camp du bas, et inversement.
+function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc') {
   const { limites, yNomHaut, yNomBas } = agrandirViewBoxPourNoms(svg);
   const cadre = calculerCadrePlateau();
+  const campDuBas = campDuHaut === 'blanc' ? 'noir' : 'blanc';
 
-  // Haut : trophees de Blanc (billes noires capturees), sa pendule, son nom.
-  dessinerPisteTriangle(svg, 'noir', disposerPisteTriangle(cadre, limites, true));
-  dessinerPendule(svg, 'blanc', positionPendule(limites, true));
-  dessinerNomJoueur(svg, 'blanc', yNomHaut, noms.blanc);
+  const dispositionHaut = disposerPisteTriangle(cadre, limites, true);
+  dessinerPisteTriangle(svg, campDuBas, dispositionHaut);
+  dessinerBoutonsFinPiste(svg, campDuHaut, dispositionHaut.compte, true);
+  dessinerPendule(svg, campDuHaut, positionPendule(limites, true));
+  dessinerNomJoueur(svg, campDuHaut, yNomHaut, noms[campDuHaut], true);
 
-  // Bas : trophees de Noir (billes blanches capturees), sa pendule, son nom.
-  dessinerPisteTriangle(svg, 'blanc', disposerPisteTriangle(cadre, limites, false));
-  dessinerPendule(svg, 'noir', positionPendule(limites, false));
-  dessinerNomJoueur(svg, 'noir', yNomBas, noms.noir);
+  const dispositionBas = disposerPisteTriangle(cadre, limites, false);
+  dessinerPisteTriangle(svg, campDuHaut, dispositionBas);
+  dessinerBoutonsFinPiste(svg, campDuBas, dispositionBas.compte, false);
+  dessinerPendule(svg, campDuBas, positionPendule(limites, false));
+  dessinerNomJoueur(svg, campDuBas, yNomBas, noms[campDuBas], false);
 }
 
 // La ligne de chaque joueur (nom, cadre "Tour N", abandon/nulle) vit dans

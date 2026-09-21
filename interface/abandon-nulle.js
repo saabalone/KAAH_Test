@@ -3,7 +3,9 @@
 // seulement le deroulement :
 //
 //   1. clic sur "Tour N A/N" : les deux choix ("Nulle", "Abandonner") s'ouvrent
-//      (un second clic les referme) ;
+//      (un second clic les referme). Les boutons PERMANENTS de chaque joueur, pres
+//      de son compteur d'ejections (rendu/boutons-fin-piste.js), sautent cette
+//      etape : un appui va directement a la confirmation ;
 //   2. clic sur un choix : une confirmation "Valider / Refuser" recouvre la
 //      ligne de CELUI QUI DOIT REPONDRE — celui qui abandonne (KAAWA,
 //      action_resign : abandonne celui qui a le trait), ou l'ADVERSAIRE de
@@ -39,6 +41,7 @@ function demarrerAbandonNulle(svg, lecture) {
     masquerBoutonsFin(svg);
     marquerDemande('noir', false);
     marquerDemande('blanc', false);
+    for (const bouton of svg.querySelectorAll('.bouton-fin-piste')) bouton.classList.remove('demande-en-cours');
   }
 
   function ouvrirOuFermerLesChoix(camp) {
@@ -49,8 +52,9 @@ function demarrerAbandonNulle(svg, lecture) {
     marquerDemande(camp, true);
   }
 
-  function demanderConfirmation(choisie) {
-    const camp = lecture.campAuTrait();
+  // `camp` : celui qui demande — le camp au trait pour les choix de la ligne du nom,
+  // le proprietaire du bouton pour les boutons permanents.
+  function demanderConfirmation(choisie, camp = lecture.campAuTrait()) {
     reinitialiser();
     action = choisie;
     marquerDemande(camp, true);
@@ -63,6 +67,16 @@ function demarrerAbandonNulle(svg, lecture) {
     if (cible.closest('.nom-tour-cadre')) {
       const camp = cible.closest('.nom-joueur').dataset.camp;
       if (lecture.peutTerminer() && camp === lecture.campAuTrait()) ouvrirOuFermerLesChoix(camp);
+      return;
+    }
+    const permanent = cible.closest('.bouton-fin-piste');
+    if (permanent) {
+      if (!lecture.peutTerminer() || permanent.classList.contains('bouton-fin-piste-inactif')) return;
+      const dejaDemande = permanent.classList.contains('demande-en-cours');
+      reinitialiser();
+      if (dejaDemande) return; // un second appui annule la demande
+      demanderConfirmation(permanent.dataset.action, permanent.dataset.camp);
+      permanent.classList.add('demande-en-cours');
       return;
     }
     const choix = cible.closest('.option-fin');

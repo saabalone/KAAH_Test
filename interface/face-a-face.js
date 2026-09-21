@@ -92,15 +92,22 @@ function verrouillerPaysage(verrouiller) {
   }
 }
 
-// Retient sur <body> le camp qui a le trait : styles.css s'en sert pour
-// retourner les libelles du menu deploye vers Blanc quand c'est lui qui joue.
-// Aucun effet hors face-a-face. Une partie terminee (`null`) garde le dernier
-// camp connu.
+// Retient sur <body> si c'est le joueur du HAUT qui a le trait : styles.css s'en
+// sert pour retourner les libelles du menu deploye vers lui. Le joueur du haut est
+// Blanc, ou Noir quand le plateau est retourne (classe `plateau-retourne` de <body>,
+// posee par index.html). Aucun effet hors face-a-face. Une partie terminee (`null`)
+// garde le dernier camp connu.
 function signalerCampAuTrait(joueurAuTrait) {
-  if (joueurAuTrait) document.body.classList.toggle('trait-blanc', joueurAuTrait === 'blanc');
+  if (!joueurAuTrait) return;
+  const campDuHaut = document.body.classList.contains('plateau-retourne') ? 'noir' : 'blanc';
+  document.body.classList.toggle('trait-en-haut', joueurAuTrait === campDuHaut);
 }
 
-function demarrerFaceAFace(bouton) {
+// `plateauRetourneParLaPartie` : la partie a-t-elle un plateau retourne (Revanche) ?
+// Alors passer d'un mode a l'autre change le dessin lui-meme (rendu/plateau-svg.js,
+// orienterPlateau) : on appelle `recharger` (la page se recharge, la partie se
+// reprend toute seule) au lieu de simplement changer les classes.
+function demarrerFaceAFace(bouton, plateauRetourneParLaPartie, recharger) {
   boutonFaceAFace = bouton;
   faceAFaceActif = lireFaceAFace();
   afficherFaceAFace();
@@ -108,6 +115,10 @@ function demarrerFaceAFace(bouton) {
     faceAFaceActif = !faceAFaceActif;
     ecrireFaceAFace(faceAFaceActif);
     verrouillerPaysage(faceAFaceActif);
+    if (plateauRetourneParLaPartie) {
+      recharger();
+      return;
+    }
     afficherFaceAFace();
   });
 }

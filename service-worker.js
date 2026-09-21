@@ -13,7 +13,7 @@
 // cache-first, un fichier deja en cache n'est plus jamais redemande, donc
 // un correctif dans styles.css ou interface/*.js n'atteindrait jamais les
 // utilisateurs deja installes sans ce changement de nom.
-const NOM_CACHE = 'kaah-v90';
+const NOM_CACHE = 'kaah-v93';
 
 const FICHIERS_A_CACHER = [
   './',
@@ -33,6 +33,8 @@ const FICHIERS_A_CACHER = [
   './moteur/next-move.js',
   './moteur/puzzles.js',
   './moteur/nulle.js',
+  './moteur/revanche.js',
+  './moteur/classement.js',
   './moteur/occurrences.js',
   './moteur/menaces.js',
   './donnees/kaa-variantes.js',
@@ -50,6 +52,7 @@ const FICHIERS_A_CACHER = [
   './rendu/ejections.js',
   './rendu/ligne-joueur.js',
   './rendu/abandon-nulle.js',
+  './rendu/boutons-fin-piste.js',
   './rendu/pistes-triangle.js',
   './rendu/ejections-apercu.js',
   './rendu/pendule.js',
@@ -74,6 +77,8 @@ const FICHIERS_A_CACHER = [
   './interface/reglages-sons.js',
   './interface/aide.js',
   './interface/abandon-nulle.js',
+  './interface/filtres-classement.js',
+  './interface/fin-de-partie.js',
   './interface/noms-joueurs.js',
   './interface/commentaires.js',
   './interface/occurrences.js',

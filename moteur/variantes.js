@@ -4,10 +4,9 @@
 // fichiers"), pas devine :
 //   { content: [ { variant_name, pos, creator, date, equilibre,
 //     handi_score, handi_bille, Type: {...} }, ... ] }
-// KAAH ignore pour l'instant `Type`/`equilibre`/`handi_*` : rien n'a
-// encore besoin de filtrer ou d'afficher ces champs (pas d'abstraction
-// prematuree, voir CLAUDE.md) — une phase future pourra les reprendre
-// directement depuis `entree` sans rien casser ici.
+// `lireVariantes` garde maintenant `equilibre`, `handi_*` et `Type` (phase 20ter,
+// classement : moteur/classement.js), convertis des chaines "True"/"False" en
+// booleens et en liste d'etiquettes.
 //
 // "Toute modification part dans _my, jamais dans _kaa" (PLAN.md) :
 // contrairement a KAAWA, KAAH n'a aucun acces au systeme de fichiers
@@ -73,6 +72,9 @@ function lireVariantes(donnees) {
       position: lirePosition(entree.pos),
       texteBrut: entree.pos,
       createur: entree.creator ?? '',
+      equilibre: entree.equilibre === 'True',
+      handi: entree.handi_score === 'True' || entree.handi_bille === 'True',
+      types: Object.entries(entree.Type ?? {}).filter(([, valeur]) => valeur === 'True').map(([cle]) => cle),
     };
   });
 }

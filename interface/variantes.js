@@ -54,7 +54,8 @@ function basculerVarianteFavorite(nom) {
   }
 }
 
-// `elements` : { bouton, dialogue, liste, apercu, fermer}. `apercu` est un
+// `elements` : { bouton, dialogue, liste, apercu, fermer, filtres }. `filtres` est la
+// rangee de boutons de classement (interface/filtres-classement.js). `apercu` est un
 // <svg> vide, dedie a l'apercu (jamais le plateau principal) : les billes
 // ejectees (rendu/ejections-apercu.js) s'y dessinent aussi, en 2 colonnes
 // dans son coin bas-gauche, comme KAAWA.
@@ -64,6 +65,17 @@ function basculerVarianteFavorite(nom) {
 // partie neuve sur cette position).
 function demarrerSelectionVariantes(elements, variantes, surChargement) {
   let previsualisee = null;
+  // Rangee de classement (phase 20ter) : seulement les categories non vides.
+  const filtre = creerBarreFiltres(
+    elements.filtres,
+    categoriesNonVides(CATEGORIES_VARIANTES, (cle) => filtrerVariantes(variantes, cle)),
+    'kaah-filtre-variantes',
+    () => {
+      previsualisee = null;
+      elements.apercu.innerHTML = '';
+      rafraichir();
+    }
+  );
 
   elements.bouton.addEventListener('click', () => {
     previsualisee = null;
@@ -90,7 +102,7 @@ function demarrerSelectionVariantes(elements, variantes, surChargement) {
     // alphabetique a l'interieur de chaque groupe, SAUF Marguerite Belge
     // et Standard (voir rangDePriorite) qui gardent toujours la meme place
     // l'une par rapport a l'autre, favorites ou non.
-    const triees = [...variantes].sort((a, b) => {
+    const triees = [...filtrerVariantes(variantes, filtre.cle())].sort((a, b) => {
       const rangA = rangDePriorite(a, favoris);
       const rangB = rangDePriorite(b, favoris);
       if (rangA !== rangB) return rangA - rangB;

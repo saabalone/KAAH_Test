@@ -347,6 +347,8 @@
          pose lui-meme des le premier apercu, comme pour le plateau
          principal (rendu/plateau-svg.js, ajusterViewBox). -->
     <svg id="apercu-variante"></svg>
+    <!-- Classement (phase 20ter) : interface/filtres-classement.js. -->
+    <div id="filtres-variantes" class="barre-filtres"></div>
     <div id="liste-variantes" class="liste-dialogue"></div>
     <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
@@ -359,6 +361,7 @@
   <dialog id="dialogue-puzzles" class="dialogue">
     <h2>Puzzles</h2>
     <svg id="apercu-puzzle"></svg>
+    <div id="filtres-puzzles" class="barre-filtres"></div>
     <div id="liste-puzzles" class="liste-dialogue"></div>
     <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
@@ -388,8 +391,9 @@
       <ul>
         <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
         <li>Les pendules (cadres gris à droite du plateau) démarrent quand on en touche une. Touchez-la encore pour mettre en pause : le plateau se cache.</li>
-        <li><b>Tour n A/N</b> (cadre orange sous le plateau) : touchez-le pour proposer <b>Nulle</b> ou <b>Abandonner</b>, puis Valider ou Refuser.</li>
+        <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. Le cadre orange <b>Tour n A/N</b> ouvre les mêmes choix.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom.</li>
+        <li>Partie terminée : touchez le cadre orange <b>Gagne Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même setup) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler).</li>
       </ul>
@@ -401,7 +405,7 @@
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.</li>
-        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).</li>
+        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.</li>
@@ -470,6 +474,21 @@
 
     </div>
     <button id="bouton-fermer-aide" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Fin de partie : Options (phase 20bis, interface/fin-de-partie.js) : ouverte en
+       touchant le cadre orange du resultat une fois la partie finie. -->
+  <dialog id="dialogue-fin-de-partie" class="dialogue">
+    <h2>Fin de partie : Options</h2>
+    <div class="options-fin">
+      <button id="bouton-revanche" class="bouton-dialogue" type="button">Revanche (Inverser)</button>
+      <p>Même position : les joueurs échangent leurs couleurs.</p>
+      <button id="bouton-same" class="bouton-dialogue" type="button">Same (Même setup)</button>
+      <p>Même position, mêmes joueurs, mêmes couleurs.</p>
+      <button id="bouton-change" class="bouton-dialogue" type="button">Change (Nouvelle variante)</button>
+      <p>Choisir une autre position de départ.</p>
+    </div>
+    <button id="bouton-fermer-fin-de-partie" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
 
   <!-- Reglage des sons (interface/reglages-sons.js). -->
@@ -667,6 +686,8 @@
   <script src="./moteur/next-move.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/nulle.js"></script>
+  <script src="./moteur/revanche.js"></script>
+  <script src="./moteur/classement.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
   <script src="./donnees/kaa-variantes.js"></script>
@@ -684,6 +705,7 @@
   <script src="./rendu/ejections.js"></script>
   <script src="./rendu/ligne-joueur.js"></script>
   <script src="./rendu/abandon-nulle.js"></script>
+  <script src="./rendu/boutons-fin-piste.js"></script>
   <script src="./rendu/pistes-triangle.js"></script>
   <script src="./rendu/ejections-apercu.js"></script>
   <script src="./rendu/pendule.js"></script>
@@ -700,6 +722,7 @@
   <script src="./interface/sauvegarde.js"></script>
   <script src="./interface/fichiers.js"></script>
   <script src="./interface/mes-parties.js"></script>
+  <script src="./interface/filtres-classement.js"></script>
   <script src="./interface/variantes.js"></script>
   <script src="./interface/next-move.js"></script>
   <script src="./interface/puzzles.js"></script>
@@ -708,6 +731,7 @@
   <script src="./interface/reglages-sons.js"></script>
   <script src="./interface/aide.js"></script>
   <script src="./interface/abandon-nulle.js"></script>
+  <script src="./interface/fin-de-partie.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
   <script src="./interface/occurrences.js"></script>
@@ -720,7 +744,6 @@
     // Marguerite Belge : la position de depart par defaut de KAAWA.
     const MARGUERITE_BELGE = '0a12b123c23g78h789i89_0a45b456c56g45h456i56';
     const EVENEMENT_PAR_DEFAUT = 'Amical';
-    const NOMS_PAR_DEFAUT = { noir: 'Joueur 1', blanc: 'Joueur 2' };
     // Reglages par defaut de KAAWA (5 minutes, +2s par coup joue). Un
     // reglage par l'utilisateur viendra avec les Options (phase 22) ; en
     // attendant, c'est fige ici — sauf partie reprise, qui garde les
@@ -755,7 +778,7 @@
       const variantName = donneesReprises?.VariantName ?? positionChoisie?.nom ?? 'Marguerite Belge';
       const joueurs = donneesReprises
         ? { noir: donneesReprises.Players.P1_black, blanc: donneesReprises.Players.P2_white }
-        : { ...NOMS_PAR_DEFAUT }; // une COPIE : la saisie d'un nom (interface/noms-joueurs.js) modifie cet objet, jamais la constante
+        : { ...(positionChoisie?.joueurs ?? NOMS_PAR_DEFAUT) }; // une COPIE : la saisie d'un nom (interface/noms-joueurs.js) modifie cet objet, jamais la constante
       const reglagesPendules = donneesReprises
         ? {
             mode: donneesReprises.Timer.mode,
@@ -763,7 +786,7 @@
             bonusParCoup: donneesReprises.Timer.settings.p1_bonus,
             bonusParEjection: donneesReprises.Timer.settings.p1_bonus_eject,
           }
-        : REGLAGES_PENDULES_PAR_DEFAUT;
+        : positionChoisie?.reglagesPendules ?? REGLAGES_PENDULES_PAR_DEFAUT; // Revanche / Same gardent les reglages de la partie precedente
       // Les DEUX COMPTEURS EN DIRECT (pas les reglages, deja lus juste
       // au-dessus) : `Chrono` porte deja ce compteur dans le format KAAWA
       // (total_p1/p2_remaining), jusqu'ici jamais relu au chargement — saab
@@ -777,7 +800,9 @@
         tempsBlanc: donneesReprises.Chrono.total_p2_remaining ?? reglagesPendules.tempsInitial,
       };
       const arbreDepart = donneesReprises ? donneesVersArbre(donneesReprises) : undefined;
-      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart };
+      // Plateau retourne de 180 degres (Revanche en face-a-face, phase 20bis, moteur/revanche.js).
+      const plateauRetourne = donneesReprises ? Boolean(donneesReprises.PlateauRetourne) : Boolean(positionChoisie?.plateauRetourne);
+      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne };
     }
 
     let donneesReprises = chargerPartieActive();
@@ -793,7 +818,7 @@
       donneesReprises = null;
       etatDepart = construireDonneesDepart(null);
     }
-    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart } =
+    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne } =
       etatDepart;
 
     // Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
@@ -820,6 +845,13 @@
     elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
 
     const svg = document.getElementById('plateau');
+    // Revanche en face-a-face : le plateau est dessine retourne de 180 degres, et
+    // les camps changent de place autour de lui (rendu/plateau-svg.js, orienterPlateau ;
+    // rendu/ejections.js). Ni pendules, ni compteurs, ni noms ne tournent. Hors
+    // face-a-face, la partie garde son drapeau mais le plateau reste normal.
+    const plateauAfficheRetourne = plateauRetourne && lireFaceAFace();
+    orienterPlateau(plateauAfficheRetourne);
+    document.body.classList.toggle('plateau-retourne', plateauAfficheRetourne);
     dessinerPlateau(svg);
     // Aspect visuel (phase 19ter) : fond, relief entre les cases, degrades —
     // juste apres dessinerPlateau, avant de poser les billes (rendu/relief-
@@ -831,7 +863,7 @@
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
     // d'occurrences, pour rester la plus proche du plateau.
     dessinerCoordonneesBord(svg);
-    dessinerPistesEjection(svg, joueurs);
+    dessinerPistesEjection(svg, joueurs, plateauAfficheRetourne ? 'noir' : 'blanc');
     // Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du
     // plateau (phase 18, correctif) — comme dessinerPistesEjection,
     // agrandit le viewBox : doit donc aussi passer AVANT
@@ -918,6 +950,34 @@
         fermer: document.getElementById('bouton-fermer-sons'),
       },
       sons
+    );
+
+    // Fin de partie : Options (phase 20bis) : voir interface/fin-de-partie.js. Les
+    // noms et le plateau retourne sont ceux de la partie EN COURS (un nom a pu etre
+    // change en jouant).
+    demarrerFinDePartie(
+      svg,
+      {
+        dialogue: document.getElementById('dialogue-fin-de-partie'),
+        revanche: document.getElementById('bouton-revanche'),
+        same: document.getElementById('bouton-same'),
+        change: document.getElementById('bouton-change'),
+        fermer: document.getElementById('bouton-fermer-fin-de-partie'),
+      },
+      {
+        optionsDisponibles: () => optionsDeFinDisponibles(partie.obtenirArbre()),
+        suivante: (choix) => {
+          const suite = partieSuivante(choix, { joueurs, plateauRetourne });
+          definirPositionDepartSuivante(ecrirePosition(partie.obtenirArbre().racine.etat), variantName, {
+            joueurs: suite.joueurs,
+            reglagesPendules,
+            plateauRetourne: suite.plateauRetourne,
+          });
+          oublierPartieActive();
+        },
+        recharger: demarrerRechargement,
+        ouvrirVariantes: () => document.getElementById('bouton-variantes').click(),
+      }
     );
 
     // Aide simplifiee (phase 26, partielle) : interface/aide.js.
@@ -1086,6 +1146,7 @@
         joueurs,
         reglagesPendules,
         finDePartie,
+        plateauRetourne,
         // Les deux compteurs EN DIRECT, ecrits dans `Chrono` (voir
         // moteur.arbreVersDonnees) : c'est ce que `pendulesReprises`
         // plus haut relit au prochain demarrage, pour ne plus jamais
@@ -1182,7 +1243,7 @@
 
     // Face-a-face (phase 20) : avant tout affichage, pour que les classes de
     // <body> soient deja posees quand la partie oriente ses noms.
-    demarrerFaceAFace(document.getElementById('bouton-face-a-face'));
+    demarrerFaceAFace(document.getElementById('bouton-face-a-face'), plateauRetourne, demarrerRechargement);
     // Nom d'un joueur : un clic sur son cadre, sur le plateau (interface/
     // noms-joueurs.js). Changer un nom change la sauvegarde (Players) et le
     // nom de la partie affiche : on sauvegarde donc tout de suite.
@@ -1243,6 +1304,7 @@
         bouton: document.getElementById('bouton-variantes'),
         dialogue: document.getElementById('dialogue-variantes'),
         liste: document.getElementById('liste-variantes'),
+        filtres: document.getElementById('filtres-variantes'),
         apercu: document.getElementById('apercu-variante'),
         fermer: document.getElementById('bouton-fermer-variantes'),
       },
@@ -1276,6 +1338,7 @@
         bouton: document.getElementById('bouton-puzzles'),
         dialogue: document.getElementById('dialogue-puzzles'),
         liste: document.getElementById('liste-puzzles'),
+        filtres: document.getElementById('filtres-puzzles'),
         apercu: document.getElementById('apercu-puzzle'),
         fermer: document.getElementById('bouton-fermer-puzzles'),
       },

@@ -104,7 +104,7 @@
 // mettreEnEvidenceSelection (rendu/selection.js), demarrerPendules,
 // demarrerAffichageSequence, forcerReaffichagePlateau,
 // demarrerAffichageCommentaires, demarrerAffichageOccurrences,
-// repetitionAProposer (interface/nulle.js), refuserNulle (moteur/arbre.js),
+// optionsDeFinDisponibles (moteur/arbre.js), repetitionAProposer (interface/nulle.js), refuserNulle (moteur/arbre.js),
 // demarrerAbandonNulle (interface/abandon-nulle.js),
 // estStatutDefinitif (moteur/arbre.js), couleurAdverse (moteur/regles.js),
 // signalerCampAuTrait (interface/face-a-face.js), sonOccurrence (moteur/nulle.js),
@@ -687,7 +687,7 @@ function demarrerPartie(
     // sans suite (puzzle perdu).
     abandonNulle.reinitialiser();
     signalerCampAuTrait(etat.joueurAuTrait);
-    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length), gagnant, estPointVivant() && !sansSuite());
+    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre));
     actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Coordonnees sur les billes du camp au trait (phase 19bis) : `null`
     // une fois la partie terminee, `.bille-null` ne correspond alors a

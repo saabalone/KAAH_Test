@@ -36,6 +36,14 @@ const HAUTEUR_COMPTE_PISTE = RAYON_PISTE * 3.4;
 // viewBox.
 const JEU_PISTE = RAYON_PISTE * 0.4;
 
+// Le cote de l'hexagone qui borde le coin haut-gauche : celui dont la normale
+// pointe le plus vers le haut-gauche. Son numero change quand le plateau est
+// retourne (rendu/plateau-svg.js, orienterPlateau), pas sa place a l'ecran.
+function coteHautGauche(cadre) {
+  const versLeHautGauche = (cote) => -cote.normale.x - cote.normale.y;
+  return cadre.cotes.reduce((meilleur, cote) => (versLeHautGauche(cote) > versLeHautGauche(meilleur) ? cote : meilleur));
+}
+
 // Les 6 cases (dans l'ordre de remplissage : base puis pointe) et le
 // centre du compte, pour le coin haut-gauche (`enHaut` vrai) ou bas-gauche.
 // Calcule d'abord pour le HAUT, puis reflete pour le bas (le plateau est
@@ -43,7 +51,7 @@ const JEU_PISTE = RAYON_PISTE * 0.4;
 // degagent le cote de l'hexagone qui borde ce coin (cote 4, haut-gauche) —
 // jamais des coordonnees devinees a la main.
 function disposerPisteTriangle(cadre, limites, enHaut) {
-  const cote = cadre.cotes[4];
+  const cote = coteHautGauche(cadre);
   const yCompte = limites.yMin + HAUTEUR_COMPTE_PISTE / 2;
   const yBase = limites.yMin + HAUTEUR_COMPTE_PISTE + RAYON_PISTE + JEU_PISTE;
   const xGauche = limites.xMin + RAYON_PISTE + JEU_PISTE;

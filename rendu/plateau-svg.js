@@ -35,10 +35,25 @@ const RAYON_BILLE = RAYON_CASE * 0.7;
 // grandir y vers le bas, cela correspond a y = +1.5 * r, sans inversion.
 // Utilisee aussi par rendu/animation.js, qui en a besoin pour calculer le
 // point de sortie d'une bille ejectee (une position hors du plateau valide).
+//
+// Le plateau peut etre retourne de 180 degres (Revanche en face-a-face, voir
+// orienterPlateau) : c'est ICI, et nulle part ailleurs, que ca se passe. Les cases,
+// billes, fleches, coordonnees du bord, cadre et relief passent tous par cette
+// fonction, donc tournent ensemble ; ce qui entoure le plateau (pendules, pistes,
+// noms, compteurs) ne l'utilise pas et reste a sa place.
 function positionEcran(q, r) {
   const x = RAYON_CASE * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
   const y = RAYON_CASE * 1.5 * r;
-  return { x, y };
+  return { x: x * sensDuPlateau, y: y * sensDuPlateau };
+}
+
+// 1 : Noir en bas, comme d'habitude ; -1 : plateau retourne, Noir en haut.
+let sensDuPlateau = 1;
+
+// A appeler UNE fois, avant de dessiner quoi que ce soit (index.html) : la partie
+// est rechargee pour chaque changement d'orientation, jamais retournee en direct.
+function orienterPlateau(retourne) {
+  sensDuPlateau = retourne ? -1 : 1;
 }
 
 function creerElementSVG(nom, attributs) {

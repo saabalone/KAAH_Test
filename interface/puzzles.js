@@ -58,6 +58,17 @@ function decrireObjectif(puzzle) {
 // neuve sur cette position).
 function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
   let previsualise = null;
+  // Rangee de classement (phase 20ter) : seulement les categories non vides.
+  const filtre = creerBarreFiltres(
+    elements.filtres,
+    categoriesNonVides(CATEGORIES_PUZZLES, (cle) => filtrerPuzzles(puzzles, cle)),
+    'kaah-filtre-puzzles',
+    () => {
+      previsualise = null;
+      elements.apercu.innerHTML = '';
+      rafraichir();
+    }
+  );
 
   elements.bouton.addEventListener('click', () => {
     previsualise = null;
@@ -82,7 +93,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
     // alphabetique comme pour les variantes, et c'est voulu : les puzzles y
     // sont ranges du plus facile au plus difficile (Mini_PZL_E, puis Pzl_M,
     // puis PZL_H), un ordre qu'un tri alphabetique detruirait.
-    const triees = [...puzzles].sort((premier, second) => {
+    const triees = [...filtrerPuzzles(puzzles, filtre.cle())].sort((premier, second) => {
       const favoriPremier = favoris.includes(premier.nom);
       const favoriSecond = favoris.includes(second.nom);
       if (favoriPremier !== favoriSecond) return favoriPremier ? -1 : 1;

@@ -359,6 +359,32 @@ button,
   }
 }
 
+/* Sur ordinateur aussi, les trois dialogues a liste (Mes parties, Variantes,
+   Puzzles) sont une colonne : titre, apercu et filtres en haut, la LISTE seule
+   defile au milieu, Fermer reste en bas et TOUJOURS visible (saab : sinon il faut
+   defiler pour fermer). Sur telephone c'est deja le cas (regle ci-dessus). */
+#dialogue-mes-parties[open],
+#dialogue-variantes[open],
+#dialogue-puzzles[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#dialogue-mes-parties[open] > :not(.liste-dialogue),
+#dialogue-variantes[open] > :not(.liste-dialogue),
+#dialogue-puzzles[open] > :not(.liste-dialogue) {
+  flex-shrink: 0; /* seule la liste retrecit */
+}
+
+#dialogue-mes-parties .liste-dialogue,
+#dialogue-variantes .liste-dialogue,
+#dialogue-puzzles .liste-dialogue {
+  flex: 1 1 auto;
+  min-height: 88px; /* au moins deux lignes, meme dans une fenetre tres basse */
+  max-height: none;
+}
+
 /* Liste a l'interieur d'un dialogue (les parties enregistrees, les
    variantes...) : meme comportement de defilement partout. */
 .liste-dialogue {
@@ -541,7 +567,8 @@ button,
 
 /* Une demande en attente de reponse : en vert (voir --vert-demande). */
 #panneau-embranchement,
-#dialogue-confirmation {
+#dialogue-confirmation,
+#dialogue-fin-de-partie {
   background: var(--vert-demande);
 }
 
@@ -2063,6 +2090,35 @@ button,
   pointer-events: none;
 }
 
+/* Boutons permanents Abandonner / Nulle de chaque joueur (rendu/boutons-fin-piste.js),
+   pres de son compteur d'ejections : le meme gris que les choix ci-dessus, grises quand
+   ils ne sont pas possibles, verts tant que leur confirmation attend. */
+.bouton-fin-piste {
+  cursor: pointer;
+}
+
+.bouton-fin-piste-fond {
+  fill: #828282;
+}
+
+.bouton-fin-piste-dessin {
+  fill: #0a0a0a;
+  pointer-events: none;
+}
+
+.bouton-fin-piste-inactif {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bouton-fin-piste.demande-en-cours .bouton-fin-piste-fond {
+  fill: var(--vert-demande);
+}
+
+.bouton-fin-piste.demande-en-cours .bouton-fin-piste-dessin {
+  fill: #ffffff;
+}
+
 .confirmation-fond {
   fill: #1f7a3a;
 }
@@ -2393,6 +2449,36 @@ button,
   min-height: 44px;
 }
 
+/* Rangee de classement des dialogues Variantes et Puzzles (interface/filtres-
+   classement.js) : une seule rangee, defilement horizontal a barre visible, boutons
+   de 44 px de haut. */
+.barre-filtres {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0;
+  padding-bottom: 4px;
+  overflow-x: scroll;
+}
+
+.bouton-filtre {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 12px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.bouton-filtre.bouton-actif {
+  background: #cc6a00;
+  color: #0a0a0a;
+  border-color: #cc6a00;
+}
+
 /* Boite des sons (interface/reglages-sons.js) : une ligne = un reglage, toute
    la ligne se touche (44 px). Le "Son global" decoche grise les autres. */
 #liste-sons {
@@ -2443,22 +2529,44 @@ button,
   transform: rotate(180deg);
 }
 
+/* Fin de partie : Options (interface/fin-de-partie.js) : un bouton par choix, son
+   explication dessous. */
+.options-fin .bouton-dialogue {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+.options-fin p {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+
 /* Mode FACE-A-FACE (phase 20, interface/face-a-face.js) : deux joueurs de
    chaque cote d'un telephone pose a plat. Le PLATEAU ne tourne jamais ;
    Blanc joue depuis le HAUT (rendu/ejections.js), donc lit tout a l'envers
    sans ces regles. `transform-box: fill-box` + `transform-origin: center` :
    on tourne CHAQUE element SVG autour de son propre centre, sans toucher a
    sa position (x/y). */
-body.face-a-face #nom-blanc {
+body.face-a-face .nom-joueur-en-haut {
   transform: rotate(180deg);
   transform-box: view-box; /* avec le transform-origin pose en ligne : (0, y de la ligne), voir rendu/ligne-joueur.js */
 }
 
-body.face-a-face .bille-blanc .coordonnee-bille,
-body.face-a-face .coordonnee-destination-blanc {
+body.face-a-face:not(.plateau-retourne) .bille-blanc .coordonnee-bille,
+body.face-a-face:not(.plateau-retourne) .coordonnee-destination-blanc,
+body.face-a-face.plateau-retourne .bille-noir .coordonnee-bille,
+body.face-a-face.plateau-retourne .coordonnee-destination-noir {
   transform: rotate(180deg);
   transform-box: fill-box;
   transform-origin: center;
+}
+
+/* Boutons Abandonner / Nulle du joueur du haut : retournes autour de son compteur,
+   jamais de lecture verticale (le point est pose en ligne, rendu/boutons-fin-piste.js). */
+body.face-a-face .boutons-fin-piste-en-haut {
+  transform: rotate(180deg);
+  transform-box: view-box;
 }
 
 /* Lecture verticale (saab) : ce qui est a GAUCHE du plateau se lit de BAS en
@@ -2566,13 +2674,13 @@ body.face-a-face #colonne-gauche .icone-texte {
 
   /* Menu DEPLOYE (bouton hamburger) : les icones ne bougent pas, seuls les
      LIBELLES s'orientent vers le camp qui a le trait — comme d'habitude pour
-     Noir (en bas), retournes de 180 degres pour Blanc (en haut) qui demande
-     (saab). `.trait-blanc` est posee sur <body> par interface/face-a-face.js. */
+     Noir (en bas), retournes de 180 degres pour le joueur du haut quand c'est lui qui
+     demande (saab). `.trait-en-haut` est posee sur <body> par interface/face-a-face.js. */
   body.face-a-face #colonne-gauche.colonne-gauche-etendue .libelle-bouton {
     display: inline-block;
   }
 
-  body.face-a-face.trait-blanc #colonne-gauche.colonne-gauche-etendue .libelle-bouton {
+  body.face-a-face.trait-en-haut #colonne-gauche.colonne-gauche-etendue .libelle-bouton {
     transform: rotate(180deg);
   }
 

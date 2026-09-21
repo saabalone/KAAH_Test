@@ -12,16 +12,17 @@
 // Decoupe de rendu/ejections.js (trop long) : ce fichier ne dessine que cette
 // ligne.
 //
-// La ligne de Blanc est retournee de 180 degres en face-a-face : autour du
-// point (0, y) de SA ligne et non de son propre centre, sinon l'apparition du
-// cadre orange la deplacerait (voir styles.css, `#nom-blanc`, et le
+// La ligne du joueur du HAUT est retournee de 180 degres en face-a-face : autour
+// du point (0, y) de SA ligne et non de son propre centre, sinon l'apparition du
+// cadre orange la deplacerait (voir styles.css, `.nom-joueur-en-haut`, et le
 // `transform-origin` pose ci-dessous).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : creerElementSVG
 // (rendu/plateau-svg.js), RAYON_PISTE, HAUTEUR_BANDE, NOM_CAMP,
 // SEUIL_ALERTE_EJECTIONS (rendu/ejections.js), centreDeLEncre
 // (rendu/coordonnees-bord.js) et creerBoutonsAbandonNulle,
-// disposerBoutonsAbandonNulle (rendu/abandon-nulle.js) viennent de fichiers
+// disposerBoutonsAbandonNulle (rendu/abandon-nulle.js), actualiserBoutonsFinPiste
+// (rendu/boutons-fin-piste.js) viennent de fichiers
 // charges avant celui-ci, ou seulement appeles au demarrage reel (voir la
 // note d'ordre en tete de rendu/ejections.js).
 
@@ -29,8 +30,8 @@ const RAYON_COIN_NOM = RAYON_PISTE * 0.5;
 const MARGE_X_NOM = RAYON_PISTE * 0.5;
 const ECART_TOUR_NOM = RAYON_PISTE * 0.4;
 
-function dessinerNomJoueur(svg, camp, y, nom) {
-  const groupe = creerElementSVG('g', { id: `nom-${camp}`, class: `nom-joueur nom-joueur-${camp}` });
+function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
+  const groupe = creerElementSVG('g', { id: `nom-${camp}`, class: `nom-joueur nom-joueur-${camp}${enHaut ? ' nom-joueur-en-haut' : ''}` });
   groupe.dataset.camp = camp;
   groupe.dataset.y = y;
   groupe.style.transformOrigin = `0px ${y}px`;
@@ -112,11 +113,13 @@ function actualiserNomJoueur(svg, camp, nombreEjecteesDeCeCamp) {
 //   - le camp qui vient de gagner (`gagnant`) : "Gagne" ;
 //   - sinon, le camp au trait (`joueurAuTrait`) : "Tour N", suivi de " A/N" si
 //     `actionnable` (abandon ou nulle possibles) ;
+//   - `optionsFin` (phase 20bis) : la partie est finie sur son noeud final, le cadre
+//     porte " Options" et ouvre « Fin de partie : Options » (interface/fin-de-partie.js) ;
 //   - l'autre camp : rien, pas de cadre orange.
 // `joueurAuTrait`/`gagnant` valent chacun 'noir', 'blanc' ou `null` ;
 // `gagnant` accepte aussi 'nul' (phase 17, nulle par repetition acceptee) —
 // ni l'un ni l'autre camp n'a "gagne", les DEUX recoivent alors "Nulle".
-function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false) {
+function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false, optionsFin = false) {
   for (const camp of ['noir', 'blanc']) {
     const groupe = svg.querySelector(`#nom-${camp}`);
     const estAuTrait = joueurAuTrait === camp;
@@ -126,7 +129,9 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false)
     else if (gagnant === camp) numero = 'Gagne';
     else if (estAuTrait) numero = `Tour ${tour}`;
     ecrireSiChange(groupe.querySelector('.nom-tour-numero'), numero);
-    ecrireSiChange(groupe.querySelector('.nom-tour-options'), estAuTrait && actionnable ? ' A/N' : '');
+    const suffixe = estAuTrait && actionnable ? ' A/N' : optionsFin && numero !== '' ? ' Options' : '';
+    ecrireSiChange(groupe.querySelector('.nom-tour-options'), suffixe);
     disposerLigneNom(groupe);
   }
+  actualiserBoutonsFinPiste(svg, joueurAuTrait, actionnable);
 }

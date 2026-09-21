@@ -288,6 +288,17 @@ function estStatutDefinitif(statut) {
   return statut === 'D' || statut === 'R';
 }
 
+// « Fin de partie : Options » (phase 20bis) est-elle disponible ? Regle de KAAWA
+// (show_end_options) : seulement quand la partie est TERMINEE sur le noeud regarde
+// (6 ejections, temps ecoule, nulle ou abandon) ET que ce noeud est le noeud FINAL de
+// la sequence d'ORIGINE — jamais en cours de partie, jamais sur une branche
+// d'analyse ni un coup plus tot.
+function optionsDeFinDisponibles(arbre) {
+  const noeud = noeudCourant(arbre);
+  const finie = Boolean(noeud.etat.vainqueur) || ['N', 'T', 'D', 'R'].includes(noeud.statutFin);
+  return finie && cheminsEgaux(arbre.chemin, arbre.cheminOrigine);
+}
+
 // Associe un instantane des pendules (voir interface/pendules.js) au
 // noeud designe par `chemin`, sans toucher a son etat ni au reste de
 // l'arbre. KAAWA fait la meme chose (`p1_time`/`p2_time` par noeud de son
