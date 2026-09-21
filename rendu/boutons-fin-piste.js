@@ -6,9 +6,11 @@
 // appuyant : la confirmation verte qui suit dit « Abandonner ? » ou « Nulle ? » et
 // ne fait rien sans « Valider ».
 //
-// En face-a-face, le groupe du joueur du HAUT est retourne de 180 degres autour de
-// son compteur (styles.css, `.boutons-fin-piste-en-haut`) : jamais de lecture
-// verticale, chacun voit ses deux boutons a l'endroit et dans le meme ordre.
+// Abandonner est TOUJOURS a l'exterieur (a gauche, du cote de la barre d'icones) et Nulle
+// vers l'interieur, pour les deux joueurs (saab). En face-a-face, chaque bouton du joueur
+// du HAUT pivote de 180 degres SUR LUI-MEME (styles.css, `.boutons-fin-piste-en-haut`) :
+// il garde sa place et se lit a l'endroit pour lui, jamais a la verticale. Abandonner est
+// rouge, Nulle bleue.
 //
 // Ce fichier ne fait que dessiner et griser ; le deroulement (confirmation, fin de
 // la partie) est dans interface/abandon-nulle.js. Les boutons ne dessinent rien de
@@ -48,6 +50,8 @@ function dessinerIconeFin(action, x, y) {
 
 function creerBoutonFinPiste(camp, action, x, y, nom) {
   const bouton = creerElementSVG('g', { class: 'bouton-fin-piste', role: 'button', 'aria-label': nom });
+  // Le point autour duquel styles.css retourne le bouton : son centre.
+  bouton.style.transformOrigin = `${x + COTE_BOUTON_FIN_PISTE / 2}px ${y + COTE_BOUTON_FIN_PISTE / 2}px`;
   bouton.dataset.camp = camp;
   bouton.dataset.action = action;
   const titre = creerElementSVG('title', {});
@@ -74,8 +78,6 @@ function dessinerBoutonsFinPiste(svg, camp, compte, enHaut) {
   const groupe = creerElementSVG('g', {
     class: `boutons-fin-piste${enHaut ? ' boutons-fin-piste-en-haut' : ''}`,
   });
-  // Le point autour duquel styles.css retourne le groupe : le centre du compteur.
-  groupe.style.transformOrigin = `${compte.x}px ${compte.y}px`;
   const y = compte.y - COTE_BOUTON_FIN_PISTE / 2;
   groupe.append(
     creerBoutonFinPiste(camp, 'abandon', compte.x - DEMI_LARGEUR_COMPTE - ECART_BOUTON_FIN_PISTE - COTE_BOUTON_FIN_PISTE, y, 'Abandonner'),

@@ -21,7 +21,8 @@
      = l'ancienne valeur, lisible mais elle poussait la liste ; 120px est le
      compromis retenu par defaut. En dessous de ~70px, le dessin ne veut
      plus rien dire. */
-  --taille-apercu: 120px;
+  --taille-apercu: min(120px, 24vh);
+  --taille-apercu: min(120px, 24dvh);
 
   /* Vert des DEMANDES : tout ce qui attend une reponse de l'utilisateur
      (choix d'une branche, confirmation, abandon/nulle) passe en vert, pour
@@ -279,7 +280,39 @@ button,
   padding: 8px;
   width: 90vw;
   max-width: 480px;
-  max-height: 80vh;
+  /* `border-box` : sans lui, la hauteur ne comptait pas le padding et un dialogue
+     "plein ecran" depassait de 16 px. `dvh` : la hauteur VISIBLE du telephone (barre
+     d'adresse comprise), alors que `vh` compte la page entiere et cachait le bas du
+     dialogue — donc son bouton Fermer (saab). Le second `max-height` n'est lu que par
+     les navigateurs qui connaissent `dvh`. */
+  box-sizing: border-box;
+  max-height: 96vh;
+  max-height: 96dvh;
+  overflow-y: auto;
+}
+
+/* Les dialogues a zone defilante (listes, aide, sons, fin de partie) : titre en
+   haut, UNE zone qui defile au milieu, dernier element (Fermer) toujours visible en
+   bas. `[open]` : sans lui, `display: flex` afficherait la boite meme fermee. */
+.dialogue-grand[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialogue-grand[open] > * {
+  flex-shrink: 0; /* seule la zone defilante retrecit */
+}
+
+.dialogue-grand .liste-dialogue,
+.dialogue-grand .aide-corps,
+.dialogue-grand .options-fin,
+.dialogue-grand #liste-sons {
+  flex: 1 1 auto;
+  flex-shrink: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
 }
 
 .dialogue::backdrop {
@@ -317,9 +350,13 @@ button,
    telephone"), appliquee par avance pour ne pas avoir a y repenser le
    jour ou ces boutons deviennent accessibles sur telephone aussi. */
 @media (max-width: 699px) {
-  .dialogue {
+  #dialogue-mes-parties,
+  #dialogue-variantes,
+  #dialogue-puzzles,
+  .dialogue-aide {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     max-width: none;
     max-height: none;
     border-radius: 0;
@@ -343,46 +380,6 @@ button,
      alors depasser les 100vh fixes du dialogue et pousser le haut hors de
      l'ecran. En colonne flex avec overflow cache, seule .liste-dialogue
      (flex:1, voir plus bas) peut deborder, et elle defile toute seule. */
-  .dialogue[open] {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* A l'interieur d'un dialogue plein ecran, la liste prend tout l'espace
-     restant entre le titre et le bouton (au lieu de sa propre limite fixe
-     de 50vh, pensee pour un dialogue centre plus petit sur ordinateur). */
-  .liste-dialogue {
-    flex: 1 1 auto;
-    min-height: 0; /* sinon flex:1 ignore l'espace disponible, meme piege que #plateau */
-    max-height: none;
-  }
-}
-
-/* Sur ordinateur aussi, les trois dialogues a liste (Mes parties, Variantes,
-   Puzzles) sont une colonne : titre, apercu et filtres en haut, la LISTE seule
-   defile au milieu, Fermer reste en bas et TOUJOURS visible (saab : sinon il faut
-   defiler pour fermer). Sur telephone c'est deja le cas (regle ci-dessus). */
-#dialogue-mes-parties[open],
-#dialogue-variantes[open],
-#dialogue-puzzles[open] {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-#dialogue-mes-parties[open] > :not(.liste-dialogue),
-#dialogue-variantes[open] > :not(.liste-dialogue),
-#dialogue-puzzles[open] > :not(.liste-dialogue) {
-  flex-shrink: 0; /* seule la liste retrecit */
-}
-
-#dialogue-mes-parties .liste-dialogue,
-#dialogue-variantes .liste-dialogue,
-#dialogue-puzzles .liste-dialogue {
-  flex: 1 1 auto;
-  min-height: 88px; /* au moins deux lignes, meme dans une fenetre tres basse */
-  max-height: none;
 }
 
 /* Liste a l'interieur d'un dialogue (les parties enregistrees, les
@@ -2067,23 +2064,19 @@ button,
 }
 
 .nom-tour-options {
-  font-size: 4px;
+  font-size: 4px; /* " Options" en fin de partie */
 }
 
-/* Abandon / nulle (rendu/abandon-nulle.js) : deux choix gris a droite du nom,
-   puis une confirmation qui recouvre la ligne dans un cadre vert avec deux
-   boutons gris (saab). */
-.option-fin,
+/* Abandon / nulle (rendu/abandon-nulle.js) : une confirmation qui recouvre la ligne
+   dans un cadre vert avec deux boutons gris (saab). */
 .confirmation-bouton {
   cursor: pointer;
 }
 
-.option-fin-fond,
 .confirmation-bouton-fond {
   fill: #828282;
 }
 
-.option-fin-texte,
 .confirmation-bouton-texte {
   fill: #0a0a0a;
   font: 4.4px sans-serif;
@@ -2101,8 +2094,17 @@ button,
   fill: #828282;
 }
 
+/* Abandonner en rouge, Nulle en bleu (saab), dessin blanc. */
+.bouton-fin-piste[data-action='abandon'] .bouton-fin-piste-fond {
+  fill: #b3261e;
+}
+
+.bouton-fin-piste[data-action='nulle'] .bouton-fin-piste-fond {
+  fill: #1d5fbf;
+}
+
 .bouton-fin-piste-dessin {
-  fill: #0a0a0a;
+  fill: #ffffff;
   pointer-events: none;
 }
 
@@ -2113,10 +2115,6 @@ button,
 
 .bouton-fin-piste.demande-en-cours .bouton-fin-piste-fond {
   fill: var(--vert-demande);
-}
-
-.bouton-fin-piste.demande-en-cours .bouton-fin-piste-dessin {
-  fill: #ffffff;
 }
 
 .confirmation-fond {
@@ -2372,7 +2370,7 @@ button,
 /* Le bouton Annuler de la navigation est TOUJOURS vert (saab) — sauf quand il
    n'y a rien a annuler (au depart, ou sur un coup d'origine deja depasse) : il
    est alors grise comme les autres (#navigation button:disabled). Le cadre
-   "Tour N A/N", lui, ne devient vert que tant qu'un abandon ou une nulle attend
+   "Tour N", lui, ne devient vert que tant qu'un abandon ou une nulle attend
    sa reponse. */
 #nav-annuler:not(:disabled) {
   background: var(--vert-demande);
@@ -2393,11 +2391,8 @@ button,
    Fermer aussi en bas — on n'a jamais a defiler pour fermer (saab). Les rubriques
    se touchent sur toute leur largeur (44 px). `[open]` : sans lui, `display: flex`
    afficherait la boite meme fermee. */
-.dialogue-aide[open] {
-  display: flex;
-  flex-direction: column;
+.dialogue-aide {
   max-width: 560px;
-  overflow: hidden;
   font: 14px sans-serif;
   line-height: 1.4;
 }
@@ -2415,10 +2410,8 @@ button,
   min-height: 44px;
 }
 
-.aide-corps {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: scroll;
+.dialogue-aide .aide-corps {
+  overflow-y: scroll; /* barre TOUJOURS visible : on voit qu'on peut defiler */
 }
 
 .dialogue-aide summary {
@@ -2562,9 +2555,10 @@ body.face-a-face.plateau-retourne .coordonnee-destination-noir {
   transform-origin: center;
 }
 
-/* Boutons Abandonner / Nulle du joueur du haut : retournes autour de son compteur,
-   jamais de lecture verticale (le point est pose en ligne, rendu/boutons-fin-piste.js). */
-body.face-a-face .boutons-fin-piste-en-haut {
+/* Boutons Abandonner / Nulle du joueur du haut : chacun pivote sur lui-meme, il garde sa
+   place et n'est jamais lu a la verticale (le point est pose en ligne,
+   rendu/boutons-fin-piste.js). */
+body.face-a-face .boutons-fin-piste-en-haut .bouton-fin-piste {
   transform: rotate(180deg);
   transform-box: view-box;
 }

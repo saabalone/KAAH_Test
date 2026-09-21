@@ -8,16 +8,21 @@
 // A la racine, sa portee couvre tout le site sans configuration
 // supplementaire.
 //
-// Augmenter NOM_CACHE a chaque fois que le CONTENU d'un fichier cache
+// Augmenter la version (version.js) a chaque fois que le CONTENU d'un fichier cache
 // change, pas seulement quand la liste FICHIERS_A_CACHER s'allonge : en
 // cache-first, un fichier deja en cache n'est plus jamais redemande, donc
 // un correctif dans styles.css ou interface/*.js n'atteindrait jamais les
 // utilisateurs deja installes sans ce changement de nom.
-const NOM_CACHE = 'kaah-v93';
+//
+// Le numero vient de version.js (une seule source, aussi lue par l'Aide) : c'est lui
+// qu'il faut augmenter, pas cette ligne.
+importScripts('./version.js');
+const NOM_CACHE = `kaah-test-v${VERSION_KAAH_TEST}`;
 
 const FICHIERS_A_CACHER = [
   './',
   './index.html',
+  './version.js',
   './styles.css',
   './moteur/plateau.js',
   './moteur/regles.js',

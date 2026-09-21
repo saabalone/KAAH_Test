@@ -1,17 +1,15 @@
-// Abandonner ou proposer nulle, depuis le cadre orange "Tour N A/N" du camp qui
-// a la main (demande de saab). Le DESSIN vit dans rendu/abandon-nulle.js ; ici,
-// seulement le deroulement :
+// Abandonner ou proposer nulle, depuis les boutons de chaque joueur (drapeau et « = »,
+// pres de son compteur d'ejections, rendu/boutons-fin-piste.js — demande de saab). Le
+// DESSIN vit dans rendu/abandon-nulle.js ; ici, seulement le deroulement :
 //
-//   1. clic sur "Tour N A/N" : les deux choix ("Nulle", "Abandonner") s'ouvrent
-//      (un second clic les referme). Les boutons PERMANENTS de chaque joueur, pres
-//      de son compteur d'ejections (rendu/boutons-fin-piste.js), sautent cette
-//      etape : un appui va directement a la confirmation ;
-//   2. clic sur un choix : une confirmation "Valider / Refuser" recouvre la
-//      ligne de CELUI QUI DOIT REPONDRE — celui qui abandonne (KAAWA,
-//      action_resign : abandonne celui qui a le trait), ou l'ADVERSAIRE de
-//      celui qui propose nulle. En face-a-face sa ligne est retournee vers lui,
-//      la confirmation aussi : il repond depuis son cote ;
-//   3. "Valider" met fin a la partie (statut "R" ou "D", moteur/arbre.js) ;
+//   1. un appui sur un bouton ouvre une confirmation "Valider / Refuser" qui NOMME celui
+//      qui demande (« Joueur 1 abandonne ? », « Joueur 1 propose nulle ? » : une erreur
+//      de bouton ferait perdre le mauvais joueur). Elle recouvre la ligne de CELUI QUI
+//      DOIT REPONDRE — celui qui abandonne (KAAWA, action_resign : abandonne celui qui a
+//      le trait), ou l'ADVERSAIRE de celui qui propose nulle. En face-a-face sa ligne est
+//      retournee vers lui, la confirmation aussi : il repond depuis son cote. Un second
+//      appui sur le meme bouton annule la demande ;
+//   2. "Valider" met fin a la partie (statut "R" ou "D", moteur/arbre.js) ;
 //      "Refuser" referme tout, la partie continue.
 // Un coup joue, ou une navigation, referme tout (`reinitialiser`, appele par
 // interface/saisie.js).
@@ -20,18 +18,17 @@
 // (moteur/sauvegarde.js, ecrireVainqueur), jamais decide par ce fichier.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurAdverse
-// (moteur/regles.js), afficherChoixFin, afficherConfirmationFin,
-// masquerBoutonsFin (rendu/abandon-nulle.js) viennent de fichiers charges
-// avant celui-ci dans index.html.
+// (moteur/regles.js), afficherConfirmationFin, masquerBoutonsFin
+// (rendu/abandon-nulle.js) viennent de fichiers charges avant celui-ci dans index.html.
 
-// `lecture` : { peutTerminer(), campAuTrait(), terminer(statut) } —
-// `peutTerminer` dit si la partie est encore vivante sur la position regardee,
-// `terminer` recoit 'R' (abandon) ou 'D' (nulle).
+// `lecture` : { peutTerminer(), terminer(statut) } — `peutTerminer` dit si la partie
+// est encore vivante sur la position regardee, `terminer` recoit 'R' (abandon) ou 'D'
+// (nulle).
 function demarrerAbandonNulle(svg, lecture) {
   let action = null; // 'abandon' | 'nulle' tant qu'une confirmation est attendue
 
-  // Le cadre "Tour N A/N" passe en vert (--vert-demande) tant qu'une demande
-  // attend une reponse : choix ouverts ou confirmation affichee.
+  // Le cadre orange du tour et le bouton presse passent en vert (--vert-demande) tant
+  // qu'une demande attend une reponse.
   function marquerDemande(camp, enCours) {
     svg.querySelector(`#nom-${camp}`).classList.toggle('demande-en-cours', enCours);
   }
@@ -44,44 +41,29 @@ function demarrerAbandonNulle(svg, lecture) {
     for (const bouton of svg.querySelectorAll('.bouton-fin-piste')) bouton.classList.remove('demande-en-cours');
   }
 
-  function ouvrirOuFermerLesChoix(camp) {
-    const dejaOuverts = svg.querySelector(`#nom-${camp} .choix-fin`).style.display !== 'none';
-    reinitialiser();
-    if (dejaOuverts) return;
-    afficherChoixFin(svg, camp, true);
-    marquerDemande(camp, true);
+  function nomDuJoueur(camp) {
+    return svg.querySelector(`#nom-${camp} .nom-texte`).textContent;
   }
 
-  // `camp` : celui qui demande — le camp au trait pour les choix de la ligne du nom,
-  // le proprietaire du bouton pour les boutons permanents.
-  function demanderConfirmation(choisie, camp = lecture.campAuTrait()) {
+  // `camp` : celui qui demande, le proprietaire du bouton.
+  function demanderConfirmation(choisie, camp) {
     reinitialiser();
     action = choisie;
     marquerDemande(camp, true);
-    if (choisie === 'abandon') afficherConfirmationFin(svg, camp, 'Abandonner ?');
-    else afficherConfirmationFin(svg, couleurAdverse(camp), 'Nulle ?');
+    if (choisie === 'abandon') afficherConfirmationFin(svg, camp, `${nomDuJoueur(camp)} abandonne ?`);
+    else afficherConfirmationFin(svg, couleurAdverse(camp), `${nomDuJoueur(camp)} propose nulle ?`);
   }
 
   svg.addEventListener('click', (evenement) => {
     const cible = evenement.target;
-    if (cible.closest('.nom-tour-cadre')) {
-      const camp = cible.closest('.nom-joueur').dataset.camp;
-      if (lecture.peutTerminer() && camp === lecture.campAuTrait()) ouvrirOuFermerLesChoix(camp);
-      return;
-    }
-    const permanent = cible.closest('.bouton-fin-piste');
-    if (permanent) {
-      if (!lecture.peutTerminer() || permanent.classList.contains('bouton-fin-piste-inactif')) return;
-      const dejaDemande = permanent.classList.contains('demande-en-cours');
+    const bouton = cible.closest('.bouton-fin-piste');
+    if (bouton) {
+      if (!lecture.peutTerminer() || bouton.classList.contains('bouton-fin-piste-inactif')) return;
+      const dejaDemande = bouton.classList.contains('demande-en-cours');
       reinitialiser();
-      if (dejaDemande) return; // un second appui annule la demande
-      demanderConfirmation(permanent.dataset.action, permanent.dataset.camp);
-      permanent.classList.add('demande-en-cours');
-      return;
-    }
-    const choix = cible.closest('.option-fin');
-    if (choix) {
-      demanderConfirmation(choix.dataset.action);
+      if (dejaDemande) return;
+      demanderConfirmation(bouton.dataset.action, bouton.dataset.camp);
+      bouton.classList.add('demande-en-cours');
       return;
     }
     const reponse = cible.closest('.confirmation-bouton');

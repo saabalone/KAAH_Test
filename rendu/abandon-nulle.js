@@ -1,11 +1,10 @@
-// Les boutons d'abandon et de nulle, dessines DANS la ligne du joueur
-// (rendu/ligne-joueur.js) — donc retournes avec elle en face-a-face, sans
-// aucun calcul de plus. Ce fichier ne fait que dessiner ; quand les montrer et
-// quoi faire d'un clic est dans interface/abandon-nulle.js.
+// La confirmation d'un abandon ou d'une nulle, dessinee DANS la ligne du joueur
+// (rendu/ligne-joueur.js) — donc retournee avec elle en face-a-face, sans aucun
+// calcul de plus. Les boutons qui la declenchent sont ceux de chaque joueur
+// (rendu/boutons-fin-piste.js). Ce fichier ne fait que dessiner ; quand la montrer
+// et quoi faire d'un clic est dans interface/abandon-nulle.js.
 //
-//   - LES DEUX CHOIX ("Nulle", "Abandonner") apparaissent a droite du nom du
-//     camp au trait quand on clique sur son cadre orange "Tour N A/N" ;
-//   - LA CONFIRMATION recouvre la ligne de celui qui doit repondre dans un
+//   - LA CONFIRMATION nomme celui qui demande, puis recouvre la ligne de celui qui doit repondre dans un
 //     cadre vert, avec deux boutons gris "Valider" et "Refuser". Pour un
 //     abandon, c'est celui qui abandonne ; pour une nulle, c'est
 //     l'ADVERSAIRE de celui qui la propose — sa ligne, donc, qui est retournee
@@ -31,15 +30,8 @@ function creerBoutonFin(classe, donnees, libelle) {
   return bouton;
 }
 
-// Cree, masques, les deux choix et la confirmation de la ligne `groupe`.
+// Cree, masquee, la confirmation de la ligne `groupe`.
 function creerBoutonsAbandonNulle(groupe) {
-  const choix = creerElementSVG('g', { class: 'choix-fin' });
-  choix.append(
-    creerBoutonFin('option-fin', { action: 'nulle' }, 'Nulle'),
-    creerBoutonFin('option-fin', { action: 'abandon' }, 'Abandonner')
-  );
-  choix.style.display = 'none';
-
   const confirmation = creerElementSVG('g', { class: 'confirmation-fin' });
   confirmation.appendChild(creerElementSVG('rect', { class: 'confirmation-fond', rx: RAYON_COIN_BOUTON_FIN }));
   confirmation.appendChild(creerElementSVG('text', { class: 'confirmation-question' }));
@@ -49,7 +41,7 @@ function creerBoutonsAbandonNulle(groupe) {
   );
   confirmation.style.display = 'none';
 
-  groupe.append(choix, confirmation);
+  groupe.append(confirmation);
 }
 
 // Pose un bouton a `x` (bord gauche) sur la ligne `y` et renvoie sa largeur.
@@ -68,19 +60,13 @@ function poserBoutonFin(bouton, x, y) {
   return largeur;
 }
 
-// Range les deux choix a droite du cadre du nom. `xDroite` : bord droit du
-// cadre du nom. `xGauche` : bord gauche de ce qu'il faut recouvrir (le cadre
-// orange s'il existe).
+// Retient les bords de la ligne (`xDroite` : bord droit du cadre du nom, `xGauche` :
+// bord gauche de ce qu'il faut recouvrir, le cadre orange s'il existe) et redessine
+// la confirmation si elle est affichee.
 function disposerBoutonsAbandonNulle(groupe, { xDroite, xGauche }) {
   const y = Number(groupe.dataset.y);
   groupe.dataset.xDroite = xDroite;
   groupe.dataset.xGauche = xGauche;
-
-  const choix = groupe.querySelector('.choix-fin');
-  if (choix.style.display !== 'none') {
-    let x = xDroite + ECART_BOUTON_FIN;
-    for (const option of choix.children) x += poserBoutonFin(option, x, y) + ECART_BOUTON_FIN;
-  }
 
   const confirmation = groupe.querySelector('.confirmation-fin');
   if (confirmation.style.display !== 'none') disposerConfirmation(groupe, confirmation, y);
@@ -112,15 +98,6 @@ function disposerConfirmation(groupe, confirmation, y) {
   poserBoutonFin(valider, xRefuser - ECART_BOUTON_FIN - largeurValider, y);
 }
 
-// Montre ou cache les deux choix ("Nulle", "Abandonner") de la ligne de `camp`.
-function afficherChoixFin(svg, camp, visible) {
-  const groupe = svg.querySelector(`#nom-${camp}`);
-  groupe.querySelector('.choix-fin').style.display = visible ? '' : 'none';
-  if (visible) {
-    disposerBoutonsAbandonNulle(groupe, { xDroite: Number(groupe.dataset.xDroite), xGauche: Number(groupe.dataset.xGauche) });
-  }
-}
-
 // Recouvre la ligne de `camp` du cadre vert de confirmation, avec `question`.
 function afficherConfirmationFin(svg, camp, question) {
   const groupe = svg.querySelector(`#nom-${camp}`);
@@ -130,7 +107,7 @@ function afficherConfirmationFin(svg, camp, question) {
   disposerBoutonsAbandonNulle(groupe, { xDroite: Number(groupe.dataset.xDroite), xGauche: Number(groupe.dataset.xGauche) });
 }
 
-// Cache tout : choix et confirmation, sur les deux lignes.
+// Cache la confirmation, sur les deux lignes.
 function masquerBoutonsFin(svg) {
-  for (const element of svg.querySelectorAll('.choix-fin, .confirmation-fin')) element.style.display = 'none';
+  for (const element of svg.querySelectorAll('.confirmation-fin')) element.style.display = 'none';
 }

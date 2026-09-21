@@ -7,8 +7,8 @@
 //   - a sa GAUCHE, seulement pour le camp qui a la main, un cadre ORANGE
 //     ("Tour N", ou "Gagne"/"Nulle" en fin de partie) : le meme orange que les
 //     boutons actifs. Il s'ajoute a cote du nom sans jamais le deplacer ;
-//     avec " A/N" quand on peut abandonner ou proposer nulle, un clic dessus
-//     ouvre ces deux choix (rendu/abandon-nulle.js, interface/abandon-nulle.js).
+//     abandon et nulle ont leurs boutons a part, pres du compteur d'ejections
+//     (rendu/boutons-fin-piste.js).
 // Decoupe de rendu/ejections.js (trop long) : ce fichier ne dessine que cette
 // ligne.
 //
@@ -111,14 +111,15 @@ function actualiserNomJoueur(svg, camp, nombreEjecteesDeCeCamp) {
 // Le cadre orange ne montre que le camp qui a la main ("Tour N"), ou le
 // resultat de la partie :
 //   - le camp qui vient de gagner (`gagnant`) : "Gagne" ;
-//   - sinon, le camp au trait (`joueurAuTrait`) : "Tour N", suivi de " A/N" si
-//     `actionnable` (abandon ou nulle possibles) ;
+//   - sinon, le camp au trait (`joueurAuTrait`) : "Tour N" ;
 //   - `optionsFin` (phase 20bis) : la partie est finie sur son noeud final, le cadre
 //     porte " Options" et ouvre « Fin de partie : Options » (interface/fin-de-partie.js) ;
 //   - l'autre camp : rien, pas de cadre orange.
 // `joueurAuTrait`/`gagnant` valent chacun 'noir', 'blanc' ou `null` ;
 // `gagnant` accepte aussi 'nul' (phase 17, nulle par repetition acceptee) —
 // ni l'un ni l'autre camp n'a "gagne", les DEUX recoivent alors "Nulle".
+// `actionnable` : la partie est vivante sur la position regardee (les boutons d'abandon
+// et de nulle sont alors utilisables).
 function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false, optionsFin = false) {
   for (const camp of ['noir', 'blanc']) {
     const groupe = svg.querySelector(`#nom-${camp}`);
@@ -129,7 +130,7 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false,
     else if (gagnant === camp) numero = 'Gagne';
     else if (estAuTrait) numero = `Tour ${tour}`;
     ecrireSiChange(groupe.querySelector('.nom-tour-numero'), numero);
-    const suffixe = estAuTrait && actionnable ? ' A/N' : optionsFin && numero !== '' ? ' Options' : '';
+    const suffixe = optionsFin && numero !== '' ? ' Options' : '';
     ecrireSiChange(groupe.querySelector('.nom-tour-options'), suffixe);
     disposerLigneNom(groupe);
   }

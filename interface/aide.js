@@ -5,11 +5,10 @@
 // (KAA_aide.txt) restent a faire, phase 26.
 //
 // Ce fichier n'a qu'un travail : afficher, dans la boite, la VERSION de KAAH
-// que fait tourner cet appareil, pour que chaque rapport de test dise laquelle.
-// La version est le nom du cache du service worker (service-worker.js,
-// NOM_CACHE, par exemple "kaah-v83"), lu tel quel plutot que recopie ici — une seule
-// source (CLAUDE.md). Sans service worker (fichier ouvert par double-clic), il
-// n'y en a pas : on le dit.
+// que fait tourner cet appareil (« KAAH_Test v1 »), pour que chaque rapport de test dise
+// laquelle. Elle vient de version.js, donc elle s'affiche aussi quand KAAH est ouvert par
+// double-clic. Si l'appareil a un cache installe d'une AUTRE version (service worker pas
+// encore mis a jour), on le dit : la page affichee et le cache ne sont alors pas les memes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
@@ -18,17 +17,17 @@
 function demarrerAide(elements) {
   function afficherVersion() {
     elements.version.textContent = 'Version : recherche...';
+    const versionAffichee = `KAAH_Test v${VERSION_KAAH_TEST}`;
+    elements.version.textContent = `Version : ${versionAffichee}`;
     const chercher = 'caches' in window ? window.caches.keys() : Promise.resolve([]);
     chercher
       .then((noms) => {
-        const nom = noms.find((n) => n.startsWith('kaah-'));
-        elements.version.textContent = nom
-          ? `Version : ${nom.replace('kaah-', '')}`
-          : 'Version : inconnue (KAAH est ouvert sans installation)';
+        const nomCache = noms.find((n) => n.startsWith('kaah-'));
+        if (nomCache && nomCache !== `kaah-test-v${VERSION_KAAH_TEST}`) {
+          elements.version.textContent = `Version : ${versionAffichee} (cache installé : ${nomCache} — fermez KAAH, rouvrez-le avec internet)`;
+        }
       })
-      .catch(() => {
-        elements.version.textContent = 'Version : inconnue';
-      });
+      .catch(() => {});
   }
 
   elements.bouton.addEventListener('click', () => {

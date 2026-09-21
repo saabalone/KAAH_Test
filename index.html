@@ -305,7 +305,7 @@
        le navigateur, ESC la ferme tout seul. Passe en plein ecran sur
        telephone (styles.css), comme toute popup — regle CLAUDE.md, meme
        si le bouton qui l'ouvre n'existe encore que sur ordinateur. -->
-  <dialog id="dialogue-mes-parties" class="dialogue">
+  <dialog id="dialogue-mes-parties" class="dialogue dialogue-grand">
     <h2>Mes parties</h2>
     <!-- Visible seulement quand ce dialogue s'ouvre TOUT SEUL au demarrage
          pour confirmer une partie reprise automatiquement (phase 12,
@@ -341,7 +341,7 @@
        et un chargement au second — voir interface/variantes.js. Favoris
        adaptes au navigateur plutot que le systeme a 3 fichiers de KAAWA
        (choix de saab, "essayons ta methode"). -->
-  <dialog id="dialogue-variantes" class="dialogue">
+  <dialog id="dialogue-variantes" class="dialogue dialogue-grand">
     <h2>Variantes</h2>
     <!-- Pas de viewBox ici : dessinerPlateau (interface/variantes.js) le
          pose lui-meme des le premier apercu, comme pour le plateau
@@ -358,7 +358,7 @@
        — apercu au premier clic, chargement au second — mais chaque ligne
        affiche EN CLAIR son objectif ("Noir gagne en 3 tours") plutot que le
        marqueur xtrNx du nom de fichier. Voir interface/puzzles.js. -->
-  <dialog id="dialogue-puzzles" class="dialogue">
+  <dialog id="dialogue-puzzles" class="dialogue dialogue-grand">
     <h2>Puzzles</h2>
     <svg id="apercu-puzzle"></svg>
     <div id="filtres-puzzles" class="barre-filtres"></div>
@@ -374,7 +374,7 @@
   <!-- Aide simplifiee (phase 26, partielle) : juste ce qui sert a tester KAAH
        aujourd'hui. Voir interface/aide.js. Les explications d'installation
        detaillees sont dans docs/ (INSTALLATION_PC.md, _ANDROID.md, _IOS.md). -->
-  <dialog id="dialogue-aide" class="dialogue dialogue-aide">
+  <dialog id="dialogue-aide" class="dialogue dialogue-grand dialogue-aide">
     <!-- Titre et bouton Fermer FIXES en haut, corps qui defile au milieu (avec sa
          barre de defilement TOUJOURS visible), Fermer aussi en bas : on ne doit
          jamais avoir a defiler pour pouvoir fermer (saab). Echap ferme aussi. -->
@@ -391,7 +391,7 @@
       <ul>
         <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
         <li>Les pendules (cadres gris à droite du plateau) démarrent quand on en touche une. Touchez-la encore pour mettre en pause : le plateau se cache.</li>
-        <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. Le cadre orange <b>Tour n A/N</b> ouvre les mêmes choix.</li>
+        <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande. Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom.</li>
         <li>Partie terminée : touchez le cadre orange <b>Gagne Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même setup) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
@@ -478,7 +478,7 @@
 
   <!-- Fin de partie : Options (phase 20bis, interface/fin-de-partie.js) : ouverte en
        touchant le cadre orange du resultat une fois la partie finie. -->
-  <dialog id="dialogue-fin-de-partie" class="dialogue">
+  <dialog id="dialogue-fin-de-partie" class="dialogue dialogue-grand">
     <h2>Fin de partie : Options</h2>
     <div class="options-fin">
       <button id="bouton-revanche" class="bouton-dialogue" type="button">Revanche (Inverser)</button>
@@ -492,7 +492,7 @@
   </dialog>
 
   <!-- Reglage des sons (interface/reglages-sons.js). -->
-  <dialog id="dialogue-sons" class="dialogue">
+  <dialog id="dialogue-sons" class="dialogue dialogue-grand">
     <h2>Sons</h2>
     <div id="liste-sons"></div>
     <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
@@ -672,6 +672,7 @@
        d'ouvrir ce fichier par simple double-clic, sans serveur — voir
        CLAUDE.md, "pourquoi pas de modules ES ici". L'ORDRE COMPTE : un
        fichier qui utilise les fonctions d'un autre doit venir apres lui. -->
+  <script src="./version.js"></script>
   <script src="./moteur/plateau.js"></script>
   <script src="./moteur/regles.js"></script>
   <script src="./moteur/fleche-dernier-coup.js"></script>

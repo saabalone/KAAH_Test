@@ -286,7 +286,7 @@ function demarrerPartie(
     },
   });
 
-  // Abandon / nulle depuis le cadre "Tour N A/N" (interface/abandon-nulle.js) :
+  // Abandon / nulle depuis les boutons de chaque joueur (interface/abandon-nulle.js) :
   // la fin de partie est marquee sur le noeud courant, comme une nulle par
   // repetition acceptee (interface/nulle.js) — plus jamais de coup ensuite.
   // Aussi appelee quand une nulle par repetition est acceptee (jouerCoup).
@@ -306,7 +306,6 @@ function demarrerPartie(
 
   const abandonNulle = demarrerAbandonNulle(svg, {
     peutTerminer: () => estPointVivant() && !sansSuite(),
-    campAuTrait: () => etatCourant(arbre).joueurAuTrait,
     terminer: terminerPartie,
   });
 
@@ -682,7 +681,7 @@ function demarrerPartie(
     // Aucun camp n'est plus "au trait" une fois la partie terminee, d'une
     // facon ou d'une autre.
     const joueurAuTrait = gagnant ? null : etat.joueurAuTrait;
-    // "A/N" (abandon ou nulle) seulement sur un point vivant qu'on peut encore
+    // Abandon et nulle possibles seulement sur un point vivant qu'on peut encore
     // jouer, jamais dans l'analyse d'une partie finie ni sur une position
     // sans suite (puzzle perdu).
     abandonNulle.reinitialiser();
@@ -743,7 +742,7 @@ function demarrerPartie(
     obtenirArbre: () => arbre,
     definirPositionSansSuite: (predicat) => {
       sansSuite = predicat;
-      actualiserAffichagePartie(); // "A/N" n'a pas de sens sur une position sans suite
+      actualiserAffichagePartie(); // abandon et nulle n'ont pas de sens sur une position sans suite
     },
     // Voir marquerStatutFin/notifierChangement plus haut : une defaite au
     // temps ne laisse aucune trace dans `etat`, c'est le seul endroit ou
