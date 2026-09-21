@@ -13,22 +13,38 @@
   code { padding: 1px 4px; word-break: break-all; }
   pre { padding: 10px; white-space: pre-wrap; }
   .note { background: #fff4d6; border-left: 5px solid #cc6a00; padding: 8px 12px; margin: 12px 0; }
-  .plus-tard { background: #f2f2f2; border-left: 5px solid #888; padding: 4px 14px; margin-top: 24px; }
+  .methode-a { background: #e6f4ea; border-left: 5px solid #1f7a3a; padding: 4px 14px; margin: 16px 0; }
   @media (prefers-color-scheme: dark) {
     body { background: #1a1a1a; color: #e4e4e4; }
     code, pre { background: #333; }
     .note { background: #4a3b16; }
-    .plus-tard { background: #2a2a2a; }
+    .methode-a { background: #1c3324; }
   }
 </style>
 </head>
 <body>
 
 <h1>KAAH sur PC (Windows, Mac, Linux)</h1>
-<p>Mode d'emploi pour les testeurs. Vous avez reçu un fichier <b>KAAH.zip</b> : c'est tout ce qu'il faut.
-Aucune connexion internet n'est nécessaire.</p>
+<p>Mode d'emploi pour les testeurs. Deux méthodes : <b>A</b> (avec l'adresse internet, recommandée) ou <b>B</b> (avec le fichier <b>KAAH.zip</b> reçu, sans internet).</p>
 
-<h2>Ouvrir KAAH (2 minutes)</h2>
+<div class="methode-a">
+<h2>Méthode A — avec l'adresse internet (recommandée)</h2>
+<p>Adresse de KAAH : <b>https://saabalone.github.io/KAAH_Test/</b><br>Il faut internet <b>une seule fois</b>, le temps de l'installation ; ensuite KAAH marche <b>hors ligne</b> comme une vraie application.</p>
+<ol>
+<li>Ouvrez <b>Chrome</b> ou <b>Edge</b> et tapez l'adresse. Attendez que le plateau s'affiche complètement (la première fois, KAAH se copie sur l'ordinateur).</li>
+<li>Dans la <b>barre d'adresse, à droite</b>, cliquez sur l'icône d'installation (un petit écran avec une flèche vers le bas), puis <b>Installer</b>.
+  <ul>
+  <li>Edge : menu <b>⋯</b> → <b>Applications</b> → <b>Installer ce site en tant qu'application</b>.</li>
+  <li>Chrome, si l'icône n'apparaît pas : menu <b>⋮</b> → <b>Diffuser, enregistrer et partager</b> → <b>Installer la page en tant qu'application</b>.</li>
+  </ul></li>
+<li>Une fenêtre <b>KAAH</b> s'ouvre, sans barre d'adresse. Une icône est ajoutée au bureau ou au menu Démarrer.</li>
+<li><b>Test hors ligne</b> : fermez KAAH, coupez la connexion (Wi-Fi ou câble), relancez KAAH depuis son icône : il doit s'ouvrir et se jouer.</li>
+</ol>
+<p>Firefox (ordinateur) ne sait pas installer. Safari (Mac) : menu <b>Fichier</b> → <b>Ajouter au Dock</b>.</p>
+<p><b>Mettre à jour</b> : ouvrez KAAH avec internet, fermez-le complètement, rouvrez-le (une ou deux fois). Le numéro de version est en haut de la fenêtre <b>Aide</b>.</p>
+</div>
+
+<h2>Méthode B — sans internet, avec le fichier KAAH.zip</h2>
 <ol>
 <li>Enregistrez <b>KAAH.zip</b> sur votre ordinateur (Bureau ou Documents).</li>
 <li><b>Extrayez-le</b> (ne l'ouvrez pas directement depuis le zip) :
@@ -44,11 +60,12 @@ Aucune connexion internet n'est nécessaire.</p>
 </ol>
 <div class="note"><b>Bon à savoir.</b> Vos parties sont enregistrées <b>dans le navigateur utilisé</b>. Si vous ouvrez KAAH avec un
 autre navigateur, vous ne verrez pas les mêmes parties. Dans ce mode, KAAH ne s'installe pas : c'est normal, il se joue très bien.
-La fenêtre d'aide (bouton <b>i?</b>) indiquera « Version : inconnue » : c'est normal aussi.</div>
+La fenêtre d'aide (bouton <b>i?</b>) indiquera « Version : inconnue » avec la méthode B : c'est normal aussi.</div>
 
 <h2>Ce qu'il faut vérifier</h2>
-<p>Pour chaque ligne : ✔ ça marche, ✘ ça ne marche pas (dites pourquoi).</p>
+<p>Pour chaque ligne : ✔ ça marche, ✘ ça ne marche pas (dites pourquoi). Faites la méthode A, et si possible aussi la B.</p>
 <ol>
+<li><b>Méthode A</b> : l'installation est proposée par Chrome ou Edge ; KAAH s'ouvre <b>hors ligne</b> (connexion coupée) ; la <b>version</b> s'affiche dans l'aide (par exemple « v89 »).</li>
 <li>Le plateau s'affiche, les billes sont bien placées.</li>
 <li>Vous jouez 3 coups (touchez une bille, puis une case verte).</li>
 <li>Vous fermez le navigateur puis rouvrez <code>index.html</code> : la partie est reprise là où vous l'avez laissée.</li>
@@ -68,28 +85,12 @@ La fenêtre d'aide (bouton <b>i?</b>) indiquera « Version : inconnue » : c'est
 
 <h2>À me renvoyer</h2>
 <p>Copiez ce modèle, remplissez-le et envoyez-le moi :</p>
-<pre>Ordinateur (marque, modèle) :
+<pre>Méthode utilisée (A : adresse / B : fichier) :
+Ordinateur (marque, modèle) :
 Système et version (Windows 11, macOS 14...) :
 Navigateur et version :
 Résultat des 8 vérifications (✔ ou ✘) :
 Ce qui n'a pas marché (avec une capture d'écran si possible) :</pre>
 
-<div class="plus-tard">
-<h2>Plus tard : installer KAAH comme une application (avec une adresse https)</h2>
-<p>Ce mode ne sera possible que lorsque KAAH sera publié à une adresse internet en <b>https</b> (adresse prévue :
-<b>https://saabalone.github.io/KAAH_Test/</b>). Il permet une vraie installation et un fonctionnement hors ligne.</p>
-<ol>
-<li>Ouvrez <b>Chrome</b> ou <b>Edge</b> et tapez l'adresse. Attendez que le plateau s'affiche complètement (la première fois, KAAH se copie sur l'ordinateur).</li>
-<li>Dans la <b>barre d'adresse, à droite</b>, cliquez sur l'icône d'installation (un petit écran avec une flèche vers le bas), puis <b>Installer</b>.
-  <ul>
-  <li>Edge : menu <b>⋯</b> → <b>Applications</b> → <b>Installer ce site en tant qu'application</b>.</li>
-  <li>Chrome, si l'icône n'apparaît pas : menu <b>⋮</b> → <b>Diffuser, enregistrer et partager</b> → <b>Installer la page en tant qu'application</b>.</li>
-  </ul></li>
-<li>Une fenêtre <b>KAAH</b> s'ouvre, sans barre d'adresse. Une icône est ajoutée au bureau ou au menu Démarrer.</li>
-<li><b>Test hors ligne</b> : fermez KAAH, coupez la connexion (Wi-Fi ou câble), relancez KAAH depuis son icône : il doit s'ouvrir et se jouer.</li>
-</ol>
-<p>Firefox (ordinateur) ne sait pas installer. Safari (Mac) : menu <b>Fichier</b> → <b>Ajouter au Dock</b>.</p>
-<p><b>Mettre à jour</b> : ouvrez KAAH avec internet, fermez-le complètement, rouvrez-le (une ou deux fois). Le numéro de version est en haut de la fenêtre <b>Aide</b>.</p>
-</div>
 </body>
 </html>

@@ -13,7 +13,7 @@
 // cache-first, un fichier deja en cache n'est plus jamais redemande, donc
 // un correctif dans styles.css ou interface/*.js n'atteindrait jamais les
 // utilisateurs deja installes sans ce changement de nom.
-const NOM_CACHE = 'kaah-v89';
+const NOM_CACHE = 'kaah-v90';
 
 const FICHIERS_A_CACHER = [
   './',
