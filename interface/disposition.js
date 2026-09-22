@@ -45,15 +45,16 @@ function replacerNavigation() {
 // rejoindre le bas du panneau Sequence/Commentaires sur ordinateur, la ou
 // ils occupaient sinon une bande de hauteur prise au plateau en portrait.
 //
-// Second voyageur, meme mecanique : `etatSauvegarde`, le bandeau qui
-// nomme la partie en cours. Il occupe une ligne AU-DESSUS du plateau, ce
-// qui ne coute rien en portrait (ou c'est la largeur qui limite le plateau)
-// mais lui prend de la hauteur en paysage — ou c'est justement la hauteur
-// qui commande sa taille (styles.css). Il monte donc en haut de
+// Second voyageur, meme mecanique : `enteteJeu` (index.html,
+// #entete-partie — la position copiable, phase 12bis, et le bandeau qui
+// nomme la partie en cours, ensemble). Il occupe une ligne AU-DESSUS du
+// plateau, ce qui ne coute rien en portrait (ou c'est la largeur qui limite
+// le plateau) mais lui prend de la hauteur en paysage — ou c'est justement
+// la hauteur qui commande sa taille (styles.css). Il monte donc en haut de
 // `colonneDroite` sur ordinateur (saab : "on passe la barre du titre de la
 // game a droite en haut, ce qui fait gagner encore un peu"), et redescend
 // au-dessus du plateau en portrait.
-function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, etatSauvegarde, colonneDroite) {
+function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite) {
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
       // Face-a-face (phase 20, saab) : la barre quitte la colonne des fenetres
@@ -61,7 +62,7 @@ function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanne
       // centre, les deux joueurs a egale distance. Voir styles.css.
       if (document.body.classList.contains('face-a-face')) document.body.appendChild(navigation);
       else arbrePanneau.appendChild(navigation);
-      colonneDroite.prepend(etatSauvegarde);
+      colonneDroite.prepend(enteteJeu);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
       // DEFAUT sur telephone (laisser toute la place au plateau) — sur
       // ordinateur, la sequence a toujours ete visible d'entree (voir
@@ -84,7 +85,7 @@ function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanne
       // ordinateur (interface/sequence.js) qui commande.
       reinitialiserHauteurOccurrencesPortrait(arbrePanneau);
     } else {
-      colonnePrincipale.prepend(etatSauvegarde); // au-dessus du plateau, sa place d'origine
+      colonnePrincipale.prepend(enteteJeu); // au-dessus du plateau, sa place d'origine
       colonnePrincipale.appendChild(navigation);
       // Symetrique du nettoyage ci-dessus : une hauteur choisie a la main
       // sur ORDINATEUR (interface/sequence.js, activerRedimensionnementHauteur)

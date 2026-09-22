@@ -77,6 +77,10 @@
               <path d="M4 6 L12 6 L14 9 L21 9 L21 19 L4 19 Z" fill="#e4e4e4" stroke="#1a1a1a" stroke-width="1"/>
             </svg>
           </span>
+          <!-- Jauge du nombre de parties enregistrees (phase 12ter,
+               interface/jauge-mes-parties.js) : `hidden` par defaut, montree
+               des le premier seuil franchi. -->
+          <span id="badge-mes-parties" class="badge-mes-parties" hidden></span>
           <span class="libelle-bouton">Mes parties</span>
         </button>
         <button id="bouton-variantes" title="Choisir une position de départ parmi les variantes de KAAWA">
@@ -393,6 +397,7 @@
         <li>Les pendules (cadres gris à droite du plateau) démarrent quand on en touche une. Touchez-la encore pour mettre en pause : le plateau se cache.</li>
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande. Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom.</li>
+        <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier.</li>
         <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même setup) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler).</li>
@@ -404,13 +409,13 @@
       <ul>
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
-        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.</li>
+        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — pensez à en supprimer.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
-        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.</li>
+        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
-        <li><b>Sons</b> : un interrupteur par son.</li>
+        <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
       </ul>
     </details>
@@ -475,7 +480,7 @@
     <details>
       <summary>Ce qui n'est pas encore dans KAAH</summary>
       <ul>
-        <li>Pas encore là : <b>historique de navigation</b> (retour/avance dans les positions consultées), <b>position copiable</b>, <b>jauge de Mes parties</b>, <b>curseur de volume</b>, <b>réglages</b> (couleurs, tailles, mode simple sans relief), <b>modes de pendules</b> (Chrono/Bonus/Délai), <b>créer une partie</b> depuis une suite de coups Nacre / AbaPro (et les positions « My »), <b>mode correspondance</b> (code KAA1), <b>corbeille</b> et import de fichiers .json / .csv, <b>bloc-notes NP</b> et aide complète, <b>fenêtre Permutations</b>, <b>solveur de puzzles</b>, <b>adversaire artificiel</b> (jouer seul contre la machine).</li>
+        <li>Pas encore là : <b>réglages</b> (couleurs, tailles, mode simple sans relief), <b>modes de pendules</b> (Chrono/Bonus/Délai), <b>créer une partie</b> depuis une suite de coups Nacre / AbaPro (et les positions « My »), <b>mode correspondance</b> (code KAA1), <b>corbeille</b> et import de fichiers .json / .csv, <b>bloc-notes NP</b> et aide complète, <b>fenêtre Permutations</b>, <b>solveur de puzzles</b>, <b>adversaire artificiel</b> (jouer seul contre la machine).</li>
         <li>Petits points connus : pas de zoom à deux doigts en face-à-face paysage ; pas de son à la fin d'un puzzle ; le son d'Occ est peut-être trop fréquent.</li>
         <li>La liste complète est dans la page « Ce qui n'est pas encore dans KAAH » (dossier docs). <b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
       </ul>
@@ -503,6 +508,13 @@
   <!-- Reglage des sons (interface/reglages-sons.js). -->
   <dialog id="dialogue-sons" class="dialogue dialogue-grand">
     <h2>Sons</h2>
+    <!-- Curseur de volume (phase 21bis, idee de saab — n'existe pas dans
+         KAAWA) : un seul, pour les six sons, independant de celui du
+         telephone. Voir interface/sons.js, reglerVolume. -->
+    <label id="ligne-volume-sons" class="ligne-volume-sons">
+      Volume
+      <input id="curseur-volume-sons" type="range" min="0" max="1" step="0.01" />
+    </label>
     <div id="liste-sons"></div>
     <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
@@ -535,12 +547,24 @@
        CLAUDE.md, "les onglets de la barre laterale passent en bas de
        l'ecran sur telephone ... et sur le cote sur ordinateur". -->
   <div id="colonne-principale">
-    <!-- Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
-         (voir moteur/nom-partie.js) — saab a signale ne voir aucune
-         indication de ce genre, ni de confirmation que la partie est
-         bien enregistree ; mis a jour a chaque coup/navigation par
-         index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
-    <div id="etat-sauvegarde"></div>
+    <!-- `#entete-partie` (position copiable + nom de la partie) voyage EN BLOC
+         entre le haut du plateau (telephone) et le haut de la colonne de
+         droite (ordinateur) — voir interface/disposition.js,
+         demarrerDispositionNavigation, qui deplace ce conteneur exactement
+         comme il deplacait avant #etat-sauvegarde seul. -->
+    <div id="entete-partie">
+      <!-- Position en notation compressee, copiable d'un clic (phase 12bis,
+           interface/position-copiable.js) — AU-DESSUS du nom de la partie,
+           avec de la marge (choix de saab), pour ne jamais la confondre avec
+           un clic sur "Depart" dans la Sequence. -->
+      <div id="position-copiable" title="Copier la position en notation compressée"></div>
+      <!-- Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
+           (voir moteur/nom-partie.js) — saab a signale ne voir aucune
+           indication de ce genre, ni de confirmation que la partie est
+           bien enregistree ; mis a jour a chaque coup/navigation par
+           index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
+      <div id="etat-sauvegarde"></div>
+    </div>
     <svg id="plateau" role="img" aria-label="Plateau d'Abalone"></svg>
     <!-- Poignee de hauteur du plateau, TELEPHONE SEULEMENT (phase 18) :
          exception assumee a la regle "le plateau garde sa taille maximale"
@@ -615,6 +639,18 @@
          styles.css. -->
     <div id="arbre-panneau" hidden>
       <div id="arbre-poignee-largeur" title="Glisser pour changer la largeur de la sequence"></div>
+      <!-- Historique de NAVIGATION (phase 11bis) : où est-on ALLÉ en cliquant des
+           coups ailleurs dans l'arbre (Séquence, Commentaires, Occurrences), à
+           distance du dernier — distinct de l'ordre des coups (#navigation plus
+           bas, Précédent/Suivant/Début/Fin/Annuler, qui n'y touchent jamais). Voir
+           moteur/historique-navigation.js. Vit ici, au-dessus de Séquence et
+           Commentaires (choix de saab) : visible avec les deux, ce panneau étant
+           le seul endroit où l'on « saute » d'un coup à l'autre. -->
+      <div id="historique-navigation">
+        <button id="historique-origine" type="button" title="Revenir au premier endroit visité" disabled>|&lt;H</button>
+        <button id="historique-retour" type="button" title="Endroit visité précédent" disabled>&lt;H</button>
+        <button id="historique-avance" type="button" title="Endroit visité suivant" disabled>H&gt;</button>
+      </div>
       <div id="arbre-entete" title="Revenir à la position de départ"></div>
       <!-- Barre d'outils du mode Commentaires seulement (recherche, tout
            replier/deplier, copier) — masquee en mode Sequence, voir
@@ -687,6 +723,7 @@
   <script src="./moteur/fleche-dernier-coup.js"></script>
   <script src="./moteur/partie.js"></script>
   <script src="./moteur/arbre.js"></script>
+  <script src="./moteur/historique-navigation.js"></script>
   <script src="./moteur/notation.js"></script>
   <script src="./moteur/pendules.js"></script>
   <script src="./moteur/sauvegarde.js"></script>
@@ -742,6 +779,8 @@
   <script src="./interface/aide.js"></script>
   <script src="./interface/abandon-nulle.js"></script>
   <script src="./interface/fin-de-partie.js"></script>
+  <script src="./interface/position-copiable.js"></script>
+  <script src="./interface/jauge-mes-parties.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
   <script src="./interface/occurrences.js"></script>
@@ -854,6 +893,15 @@
     elementEtatSauvegarde.textContent = donneesReprises ? nomDeFichierKAAWA(donneesReprises) : 'Nouvelle partie (pas encore jouée)';
     elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
 
+    // Position copiable (phase 12bis, interface/position-copiable.js) :
+    // `arbreDepart.chemin`, quand il existe, est deja celui d'une partie
+    // reprise (moteur/sauvegarde.js, donneesVersArbre) — jamais forcement la
+    // racine. Sans lui (partie neuve), c'est la position de depart elle-meme.
+    const positionCopiable = demarrerPositionCopiable(
+      document.getElementById('position-copiable'),
+      ecrirePosition(arbreDepart ? etatCourant(arbreDepart) : lirePosition(positionChoisie?.texteBrut ?? MARGUERITE_BELGE))
+    );
+
     const svg = document.getElementById('plateau');
     // Revanche en face-a-face : le plateau est dessine retourne de 180 degres, et
     // les camps changent de place autour de lui (rendu/plateau-svg.js, orienterPlateau ;
@@ -958,6 +1006,7 @@
         dialogue: document.getElementById('dialogue-sons'),
         liste: document.getElementById('liste-sons'),
         fermer: document.getElementById('bouton-fermer-sons'),
+        volume: document.getElementById('curseur-volume-sons'),
       },
       sons
     );
@@ -1042,9 +1091,15 @@
         entete: document.getElementById('occurrences-entete'),
         liste: document.getElementById('liste-occurrences'),
       },
+      {
+        origine: document.getElementById('historique-origine'),
+        retour: document.getElementById('historique-retour'),
+        avance: document.getElementById('historique-avance'),
+      },
       arbreDepart,
       (arbre, perteAuTemps) => {
         sauvegarderMaintenant(arbre, perteAuTemps);
+        positionCopiable.actualiser(ecrirePosition(etatCourant(arbre)));
         // `conseils` n'existe pas encore au tout premier appel (voir plus
         // bas, cree apres `partie`) : ce rappel ne peut de toute facon
         // etre declenche qu'apres un coup ou une navigation, donc apres
@@ -1177,13 +1232,17 @@
     function sauvegarderMaintenant(arbre, perteAuTemps) {
       const donnees = arbreVersDonnees(arbre, metadonneesActuelles(perteAuTemps));
       actualiserEtatSauvegarde(sauvegarderPartieActive(donnees), donnees);
+      // Une partie neuve qui vient de recevoir son tout premier coup ajoute
+      // une entree (phase 12ter) : la jauge doit donc etre relue a chaque
+      // sauvegarde, pas seulement a la suppression.
+      actualiserJaugeMesParties(elementBadgeMesParties);
     }
 
     demarrerDispositionNavigation(
       document.getElementById('navigation'),
       document.getElementById('colonne-principale'),
       document.getElementById('arbre-panneau'),
-      document.getElementById('etat-sauvegarde'),
+      document.getElementById('entete-partie'),
       document.getElementById('colonne-droite')
     );
     demarrerExtensionColonneGauche(
@@ -1269,6 +1328,13 @@
       NOMS_PAR_DEFAUT,
       () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps())
     );
+    // Jauge du nombre de parties enregistrees (phase 12ter,
+    // interface/jauge-mes-parties.js) : mise a jour au demarrage, puis a
+    // chaque coup/navigation sauvegarde (voir sauvegarderMaintenant plus
+    // haut) et a chaque suppression (surSuppression, juste en dessous).
+    const elementBadgeMesParties = document.getElementById('badge-mes-parties');
+    actualiserJaugeMesParties(elementBadgeMesParties);
+
     const listeParties = demarrerListeParties(
       {
         bouton: document.getElementById('bouton-mes-parties'),
@@ -1282,7 +1348,8 @@
         supprimer: document.getElementById('bouton-supprimer-parties'),
       },
       demarrerRechargement,
-      confirmation.demander
+      confirmation.demander,
+      () => actualiserJaugeMesParties(elementBadgeMesParties)
     );
     // Une partie reprise en silence peut donner l'impression d'une partie
     // neuve si on ne fait pas attention (signale par saab) : le dialogue

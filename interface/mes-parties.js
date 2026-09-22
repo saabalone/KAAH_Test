@@ -83,7 +83,10 @@
 // est remplacee, il faut faire la meme securite") : charger une AUTRE
 // partie que celle deja active demande desormais confirmation, SEULEMENT
 // si une partie est deja en cours (rien a perdre sinon).
-function demarrerListeParties(elements, demarrerRechargement, demanderConfirmation) {
+// `surSuppression` (facultatif, phase 12ter) : appele apres toute suppression
+// — la jauge du nombre de parties (interface/jauge-mes-parties.js) s'en sert
+// pour se mettre a jour sans attendre le prochain coup joue ailleurs.
+function demarrerListeParties(elements, demarrerRechargement, demanderConfirmation, surSuppression) {
   // Identifiant (pas l'objet) de l'entree previsualisee : `parties` est
   // relu a chaque rafraichissement depuis localStorage (JSON.parse produit
   // a chaque fois de TOUT NOUVEAUX objets), une comparaison par reference
@@ -151,6 +154,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     }
     idsSelectionnes = new Set();
     rafraichir();
+    surSuppression?.();
   }
 
   // Le bouton "Supprimer la selection" dit combien de parties il va

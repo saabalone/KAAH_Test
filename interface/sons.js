@@ -21,9 +21,29 @@
 // (`sound.enabled`, `sound.move`...) : la phase 22 (reglages, fichiers
 // settings_*.json de KAAWA) les retrouvera telles quelles.
 //
+// Volume (phase 21bis — idee de saab, n'existe PAS dans KAAWA : Settings >
+// Sons n'y a que des cases a cocher, jamais de curseur, verifie dans
+// KAA_aide.txt) : une cle a PART (`CLE_VOLUME_SONS`), puisqu'elle n'a pas
+// d'equivalent KAAWA a imiter. Un seul curseur pour les six sons, applique a
+// la propriete `volume` de chaque <audio> — jamais un volume par son, KAAWA
+// lui-meme n'a que des interrupteurs.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 const CLE_STOCKAGE_SONS = 'kaah-reglages-sons';
+const CLE_VOLUME_SONS = 'kaah-volume-sons';
+const VOLUME_SONS_PAR_DEFAUT = 1;
+
+function lireVolumeSons() {
+  try {
+    const texte = window.localStorage.getItem(CLE_VOLUME_SONS);
+    if (texte === null) return VOLUME_SONS_PAR_DEFAUT; // jamais encore regle : `Number(null)` vaudrait 0, pas le defaut
+    const valeur = Number(texte);
+    return Number.isFinite(valeur) && valeur >= 0 && valeur <= 1 ? valeur : VOLUME_SONS_PAR_DEFAUT;
+  } catch {
+    return VOLUME_SONS_PAR_DEFAUT;
+  }
+}
 
 // Ordre = ordre d'affichage. Le premier est l'interrupteur general (KAAWA :
 // "Son global").
@@ -51,11 +71,13 @@ function lireReglagesSons() {
 
 function demarrerSons(dossier = './sons/') {
   const reglages = lireReglagesSons();
+  let volume = lireVolumeSons();
   const elements = {};
   for (const { fichier } of REGLAGES_SONS) {
     if (!fichier) continue;
     const audio = new Audio(`${dossier}${fichier}.wav`);
     audio.preload = 'auto';
+    audio.volume = volume;
     elements[fichier] = audio;
   }
 
@@ -107,5 +129,15 @@ function demarrerSons(dossier = './sons/') {
     }
   }
 
-  return { jouer, regler, lire: (cle) => reglages[cle] };
+  function reglerVolume(valeur) {
+    volume = valeur;
+    for (const audio of Object.values(elements)) audio.volume = volume;
+    try {
+      window.localStorage.setItem(CLE_VOLUME_SONS, String(volume));
+    } catch {
+      // Tant que la page reste ouverte, le reglage vaut quand meme.
+    }
+  }
+
+  return { jouer, regler, lire: (cle) => reglages[cle], reglerVolume, lireVolume: () => volume };
 }

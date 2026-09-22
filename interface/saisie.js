@@ -107,6 +107,8 @@
 // optionsDeFinDisponibles (moteur/arbre.js), repetitionAProposer (interface/nulle.js), refuserNulle (moteur/arbre.js),
 // demarrerAbandonNulle (interface/abandon-nulle.js),
 // estStatutDefinitif (moteur/arbre.js), couleurAdverse (moteur/regles.js),
+// creerHistoriqueNavigation, enregistrerSaut, reculerHistorique, avancerHistorique,
+// origineHistorique, cheminActuelHistorique (moteur/historique-navigation.js),
 // signalerCampAuTrait (interface/face-a-face.js), sonOccurrence (moteur/nulle.js),
 // afficherPause et masquerPause viennent tous des
 // fichiers charges avant celui-ci dans index.html (demarrerAffichageOccurrences
@@ -191,11 +193,16 @@ function demarrerPartie(
   elementsArbre,
   elementsCommentaires,
   elementsOccurrences,
+  elementsHistoriqueNavigation,
   arbreDepart,
   surChangement,
   jouerSon
 ) {
   let arbre = arbreDepart ?? creerArbre(etatInitial);
+  // Historique de NAVIGATION (phase 11bis) : ou l'on est ALLE en cliquant des
+  // coups ailleurs dans l'arbre — jamais persiste (comme dans KAAWA, remis a
+  // zero a chaque nouvelle session), voir moteur/historique-navigation.js.
+  let historiqueNavigation = creerHistoriqueNavigation();
   let selection = null;
   let coupsPossibles = [];
   let perteAuTemps = null; // { camp, chemin } | null — voir l'en-tete du fichier
@@ -244,7 +251,7 @@ function demarrerPartie(
   const texteEnTete = ecrirePosition(arbre.racine.etat);
 
   const sequence = demarrerAffichageSequence(elementsArbre, texteEnTete, {
-    surClicNoeud: (chemin) => naviguer((a) => allerAuNoeud(a, chemin)),
+    surClicNoeud: sauterVersNoeud,
     surClicSupprimer: (chemin) => {
       demanderConfirmation('Supprimer ce coup et tout ce qui en dépend ? Cette action est irréversible.', () =>
         naviguer((a) => supprimerBranche(a, chemin))
@@ -261,7 +268,7 @@ function demarrerPartie(
   // alors ignore le commentaire tout juste tape, jusqu'au prochain coup ou
   // navigation qui l'aurait rafraichi par ailleurs.
   const commentaires = demarrerAffichageCommentaires(elementsCommentaires, {
-    surClicNoeud: (chemin) => naviguer((a) => allerAuNoeud(a, chemin)),
+    surClicNoeud: sauterVersNoeud,
     surCommentaireModifie: (chemin, texte) => {
       arbre = marquerCommentaire(arbre, chemin, texte);
       commentaires.actualiser(arbre);
@@ -278,7 +285,7 @@ function demarrerPartie(
   // la regle est celle de moteur/nulle.js, sonOccurrence.
   let occurrencesAffichees = null;
   const occurrences = demarrerAffichageOccurrences(svg, elementsOccurrences, {
-    surClicNoeud: (chemin) => naviguer((a) => allerAuNoeud(a, chemin)),
+    surClicNoeud: sauterVersNoeud,
     surOccurrences: (occ) => {
       const son = occurrencesAffichees === null ? null : sonOccurrence(occurrencesAffichees, occ);
       occurrencesAffichees = occ;
@@ -641,6 +648,59 @@ function demarrerPartie(
     occurrences.actualiser(arbre);
     notifierChangement();
   }
+
+  // Historique de NAVIGATION (phase 11bis) : appele par CHAQUE clic sur un
+  // coup ailleurs dans l'arbre (Sequence, Commentaires, Occurrences, et le
+  // clic sur "Depart" qui saute a la racine) — jamais par Precedent/Suivant/
+  // Debut/Fin/Annuler, sequentiels et etrangers a cet historique (voir
+  // moteur/historique-navigation.js).
+  function sauterVersNoeud(chemin) {
+    historiqueNavigation = enregistrerSaut(historiqueNavigation, arbre.chemin, chemin);
+    naviguer((a) => allerAuNoeud(a, chemin));
+    actualiserBoutonsHistoriqueNavigation();
+  }
+
+  // Un chemin de l'historique peut ne plus exister (la branche a ete
+  // supprimee par "Annuler" depuis qu'elle a ete visitee) : on verifie avant
+  // d'y sauter plutot que de laisser noeudA planter sur un index absent.
+  function cheminExisteEncore(chemin) {
+    let noeud = arbre.racine;
+    for (const index of chemin) {
+      noeud = noeud.enfants[index];
+      if (!noeud) return false;
+    }
+    return true;
+  }
+
+  // Rejoue un deplacement dans l'historique (retour, avance ou origine) SANS
+  // l'y enregistrer a nouveau — exactement `jump_to_node(target, record=False)`
+  // dans KAAWA. Une branche disparue depuis remet simplement l'historique a
+  // zero plutot que de planter : ce n'est qu'une commodite de navigation,
+  // jamais une donnee de la partie a preserver a tout prix.
+  function rejouerHistoriqueNavigation(deplacement) {
+    const nouveau = deplacement(historiqueNavigation);
+    if (nouveau === historiqueNavigation) return; // deja a la limite, rien a faire
+    const chemin = cheminActuelHistorique(nouveau);
+    if (!cheminExisteEncore(chemin)) {
+      historiqueNavigation = creerHistoriqueNavigation();
+    } else {
+      historiqueNavigation = nouveau;
+      naviguer((a) => allerAuNoeud(a, chemin));
+    }
+    actualiserBoutonsHistoriqueNavigation();
+  }
+
+  // Grise ce qui n'a nulle part ou aller : jamais seulement au survol
+  // (CLAUDE.md), un telephone n'a pas de curseur.
+  function actualiserBoutonsHistoriqueNavigation() {
+    elementsHistoriqueNavigation.origine.disabled = historiqueNavigation.index <= 0;
+    elementsHistoriqueNavigation.retour.disabled = historiqueNavigation.index <= 0;
+    elementsHistoriqueNavigation.avance.disabled = historiqueNavigation.index >= historiqueNavigation.pile.length - 1;
+  }
+
+  elementsHistoriqueNavigation.origine.addEventListener('click', () => rejouerHistoriqueNavigation(origineHistorique));
+  elementsHistoriqueNavigation.retour.addEventListener('click', () => rejouerHistoriqueNavigation(reculerHistorique));
+  elementsHistoriqueNavigation.avance.addEventListener('click', () => rejouerHistoriqueNavigation(avancerHistorique));
 
   // Le noeud courant est-il le point VIVANT de la partie (une feuille qui
   // n'est ni gagnee par ejections ni perdue au temps) ? Si oui, le direct

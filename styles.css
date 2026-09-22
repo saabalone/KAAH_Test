@@ -67,6 +67,7 @@ body {
 h2,
 button,
 #etat-sauvegarde,
+#position-copiable,
 #arbre-entete,
 #arbre-poignee-hauteur,
 #arbre-poignee-largeur,
@@ -210,6 +211,37 @@ button,
   line-height: 1;
   background: #8a8a8a;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Jauge du nombre de parties enregistrees (phase 12ter,
+   interface/jauge-mes-parties.js) : un badge en haut a droite de l'icone
+   "Mes parties", TOUJOURS visible (jamais seulement au survol, CLAUDE.md).
+   `#bouton-mes-parties` doit etre `position: relative` pour l'ancrer. Vert
+   par defaut (meme famille que --vert-demande, mais un signal d'INFO ici,
+   jamais une demande), rouge au-dela du second seuil. */
+#bouton-mes-parties {
+  position: relative;
+}
+
+.badge-mes-parties {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: #1f7a3a;
+  color: #ffffff;
+  font: bold 10px sans-serif;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none; /* ne gene jamais le clic sur le bouton lui-meme */
+}
+
+.badge-mes-parties-alerte {
+  background: #b3261e; /* meme rouge que le bouton Abandonner */
 }
 
 /* UNE BANDE D'ICONES, DANS LES DEUX MISES EN PAGE. Les libelles en toutes
@@ -1346,14 +1378,15 @@ button,
      restant lisible au survol (attribut `title`, voir index.html) ; le
      `min-width: 100%` le laisse quand meme s'etirer a la largeur de la
      Sequence quand elle est ouverte en dessous. */
-  #etat-sauvegarde,
+  #entete-partie,
   #bandeau-puzzle {
     box-sizing: border-box;
     width: 180px;
     min-width: 100%;
   }
 
-  #etat-sauvegarde {
+  #etat-sauvegarde,
+  #position-copiable {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1476,6 +1509,15 @@ button,
   }
 }
 
+/* `#entete-partie` (index.html) : la position copiable et le nom de la partie,
+   empiles, voyagent ensemble entre le haut du plateau et le haut de la
+   colonne de droite (interface/disposition.js). */
+#entete-partie {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Confirmation de la sauvegarde automatique (voir index.html,
    actualiserEtatSauvegarde). Discrete (petit, gris) : une confirmation de
    routine. Le tour, le camp au trait et le resultat de fin de partie —
@@ -1493,6 +1535,21 @@ button,
 
 #etat-sauvegarde.etat-sauvegarde-erreur {
   color: #e0a040; /* orange, alerte douce : rien n'est perdu (la partie continue), juste pas enregistre */
+}
+
+/* Position copiable (phase 12bis, interface/position-copiable.js) : meme
+   gabarit qu'#etat-sauvegarde juste au-dessus, teinte de bleu (couleur
+   distincte, jamais confondue avec le nom de la partie) et curseur en main
+   pour signaler qu'elle est cliquable — #etat-sauvegarde, elle, ne l'est
+   pas. */
+#position-copiable {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  background: #1a1a1a;
+  color: #7ab8e8;
+  font: 11px sans-serif;
+  text-align: center;
+  cursor: pointer;
 }
 
 /* La TAILLE du plateau se declare entierement dans chacune des deux media
@@ -1631,6 +1688,33 @@ button,
   #arbre-panneau[hidden] {
     display: none;
   }
+}
+
+/* Historique de navigation (phase 11bis, interface/saisie.js) : trois petits
+   boutons juste au-dessus de "Depart" — meme style que #commentaires-barre,
+   toujours visible avec Sequence ET Commentaires (les deux modes de ce
+   panneau), grises quand ils n'ont nulle part ou aller. */
+#historique-navigation {
+  display: flex;
+  gap: 4px;
+  padding: 4px 4px 0;
+  flex: 0 0 auto;
+}
+
+#historique-navigation button {
+  flex: 1 1 0;
+  min-height: 30px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#historique-navigation button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 #arbre-entete {
@@ -2509,6 +2593,23 @@ button,
 
 .reglages-inactifs .ligne-reglage:not(:first-child) {
   opacity: 0.4;
+}
+
+/* Curseur de volume (phase 21bis, index.html/interface/sons.js) : une ligne
+   a part, jamais grisee par .reglages-inactifs — regler le volume avant de
+   reactiver le son global reste utile. Zone tactile de 44px malgre le
+   curseur fin (CLAUDE.md), le curseur lui-meme grandit sur son axe. */
+.ligne-volume-sons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.ligne-volume-sons input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 28px;
 }
 
 /* Champ de saisie du nom d'un joueur (interface/noms-joueurs.js). */

@@ -12,9 +12,13 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_SONS
 // (interface/sons.js) vient d'un fichier charge avant celui-ci.
 
-// `elements` : { bouton, dialogue, liste, fermer }. `sons` : ce que renvoie
-// demarrerSons.
+// `elements` : { bouton, dialogue, liste, fermer, volume }. `volume` (phase
+// 21bis) est le curseur unique pour les six sons — voir interface/sons.js,
+// reglerVolume. `sons` : ce que renvoie demarrerSons.
 function demarrerReglagesSons(elements, sons) {
+  elements.volume.value = sons.lireVolume();
+  elements.volume.addEventListener('input', () => sons.reglerVolume(Number(elements.volume.value)));
+
   function afficher() {
     elements.liste.replaceChildren();
     for (const { cle, libelle } of REGLAGES_SONS) {
