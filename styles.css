@@ -2353,6 +2353,16 @@ button,
   display: none;
 }
 
+/* Fixe en haut de la colonne, qu'elle defile ou non (saab : il fallait remonter
+   toute la colonne pour le retrouver). `z-index` : au-dessus des boutons qui
+   remontent sous lui en defilant ; son propre fond (deja opaque, voir plus
+   haut) les cache au passage, sans qu'il faille le repeter ici. */
+#bouton-etendre-colonne {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
 .groupe-boutons {
   padding: 0;
   gap: 2px;
