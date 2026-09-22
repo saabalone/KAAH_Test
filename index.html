@@ -284,6 +284,13 @@
           <span class="icone-bouton icone-texte" aria-hidden="true">🔊</span><span class="libelle-bouton">Sons</span>
         </button>
       </div>
+      <!-- Reglages (phase 22) : couleurs, mode simple, coordonnees sur
+           les billes, import/export — interface/reglages.js. -->
+      <div class="groupe-boutons">
+        <button id="bouton-reglages" title="Couleurs, mode simple, coordonnées, fichier de réglages">
+          <span class="icone-bouton icone-texte" aria-hidden="true">⚙</span><span class="libelle-bouton">Réglages</span>
+        </button>
+      </div>
       <div class="groupe-boutons">
         <button id="bouton-exporter" title="Télécharger la partie en cours, au format de KAAWA">
           <span class="icone-bouton icone-texte" aria-hidden="true">💾</span><span class="libelle-bouton">Exporter</span>
@@ -416,6 +423,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
+        <li><b>Réglages</b> (⚙) : couleurs des billes et du plateau (s'appliquent tout de suite), mode simple sans relief et coordonnées sur les billes (rechargent la page), export/import d'un fichier de réglages.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
       </ul>
     </details>
@@ -480,7 +488,7 @@
     <details>
       <summary>Ce qui n'est pas encore dans KAAH</summary>
       <ul>
-        <li>Pas encore là : <b>réglages</b> (couleurs, tailles, mode simple sans relief), <b>modes de pendules</b> (Chrono/Bonus/Délai), <b>créer une partie</b> depuis une suite de coups Nacre / AbaPro (et les positions « My »), <b>mode correspondance</b> (code KAA1), <b>corbeille</b> et import de fichiers .json / .csv, <b>bloc-notes NP</b> et aide complète, <b>fenêtre Permutations</b>, <b>solveur de puzzles</b>, <b>adversaire artificiel</b> (jouer seul contre la machine).</li>
+        <li>Pas encore là : <b>modes de pendules</b> (Chrono/Bonus/Délai), <b>créer une partie</b> depuis une suite de coups Nacre / AbaPro (et les positions « My »), <b>mode correspondance</b> (code KAA1), <b>corbeille</b> et import de fichiers .json / .csv, <b>bloc-notes NP</b> et aide complète, <b>fenêtre Permutations</b>, <b>solveur de puzzles</b>, <b>adversaire artificiel</b> (jouer seul contre la machine).</li>
         <li>Petits points connus : pas de zoom à deux doigts en face-à-face paysage ; pas de son à la fin d'un puzzle ; le son d'Occ est peut-être trop fréquent.</li>
         <li>La liste complète est dans la page « Ce qui n'est pas encore dans KAAH » (dossier docs). <b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
       </ul>
@@ -517,6 +525,38 @@
     </label>
     <div id="liste-sons"></div>
     <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Reglages (phase 22, interface/reglages.js) : version simplifiee du
+       panneau Settings de KAAWA — voir l'en-tete de interface/reglages.js
+       pour ce qui n'a delibarement pas d'equivalent ici. -->
+  <dialog id="dialogue-reglages" class="dialogue dialogue-grand">
+    <h2>Réglages</h2>
+    <div class="corps-reglages">
+      <h3>Couleurs</h3>
+      <label class="ligne-couleur">Billes noires <input id="couleur-billes-noires" type="color" /></label>
+      <label class="ligne-couleur">Billes blanches <input id="couleur-billes-blanches" type="color" /></label>
+      <label class="ligne-couleur">Fond du plateau <input id="couleur-fond-plateau" type="color" /></label>
+
+      <h3>Affichage</h3>
+      <!-- `[open]` gere par index.html : ces deux reglages rechargent la
+           page pour s'appliquer (voir interface/reglages.js). -->
+      <label class="ligne-reglage">
+        <input id="case-mode-simple" type="checkbox" />
+        Mode simple (sans relief, pour un téléphone lent)
+      </label>
+      <label class="ligne-reglage">
+        <input id="case-coordonnees-billes" type="checkbox" />
+        Coordonnées sur les billes
+      </label>
+
+      <h3>Fichier de réglages</h3>
+      <div class="barre-reglages-fichier">
+        <button id="bouton-exporter-reglages" class="bouton-dialogue" type="button">Exporter</button>
+        <button id="bouton-importer-reglages" class="bouton-dialogue" type="button">Importer</button>
+      </div>
+    </div>
+    <button id="bouton-fermer-reglages" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
 
   <!-- Nom d'un joueur (interface/noms-joueurs.js) : un clic sur le cadre de
@@ -737,6 +777,7 @@
   <script src="./moteur/classement.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
+  <script src="./moteur/reglages.js"></script>
   <script src="./donnees/kaa-variantes.js"></script>
   <script src="./donnees/kaa-next-move.js"></script>
   <script src="./donnees/kaa-puzzles.js"></script>
@@ -781,6 +822,7 @@
   <script src="./interface/fin-de-partie.js"></script>
   <script src="./interface/position-copiable.js"></script>
   <script src="./interface/jauge-mes-parties.js"></script>
+  <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
   <script src="./interface/occurrences.js"></script>
@@ -911,11 +953,21 @@
     orienterPlateau(plateauAfficheRetourne);
     document.body.classList.toggle('plateau-retourne', plateauAfficheRetourne);
     dessinerPlateau(svg);
+    // Reglages (phase 22) : lus une fois ici, avant tout dessin — mode
+    // simple et couleurs en dependent des le premier affichage. Change
+    // seulement par un rechargement complet (interface/reglages.js),
+    // jamais en cours de partie pour le mode simple/les coordonnees.
+    const reglages = lireReglagesStockes();
     // Aspect visuel (phase 19ter) : fond, relief entre les cases, degrades —
     // juste apres dessinerPlateau, avant de poser les billes (rendu/relief-
     // plateau.js). Jamais sur les apercus (Mes parties/Variantes/Puzzles),
-    // qui appellent seulement dessinerPlateau.
-    dessinerReliefPlateau(svg);
+    // qui appellent seulement dessinerPlateau. `reglages.board.show_shadows`
+    // (phase 22) : mode simple si faux.
+    dessinerReliefPlateau(svg, reglages.board.show_shadows);
+    // Couleurs personnalisees (phase 22) : les <defs> ci-dessus n'existent
+    // qu'en mode normal (interface/reglages.js gere les deux cas), la
+    // couleur du fond s'applique dans tous les cas.
+    appliquerCouleurs(svg, reglages);
     // Bordure de coordonnees a-i/1-9 (phase 19bis), toujours visible : doit
     // etre la PREMIERE bande ajoutee au viewBox (voir
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
@@ -1009,6 +1061,25 @@
         volume: document.getElementById('curseur-volume-sons'),
       },
       sons
+    );
+
+    // Reglages (phase 22) : voir interface/reglages.js pour ce qui change en
+    // direct (couleurs) et ce qui recharge la page (mode simple, coordonnees).
+    demarrerReglages(
+      {
+        bouton: document.getElementById('bouton-reglages'),
+        dialogue: document.getElementById('dialogue-reglages'),
+        fermer: document.getElementById('bouton-fermer-reglages'),
+        couleurNoir: document.getElementById('couleur-billes-noires'),
+        couleurBlanc: document.getElementById('couleur-billes-blanches'),
+        couleurFond: document.getElementById('couleur-fond-plateau'),
+        modeSimple: document.getElementById('case-mode-simple'),
+        coordonneesBilles: document.getElementById('case-coordonnees-billes'),
+        exporter: document.getElementById('bouton-exporter-reglages'),
+        importer: document.getElementById('bouton-importer-reglages'),
+      },
+      svg,
+      demarrerRechargement
     );
 
     // Fin de partie : Options (phase 20bis) : voir interface/fin-de-partie.js. Les
@@ -1111,7 +1182,8 @@
         menaces?.actualiser();
         actualiserBandeauPuzzle(arbre);
       },
-      sons.jouer
+      sons.jouer,
+      reglages.board.show_ball_coords
     );
 
     // Puzzle en cours (phase 16). Rien de nouveau n'est stocke pour le

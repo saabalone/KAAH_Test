@@ -339,7 +339,8 @@ button,
 .dialogue-grand .liste-dialogue,
 .dialogue-grand .aide-corps,
 .dialogue-grand .options-fin,
-.dialogue-grand #liste-sons {
+.dialogue-grand #liste-sons,
+.dialogue-grand .corps-reglages {
   flex: 1 1 auto;
   flex-shrink: 1;
   min-height: 0;
@@ -354,6 +355,50 @@ button,
 .dialogue h2 {
   margin: 0 0 6px;
   font-size: 16px;
+}
+
+/* Sous-titres de section (phase 22, Réglages) : plus discret qu'un h2, pas
+   de bordure — juste de quoi séparer les groupes au coup d'œil. */
+.dialogue h3 {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  color: #9a9a9a;
+  text-transform: uppercase;
+}
+
+.dialogue h3:first-child {
+  margin-top: 0;
+}
+
+/* Une ligne de couleur (phase 22) : le nom a gauche, le selecteur natif a
+   droite — meme gabarit de 44px que .ligne-reglage. */
+.ligne-couleur {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.ligne-couleur input {
+  width: 44px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.barre-reglages-fichier {
+  display: flex;
+  gap: 8px;
+}
+
+.barre-reglages-fichier .bouton-dialogue {
+  flex: 1 1 0;
+  min-height: 44px;
+  margin-top: 0;
 }
 
 .bouton-dialogue {
@@ -1965,21 +2010,33 @@ button,
   transition: transform 300ms ease-out;
 }
 
+/* Couleur des billes (phase 22, interface/reglages.js) : `--couleur-bille-*`
+   n'est posee QUE sur #plateau (le plateau principal) — sans elle (apercus de
+   Mes parties/Variantes/Puzzles, jamais personnalises, simplification
+   assumee), `var(...)` retombe sur la couleur par defaut de KAAWA. */
 .bille-noir .bille-cercle {
-  fill: #1f1f1f;
+  fill: var(--couleur-bille-noire, #1f1f1f);
 }
 
 .bille-blanc .bille-cercle {
-  fill: #e4e4e4;
+  fill: var(--couleur-bille-blanche, #e4e4e4);
 }
 
 /* Aspect visuel du plateau PRINCIPAL, phase 19ter (rendu/relief-plateau.js) —
    jamais sur les apercus, qui n'appellent pas dessinerReliefPlateau. Fond
    hexagonal derriere les cases : sa propre ombre portee, un contour
-   discret. */
+   discret. Couleur reglable (phase 22) : meme principe que les billes
+   juste au-dessus. */
 .fond-plateau {
-  fill: #828282;
+  fill: var(--couleur-fond-plateau, #828282);
   filter: url(#ombre-fond-plateau);
+}
+
+/* Mode simple (phase 22, rendu/relief-plateau.js) : ni cylindres de relief ni
+   trous ne sont crees, donc plus de <defs> a filtrer — le filtre d'ombre du
+   fond, lui, referencerait un degrade absent sans cette regle. */
+#plateau.mode-simple .fond-plateau {
+  filter: none;
 }
 
 /* Trou perfore au centre de chaque case (phase 19ter, rendu/relief-plateau.js) :
@@ -2025,7 +2082,13 @@ button,
    synchroniserBilles), sans jamais avoir besoin d'y repenser. Specificite
    volontairement plus forte que .bille-noir/.bille-blanc .bille-cercle
    (un ID en plus) : l'emporte sans dependre de l'ordre du fichier. */
-#plateau .bille {
+/* `:not(.mode-simple)` sur ces trois regles (phase 22) : en mode simple
+   (rendu/relief-plateau.js), ni le filtre `#ombre-bille-plateau` ni les
+   degrades `#degrade-bille-*` n'existent — y referer quand meme peindrait
+   les billes de la mauvaise couleur (voire invisibles). Les billes y
+   gardent alors leur remplissage PLAT (.bille-noir/.bille-blanc
+   .bille-cercle, plus haut). */
+#plateau:not(.mode-simple) .bille {
   filter: url(#ombre-bille-plateau);
 }
 
@@ -2036,11 +2099,11 @@ button,
   stroke-width: 0.25;
 }
 
-#plateau .bille-noir .bille-cercle {
+#plateau:not(.mode-simple) .bille-noir .bille-cercle {
   fill: url(#degrade-bille-noir);
 }
 
-#plateau .bille-blanc .bille-cercle {
+#plateau:not(.mode-simple) .bille-blanc .bille-cercle {
   fill: url(#degrade-bille-blanc);
 }
 

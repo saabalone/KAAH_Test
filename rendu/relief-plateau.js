@@ -90,26 +90,33 @@ function creerDegradeParoi(id, couleurSombre, couleurClaire) {
   return degrade;
 }
 
+// Arrets par defaut (regles a la main, approuves par saab, phase 19ter) — ceux
+// que garde chaque bille TANT QUE sa couleur (phase 22, moteur/reglages.js)
+// reste celle par defaut. Une couleur personnalisee, elle, passe par
+// construireArretsBille (approximation plus simple mais generique).
+const ARRETS_BILLE_NOIRE_PAR_DEFAUT = [
+  [0, '#ffffff'],
+  [9, '#a8a8a8'],
+  [30, '#4a4a4a'],
+  [60, '#1f1f1f'],
+  [100, '#050505'],
+];
+const ARRETS_BILLE_BLANCHE_PAR_DEFAUT = [
+  [0, '#ffffff'],
+  [35, '#f2f2f2'],
+  [65, '#d8d8d8'],
+  [100, '#a8a8a8'],
+];
+
+// Degrades par defaut (les couleurs personnalisees, phase 22, sont
+// appliquees APRES coup par interface/reglages.js, appliquerCouleurs — ce
+// fichier-ci n'a donc pas besoin de les connaitre, une seule facon de
+// changer une couleur de bille plutot que deux).
 function creerDegradesEtFiltres() {
   const defs = creerElementSVG('defs', {});
   defs.appendChild(creerDegradeParoi('degrade-paroi-trou', '#4d4d4d', '#969696'));
-  defs.appendChild(
-    creerDegradeBille('degrade-bille-noir', [
-      [0, '#ffffff'],
-      [9, '#a8a8a8'],
-      [30, '#4a4a4a'],
-      [60, '#1f1f1f'],
-      [100, '#050505'],
-    ])
-  );
-  defs.appendChild(
-    creerDegradeBille('degrade-bille-blanc', [
-      [0, '#ffffff'],
-      [35, '#f2f2f2'],
-      [65, '#d8d8d8'],
-      [100, '#a8a8a8'],
-    ])
-  );
+  defs.appendChild(creerDegradeBille('degrade-bille-noir', ARRETS_BILLE_NOIRE_PAR_DEFAUT));
+  defs.appendChild(creerDegradeBille('degrade-bille-blanc', ARRETS_BILLE_BLANCHE_PAR_DEFAUT));
   defs.appendChild(creerFiltreOmbre('ombre-bille-plateau', 0.6, 0.9, 0.5, 0.45));
   defs.appendChild(creerFiltreOmbre('ombre-fond-plateau', 1, 1.6, 1.2, 0.4));
   defs.appendChild(creerFiltreOmbre('ombre-relief-plateau', 0.4, 0.6, 0.4, 0.35));
@@ -137,24 +144,39 @@ function dessinerTrousCentraux() {
 // (rend le grand cercle transparent, styles.css) est posee ici sur les
 // cases DEJA dessinees : jamais recreees, seulement une classe en plus
 // (CLAUDE.md, ne jamais reconstruire le plateau par innerHTML).
-function dessinerReliefPlateau(svg) {
+// `avecRelief` (phase 22, moteur/reglages.js, board.show_shadows) : `false`
+// donne le "mode simple" — le cadre existe encore (memes coordonnees du bord,
+// memes cases cliquables, meme viewBox : rien ne bouge pour l'utilisateur),
+// mais ni les cylindres de relief, ni les trous perfores, ni les degrades/
+// filtres ne sont crees. Le gain reel demande par saab (telephone lent) : sur
+// 1 278 elements SVG dont 91 avec un filtre, ce mode-la n'en pose plus qu'une
+// poignee, sans filtre du tout. Les cases gardent alors leur remplissage
+// PLAT (styles.css, `.case`) au lieu de devenir transparentes sur des trous
+// qui n'existent plus.
+function dessinerReliefPlateau(svg, avecRelief = true) {
   const groupeCases = svg.querySelector('.cases');
-  // Ordre de calque voulu, du dessous vers le dessus : defs (invisible),
-  // fond, cylindres de relief, trous, puis les cases (transparentes, voir
-  // .case-relief) — chaque insertBefore place son element juste devant le
-  // precedent, en partant de groupeCases.
-  const trous = dessinerTrousCentraux();
-  const cylindres = dessinerReliefCylindres();
   const cadre = calculerCadrePlateau();
   const fond = dessinerCadrePlateau(cadre);
-  const defs = creerDegradesEtFiltres();
-  svg.insertBefore(trous, groupeCases);
-  svg.insertBefore(cylindres, trous);
-  svg.insertBefore(fond, cylindres);
-  svg.insertBefore(defs, fond);
-  ajusterViewBoxAuCadre(svg, cadre);
+  svg.insertBefore(fond, groupeCases);
 
-  for (const caseElement of groupeCases.querySelectorAll('.case')) {
-    caseElement.classList.add('case-relief');
+  if (avecRelief) {
+    // Ordre de calque voulu, du dessous vers le dessus : defs (invisible),
+    // fond (deja pose), cylindres de relief, trous, puis les cases
+    // (transparentes, voir .case-relief) — chaque insertBefore place son
+    // element juste devant le precedent, en partant de groupeCases.
+    const trous = dessinerTrousCentraux();
+    const cylindres = dessinerReliefCylindres();
+    const defs = creerDegradesEtFiltres();
+    svg.insertBefore(trous, groupeCases);
+    svg.insertBefore(cylindres, trous);
+    svg.insertBefore(defs, fond);
+    for (const caseElement of groupeCases.querySelectorAll('.case')) {
+      caseElement.classList.add('case-relief');
+    }
   }
+  // `.mode-simple` (styles.css) : sans elle, le fond garderait un filtre
+  // d'ombre qui reference des <defs> qui n'existent plus en mode simple.
+  svg.classList.toggle('mode-simple', !avecRelief);
+
+  ajusterViewBoxAuCadre(svg, cadre);
 }
