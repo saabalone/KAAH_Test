@@ -35,6 +35,10 @@
 // gagner en vitesse sur un telephone lent (PLAN.md, phase 22, demande de
 // saab 2026-09-20 : 1 278 elements SVG dont 91 avec un filtre).
 //
+// Les conversions de couleur (hex <-> [r,g,b,a], degrades, nuances) vivent a
+// part, dans moteur/couleurs.js — regle des 200 lignes (CLAUDE.md), ce
+// fichier-ci ne s'occupe que du SCHEMA des reglages.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 const REGLAGES_PAR_DEFAUT = {
@@ -42,6 +46,18 @@ const REGLAGES_PAR_DEFAUT = {
     show_ball_coords: true,
     show_shadows: true,
     bg_color: [130 / 255, 130 / 255, 130 / 255, 1],
+    // HOLE_COLOR de KAAWA : le fond des 61 trous perfores — deliberement
+    // different de bg_color (un vrai plateau a un creux plus sombre que sa
+    // surface), voir teinterNiveauGris plus bas pour les nuances qui en
+    // decoulent (paroi du trou).
+    hole_color: [90 / 255, 90 / 255, 90 / 255, 1],
+    // app_bg_color de KAAWA (BG_COLOR, un cuivre) : PAS repris comme defaut,
+    // volontairement — KAAH a le sien depuis toujours (styles.css, #595959,
+    // "rappelle le bois sombre du plateau physique"), jamais celui de
+    // KAAWA. Seule la CLE est reprise, pour qu'un export KAAH reste un
+    // fichier settings_N.json valide et que l'import d'un fichier KAAWA
+    // recupere bien sa couleur si saab la veut.
+    app_bg_color: [0x59 / 255, 0x59 / 255, 0x59 / 255, 1],
   },
   colors: {
     black: [31 / 255, 31 / 255, 31 / 255, 1],
@@ -135,47 +151,4 @@ function consommerReglagesPzlUsageUnique(reglages) {
       save_threshold_sec: REGLAGES_PAR_DEFAUT.pzl.save_threshold_sec,
     },
   };
-}
-
-function versDeuxChiffresHex(canal255) {
-  return Math.round(canal255).toString(16).padStart(2, '0');
-}
-
-// [r, g, b, a] en 0-1 (format KAAWA, voir REGLAGES_PAR_DEFAUT) -> "#rrggbb"
-// (format de <input type="color">, sans alpha : le selecteur natif n'en a
-// pas).
-function couleurVersHex([r, g, b]) {
-  return `#${versDeuxChiffresHex(r * 255)}${versDeuxChiffresHex(g * 255)}${versDeuxChiffresHex(b * 255)}`;
-}
-
-// L'inverse : alpha toujours a 1 (aucun reglage KAAH n'en propose).
-function hexVersCouleur(hex) {
-  const nombre = parseInt(hex.slice(1), 16);
-  return [((nombre >> 16) & 0xff) / 255, ((nombre >> 8) & 0xff) / 255, (nombre & 0xff) / 255, 1];
-}
-
-// Melange deux couleurs hex : `ratio` = 0 rend `hexA` tel quel, 1 rend
-// `hexB` tel quel.
-function melangerHex(hexA, hexB, ratio) {
-  const [rA, gA, bA] = hexVersCouleur(hexA);
-  const [rB, gB, bB] = hexVersCouleur(hexB);
-  const melange = (a, b) => a + (b - a) * ratio;
-  return couleurVersHex([melange(rA, rB), melange(gA, gB), melange(bA, bB), 1]);
-}
-
-// Les arrets du degrade radial d'une bille de couleur personnalisee
-// (rendu/relief-plateau.js garde ses deux degrades par defaut, regles a la
-// main et approuves par saab — cette fonction ne sert que pour une couleur
-// CHOISIE, differente des deux couleurs par defaut). Toujours un reflet
-// blanc pur au centre (regle deja en place, jamais matte) puis la couleur
-// choisie, puis assombrie vers le bord — une approximation plus simple que
-// les degrades a 5 arrets regles a la main, suffisante pour une couleur
-// qu'on choisit soi-meme.
-function construireArretsBille(hexBase) {
-  return [
-    [0, '#ffffff'],
-    [30, melangerHex(hexBase, '#ffffff', 0.35)],
-    [65, hexBase],
-    [100, melangerHex(hexBase, '#000000', 0.75)],
-  ];
 }

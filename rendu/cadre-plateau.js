@@ -115,10 +115,15 @@ function coteDeLaCoordonnee(q, r, estUnChiffre) {
 // l'exterieur de la bande. La bande est de la couleur du plateau (signale par
 // saab) : elle n'est plus une forme a part, seulement la zone ou s'ecrivent
 // les coordonnees (voir positionDansLeCadre).
-function dessinerCadrePlateau(cadre) {
+// `hexFond` (board.bg_color, phase 22, moteur/reglages.js) : en ATTRIBUT,
+// pas en CSS (styles.css, .fond-plateau, ne garde que le filtre) — une
+// couleur reglable ne peut pas rester une valeur fixe dans la feuille de
+// style.
+function dessinerCadrePlateau(cadre, hexFond) {
   return creerElementSVG('path', {
     d: cheminPolygoneArrondi(cadre.exterieur, RAYON_COIN_CADRE * COUPE_PAR_RAYON_COIN),
     class: 'fond-plateau',
+    fill: hexFond,
   });
 }
 

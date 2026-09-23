@@ -52,7 +52,10 @@ body {
      au-dessus reste comme repli pour un navigateur trop ancien pour `svh`
      (avant Safari 15.4 / Chrome 108). */
   height: 100svh;
-  background: #595959; /* rappelle le bois sombre du plateau physique */
+  /* rappelle le bois sombre du plateau physique ; reglable (phase 22,
+     board.app_bg_color, "fond de la fenetre") — voir index.html, ou cette
+     variable est posee une fois a la construction, jamais en direct. */
+  background: var(--couleur-fond-fenetre, #595959);
 }
 
 /* Bug trouve par saab : glisser sur un bandeau de titre (une simple ligne
@@ -257,12 +260,16 @@ button,
    Rien de tout ceci n'est dans une media query : ces proprietes n'ont
    qu'une seule valeur pour les deux mises en page, et les declarer sans
    condition evite le piege de specificite documente plus haut. */
+/* Vert en PERMANENCE (saab, 2026-09-23) : contrairement aux autres boutons
+   verts de KAAH (une demande precise en attente), celui-ci attend toujours
+   un geste, dans les deux sens — voir les noms des boutons (ferme) ou les
+   cacher (ouvert) — donc jamais gris. */
 #bouton-etendre-colonne {
   display: block;
   min-height: 36px;
-  background: #3a3a3a;
-  color: #e4e4e4;
-  border: 1px solid #5a5a5a;
+  background: var(--vert-demande);
+  color: #ffffff;
+  border: 1px solid var(--vert-demande);
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
@@ -399,6 +406,66 @@ button,
   flex: 1 1 0;
   min-height: 44px;
   margin-top: 0;
+}
+
+/* Choix du profil (phase 22, interface/reglages.js) : la liste a gauche,
+   Supprimer a droite (grise sur "Défaut", jamais supprimable). */
+.ligne-profil {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#select-profil-reglages {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  background: #2a2a2a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.note-reglages {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+/* Pied de la boite Réglages (phase 22, corrigee) : Défaut/Annuler/Sauver.../
+   Valider — TOUJOURS visible (.dialogue-grand, plus haut), rien ne s'applique
+   avant d'appuyer sur l'un d'eux. */
+.pied-reglages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pied-reglages .bouton-dialogue {
+  flex: 1 1 auto;
+  min-height: 44px;
+  min-width: 80px;
+  margin-top: 0;
+}
+
+#bouton-valider-reglages {
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+}
+
+/* Poignee de la boite Réglages (saab : elle masquait le plateau) : son
+   propre titre, glisse-le pour la deplacer — voir interface/reglages.js,
+   rendreDeplacable. */
+#poignee-reglages {
+  cursor: move;
+  user-select: none;
+}
+
+/* Jamais de voile sombre sur CETTE boite (saab : "ca fausse les couleurs
+   qu'on regle") — seule exception a .dialogue::backdrop, plus haut. */
+#dialogue-reglages::backdrop {
+  background: transparent;
 }
 
 .bouton-dialogue {
@@ -2025,10 +2092,11 @@ button,
 /* Aspect visuel du plateau PRINCIPAL, phase 19ter (rendu/relief-plateau.js) —
    jamais sur les apercus, qui n'appellent pas dessinerReliefPlateau. Fond
    hexagonal derriere les cases : sa propre ombre portee, un contour
-   discret. Couleur reglable (phase 22) : meme principe que les billes
-   juste au-dessus. */
+   discret. `fill` posee en ATTRIBUT par rendu/cadre-plateau.js (phase 22,
+   board.bg_color), pas ici — une couleur reglable ne peut pas rester une
+   valeur fixe dans cette feuille de style (meme raison que .case-fond-trou
+   et .relief-dessus, plus bas). */
 .fond-plateau {
-  fill: var(--couleur-fond-plateau, #828282);
   filter: url(#ombre-fond-plateau);
 }
 
@@ -2037,6 +2105,14 @@ button,
    fond, lui, referencerait un degrade absent sans cette regle. */
 #plateau.mode-simple .fond-plateau {
   filter: none;
+}
+
+/* Cases plates du mode simple : teintees avec le fond du plateau (index.html
+   pose cette variable a la construction), "un seul bloc de matiere" comme le
+   reste du plateau — sans effet en relief (.case-relief la rend transparente,
+   plus haut), sans effet sur les apercus (jamais #plateau). */
+#plateau.mode-simple .case {
+  fill: var(--couleur-case-plate, #8a8a8a);
 }
 
 /* Trou perfore au centre de chaque case (phase 19ter, rendu/relief-plateau.js) :
@@ -2049,22 +2125,21 @@ button,
   pointer-events: none;
 }
 
+/* `fill` posee en ATTRIBUT par rendu/relief-plateau.js (phase 22,
+   board.hole_color), pas ici : une couleur reglable ne peut pas rester une
+   valeur fixe dans cette feuille de style. */
 .case-fond-trou {
-  fill: #5a5a5a;
   filter: url(#ombre-fond-trou);
   pointer-events: none;
 }
 
 /* Relief ENTRE les cases (rendu/relief-cylindres.js) : un cylindre biseaute
-   par triangle. Les 3 faces biseautees portent leur gris en attribut (il
-   depend de leur orientation) ; ici le dessus plat, aux coins arrondis, et
-   un fin contour de cylindre. Une seule ombre portee sur tout le groupe. */
+   par triangle. Les 3 faces biseautees ET le dessus plat portent leur
+   couleur en ATTRIBUT (phase 22, board.bg_color — meme raison que
+   .case-fond-trou juste au-dessus) ; ici seulement le contour de cylindre.
+   Une seule ombre portee sur tout le groupe. */
 .relief-cylindres {
   filter: url(#ombre-relief-plateau);
-}
-
-.relief-dessus {
-  fill: #8c8c8c;
 }
 
 .relief-contour {

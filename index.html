@@ -529,18 +529,28 @@
 
   <!-- Reglages (phase 22, interface/reglages.js) : version simplifiee du
        panneau Settings de KAAWA — voir l'en-tete de interface/reglages.js
-       pour ce qui n'a delibarement pas d'equivalent ici. -->
+       pour ce qui n'a delibarement pas d'equivalent ici. Deplacable (saab :
+       la boite masquait le plateau) par sa poignee (le titre) ; jamais de
+       voile sombre autour (saab : "ca fausse les couleurs qu'on regle"),
+       voir styles.css, #dialogue-reglages::backdrop. Rien ne s'applique en
+       direct : voir Valider/Sauver.../Annuler/Defaut en pied de boite. -->
   <dialog id="dialogue-reglages" class="dialogue dialogue-grand">
-    <h2>Réglages</h2>
+    <h2 id="poignee-reglages" title="Glisser pour déplacer cette fenêtre">Réglages</h2>
     <div class="corps-reglages">
+      <h3>Profil</h3>
+      <div class="ligne-profil">
+        <select id="select-profil-reglages"></select>
+        <button id="bouton-supprimer-profil-reglages" class="bouton-dialogue" type="button">Supprimer</button>
+      </div>
+
       <h3>Couleurs</h3>
       <label class="ligne-couleur">Billes noires <input id="couleur-billes-noires" type="color" /></label>
       <label class="ligne-couleur">Billes blanches <input id="couleur-billes-blanches" type="color" /></label>
       <label class="ligne-couleur">Fond du plateau <input id="couleur-fond-plateau" type="color" /></label>
+      <label class="ligne-couleur">Fond des trous <input id="couleur-fond-trou" type="color" /></label>
+      <label class="ligne-couleur">Fond de la fenêtre <input id="couleur-fond-fenetre" type="color" /></label>
 
       <h3>Affichage</h3>
-      <!-- `[open]` gere par index.html : ces deux reglages rechargent la
-           page pour s'appliquer (voir interface/reglages.js). -->
       <label class="ligne-reglage">
         <input id="case-mode-simple" type="checkbox" />
         Mode simple (sans relief, pour un téléphone lent)
@@ -550,13 +560,21 @@
         Coordonnées sur les billes
       </label>
 
+      <h3>Base de coups (BDD moves)</h3>
+      <p class="note-reglages">KAA_NEXT_MOVE_REF_Best_Stat.csv — le seul fichier fourni avec KAAH pour l'instant, rien à choisir.</p>
+
       <h3>Fichier de réglages</h3>
       <div class="barre-reglages-fichier">
         <button id="bouton-exporter-reglages" class="bouton-dialogue" type="button">Exporter</button>
         <button id="bouton-importer-reglages" class="bouton-dialogue" type="button">Importer</button>
       </div>
     </div>
-    <button id="bouton-fermer-reglages" class="bouton-dialogue" type="button">Fermer</button>
+    <div class="pied-reglages">
+      <button id="bouton-defaut-reglages" class="bouton-dialogue" type="button">Défaut</button>
+      <button id="bouton-annuler-reglages" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-sauver-sous-reglages" class="bouton-dialogue" type="button">Sauver...</button>
+      <button id="bouton-valider-reglages" class="bouton-dialogue" type="button">Valider</button>
+    </div>
   </dialog>
 
   <!-- Nom d'un joueur (interface/noms-joueurs.js) : un clic sur le cadre de
@@ -777,6 +795,7 @@
   <script src="./moteur/classement.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
+  <script src="./moteur/couleurs.js"></script>
   <script src="./moteur/reglages.js"></script>
   <script src="./donnees/kaa-variantes.js"></script>
   <script src="./donnees/kaa-next-move.js"></script>
@@ -822,6 +841,7 @@
   <script src="./interface/fin-de-partie.js"></script>
   <script src="./interface/position-copiable.js"></script>
   <script src="./interface/jauge-mes-parties.js"></script>
+  <script src="./interface/reglages-profils.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
@@ -953,21 +973,38 @@
     orienterPlateau(plateauAfficheRetourne);
     document.body.classList.toggle('plateau-retourne', plateauAfficheRetourne);
     dessinerPlateau(svg);
-    // Reglages (phase 22) : lus une fois ici, avant tout dessin — mode
-    // simple et couleurs en dependent des le premier affichage. Change
-    // seulement par un rechargement complet (interface/reglages.js),
-    // jamais en cours de partie pour le mode simple/les coordonnees.
-    const reglages = lireReglagesStockes();
+    // Reglages (phase 22, corrigee) : lus une fois ici, avant tout dessin —
+    // mode simple et couleurs en dependent des le premier affichage.
+    // `interface/reglages-profils.js`, pas localStorage directement : un
+    // profil nomme peut etre actif. Ne change plus jamais qu'a un
+    // rechargement complet (Valider/Sauver.../changer de profil,
+    // interface/reglages.js) : plus de mise a jour en direct depuis cette
+    // phase, voir son en-tete pour pourquoi.
+    const reglages = lireReglagesActifs();
+    const hexBilleNoire = couleurVersHex(reglages.colors.black);
+    const hexBilleBlanche = couleurVersHex(reglages.colors.white);
+    const hexFondPlateau = couleurVersHex(reglages.board.bg_color);
     // Aspect visuel (phase 19ter) : fond, relief entre les cases, degrades —
     // juste apres dessinerPlateau, avant de poser les billes (rendu/relief-
     // plateau.js). Jamais sur les apercus (Mes parties/Variantes/Puzzles),
     // qui appellent seulement dessinerPlateau. `reglages.board.show_shadows`
-    // (phase 22) : mode simple si faux.
-    dessinerReliefPlateau(svg, reglages.board.show_shadows);
-    // Couleurs personnalisees (phase 22) : les <defs> ci-dessus n'existent
-    // qu'en mode normal (interface/reglages.js gere les deux cas), la
-    // couleur du fond s'applique dans tous les cas.
-    appliquerCouleurs(svg, reglages);
+    // (phase 22) : mode simple si faux — toutes les couleurs sont alors
+    // deja passees a la construction (rendu/relief-plateau.js), aucune
+    // retouche a faire ensuite.
+    dessinerReliefPlateau(svg, reglages.board.show_shadows, hexFondPlateau, couleurVersHex(reglages.board.hole_color), {
+      black: hexBilleNoire,
+      white: hexBilleBlanche,
+    });
+    // Couleurs du remplissage PLAT (mode simple, et repli des billes en
+    // relief tant que leur degrade n'est pas encore charge) : posees en CSS
+    // custom properties, jamais en direct ensuite (voir plus haut).
+    svg.style.setProperty('--couleur-bille-noire', hexBilleNoire);
+    svg.style.setProperty('--couleur-bille-blanche', hexBilleBlanche);
+    svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFondPlateau, 0x8a));
+    // Fond de la fenetre (board.app_bg_color, phase 22) : tout l'ecran EN
+    // DEHORS du plateau — jamais celui de KAAWA par defaut (un cuivre),
+    // voir moteur/reglages.js.
+    document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
     // Bordure de coordonnees a-i/1-9 (phase 19bis), toujours visible : doit
     // etre la PREMIERE bande ajoutee au viewBox (voir
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
@@ -1063,22 +1100,31 @@
       sons
     );
 
-    // Reglages (phase 22) : voir interface/reglages.js pour ce qui change en
-    // direct (couleurs) et ce qui recharge la page (mode simple, coordonnees).
+    // Reglages (phase 22, corrigee) : un brouillon, rien en direct — voir
+    // l'en-tete de interface/reglages.js pour pourquoi (le decor mis en
+    // cache, rendu/cache-relief.js, et les nuances du relief ne peuvent de
+    // toute facon se calculer qu'a la construction du plateau).
     demarrerReglages(
       {
         bouton: document.getElementById('bouton-reglages'),
         dialogue: document.getElementById('dialogue-reglages'),
-        fermer: document.getElementById('bouton-fermer-reglages'),
+        poignee: document.getElementById('poignee-reglages'),
         couleurNoir: document.getElementById('couleur-billes-noires'),
         couleurBlanc: document.getElementById('couleur-billes-blanches'),
         couleurFond: document.getElementById('couleur-fond-plateau'),
+        couleurTrou: document.getElementById('couleur-fond-trou'),
+        couleurFenetre: document.getElementById('couleur-fond-fenetre'),
         modeSimple: document.getElementById('case-mode-simple'),
         coordonneesBilles: document.getElementById('case-coordonnees-billes'),
+        selectProfil: document.getElementById('select-profil-reglages'),
+        supprimerProfil: document.getElementById('bouton-supprimer-profil-reglages'),
         exporter: document.getElementById('bouton-exporter-reglages'),
         importer: document.getElementById('bouton-importer-reglages'),
+        defaut: document.getElementById('bouton-defaut-reglages'),
+        annuler: document.getElementById('bouton-annuler-reglages'),
+        sauverSous: document.getElementById('bouton-sauver-sous-reglages'),
+        valider: document.getElementById('bouton-valider-reglages'),
       },
-      svg,
       demarrerRechargement
     );
 

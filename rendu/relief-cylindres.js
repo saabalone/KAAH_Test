@@ -13,8 +13,9 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : RAYON_PLATEAU,
 // estCaseValide (moteur/plateau.js), positionEcran, RAYON_CASE,
-// creerElementSVG (rendu/plateau-svg.js) viennent de fichiers charges avant
-// celui-ci dans index.html.
+// creerElementSVG (rendu/plateau-svg.js), teinterNiveauGris
+// (moteur/couleurs.js, phase 22) viennent de fichiers charges avant celui-ci
+// dans index.html.
 
 // Rangees/colonnes fictives en plus de chaque cote (comme KAAWA, qui
 // balaie q et r de -5 a 5 pour un plateau de rayon 4) : un triangle peut
@@ -39,21 +40,25 @@ const DIRECTION_LUMIERE = { x: -Math.SQRT1_2, y: -Math.SQRT1_2 };
 // clair (face qui la regarde).
 const GRIS_BISEAU_NEUTRE = 0x70;
 const AMPLITUDE_BISEAU = 0x30;
+// Niveau de gris du dessus plat (styles.css avant cette phase : #8c8c8c).
+const NIVEAU_GRIS_DESSUS = 0x8c;
 
-// Gris de la face biseautee dont la normale (vecteur unitaire, du centre
+// Couleur de la face biseautee dont la normale (vecteur unitaire, du centre
 // vers l'exterieur) est `normale` : plus elle regarde la lumiere, plus elle
-// est claire.
-function couleurFaceBiseau(normale) {
+// est claire. `hexFond` (phase 22, moteur/reglages.js) : la teinte du
+// plateau ("un seul bloc de matiere", saab) — teinterNiveauGris garde
+// exactement le meme NIVEAU de gris qu'avant cette phase, seule la teinte
+// suit desormais board.bg_color.
+function couleurFaceBiseau(normale, hexFond) {
   const eclairage = normale.x * DIRECTION_LUMIERE.x + normale.y * DIRECTION_LUMIERE.y;
   const niveau = Math.round(GRIS_BISEAU_NEUTRE + AMPLITUDE_BISEAU * eclairage);
-  const hexa = niveau.toString(16).padStart(2, '0');
-  return `#${hexa}${hexa}${hexa}`;
+  return teinterNiveauGris(hexFond, niveau);
 }
 
 // Une des 3 faces biseautees : le morceau de cercle entre le cote AB du
 // dessus (A et B, sommets du dessus) et l'arc du cylindre, delimite par les
 // rayons qui passent par A et B.
-function creerFaceBiseau(centre, sommetA, sommetB) {
+function creerFaceBiseau(centre, sommetA, sommetB, hexFond) {
   const pointSurCercle = (sommet) => {
     const angle = Math.atan2(sommet.y - centre.y, sommet.x - centre.x);
     return { x: centre.x + RAYON_BISEAU * Math.cos(angle), y: centre.y + RAYON_BISEAU * Math.sin(angle) };
@@ -72,7 +77,7 @@ function creerFaceBiseau(centre, sommetA, sommetB) {
     `L${sommetB.x},${sommetB.y} Z`;
   return creerElementSVG('path', {
     d: chemin,
-    fill: couleurFaceBiseau({ x: milieu.x / longueur, y: milieu.y / longueur }),
+    fill: couleurFaceBiseau({ x: milieu.x / longueur, y: milieu.y / longueur }, hexFond),
   });
 }
 
@@ -140,15 +145,19 @@ function centresCylindres() {
   return trianglesDuRelief().map((triangle) => triangle.centre);
 }
 
-function dessinerReliefCylindres() {
+// `hexFond` : voir couleurFaceBiseau. Le dessus (relief-dessus) est colore
+// pareil, en style DIRECT (pas de classe CSS statique possible pour une
+// couleur reglable) : styles.css ne garde que le contour et le filtre.
+function dessinerReliefCylindres(hexFond) {
   const groupe = creerElementSVG('g', { class: 'relief-cylindres' });
+  const couleurDessus = teinterNiveauGris(hexFond, NIVEAU_GRIS_DESSUS);
   for (const { centre, dessus } of trianglesDuRelief()) {
     const cylindre = creerElementSVG('g', { class: 'relief-cylindre' });
     for (let i = 0; i < dessus.length; i++) {
-      cylindre.appendChild(creerFaceBiseau(centre, dessus[i], dessus[(i + 1) % dessus.length]));
+      cylindre.appendChild(creerFaceBiseau(centre, dessus[i], dessus[(i + 1) % dessus.length], hexFond));
     }
     const coupe = RATIO_ARRONDI_SOMMET * Math.hypot(dessus[1].x - dessus[0].x, dessus[1].y - dessus[0].y);
-    cylindre.appendChild(creerElementSVG('path', { d: cheminPolygoneArrondi(dessus, coupe), class: 'relief-dessus' }));
+    cylindre.appendChild(creerElementSVG('path', { d: cheminPolygoneArrondi(dessus, coupe), class: 'relief-dessus', fill: couleurDessus }));
     cylindre.appendChild(creerElementSVG('circle', { cx: centre.x, cy: centre.y, r: RAYON_BISEAU, class: 'relief-contour' }));
     groupe.appendChild(cylindre);
   }

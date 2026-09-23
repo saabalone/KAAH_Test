@@ -21,7 +21,9 @@
 // (moteur/plateau.js), positionEcran, RAYON_BILLE, creerElementSVG
 // (rendu/plateau-svg.js), dessinerReliefCylindres
 // (rendu/relief-cylindres.js), calculerCadrePlateau, dessinerCadrePlateau,
-// ajusterViewBoxAuCadre (rendu/cadre-plateau.js) viennent de fichiers
+// ajusterViewBoxAuCadre (rendu/cadre-plateau.js), REGLAGES_PAR_DEFAUT
+// (moteur/reglages.js, phase 22), couleurVersHex, teinterNiveauGris,
+// construireArretsBille (moteur/couleurs.js, phase 22) viennent de fichiers
 // charges avant celui-ci dans index.html.
 
 // Rayon du trou au centre de chaque case, en fraction de la bille (regle
@@ -108,15 +110,31 @@ const ARRETS_BILLE_BLANCHE_PAR_DEFAUT = [
   [100, '#a8a8a8'],
 ];
 
-// Degrades par defaut (les couleurs personnalisees, phase 22, sont
-// appliquees APRES coup par interface/reglages.js, appliquerCouleurs — ce
-// fichier-ci n'a donc pas besoin de les connaitre, une seule facon de
-// changer une couleur de bille plutot que deux).
-function creerDegradesEtFiltres() {
+// Niveaux de gris d'origine (phase 19ter) de la paroi du trou, sombre puis
+// claire — teintes desormais avec board.hole_color (phase 22, "un seul bloc
+// de matiere", saab) plutot que fixes.
+const NIVEAU_GRIS_PAROI_SOMBRE = 0x4d;
+const NIVEAU_GRIS_PAROI_CLAIRE = 0x96;
+
+// Degrades des billes : ceux CHOISIS par saab (phase 22, interface/
+// reglages.js, appliquerCouleurs) si differents du defaut, sinon les arrets
+// d'origine ci-dessus. `hexTrou` (board.hole_color) : la paroi du trou —
+// jamais la meme teinte que le plateau (un vrai creux se voit).
+function creerDegradesEtFiltres(hexTrou, couleursBilles) {
   const defs = creerElementSVG('defs', {});
-  defs.appendChild(creerDegradeParoi('degrade-paroi-trou', '#4d4d4d', '#969696'));
-  defs.appendChild(creerDegradeBille('degrade-bille-noir', ARRETS_BILLE_NOIRE_PAR_DEFAUT));
-  defs.appendChild(creerDegradeBille('degrade-bille-blanc', ARRETS_BILLE_BLANCHE_PAR_DEFAUT));
+  defs.appendChild(
+    creerDegradeParoi('degrade-paroi-trou', teinterNiveauGris(hexTrou, NIVEAU_GRIS_PAROI_SOMBRE), teinterNiveauGris(hexTrou, NIVEAU_GRIS_PAROI_CLAIRE))
+  );
+  const hexNoirDefaut = couleurVersHex(REGLAGES_PAR_DEFAUT.colors.black);
+  const hexBlancDefaut = couleurVersHex(REGLAGES_PAR_DEFAUT.colors.white);
+  const hexNoir = couleursBilles?.black ?? hexNoirDefaut;
+  const hexBlanc = couleursBilles?.white ?? hexBlancDefaut;
+  defs.appendChild(
+    creerDegradeBille('degrade-bille-noir', hexNoir === hexNoirDefaut ? ARRETS_BILLE_NOIRE_PAR_DEFAUT : construireArretsBille(hexNoir))
+  );
+  defs.appendChild(
+    creerDegradeBille('degrade-bille-blanc', hexBlanc === hexBlancDefaut ? ARRETS_BILLE_BLANCHE_PAR_DEFAUT : construireArretsBille(hexBlanc))
+  );
   defs.appendChild(creerFiltreOmbre('ombre-bille-plateau', 0.6, 0.9, 0.5, 0.45));
   defs.appendChild(creerFiltreOmbre('ombre-fond-plateau', 1, 1.6, 1.2, 0.4));
   defs.appendChild(creerFiltreOmbre('ombre-relief-plateau', 0.4, 0.6, 0.4, 0.35));
@@ -124,17 +142,22 @@ function creerDegradesEtFiltres() {
   return defs;
 }
 
+// Niveau de gris d'origine (phase 19ter) du fond du trou.
+const NIVEAU_GRIS_FOND_TROU = 0x5a;
+
 // Les trous perfores : pour chaque case, la paroi (l'anneau, degrade) puis
-// le fond, un cercle plus petit en #5A5A5A (styles.css, .case-fond-trou) qui
-// prend l'ombre de la paroi. Jamais cliquables eux-memes (pointer-events:
+// le fond, un cercle plus petit qui prend l'ombre de la paroi — teinte avec
+// `hexTrou` (board.hole_color, phase 22), en attribut (styles.css ne garde
+// que le filtre, voir sa note). Jamais cliquables eux-memes (pointer-events:
 // none) : le vrai cercle qui recoit les clics reste le `.case` original.
-function dessinerTrousCentraux() {
+function dessinerTrousCentraux(hexTrou) {
   const groupe = creerElementSVG('g', { class: 'trous-centraux' });
+  const couleurFond = teinterNiveauGris(hexTrou, NIVEAU_GRIS_FOND_TROU);
   for (const { q, r } of casesDuPlateau()) {
     const { x, y } = positionEcran(q, r);
     groupe.appendChild(creerElementSVG('circle', { cx: x, cy: y, r: RAYON_TROU_CENTRAL, class: 'case-dimple' }));
     groupe.appendChild(
-      creerElementSVG('circle', { cx: x, cy: y, r: RAYON_TROU_CENTRAL * RATIO_FOND_TROU, class: 'case-fond-trou' })
+      creerElementSVG('circle', { cx: x, cy: y, r: RAYON_TROU_CENTRAL * RATIO_FOND_TROU, class: 'case-fond-trou', fill: couleurFond })
     );
   }
   return groupe;
@@ -153,10 +176,15 @@ function dessinerTrousCentraux() {
 // poignee, sans filtre du tout. Les cases gardent alors leur remplissage
 // PLAT (styles.css, `.case`) au lieu de devenir transparentes sur des trous
 // qui n'existent plus.
-function dessinerReliefPlateau(svg, avecRelief = true) {
+// `hexFond` (board.bg_color) teinte le fond, le relief et le dessous des
+// cases plates (mode simple) — "un seul bloc de matiere" (saab). `hexTrou`
+// (board.hole_color) teinte la paroi et le fond des trous, deliberement
+// distinct (un vrai creux se voit). `couleursBilles` : voir
+// creerDegradesEtFiltres, sans effet en mode simple (rien a colorer).
+function dessinerReliefPlateau(svg, avecRelief = true, hexFond = couleurVersHex(REGLAGES_PAR_DEFAUT.board.bg_color), hexTrou = couleurVersHex(REGLAGES_PAR_DEFAUT.board.hole_color), couleursBilles) {
   const groupeCases = svg.querySelector('.cases');
   const cadre = calculerCadrePlateau();
-  const fond = dessinerCadrePlateau(cadre);
+  const fond = dessinerCadrePlateau(cadre, hexFond);
   svg.insertBefore(fond, groupeCases);
 
   if (avecRelief) {
@@ -164,9 +192,9 @@ function dessinerReliefPlateau(svg, avecRelief = true) {
     // fond (deja pose), cylindres de relief, trous, puis les cases
     // (transparentes, voir .case-relief) — chaque insertBefore place son
     // element juste devant le precedent, en partant de groupeCases.
-    const trous = dessinerTrousCentraux();
-    const cylindres = dessinerReliefCylindres();
-    const defs = creerDegradesEtFiltres();
+    const trous = dessinerTrousCentraux(hexTrou);
+    const cylindres = dessinerReliefCylindres(hexFond);
+    const defs = creerDegradesEtFiltres(hexTrou, couleursBilles);
     svg.insertBefore(trous, groupeCases);
     svg.insertBefore(cylindres, trous);
     svg.insertBefore(defs, fond);
