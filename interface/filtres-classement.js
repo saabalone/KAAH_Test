@@ -10,8 +10,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 // `conteneur` : l'element qui recoit les boutons. `categories` : celles qui ont au
-// moins un element (moteur.categoriesNonVides). `surChangement()` : appelee apres
-// chaque choix. Renvoie { cle() } : la categorie courante.
+// moins un element, avec leur `nombre` (moteur.categoriesNonVides). `surChangement()` :
+// appelee apres chaque choix. Renvoie { cle() } : la categorie courante.
 function creerBarreFiltres(conteneur, categories, cleStockage, surChangement) {
   let courante = 'tous';
   try {
@@ -22,11 +22,13 @@ function creerBarreFiltres(conteneur, categories, cleStockage, surChangement) {
   }
 
   const boutons = new Map();
-  for (const { cle, libelle } of categories) {
+  // Le nombre d'elements de la categorie, sur le bouton lui-meme (saab : "indiquer
+  // le nb sur chaque bouton de Variantes et chaque type, PZL, Mini, etc.").
+  for (const { cle, libelle, nombre } of categories) {
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'bouton-filtre';
-    bouton.textContent = libelle;
+    bouton.textContent = `${libelle} (${nombre})`;
     bouton.addEventListener('click', () => {
       courante = cle;
       try {

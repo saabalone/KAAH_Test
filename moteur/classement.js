@@ -56,6 +56,10 @@ function filtrerPuzzles(puzzles, cle) {
 
 // Les categories qui ont au moins un element : une categorie vide (Hard, Mini Hard
 // aujourd'hui) n'a pas de bouton. `contenu(cle)` renvoie les elements de la categorie.
+// Chaque categorie porte aussi son `nombre` d'elements (saab : l'afficher sur son
+// bouton, "PZL Easy (32)") — calcule ici, jamais recompte une seconde fois ailleurs.
 function categoriesNonVides(categories, contenu) {
-  return categories.filter((categorie) => contenu(categorie.cle).length > 0);
+  return categories
+    .map((categorie) => ({ ...categorie, nombre: contenu(categorie.cle).length }))
+    .filter((categorie) => categorie.nombre > 0);
 }
