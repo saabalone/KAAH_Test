@@ -72,15 +72,19 @@
                l'emoji jaune 📁) : un dossier tout simple, noir et blanc,
                dans le meme hexagone gris que les 3 autres boutons de
                position de depart. -->
-          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+          <span class="icone-bouton icone-hexagone icone-avec-jauge" aria-hidden="true">
             <svg viewBox="0 0 25 25" width="25" height="25">
               <path d="M4 6 L12 6 L14 9 L21 9 L21 19 L4 19 Z" fill="#e4e4e4" stroke="#1a1a1a" stroke-width="1"/>
             </svg>
+            <!-- Jauge du nombre de parties enregistrees (phase 12ter,
+                 interface/jauge-mes-parties.js) : `hidden` par defaut, montree
+                 des la premiere partie enregistree. CORRIGE (saab) :
+                 rectangle centre SUR L'ICONE (pas un rond dans un coin) —
+                 posee ICI, enfant de l'icone plutot que du bouton, pour se
+                 centrer sur elle seule (25x25) meme colonne deployee, ou le
+                 bouton entier s'elargit avec le libelle a cote. -->
+            <span id="badge-mes-parties" class="badge-mes-parties" hidden></span>
           </span>
-          <!-- Jauge du nombre de parties enregistrees (phase 12ter,
-               interface/jauge-mes-parties.js) : `hidden` par defaut, montree
-               des le premier seuil franchi. -->
-          <span id="badge-mes-parties" class="badge-mes-parties" hidden></span>
           <span class="libelle-bouton">Mes parties</span>
         </button>
         <button id="bouton-variantes" title="Choisir une position de départ parmi les variantes de KAAWA">
@@ -280,10 +284,25 @@
       </div>
       <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
            SANS perdre le temps deja ecoule (interface/pendules-mode.js,
-           moteur.changerModePendules). Avant Sons (saab). -->
+           moteur.changerModePendules). Avant Sons (saab).
+           Icone dessinee a la main (correctif, saab : l'emoji ⏱ ne se
+           laissait pas recolorer comme voulu — un glyphe de police n'a
+           qu'UNE seule couleur pour tout son dessin, impossible de ne
+           verdir que le fond du cadran sans toucher aux aiguilles) : un
+           cadran vert (comme les pendules elles-memes en attente d'un
+           clic), deux aiguilles EPAISSES, aucun point autour du cadran
+           (simplifie, saab). -->
       <div class="groupe-boutons">
         <button id="bouton-mode-pendules" title="Changer le mode de pendule (Chrono, Bonus, Délai) sans perdre le temps déjà écoulé">
-          <span class="icone-bouton icone-texte" aria-hidden="true">⏱</span><span class="libelle-bouton">Pendules</span>
+          <span class="icone-bouton" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <circle cx="12.5" cy="13.5" r="9.5" fill="var(--vert-demande)" stroke="#1a1a1a" stroke-width="1.3" />
+              <rect x="10" y="1" width="5" height="2.6" rx="1" fill="#1a1a1a" />
+              <line x1="12.5" y1="13.5" x2="12.5" y2="7" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="12.5" y1="13.5" x2="16.5" y2="13.5" stroke="#1a1a1a" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="libelle-bouton">Pendules</span>
         </button>
       </div>
       <!-- Sons (phase 21) : la boite des interrupteurs, interface/reglages-sons.js. -->
@@ -334,15 +353,6 @@
          signale pouvoir croire par erreur qu'il demarre une partie neuve
          alors qu'une partie est en fait reprise en silence. -->
     <p id="message-reprise-partie" class="message-reprise" hidden></p>
-    <!-- Jauge de l'icone "Mes parties" (phase 12ter) : le seuil qui la fait
-         rougir se regle ICI (pas dans "Réglages", saab) — bas par defaut (2)
-         pour voir le rouge sans creer 50 parties de test. Voir
-         interface/jauge-mes-parties.js. -->
-    <label class="ligne-seuil-jauge">
-      Alerte (icône rouge) au-delà de
-      <input id="champ-seuil-jauge-parties" type="number" min="0" step="1" />
-      parties
-    </label>
     <!-- Apercu de la partie previsualisee (meme principe qu'#apercu-variante
          et #apercu-puzzle) : la position a LA FIN DE LA BRANCHE PRINCIPALE
          (celle reellement jouee, `cheminOrigine` — jamais une branche
@@ -372,6 +382,16 @@
         </button>
       </span>
       <button id="bouton-supprimer-parties" class="bouton-dialogue" type="button" disabled>Supprimer la sélection</button>
+      <!-- Jauge de l'icone "Mes parties" (phase 12ter) : le seuil qui la fait
+           rougir se regle ICI (pas dans "Réglages", saab) — bas par defaut (2)
+           pour voir le rouge sans creer 50 parties de test. Sur la MEME ligne
+           que "Supprimer la sélection" (correctif, saab), texte raccourci.
+           Voir interface/jauge-mes-parties.js. -->
+      <label class="ligne-seuil-jauge">
+        Alerte rouge &gt;
+        <input id="champ-seuil-jauge-parties" type="number" min="0" step="1" />
+        parties
+      </label>
     </div>
     <div id="panneau-filtre-selection-parties" class="panneau-filtre-selection" hidden>
       <label><input type="radio" name="filtre-selection-parties" value="toutes" checked /> Toutes</label>

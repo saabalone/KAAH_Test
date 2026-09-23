@@ -26,7 +26,7 @@
 <h1>Ce qui n'est pas encore dans KAAH</h1>
 
 <p>KAAH est le portage sur téléphone de <b>KAAWA</b> (le jeu d'Abalone multivariant sur ordinateur). Le travail se fait par
-<b>phases</b>. La version que vous testez, <b>KAAH_Test_ph21_v1</b>, est arrivée à la <b>phase 21</b> sur 29 : tout ce qui est
+<b>phases</b>. La version que vous testez, <b id="version-manque">(version)</b>, est arrivée à la <b>phase <span id="phase-manque">(phase)</span></b> sur 29 : tout ce qui est
 listé dans « Déjà là » fonctionne, tout ce qui est listé dans « Pas encore là » <b>n'existe pas encore</b> — inutile de le
 chercher, ce n'est pas un bogue.</p>
 
@@ -96,6 +96,17 @@ utilisable en attendant, juste plus à l'étroit.</li>
 <h2>Et vous, qu'est-ce qui manque ?</h2>
 <p>Notez-le dans votre rapport (ligne « Ce qui vous manque ») : le nom de la fonction dans KAAWA, ce qu'elle fait, et à quel
 moment vous en avez besoin. Merci !</p>
+
+<!-- Version et phase remplies AUTOMATIQUEMENT depuis version.js (correctif,
+     saab : cette page restait sur "ph21_v1" alors que l'Aide, elle, affichait
+     deja la bonne version — un texte ecrit a la main qu'on oublie de mettre a
+     jour a chaque publication). Chemin relatif : ce fichier vit dans docs/,
+     version.js a la racine du depot. -->
+<script src="../version.js"></script>
+<script>
+  document.getElementById('version-manque').textContent = NOM_VERSION_KAAH_TEST;
+  document.getElementById('phase-manque').textContent = PHASE_KAAH_TEST;
+</script>
 
 </body>
 </html>

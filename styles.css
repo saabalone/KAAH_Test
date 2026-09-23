@@ -217,29 +217,32 @@ button,
 }
 
 /* Jauge du nombre de parties enregistrees (phase 12ter,
-   interface/jauge-mes-parties.js) : un badge en haut a droite de l'icone
-   "Mes parties", visible des la premiere partie enregistree (jamais
-   seulement au survol, CLAUDE.md). `#bouton-mes-parties` doit etre
-   `position: relative` pour l'ancrer. Vert par defaut (meme famille que
-   --vert-demande, mais un signal d'INFO ici, jamais une demande), rouge
-   au-dela du seuil (reglable dans la boite "Mes parties"). */
-#bouton-mes-parties {
+   interface/jauge-mes-parties.js) : un rectangle CENTRE SUR L'ICONE (pas un
+   rond dans un coin, correctif saab) — `.icone-avec-jauge` (l'icone
+   elle-meme, 25x25 dans son cadre de 34x34, jamais le bouton entier qui
+   s'elargit avec son libelle en colonne deployee) porte `position:
+   relative` pour l'ancrer en son centre. NEUTRE (gris, pas vert : "ne pas
+   mettre en vert si <= n", saab — le vert suggerait a tort un signal
+   positif) tant qu'on reste sous le seuil ; rouge seulement au-dela
+   (reglable dans la boite "Mes parties"). */
+.icone-avec-jauge {
   position: relative;
 }
 
 .badge-mes-parties {
   position: absolute;
-  top: 0;
-  right: 0;
-  min-width: 16px;
-  height: 16px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 18px;
+  height: 14px;
   padding: 0 3px;
   box-sizing: border-box;
-  border-radius: 8px;
-  background: #1f7a3a;
+  border-radius: 3px;
+  background: rgba(20, 20, 20, 0.75);
   color: #ffffff;
   font: bold 10px sans-serif;
-  line-height: 16px;
+  line-height: 14px;
   text-align: center;
   pointer-events: none; /* ne gene jamais le clic sur le bouton lui-meme */
 }
@@ -274,15 +277,6 @@ button,
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
-}
-
-/* Icone ⏱ du bouton Pendules (phase 22bis, correctif saab : "mettre en
-   vert l'intérieur du cercle du chrono, pas le carré du bouton") : seul le
-   glyphe devient vert (--vert-demande, meme famille que les pendules
-   elles-memes quand elles attendent un clic) — le carre gris du bouton
-   (.icone-hexagone/fond du bouton lui-meme) ne change pas. */
-#bouton-mode-pendules .icone-texte {
-  color: var(--vert-demande);
 }
 
 #boutons-sauvegarde button {
@@ -2501,7 +2495,10 @@ button,
    Occ/Ref (.compteur-occurrences-plateau, 6px), colle contre la pendule
    dans le vide deja existant plutot que dans une bande a part. */
 .libelle-pendule {
-  font: 4px sans-serif;
+  /* Gras (correctif, saab : "le noir ne se voit pas bien") : l'encre d'un
+     trait plus epais se voit mieux sur le fond gris moyen du plateau,
+     surtout pour le camp noir (tres sombre). */
+  font: bold 4px sans-serif;
 }
 
 /* Couleur du CAMP (saab : "mets ces labels de la couleur du camp"), pas un
@@ -2972,6 +2969,14 @@ body.face-a-face #colonne-gauche svg.icone-bouton {
 body.face-a-face #colonne-gauche .icone-texte {
   display: inline-block;
   transform: rotate(-90deg);
+}
+
+/* La jauge de "Mes parties" tourne avec le reste de son icone (saab,
+   "penser a le faire tourner en FaF") : le translate(-50%,-50%) qui la
+   centre doit rester AVANT la rotation (l'ordre des fonctions transform
+   compte), sinon elle se decale hors du centre de l'icone. */
+body.face-a-face #colonne-gauche .badge-mes-parties {
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 @media (min-width: 700px) {
