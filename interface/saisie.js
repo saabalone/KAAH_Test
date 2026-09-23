@@ -816,6 +816,16 @@ function demarrerPartie(
     // voir index.html) — c'est ce que `pendulesReprises` ci-dessus relit
     // au prochain demarrage.
     obtenirPendulesActuelles: () => pendules.etatActuel(),
+    // Change de mode de pendule EN COURS DE PARTIE (phase 22bis, bouton
+    // dedie de la colonne de gauche) : voir interface/pendules.js,
+    // changerMode. Renvoie si le changement A EU LIEU (refuse pendant un
+    // apercu ou une partie finie), pour que l'appelant sache s'il doit
+    // fermer son popup ou avertir que ce n'etait pas le bon moment.
+    changerModePendule: (nouveauxReglages) => {
+      const applique = pendules.changerMode(nouveauxReglages);
+      if (applique) notifierChangement();
+      return applique;
+    },
     jouerCoupTexte,
   };
 }

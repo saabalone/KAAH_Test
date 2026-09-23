@@ -8,7 +8,7 @@
 // d'icones, comme Conseils/Puzzles/Commentaires.
 //
 // Les MEMES 4 chiffres sont aussi affiches EN PERMANENCE sur le plateau
-// (rendu/ejections.js, dessinerCompteurOccurrences/
+// (rendu/compteur-occurrences.js, dessinerCompteurOccurrences/
 // actualiserCompteurOccurrences), a la verticale tout a gauche, comme
 // KAAWA (kaa_board_widget_ClO_Co.py, _add_occurrence_label) — etendu aux
 // 4 compteurs (KAAWA n'y affiche qu'Occ/Ref, Br_Occ/Br_Ref etant un ajout
@@ -31,8 +31,8 @@
 // etatOccurrencesArbre (moteur/occurrences.js), numeroDeTour, noeudA
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js, petit
 // utilitaire partage — voir ce fichier) et actualiserCompteurOccurrences
-// (rendu/ejections.js) viennent tous des fichiers charges avant celui-ci
-// dans index.html.
+// (rendu/compteur-occurrences.js) viennent tous des fichiers charges avant
+// celui-ci dans index.html.
 
 // `elements` : { bouton, panneau, entete, liste }. `rappels` :
 // { surClicNoeud(chemin), surOccurrences(occ) } — le second, facultatif, est

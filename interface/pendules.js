@@ -61,6 +61,14 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   if (tempsRepris) {
     pendules = { ...pendules, tempsNoir: tempsRepris.tempsNoir, tempsBlanc: tempsRepris.tempsBlanc };
   }
+  // Le libelle de mode (phase 22bis) vit dans sa propre bande du plateau
+  // (rendu/pendule.js, dessinerLibellePendule), jamais transmis par
+  // `elementsAffichage` : le retrouver depuis le meme <svg> evite d'ajouter
+  // un parametre de plus a chaque appelant.
+  const elementsLibelles = {
+    noir: elementsAffichage.noir.closest('svg')?.querySelector('#libelle-pendule-noir'),
+    blanc: elementsAffichage.blanc.closest('svg')?.querySelector('#libelle-pendule-blanc'),
+  };
   let joueurAuTrait = 'noir';
   let dernierInstant = Date.now();
   let arrete = false;
@@ -236,6 +244,23 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     ecrireSiChange(elementsAffichage.blanc, formaterDuree(source.tempsBlanc));
     actualiserAlerte(elementsAffichage.noir, source, source.tempsNoir);
     actualiserAlerte(elementsAffichage.blanc, source, source.tempsBlanc);
+    // Le libelle ne depend que des REGLAGES (jamais de l'apercu, qui ne fige
+    // que les temps affiches, voir moteur.marquerPendulesSnapshot) : toujours
+    // celui du direct, meme pendant une navigation dans l'historique.
+    if (elementsLibelles.noir) ecrireSiChange(elementsLibelles.noir, libellePendule(pendules));
+    if (elementsLibelles.blanc) ecrireSiChange(elementsLibelles.blanc, libellePendule(pendules));
+  }
+
+  // Change de mode EN COURS DE PARTIE (phase 22bis, bouton dedie de la
+  // colonne de gauche, PLAN.md) : voir moteur.changerModePendules, qui
+  // garde le temps deja ecoule. Refuse pendant un apercu ou une partie deja
+  // finie, comme basculerPauseManuelle : rouvrir le choix des pendules
+  // n'aurait aucun sens sur une position qu'on ne joue plus.
+  function changerMode(nouveauxReglages) {
+    if (apercu !== null) return false;
+    pendules = changerModePendules(pendules, nouveauxReglages);
+    afficherPendules();
+    return true;
   }
 
   // Fond rouge sous le seuil d'alerte, comme KAAWA — seulement en mode
@@ -257,6 +282,7 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     basculerPauseManuelle,
     estEnPauseManuelle,
     estEnApercu,
+    changerMode,
   };
 }
 

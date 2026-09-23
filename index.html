@@ -284,6 +284,14 @@
           <span class="icone-bouton icone-texte" aria-hidden="true">🔊</span><span class="libelle-bouton">Sons</span>
         </button>
       </div>
+      <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
+           SANS perdre le temps deja ecoule (interface/pendules-mode.js,
+           moteur.changerModePendules). -->
+      <div class="groupe-boutons">
+        <button id="bouton-mode-pendules" title="Changer le mode de pendule (Chrono, Bonus, Délai) sans perdre le temps déjà écoulé">
+          <span class="icone-bouton icone-texte" aria-hidden="true">⏱</span><span class="libelle-bouton">Pendules</span>
+        </button>
+      </div>
       <!-- Reglages (phase 22) : couleurs, mode simple, coordonnees sur
            les billes, import/export — interface/reglages.js. -->
       <div class="groupe-boutons">
@@ -577,6 +585,46 @@
     </div>
   </dialog>
 
+  <!-- Mode de pendule (phase 22bis, interface/pendules-mode.js) : s'ouvre a
+       la creation d'une partie neuve (bouton "Nouvelle partie" uniquement,
+       jamais Revanche/Same qui gardent deja les reglages precedents, voir
+       moteur/revanche.js) ET depuis le bouton dedie de la colonne de gauche
+       pour changer de mode SANS perdre le temps deja ecoule (PLAN.md). -->
+  <dialog id="dialogue-mode-pendules" class="dialogue">
+    <h2>Mode de pendule</h2>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-mode-chrono" class="bouton-filtre" type="button">Chrono</button>
+      <button id="bouton-mode-bonus" class="bouton-filtre" type="button">Pendule (Bonus)</button>
+      <button id="bouton-mode-delai" class="bouton-filtre" type="button">Pendule (Délai)</button>
+    </div>
+    <div id="section-temps-pendule" class="section-mode-pendule" hidden>
+      <label class="ligne-nombre-pendule">
+        Temps initial (secondes)
+        <input id="pendule-temps-initial" type="number" min="1" step="1" />
+      </label>
+      <div id="section-bonus-pendule" hidden>
+        <label class="ligne-nombre-pendule">
+          Bonus par coup (s)
+          <input id="pendule-bonus-coup" type="number" min="0" step="1" />
+        </label>
+        <label class="ligne-nombre-pendule">
+          Bonus par éjection (s)
+          <input id="pendule-bonus-ejection" type="number" min="0" step="1" />
+        </label>
+      </div>
+      <div id="section-delai-pendule" hidden>
+        <label class="ligne-nombre-pendule">
+          Délai par coup (s)
+          <input id="pendule-delai-coup" type="number" min="0" step="1" />
+        </label>
+      </div>
+    </div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-annuler-mode-pendules" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-valider-mode-pendules" class="bouton-dialogue" type="button">Valider</button>
+    </div>
+  </dialog>
+
   <!-- Nom d'un joueur (interface/noms-joueurs.js) : un clic sur le cadre de
        son nom, sur le plateau, ouvre ce champ. Le texte grise du champ est
        pose par le script ("Nom du Joueur (Noir)" / "(Blanc)"). -->
@@ -810,6 +858,7 @@
   <script src="./rendu/coordonnees-jeu.js"></script>
   <script src="./rendu/fleche-dernier-coup.js"></script>
   <script src="./rendu/ejections.js"></script>
+  <script src="./rendu/compteur-occurrences.js"></script>
   <script src="./rendu/ligne-joueur.js"></script>
   <script src="./rendu/abandon-nulle.js"></script>
   <script src="./rendu/boutons-fin-piste.js"></script>
@@ -823,6 +872,7 @@
   <script src="./rendu/conseils.js"></script>
   <script src="./rendu/menaces.js"></script>
   <script src="./interface/pendules.js"></script>
+  <script src="./interface/pendules-mode.js"></script>
   <script src="./interface/sequence.js"></script>
   <script src="./interface/disposition.js"></script>
   <script src="./interface/face-a-face.js"></script>
@@ -855,11 +905,18 @@
     // Marguerite Belge : la position de depart par defaut de KAAWA.
     const MARGUERITE_BELGE = '0a12b123c23g78h789i89_0a45b456c56g45h456i56';
     const EVENEMENT_PAR_DEFAUT = 'Amical';
-    // Reglages par defaut de KAAWA (5 minutes, +2s par coup joue). Un
-    // reglage par l'utilisateur viendra avec les Options (phase 22) ; en
-    // attendant, c'est fige ici — sauf partie reprise, qui garde les
-    // siens (voir plus bas).
-    const REGLAGES_PENDULES_PAR_DEFAUT = { mode: 'pendule', tempsInitial: 300, bonusParCoup: 2, bonusParEjection: 0, delai: 0 };
+    // Reglages par defaut de KAAWA (5 minutes, +2s par coup joue, mode
+    // Bonus). Modifiable par le popup de la phase 22bis (Nouvelle partie,
+    // ou le bouton pendule de la colonne de gauche) ; Revanche/Same gardent
+    // les leurs (voir plus bas).
+    const REGLAGES_PENDULES_PAR_DEFAUT = {
+      mode: 'pendule',
+      modeChoisi: 'bonus',
+      tempsInitial: 300,
+      bonusParCoup: 2,
+      bonusParEjection: 0,
+      delai: 0,
+    };
 
     // Sauvegarde automatique (phase 12) : s'il y a une partie active, on
     // reprend celle-la plutot que la Marguerite Belge neuve — mais
@@ -890,9 +947,17 @@
       const joueurs = donneesReprises
         ? { noir: donneesReprises.Players.P1_black, blanc: donneesReprises.Players.P2_white }
         : { ...(positionChoisie?.joueurs ?? NOMS_PAR_DEFAUT) }; // une COPIE : la saisie d'un nom (interface/noms-joueurs.js) modifie cet objet, jamais la constante
+      // `time_mode` (Bonus/Delai) n'existe PAS dans le format de sauvegarde,
+      // meme chez KAAWA (verifie dans kaa_engine_ClO_Co.py : seul le SAVE
+      // l'ecrit, rien ne le RELIT — une partie reprise y redemarre donc
+      // toujours en Bonus, y compris dans KAAWA lui-meme). KAAH fait
+      // pareil, plutot que d'inventer un champ que KAAWA ignorerait : une
+      // partie Delai reprise affiche Bonus avec ses reglages Bonus a zero,
+      // exactement le defaut KAAWA.
       const reglagesPendules = donneesReprises
         ? {
             mode: donneesReprises.Timer.mode,
+            modeChoisi: 'bonus',
             tempsInitial: donneesReprises.Timer.settings.p1_initial,
             bonusParCoup: donneesReprises.Timer.settings.p1_bonus,
             bonusParEjection: donneesReprises.Timer.settings.p1_bonus_eject,
@@ -1014,7 +1079,7 @@
     // Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du
     // plateau (phase 18, correctif) — comme dessinerPistesEjection,
     // agrandit le viewBox : doit donc aussi passer AVANT
-    // fixerProportionsPlateau. Voir rendu/ejections.js.
+    // fixerProportionsPlateau. Voir rendu/compteur-occurrences.js.
     dessinerCompteurOccurrences(svg);
     // En dernier : la proportion definitive du plateau n'est connue qu'une
     // fois les bandes d'ejection ET le compteur d'occurrences loges dans
@@ -1127,6 +1192,29 @@
       },
       demarrerRechargement
     );
+
+    // Mode de pendule (phase 22bis) : une seule boite, deux appelants (voir
+    // l'en-tete d'interface/pendules-mode.js) — le bouton "Nouvelle partie"
+    // ci-dessous, et le bouton dedie de la colonne de gauche plus bas.
+    const choixModePendules = demarrerChoixModePendules({
+      dialogue: document.getElementById('dialogue-mode-pendules'),
+      boutonChrono: document.getElementById('bouton-mode-chrono'),
+      boutonBonus: document.getElementById('bouton-mode-bonus'),
+      boutonDelai: document.getElementById('bouton-mode-delai'),
+      sectionTemps: document.getElementById('section-temps-pendule'),
+      sectionBonus: document.getElementById('section-bonus-pendule'),
+      sectionDelai: document.getElementById('section-delai-pendule'),
+      tempsInitial: document.getElementById('pendule-temps-initial'),
+      bonusParCoup: document.getElementById('pendule-bonus-coup'),
+      bonusParEjection: document.getElementById('pendule-bonus-ejection'),
+      delaiParCoup: document.getElementById('pendule-delai-coup'),
+      annuler: document.getElementById('bouton-annuler-mode-pendules'),
+      valider: document.getElementById('bouton-valider-mode-pendules'),
+    });
+    document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
+      const reglages = await choixModePendules.ouvrir(partie.obtenirPendulesActuelles());
+      if (reglages) partie.changerModePendule(reglages);
+    });
 
     // Fin de partie : Options (phase 20bis) : voir interface/fin-de-partie.js. Les
     // noms et le plateau retourne sont ceux de la partie EN COURS (un nom a pu etre
@@ -1327,7 +1415,12 @@
         event: evenement,
         variantName,
         joueurs,
-        reglagesPendules,
+        // `tempsInitial` vient toujours du DEPART (jamais dans l'etat des
+        // pendules elles-memes, voir moteur.creerPendules) ; mode/bonus/
+        // delai, eux, viennent du DIRECT — un changement de mode en cours
+        // de partie (phase 22bis, bouton pendule) doit se retrouver dans la
+        // sauvegarde, jamais les reglages d'avant le changement.
+        reglagesPendules: { ...reglagesPendules, ...partie.obtenirPendulesActuelles() },
         finDePartie,
         plateauRetourne,
         // Les deux compteurs EN DIRECT, ecrits dans `Chrono` (voir
@@ -1381,8 +1474,21 @@
     // uniquement contre un clic malencontreux qui ferait perdre de vue la
     // partie qu'on etait en train de jouer, pas contre une vraie perte de
     // donnees.
-    document.getElementById('bouton-nouvelle-partie').addEventListener('click', () => {
+    document.getElementById('bouton-nouvelle-partie').addEventListener('click', async () => {
+      // Phase 22bis : le mode de pendule se choisit AVANT de demarrer,
+      // jamais pour Revanche/Same (moteur/revanche.js, qui gardent deja
+      // les reglages de la partie precedente) ni pour Variantes/Puzzles
+      // (portee volontairement limitee au bouton "Nouvelle partie", voir
+      // PLAN.md phase 22bis). Annuler le popup annule tout : la partie en
+      // cours, s'il y en a une, reste intouchee.
+      const reglagesChoisis = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
+      if (!reglagesChoisis) return;
       const demarrer = () => {
+        // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
+        // definirPositionDepartSuivante) : les reglages choisis survivent
+        // au rechargement qui suit, `construireDonneesDepart` plus haut
+        // les relit via `positionChoisie.reglagesPendules`.
+        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis });
         oublierPartieActive();
         demarrerRechargement();
       };

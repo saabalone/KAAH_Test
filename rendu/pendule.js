@@ -137,3 +137,26 @@ function afficherPause(svg) {
 function masquerPause(svg) {
   svg.querySelector('#pause-plateau')?.remove();
 }
+
+// Le libelle du mode de pendule (phase 22bis, PLAN.md) : "Bonus | Coup+2
+// Éject+0", "Délai | Coup+5s" ou "Chrono" (moteur/pendules.js,
+// libellePendule), a la MEME verticale que le cadre de la pendule (meme y),
+// mais dans sa PROPRE bande a droite (rendu/ejections.js,
+// agrandirViewBoxPourLibellesPendules) : le texte est trop long pour tenir
+// dans le cadre du temps sans le rallonger jusqu'a mordre sur les billes du
+// coin (verifie a l'oeil). Pas de cadre autour de lui, comme le compteur
+// Occ/Ref (rendu/ejections.js) : seulement du texte, tourne comme la
+// pendule pour se lire de haut en bas.
+function dessinerLibellePendule(svg, camp, { x, y }) {
+  svg.appendChild(
+    creerElementSVG('text', {
+      id: `libelle-pendule-${camp}`,
+      class: 'libelle-pendule',
+      x,
+      y,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      transform: `rotate(${ROTATION_PENDULE} ${x} ${y})`,
+    })
+  );
+}

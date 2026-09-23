@@ -22,13 +22,19 @@
 // comme un script classique, dans l'ordre liste par index.html.
 
 // Construit des pendules neuves. `reglages` : { mode, tempsInitial,
-// bonusParCoup, bonusParEjection, delai } — tous facultatifs sauf mode et
-// tempsInitial (le mode chrono demarre a zero : il mesure un coup, pas un
-// compte a rebours).
+// bonusParCoup, bonusParEjection, delai, modeChoisi } — tous facultatifs
+// sauf mode et tempsInitial (le mode chrono demarre a zero : il mesure un
+// coup, pas un compte a rebours). `modeChoisi` (phase 22bis) : 'chrono',
+// 'bonus' ou 'delai' — le nom du mode tel que choisi dans le popup
+// (interface/pendules-mode.js), gardé A PART de `mode` ('pendule'/'chrono',
+// ce que le CALCUL regarde) pour que Bonus et Délai, deux `mode: 'pendule'`
+// aux yeux du calcul, restent distinguables pour le LABEL (libellePendule
+// plus bas) meme quand leurs deux chiffres sont a zero.
 function creerPendules(reglages) {
   const tempsDepart = reglages.mode === 'chrono' ? 0 : reglages.tempsInitial;
   return {
     mode: reglages.mode,
+    modeChoisi: reglages.modeChoisi,
     tempsNoir: tempsDepart,
     tempsBlanc: tempsDepart,
     delai: reglages.delai ?? 0,
@@ -87,4 +93,37 @@ function appliquerBonusDeCoup(pendules, joueurQuiAJoue, ejection) {
 
   const bonus = pendules.bonusParCoup + (ejection ? pendules.bonusParEjection : 0);
   return { ...pendules, [cle]: pendules[cle] + bonus, delaiRestant };
+}
+
+// Change de mode EN COURS DE PARTIE (phase 22bis, bouton dedie de la
+// colonne de gauche) : `tempsNoir`/`tempsBlanc` (le temps deja ecoule)
+// survivent tels quels, jamais remis a `tempsInitial` — tout le reste vient
+// ENTIEREMENT de `nouveauxReglages`, jamais un melange avec les anciens
+// (passer de Bonus a Délai ne doit garder aucune trace de bonusParCoup).
+// `delaiRestant` redemarre plein : un délai a moitie ecoule n'a plus de
+// sens des que son propre reglage change de valeur. Une defaite au temps
+// deja actee (`perdantParTemps`) est effacee, comme passerEnChrono : changer
+// de mode est une decision de saab, jamais cense rejouer un verdict deja
+// rendu.
+function changerModePendules(pendules, nouveauxReglages) {
+  return {
+    ...pendules,
+    mode: nouveauxReglages.mode,
+    modeChoisi: nouveauxReglages.modeChoisi,
+    delai: nouveauxReglages.delai ?? 0,
+    delaiRestant: nouveauxReglages.delai ?? 0,
+    bonusParCoup: nouveauxReglages.bonusParCoup ?? 0,
+    bonusParEjection: nouveauxReglages.bonusParEjection ?? 0,
+    perdantParTemps: null,
+  };
+}
+
+// Le texte affiche sous chaque pendule (phase 22bis), tel que KAAWA le
+// construit (kaa_board_widget_ClO_Co.py) : uniquement a partir de ce que
+// `pendules` porte deja sur elle (jamais un etat separe qui pourrait
+// diverger, PLAN.md, phase 22bis, test 3).
+function libellePendule(pendules) {
+  if (pendules.modeChoisi === 'delai') return `Délai | Coup+${pendules.delai}s`;
+  if (pendules.modeChoisi === 'bonus') return `Bonus | Coup+${pendules.bonusParCoup} Éject+${pendules.bonusParEjection}`;
+  return 'Chrono';
 }
