@@ -11,6 +11,10 @@
 // Le balayage (position de chaque triangle, regle "au moins un coin reel")
 // reste celui de KAAWA ; seul le dessin de chacun change.
 //
+// `actualiserCouleurReliefCylindres` (phase 22, correctif "en direct") :
+// recolore le relief DEJA CONSTRUIT quand board.bg_color change dans les
+// reglages, sans reconstruire sa geometrie — voir interface/reglages.js.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : RAYON_PLATEAU,
 // estCaseValide (moteur/plateau.js), positionEcran, RAYON_CASE,
 // creerElementSVG (rendu/plateau-svg.js), teinterNiveauGris
@@ -35,23 +39,27 @@ const RATIO_ARRONDI_SOMMET = 0.25;
 
 // Vers ou regarde la lumiere (haut-gauche, repere ecran : y vers le bas).
 const DIRECTION_LUMIERE = { x: -Math.SQRT1_2, y: -Math.SQRT1_2 };
-// Gris d'une face biseautee qui ne regarde ni vers la lumiere ni a l'oppose,
-// et amplitude autour de ce gris : de sombre (face opposee a la lumiere) a
-// clair (face qui la regarde).
-const GRIS_BISEAU_NEUTRE = 0x70;
+// Amplitude d'assombrissement d'une face biseautee, de la plus eclairee (la
+// couleur du plateau lui-meme, aucun assombrissement) a la plus sombre
+// (opposee a la lumiere, assombrie de ce plein montant) — CORRIGE (saab :
+// "les cotes tronques eclaires du cylindre sont trop clairs") : une
+// premiere version eclaircissait la face la plus tournee vers la lumiere
+// AU-DELA de la teinte du plateau (jusqu'a 0xa0 sur un plateau a 0x82,
+// GRIS_BISEAU_NEUTRE + AMPLITUDE_BISEAU) ; plus aucune face n'est desormais
+// plus claire que le plateau.
 const AMPLITUDE_BISEAU = 0x30;
-// Niveau de gris du dessus plat (styles.css avant cette phase : #8c8c8c).
-const NIVEAU_GRIS_DESSUS = 0x8c;
 
 // Couleur de la face biseautee dont la normale (vecteur unitaire, du centre
 // vers l'exterieur) est `normale` : plus elle regarde la lumiere, plus elle
-// est claire. `hexFond` (phase 22, moteur/reglages.js) : la teinte du
-// plateau ("un seul bloc de matiere", saab) — teinterNiveauGris garde
-// exactement le meme NIVEAU de gris qu'avant cette phase, seule la teinte
-// suit desormais board.bg_color.
+// se rapproche de la couleur du plateau (jamais plus claire). `hexFond`
+// (phase 22, moteur/reglages.js) : la teinte du plateau ("un seul bloc de
+// matiere", saab) — teinterNiveauGris garde la meme teinte, seule la CLARTE
+// varie d'une face a l'autre.
 function couleurFaceBiseau(normale, hexFond) {
-  const eclairage = normale.x * DIRECTION_LUMIERE.x + normale.y * DIRECTION_LUMIERE.y;
-  const niveau = Math.round(GRIS_BISEAU_NEUTRE + AMPLITUDE_BISEAU * eclairage);
+  const { l } = hexVersHSL(hexFond);
+  const niveauFond = l * 255;
+  const eclairage = normale.x * DIRECTION_LUMIERE.x + normale.y * DIRECTION_LUMIERE.y; // -1 (opposee) a 1 (face a la lumiere)
+  const niveau = Math.round(niveauFond - (AMPLITUDE_BISEAU * (1 - eclairage)) / 2);
   return teinterNiveauGris(hexFond, niveau);
 }
 
@@ -75,9 +83,16 @@ function creerFaceBiseau(centre, sommetA, sommetB, hexFond) {
     `M${sommetA.x},${sommetA.y} L${cercleA.x},${cercleA.y} ` +
     `A${RAYON_BISEAU},${RAYON_BISEAU} 0 0 ${sens} ${cercleB.x},${cercleB.y} ` +
     `L${sommetB.x},${sommetB.y} Z`;
+  const normale = { x: milieu.x / longueur, y: milieu.y / longueur };
   return creerElementSVG('path', {
     d: chemin,
-    fill: couleurFaceBiseau({ x: milieu.x / longueur, y: milieu.y / longueur }, hexFond),
+    fill: couleurFaceBiseau(normale, hexFond),
+    class: 'relief-biseau',
+    // Normale gardee en attribut (phase 22, actualiserCouleurReliefCylindres) :
+    // un changement de couleur en direct recolore chaque face SANS refaire
+    // toute la geometrie, seulement en relisant l'angle deja calcule ici.
+    'data-normale-x': normale.x,
+    'data-normale-y': normale.y,
   });
 }
 
@@ -145,21 +160,35 @@ function centresCylindres() {
   return trianglesDuRelief().map((triangle) => triangle.centre);
 }
 
-// `hexFond` : voir couleurFaceBiseau. Le dessus (relief-dessus) est colore
-// pareil, en style DIRECT (pas de classe CSS statique possible pour une
-// couleur reglable) : styles.css ne garde que le contour et le filtre.
+// `hexFond` : voir couleurFaceBiseau. Le dessus (relief-dessus), lui, est
+// EXACTEMENT la couleur du plateau (saab : "les triangles du plateau
+// doivent être de la couleur du plateau sinon ils sont trop clairs") — en
+// style DIRECT (pas de classe CSS statique possible pour une couleur
+// reglable) : styles.css ne garde que le contour et le filtre.
 function dessinerReliefCylindres(hexFond) {
   const groupe = creerElementSVG('g', { class: 'relief-cylindres' });
-  const couleurDessus = teinterNiveauGris(hexFond, NIVEAU_GRIS_DESSUS);
   for (const { centre, dessus } of trianglesDuRelief()) {
     const cylindre = creerElementSVG('g', { class: 'relief-cylindre' });
     for (let i = 0; i < dessus.length; i++) {
       cylindre.appendChild(creerFaceBiseau(centre, dessus[i], dessus[(i + 1) % dessus.length], hexFond));
     }
     const coupe = RATIO_ARRONDI_SOMMET * Math.hypot(dessus[1].x - dessus[0].x, dessus[1].y - dessus[0].y);
-    cylindre.appendChild(creerElementSVG('path', { d: cheminPolygoneArrondi(dessus, coupe), class: 'relief-dessus', fill: couleurDessus }));
+    cylindre.appendChild(creerElementSVG('path', { d: cheminPolygoneArrondi(dessus, coupe), class: 'relief-dessus', fill: hexFond }));
     cylindre.appendChild(creerElementSVG('circle', { cx: centre.x, cy: centre.y, r: RAYON_BISEAU, class: 'relief-contour' }));
     groupe.appendChild(cylindre);
   }
   return groupe;
+}
+
+// Recolore le relief deja construit, sans rien reconstruire (phase 22,
+// correctif "les couleurs doivent s'appliquer en direct") : chaque face
+// biseautee relit sa normale (posee en attribut par creerFaceBiseau) plutot
+// que de refaire la geometrie, chaque dessus reprend directement `hexFond`.
+// Ne fait rien si le plateau est en mode simple (aucun relief construit).
+function actualiserCouleurReliefCylindres(svg, hexFond) {
+  for (const face of svg.querySelectorAll('.relief-biseau')) {
+    const normale = { x: Number(face.dataset.normaleX), y: Number(face.dataset.normaleY) };
+    face.setAttribute('fill', couleurFaceBiseau(normale, hexFond));
+  }
+  for (const dessus of svg.querySelectorAll('.relief-dessus')) dessus.setAttribute('fill', hexFond);
 }

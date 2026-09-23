@@ -19,12 +19,17 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : casesDuPlateau
 // (moteur/plateau.js), positionEcran, RAYON_BILLE, creerElementSVG
-// (rendu/plateau-svg.js), dessinerReliefCylindres
-// (rendu/relief-cylindres.js), calculerCadrePlateau, dessinerCadrePlateau,
-// ajusterViewBoxAuCadre (rendu/cadre-plateau.js), REGLAGES_PAR_DEFAUT
-// (moteur/reglages.js, phase 22), couleurVersHex, teinterNiveauGris,
-// construireArretsBille (moteur/couleurs.js, phase 22) viennent de fichiers
-// charges avant celui-ci dans index.html.
+// (rendu/plateau-svg.js), dessinerReliefCylindres (rendu/relief-cylindres.js),
+// calculerCadrePlateau, dessinerCadrePlateau, ajusterViewBoxAuCadre
+// (rendu/cadre-plateau.js), REGLAGES_PAR_DEFAUT (moteur/reglages.js, phase
+// 22), couleurVersHex, teinterNiveauGris, construireArretsBille
+// (moteur/couleurs.js, phase 22) viennent de fichiers charges avant
+// celui-ci dans index.html.
+//
+// Recolorer ce decor UNE FOIS CONSTRUIT, sans le reconstruire (phase 22,
+// correctif "les couleurs doivent s'appliquer en direct") : voir
+// rendu/couleurs-plateau.js, qui charge apres celui-ci et reutilise ses
+// constantes de niveau de gris et ses arrets de degrade par defaut.
 
 // Rayon du trou au centre de chaque case, en fraction de la bille (regle
 // par saab : sur un vrai plateau, le trou est plus petit que la bille, qui
@@ -208,3 +213,7 @@ function dessinerReliefPlateau(svg, avecRelief = true, hexFond = couleurVersHex(
 
   ajusterViewBoxAuCadre(svg, cadre);
 }
+
+// actualiserCouleursPlateau (recolorer tout ce qui precede SANS
+// reconstruire, phase 22 "en direct") vit desormais dans
+// rendu/couleurs-plateau.js (regle des 200 lignes, CLAUDE.md).

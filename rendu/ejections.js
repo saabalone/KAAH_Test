@@ -24,10 +24,11 @@
 // plateau — donc la piste des billes BLANCHES (trophees de Noir) est en bas,
 // celle des billes NOIRES (trophees de Blanc) en haut.
 //
-// Le libelle de mode pres de chaque pendule (bonus/delai/chrono), differe
-// de la phase 22 a la phase 22bis (voir dessinerLibellePendule plus bas et
-// moteur/pendules.js, libellePendule) : le popup de choix du mode n'existait
-// pas encore.
+// Le libelle de mode pres de chaque pendule (bonus/delai/chrono, phase
+// 22bis) vit dans rendu/pendule.js (dessinerLibellePendule) : collé contre
+// la pendule, dans le vide deja existant entre elle et le plateau — jamais
+// de bande a part qui agrandirait le viewBox (voir l'en-tete de ce fichier
+// pour l'historique du correctif).
 //
 // Compteur Occ/Ref/Br_Occ/Br_Ref (phase 18, correctif) : voir
 // rendu/compteur-occurrences.js.
@@ -42,12 +43,11 @@
 // moteur/partie.js, calculerCadrePlateau de rendu/cadre-plateau.js, tous
 // charges avant celui-ci dans index.html. Exception a l'ordre habituel :
 // dessinerPistesEjection appelle dessinerPendule et dessinerLibellePendule
-// (rendu/pendule.js), JEU_PENDULE (meme fichier) et
-// disposerPisteTriangle/dessinerPisteTriangle (rendu/pistes-triangle.js),
-// charges APRES celui-ci — sans consequence, cet appel n'a lieu qu'au
-// demarrage reel (index.html), bien apres que tous les scripts aient fini
-// de se charger ; seul un appel AU CHARGEMENT du fichier (hors d'une
-// fonction) exigerait l'ordre inverse.
+// (rendu/pendule.js) et disposerPisteTriangle/dessinerPisteTriangle
+// (rendu/pistes-triangle.js), charges APRES celui-ci — sans consequence,
+// cet appel n'a lieu qu'au demarrage reel (index.html), bien apres que tous
+// les scripts aient fini de se charger ; seul un appel AU CHARGEMENT du
+// fichier (hors d'une fonction) exigerait l'ordre inverse.
 
 const RAYON_PISTE = RAYON_CASE * 0.4;
 // Bande de nom au-dessus et en dessous du plateau : UNE seule ligne
@@ -55,11 +55,6 @@ const RAYON_PISTE = RAYON_CASE * 0.4;
 // bandes pour les coins vides de l'hexagone (rendu/pistes-triangle.js,
 // rendu/pendule.js), ce qui rend de la hauteur au plateau.
 const HAUTEUR_BANDE = RAYON_PISTE * 2.6;
-// Bande a DROITE du plateau pour le libelle de mode de chaque pendule
-// (phase 22bis, rendu/pendule.js/dessinerLibellePendule) : meme principe et
-// meme epaisseur qu'agrandirViewBoxPourOccurrences a gauche (le texte se lit
-// a la verticale, donc c'est sa longueur qui compte, pas son epaisseur).
-const LARGEUR_BANDE_LIBELLE_PENDULE = RAYON_CASE * 0.8;
 const SEUIL_ALERTE_EJECTIONS = EJECTIONS_POUR_GAGNER - 1; // 5 : plus qu'une ejection avant la defaite
 
 const NOM_CAMP = { noir: 'Noir', blanc: 'Blanc' };
@@ -75,19 +70,6 @@ function agrandirViewBoxPourNoms(svg) {
     yNomHaut: yMin - HAUTEUR_BANDE / 2,
     yNomBas: yMin + hauteur + HAUTEUR_BANDE / 2,
   };
-}
-
-// Agrandit le viewBox du plateau vers la DROITE pour faire de la place au
-// libelle de chaque pendule (phase 22bis), meme principe et meme ordre
-// d'appel qu'agrandirViewBoxPourOccurrences (a gauche) : APPELEE APRES avoir
-// positionne les pendules (elles restent calees sur `limites`, la largeur
-// d'AVANT cet agrandissement), donc sans effet sur leur geometrie. Renvoie
-// le x ou centrer les deux libelles (meme colonne, seul le y differe).
-function agrandirViewBoxPourLibellesPendules(svg) {
-  const [xMin, yMin, largeur, hauteur] = svg.getAttribute('viewBox').split(' ').map(Number);
-  const largeurBande = JEU_PENDULE + LARGEUR_BANDE_LIBELLE_PENDULE;
-  svg.setAttribute('viewBox', `${xMin} ${yMin} ${largeur + largeurBande} ${hauteur}`);
-  return xMin + largeur + JEU_PENDULE + LARGEUR_BANDE_LIBELLE_PENDULE / 2;
 }
 
 // Dessine ce qui entoure le plateau : les deux triangles d'ejection et leur
@@ -122,9 +104,8 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
   dessinerPendule(svg, campDuBas, positionPenduleBas);
   dessinerNomJoueur(svg, campDuBas, yNomBas, noms[campDuBas], false);
 
-  const xLibellePendule = agrandirViewBoxPourLibellesPendules(svg);
-  dessinerLibellePendule(svg, campDuHaut, { x: xLibellePendule, y: positionPenduleHaut.y });
-  dessinerLibellePendule(svg, campDuBas, { x: xLibellePendule, y: positionPenduleBas.y });
+  dessinerLibellePendule(svg, campDuHaut, positionPenduleHaut);
+  dessinerLibellePendule(svg, campDuBas, positionPenduleBas);
 }
 
 // La ligne de chaque joueur (nom, cadre "Tour N", abandon/nulle) vit dans

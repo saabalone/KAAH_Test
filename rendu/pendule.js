@@ -140,23 +140,28 @@ function masquerPause(svg) {
 
 // Le libelle du mode de pendule (phase 22bis, PLAN.md) : "Bonus | Coup+2
 // Éject+0", "Délai | Coup+5s" ou "Chrono" (moteur/pendules.js,
-// libellePendule), a la MEME verticale que le cadre de la pendule (meme y),
-// mais dans sa PROPRE bande a droite (rendu/ejections.js,
-// agrandirViewBoxPourLibellesPendules) : le texte est trop long pour tenir
-// dans le cadre du temps sans le rallonger jusqu'a mordre sur les billes du
-// coin (verifie a l'oeil). Pas de cadre autour de lui, comme le compteur
-// Occ/Ref (rendu/ejections.js) : seulement du texte, tourne comme la
+// libellePendule). CORRIGE (saab : une premiere version l'affichait dans une
+// bande a part, qui agrandissait le viewBox et retrecissait donc le plateau
+// a l'ecran — "tout ce qu'on rajoute doit trouver sa place sans rien
+// toucher ni deplacer de ce qui existait") : ni bande, ni agrandissement,
+// juste un texte plus PETIT, coller CONTRE la pendule (meme y), dans le vide
+// deja libre entre elle et le plateau (verifie a l'oeil, aucune bille du
+// coin approchee). Pas de cadre autour de lui, comme le compteur Occ/Ref
+// (rendu/compteur-occurrences.js) : seulement du texte, tourne comme la
 // pendule pour se lire de haut en bas.
+const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE * 1.15 + JEU_PENDULE;
+
 function dessinerLibellePendule(svg, camp, { x, y }) {
+  const xLibelle = x - DECALAGE_LIBELLE_PENDULE;
   svg.appendChild(
     creerElementSVG('text', {
       id: `libelle-pendule-${camp}`,
       class: 'libelle-pendule',
-      x,
+      x: xLibelle,
       y,
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      transform: `rotate(${ROTATION_PENDULE} ${x} ${y})`,
+      transform: `rotate(${ROTATION_PENDULE} ${xLibelle} ${y})`,
     })
   );
 }

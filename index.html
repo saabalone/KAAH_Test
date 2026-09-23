@@ -278,18 +278,18 @@
           </span><span class="libelle-bouton">Face-à-face</span>
         </button>
       </div>
+      <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
+           SANS perdre le temps deja ecoule (interface/pendules-mode.js,
+           moteur.changerModePendules). Avant Sons (saab). -->
+      <div class="groupe-boutons">
+        <button id="bouton-mode-pendules" title="Changer le mode de pendule (Chrono, Bonus, Délai) sans perdre le temps déjà écoulé">
+          <span class="icone-bouton icone-texte" aria-hidden="true">⏱</span><span class="libelle-bouton">Pendules</span>
+        </button>
+      </div>
       <!-- Sons (phase 21) : la boite des interrupteurs, interface/reglages-sons.js. -->
       <div class="groupe-boutons">
         <button id="bouton-sons" title="Régler les sons : un interrupteur par son">
           <span class="icone-bouton icone-texte" aria-hidden="true">🔊</span><span class="libelle-bouton">Sons</span>
-        </button>
-      </div>
-      <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
-           SANS perdre le temps deja ecoule (interface/pendules-mode.js,
-           moteur.changerModePendules). -->
-      <div class="groupe-boutons">
-        <button id="bouton-mode-pendules" title="Changer le mode de pendule (Chrono, Bonus, Délai) sans perdre le temps déjà écoulé">
-          <span class="icone-bouton icone-texte" aria-hidden="true">⏱</span><span class="libelle-bouton">Pendules</span>
         </button>
       </div>
       <!-- Reglages (phase 22) : couleurs, mode simple, coordonnees sur
@@ -535,13 +535,16 @@
     <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
 
-  <!-- Reglages (phase 22, interface/reglages.js) : version simplifiee du
-       panneau Settings de KAAWA — voir l'en-tete de interface/reglages.js
-       pour ce qui n'a delibarement pas d'equivalent ici. Deplacable (saab :
-       la boite masquait le plateau) par sa poignee (le titre) ; jamais de
-       voile sombre autour (saab : "ca fausse les couleurs qu'on regle"),
-       voir styles.css, #dialogue-reglages::backdrop. Rien ne s'applique en
-       direct : voir Valider/Sauver.../Annuler/Defaut en pied de boite. -->
+  <!-- Reglages (phase 22, corrigee, interface/reglages.js) : version
+       simplifiee du panneau Settings de KAAWA — voir l'en-tete de
+       interface/reglages.js pour ce qui n'a delibarement pas d'equivalent
+       ici. Deplacable (saab : la boite masquait le plateau) par sa poignee
+       (le titre) ; jamais de voile sombre autour (saab : "ca fausse les
+       couleurs qu'on regle"), voir styles.css, #dialogue-reglages::backdrop.
+       TOUT s'applique EN DIRECT (couleurs, coordonnees) ou au prochain
+       rechargement immediat (mode simple, structurel) — voir Defaut/
+       Annuler/Sauver.../Fermer en pied de boite, et l'en-tete de
+       interface/reglages.js pour le detail. -->
   <dialog id="dialogue-reglages" class="dialogue dialogue-grand">
     <h2 id="poignee-reglages" title="Glisser pour déplacer cette fenêtre">Réglages</h2>
     <div class="corps-reglages">
@@ -579,9 +582,9 @@
     </div>
     <div class="pied-reglages">
       <button id="bouton-defaut-reglages" class="bouton-dialogue" type="button">Défaut</button>
-      <button id="bouton-annuler-reglages" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-annuler-reglages" class="bouton-dialogue" type="button" title="Annule le dernier réglage modifié">Annuler</button>
       <button id="bouton-sauver-sous-reglages" class="bouton-dialogue" type="button">Sauver...</button>
-      <button id="bouton-valider-reglages" class="bouton-dialogue" type="button">Valider</button>
+      <button id="bouton-fermer-reglages" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
 
@@ -852,6 +855,7 @@
   <script src="./rendu/relief-cylindres.js"></script>
   <script src="./rendu/cadre-plateau.js"></script>
   <script src="./rendu/relief-plateau.js"></script>
+  <script src="./rendu/couleurs-plateau.js"></script>
   <script src="./rendu/cache-relief.js"></script>
   <script src="./rendu/selection.js"></script>
   <script src="./rendu/coordonnees-bord.js"></script>
@@ -892,6 +896,7 @@
   <script src="./interface/position-copiable.js"></script>
   <script src="./interface/jauge-mes-parties.js"></script>
   <script src="./interface/reglages-profils.js"></script>
+  <script src="./interface/deplacable.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
@@ -1062,7 +1067,9 @@
     });
     // Couleurs du remplissage PLAT (mode simple, et repli des billes en
     // relief tant que leur degrade n'est pas encore charge) : posees en CSS
-    // custom properties, jamais en direct ensuite (voir plus haut).
+    // custom properties — interface/reglages.js les remet a jour EN DIRECT
+    // (correctif phase 22) a chaque changement de couleur, jamais seulement
+    // ici a la construction.
     svg.style.setProperty('--couleur-bille-noire', hexBilleNoire);
     svg.style.setProperty('--couleur-bille-blanche', hexBilleBlanche);
     svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFondPlateau, 0x8a));
@@ -1070,6 +1077,12 @@
     // DEHORS du plateau — jamais celui de KAAWA par defaut (un cuivre),
     // voir moteur/reglages.js.
     document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
+    // Coordonnees sur les billes (board.show_ball_coords, phase 22) :
+    // TOUJOURS construites (interface/saisie.js, actualiserCoordonneesBilles),
+    // seulement masquees en CSS quand le reglage est faux — pour qu'un clic
+    // sur la case a cocher les fasse disparaitre EN DIRECT (interface/
+    // reglages.js), sans reconstruire le plateau.
+    svg.classList.toggle('coordonnees-billes-masquees', !reglages.board.show_ball_coords);
     // Bordure de coordonnees a-i/1-9 (phase 19bis), toujours visible : doit
     // etre la PREMIERE bande ajoutee au viewBox (voir
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
@@ -1086,8 +1099,10 @@
     // le viewBox (voir rendu/plateau-svg.js, fixerProportionsPlateau).
     fixerProportionsPlateau(svg);
     // Le decor (fond, relief, trous) fige en une image : voir rendu/cache-relief.js.
-    // Apres tout ce qui touche au viewBox.
-    figerLeDecor(svg);
+    // Apres tout ce qui touche au viewBox. Le handle renvoye (`{
+    // forcerRedessin }`) est reutilise par interface/reglages.js pour
+    // reconstruire le bitmap apres un changement de couleur en direct.
+    const decorFige = figerLeDecor(svg);
     // Poignee de hauteur du plateau, telephone seulement (phase 18) — voir
     // interface/sequence.js pour le detail et l'exception qu'elle assume.
     activerRedimensionnementPlateauPortrait(svg, document.getElementById('plateau-poignee-hauteur'));
@@ -1165,10 +1180,11 @@
       sons
     );
 
-    // Reglages (phase 22, corrigee) : un brouillon, rien en direct — voir
-    // l'en-tete de interface/reglages.js pour pourquoi (le decor mis en
-    // cache, rendu/cache-relief.js, et les nuances du relief ne peuvent de
-    // toute facon se calculer qu'a la construction du plateau).
+    // Reglages (phase 22, corrigee une seconde fois : "en direct", voir
+    // l'en-tete de interface/reglages.js) : `svg` et `decorFige` (le handle
+    // de rendu/cache-relief.js) lui donnent ce qu'il faut pour recolorer le
+    // plateau deja construit sans jamais recharger, sauf pour le mode
+    // simple (structurel, voir la fonction).
     demarrerReglages(
       {
         bouton: document.getElementById('bouton-reglages'),
@@ -1188,8 +1204,10 @@
         defaut: document.getElementById('bouton-defaut-reglages'),
         annuler: document.getElementById('bouton-annuler-reglages'),
         sauverSous: document.getElementById('bouton-sauver-sous-reglages'),
-        valider: document.getElementById('bouton-valider-reglages'),
+        fermer: document.getElementById('bouton-fermer-reglages'),
       },
+      svg,
+      decorFige,
       demarrerRechargement
     );
 
@@ -1316,8 +1334,7 @@
         menaces?.actualiser();
         actualiserBandeauPuzzle(arbre);
       },
-      sons.jouer,
-      reglages.board.show_ball_coords
+      sons.jouer
     );
 
     // Puzzle en cours (phase 16). Rien de nouveau n'est stocke pour le

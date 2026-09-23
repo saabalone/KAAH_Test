@@ -107,10 +107,18 @@ function dessinerDecorEnBitmap(texteSvg, largeurPixels, hauteurPixels, surImage)
 }
 
 // A appeler UNE FOIS, en dernier (le viewBox doit etre definitif). Se
-// redessine seul quand la taille du plateau change.
+// redessine seul quand la taille du plateau change ; renvoie
+// `{ forcerRedessin }` (phase 22, correctif "les couleurs doivent
+// s'appliquer en direct") pour reconstruire le bitmap APRES avoir change une
+// couleur du decor vectoriel sous-jacent — sans lui, un changement de
+// couleur ne se voyait qu'en changeant de partie (le bitmap ne se redessine
+// alors QUE si l'echelle a change, jamais pour une couleur). `forcerRedessin`
+// ignore ce seuil : bascule `echelleDessinee` a 0 puis rappelle
+// `redessiner`. Renvoie `undefined` si le decor n'a pas pu etre fige (mode
+// simple, ou navigateur sans ResizeObserver) : rien a forcer dans ce cas.
 function figerLeDecor(svg) {
   const decor = SELECTEURS_DECOR.map((selecteur) => svg.querySelector(selecteur));
-  if (decor.includes(null) || typeof ResizeObserver === 'undefined') return;
+  if (decor.includes(null) || typeof ResizeObserver === 'undefined') return undefined;
 
   let imageDecor = null;
   let echelleDessinee = 0;
@@ -167,4 +175,11 @@ function figerLeDecor(svg) {
 
   new ResizeObserver(redessiner).observe(svg);
   redessiner();
+
+  return {
+    forcerRedessin() {
+      echelleDessinee = 0;
+      redessiner();
+    },
+  };
 }

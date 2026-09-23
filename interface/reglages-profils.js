@@ -13,8 +13,9 @@
 // revient pas au fichier par defaut").
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
-// fusionnerReglages (moteur/reglages.js) viennent d'un fichier charge avant
-// celui-ci dans index.html.
+// fusionnerReglages (moteur/reglages.js) et formaterDateKAAWA
+// (interface/sauvegarde.js) viennent de fichiers charges avant celui-ci
+// dans index.html.
 
 const CLE_PROFILS_REGLAGES = 'kaah-reglages-profils';
 const NOM_PROFIL_DEFAUT = 'Défaut';
@@ -72,12 +73,16 @@ function sauverProfilActif(reglages) {
   return nom;
 }
 
-// Un nom de profil libre, propose par defaut a "Sous..." (jamais impose,
-// juste un point de depart raisonnable) : "Mes réglages", puis "(2)", "(3)"...
+// Le nom qu'un reglage retouche sur Défaut prend TOUT SEUL (saab, correctif
+// "en direct") : `set_kaah_<date du jour>`, jamais "Mes réglages (n)" — la
+// meme date tant qu'on retouche le MEME jour (creerProfil ecrase alors ce
+// meme profil, exactement comme on ne change jamais la date d'un fichier
+// deja enregistre) ; un jour different redonne naturellement un nom
+// different, donc un NOUVEAU profil, jamais le meme fichier reetiquete. Un
+// nom fixe et distinct reste toujours possible via "Sauver..." (saab :
+// "si on fait Sauver..., on pourra changer ce titre").
 function nomProfilParDefaut() {
-  const existants = new Set(listerNomsProfils());
-  if (!existants.has('Mes réglages')) return 'Mes réglages';
-  for (let i = 2; ; i++) if (!existants.has(`Mes réglages (${i})`)) return `Mes réglages (${i})`;
+  return `set_kaah_${formaterDateKAAWA(new Date())}`;
 }
 
 // Cree (ou ecrase) le profil `nom` avec `reglages`, le rend actif, et

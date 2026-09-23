@@ -433,25 +433,26 @@ button,
   color: #9a9a9a;
 }
 
-/* Pied de la boite Réglages (phase 22, corrigee) : Défaut/Annuler/Sauver.../
-   Valider — TOUJOURS visible (.dialogue-grand, plus haut), rien ne s'applique
-   avant d'appuyer sur l'un d'eux. */
+/* Pied de la boite Réglages (phase 22, corrigee deux fois) : Défaut/
+   Annuler/Sauver.../Fermer — TOUJOURS visible (.dialogue-grand, plus haut).
+   CORRIGE (saab : "tes boutons sont trop longs... et trop hauts, la ligne
+   Exporter touche la ligne Défaut") : largeur au contenu (`flex: 0 0 auto`,
+   plus de `min-width` ni de `flex-grow` qui les etirait pour rien), hauteur
+   ramenee au gabarit de .bouton-dialogue (30px, comme tous les autres pieds
+   de dialogue de KAAH — le 44px d'avant n'etait pas justifie ici) et une
+   separation visible (bordure) d'avec la zone qui defile juste au-dessus. */
 .pied-reglages {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid #3a3a3a;
 }
 
 .pied-reglages .bouton-dialogue {
-  flex: 1 1 auto;
-  min-height: 44px;
-  min-width: 80px;
+  flex: 0 0 auto;
   margin-top: 0;
-}
-
-#bouton-valider-reglages {
-  background: var(--vert-demande);
-  border-color: var(--vert-demande);
 }
 
 /* Poignee de la boite Réglages (saab : elle masquait le plateau) : son
@@ -2426,13 +2427,12 @@ button,
   fill: #e4e4e4;
 }
 
-/* Libelle de mode sous chaque pendule (phase 22bis, rendu/pendule.js,
-   dessinerLibellePendule) : sa propre bande a droite du plateau
-   (rendu/ejections.js, agrandirViewBoxPourLibellesPendules), meme taille que
-   le compteur Occ/Ref (.compteur-occurrences-plateau) pour la meme raison —
-   un texte assez long dans une bande fine. */
+/* Libelle de mode pres de chaque pendule (phase 22bis, rendu/pendule.js,
+   dessinerLibellePendule) : CORRIGE (saab) — plus petit que le compteur
+   Occ/Ref (.compteur-occurrences-plateau, 6px), colle contre la pendule
+   dans le vide deja existant plutot que dans une bande a part. */
 .libelle-pendule {
-  font: 6px sans-serif;
+  font: 4px sans-serif;
   fill: #e4e4e4;
 }
 
@@ -2496,6 +2496,16 @@ button,
 
 .bille-blanc .coordonnee-bille {
   fill: #1f1f1f;
+}
+
+/* Reglage "Coordonnées sur les billes" (phase 22, interface/reglages.js) :
+   les etiquettes restent CONSTRUITES en permanence (interface/saisie.js,
+   actualiserCoordonneesBilles) — seule cette classe, sur #plateau, les
+   masque, pour qu'un clic sur la case a cocher les fasse disparaitre EN
+   DIRECT sans reconstruire quoi que ce soit. Jamais .coordonnee-destination
+   (les chiffres verts d'une selection active) : reglage sans rapport. */
+#plateau.coordonnees-billes-masquees .coordonnee-bille {
+  display: none;
 }
 
 .coordonnee-destination {

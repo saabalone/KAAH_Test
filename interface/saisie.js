@@ -196,8 +196,7 @@ function demarrerPartie(
   elementsHistoriqueNavigation,
   arbreDepart,
   surChangement,
-  jouerSon,
-  afficherCoordonneesBilles = true
+  jouerSon
 ) {
   let arbre = arbreDepart ?? creerArbre(etatInitial);
   // Historique de NAVIGATION (phase 11bis) : ou l'on est ALLE en cliquant des
@@ -751,10 +750,11 @@ function demarrerPartie(
     actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Coordonnees sur les billes du camp au trait (phase 19bis) : `null`
     // une fois la partie terminee, `.bille-null` ne correspond alors a
-    // rien — voir rendu/coordonnees-jeu.js. `afficherCoordonneesBilles`
-    // (phase 22, reglage board.show_ball_coords) : `null` les eteint aussi,
-    // meme raison, meme effet.
-    actualiserCoordonneesBilles(svg, afficherCoordonneesBilles ? joueurAuTrait : null);
+    // rien — voir rendu/coordonnees-jeu.js. Le reglage board.show_ball_coords
+    // (phase 22) ne les construit pas differemment : il bascule une classe
+    // CSS sur `svg` (interface/reglages.js), pour s'appliquer EN DIRECT sans
+    // reconstruire quoi que ce soit ici.
+    actualiserCoordonneesBilles(svg, joueurAuTrait);
     // Fleche du coup qui a mene A CE noeud precis (phase 19bis) — jamais
     // celle du dernier noeud de la branche : lue sur le noeud COURANT,
     // suit donc fidelement toute navigation dans l'historique. `undefined`

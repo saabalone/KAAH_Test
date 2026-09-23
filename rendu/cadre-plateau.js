@@ -127,6 +127,15 @@ function dessinerCadrePlateau(cadre, hexFond) {
   });
 }
 
+// Recolore le fond deja construit (phase 22, correctif "en direct") : sans
+// cette fonction, un changement de board.bg_color dans les reglages ne se
+// voyait qu'en changeant de partie (le decor est fige en bitmap, voir
+// rendu/cache-relief.js — c'est l'appelant qui force son redessin apres
+// avoir change cette couleur).
+function actualiserCouleurCadrePlateau(svg, hexFond) {
+  svg.querySelector('.fond-plateau')?.setAttribute('fill', hexFond);
+}
+
 // Marge autour du cadre dans le viewBox : de quoi laisser voir son ombre
 // portee (styles.css, .fond-plateau), pas davantage.
 const MARGE_VIEWBOX_CADRE = RAYON_CASE * 0.2;
