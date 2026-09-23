@@ -218,10 +218,11 @@ button,
 
 /* Jauge du nombre de parties enregistrees (phase 12ter,
    interface/jauge-mes-parties.js) : un badge en haut a droite de l'icone
-   "Mes parties", TOUJOURS visible (jamais seulement au survol, CLAUDE.md).
-   `#bouton-mes-parties` doit etre `position: relative` pour l'ancrer. Vert
-   par defaut (meme famille que --vert-demande, mais un signal d'INFO ici,
-   jamais une demande), rouge au-dela du second seuil. */
+   "Mes parties", visible des la premiere partie enregistree (jamais
+   seulement au survol, CLAUDE.md). `#bouton-mes-parties` doit etre
+   `position: relative` pour l'ancrer. Vert par defaut (meme famille que
+   --vert-demande, mais un signal d'INFO ici, jamais une demande), rouge
+   au-dela du seuil (reglable dans la boite "Mes parties"). */
 #bouton-mes-parties {
   position: relative;
 }
@@ -273,6 +274,15 @@ button,
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+}
+
+/* Icone ⏱ du bouton Pendules (phase 22bis, correctif saab : "mettre en
+   vert l'intérieur du cercle du chrono, pas le carré du bouton") : seul le
+   glyphe devient vert (--vert-demande, meme famille que les pendules
+   elles-memes quand elles attendent un clic) — le carre gris du bouton
+   (.icone-hexagone/fond du bouton lui-meme) ne change pas. */
+#bouton-mode-pendules .icone-texte {
+  color: var(--vert-demande);
 }
 
 #boutons-sauvegarde button {
@@ -595,6 +605,65 @@ button,
   height: 22px;
   margin: 0 4px;
   cursor: pointer;
+}
+
+/* Remplace "Tout selectionner"/"Tout deselectionner" (correctif, saab) :
+   une case a cocher (comme celles des lignes) + un bouton ▶/▼ qui deplie le
+   choix du filtre — voir interface/mes-parties.js. */
+.groupe-selection-parties {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.bouton-repli-parties {
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  color: #e4e4e4;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* `:not([hidden])` INDISPENSABLE : `display: flex` sans lui l'emporterait
+   sur le `display: none` que `[hidden]` pose (meme piege deja rencontre
+   avec les dialogues plein ecran, voir plus haut) — le panneau resterait
+   affiche en permanence, replie ou non. */
+.panneau-filtre-selection:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 4px;
+  padding: 4px 8px;
+  background: #2a2a2a;
+  border-radius: 6px;
+}
+
+.panneau-filtre-selection label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+/* Seuil de la jauge "Mes parties" (correctif, saab : deplace de "Réglages"
+   ici) — voir interface/jauge-mes-parties.js. */
+.ligne-seuil-jauge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 13px;
+  color: #c4c4c4;
+}
+
+.ligne-seuil-jauge input {
+  width: 50px;
+  min-height: 32px;
+  font-size: 14px;
+  text-align: center;
 }
 
 .ligne-partie {
@@ -2433,7 +2502,19 @@ button,
    dans le vide deja existant plutot que dans une bande a part. */
 .libelle-pendule {
   font: 4px sans-serif;
-  fill: #e4e4e4;
+}
+
+/* Couleur du CAMP (saab : "mets ces labels de la couleur du camp"), pas un
+   gris neutre comme les chiffres de la pendule (.pendule-camp-noir/-blanc) —
+   memes variables CSS que les billes (index.html/interface/reglages.js), en
+   direct : changer la couleur des billes dans les reglages recolore aussi
+   ces labels. */
+.libelle-pendule-noir {
+  fill: var(--couleur-bille-noire, #1f1f1f);
+}
+
+.libelle-pendule-blanc {
+  fill: var(--couleur-bille-blanche, #e4e4e4);
 }
 
 /* Compte numerique des billes ejectees (rendu.dessinerNombreEjecte), a

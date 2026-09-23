@@ -21,12 +21,24 @@
 // penible, surtout pour vider la liste avant de donner KAAH a des testeurs) :
 // une case a cocher par ligne (`stopPropagation` : cocher ne doit ni
 // previsualiser ni charger la ligne, meme raison que le bouton favori de
-// variantes.js), "Tout selectionner" / "Tout deselectionner", puis "Supprimer
-// la selection", qui demande confirmation dans la boite verte habituelle —
-// jamais une boite native du navigateur. Cocher tout puis decocher celles qu'on
-// garde fait donc « tout supprimer sauf... ». La partie EN COURS peut etre
-// supprimee aussi : elle continue de se jouer, et se resauvegarde comme une
-// nouvelle entree au prochain coup.
+// variantes.js), puis "Supprimer la selection", qui demande confirmation
+// dans la boite verte habituelle — jamais une boite native du navigateur.
+// Cocher tout puis decocher celles qu'on garde fait donc « tout supprimer
+// sauf... ». La partie EN COURS peut etre supprimee aussi : elle continue de
+// se jouer, et se resauvegarde comme une nouvelle entree au prochain coup.
+//
+// CORRIGE (saab : "remplacer les 2 btn Tout select/deselect par un btn
+// carre... et qu'on peut deplier pour choisir quel type de partie" — les
+// deux boutons "Tout selectionner"/"Tout deselectionner" prenaient une
+// place que la jauge, deplacee ici depuis "Réglages", reclamait) : une
+// SEULE case a cocher (`caseTout`, meme case que celles des lignes) —
+// cochee, elle selectionne tout ce qui correspond au FILTRE choisi ;
+// decochee, elle vide la selection entiere. A cote, un bouton ▶/▼ (meme
+// idiome que la Sequence, rendu/arbre-ligne.js) deplie un petit panneau qui
+// choisit ce filtre : "Toutes" ou "Avec branches" (le prefixe `Br_` de
+// moteur/nom-partie.js, deja reel aujourd'hui — jamais un type invente
+// comme "My", qui n'existe pas encore, CLAUDE.md, pas d'abstraction
+// prematuree).
 //
 // CONFIRMATION DE REPRISE (ouvrirPourConfirmationReprise, appelee par
 // index.html seulement si une partie est reprise automatiquement au
@@ -61,14 +73,15 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) :
 // listerPartiesEnregistrees, obtenirIdPartieActive, definirIdPartieActive,
 // oublierPartieActive, supprimerPartieNommee, definirRepriseDejaConfirmee
-// (interface/sauvegarde.js), nomDeFichierKAAWA (moteur/nom-partie.js),
-// donneesVersArbre (moteur/sauvegarde.js), noeudA (moteur/arbre.js),
-// dessinerPlateau, poserBille (rendu/plateau-svg.js), dessinerEjectionsApercu
-// (rendu/ejections-apercu.js) et depuisNotation (moteur/plateau.js)
-// viennent tous des fichiers charges avant celui-ci dans index.html.
+// (interface/sauvegarde.js), nomDeFichierKAAWA, possedeUneBranche
+// (moteur/nom-partie.js), donneesVersArbre (moteur/sauvegarde.js), noeudA
+// (moteur/arbre.js), dessinerPlateau, poserBille (rendu/plateau-svg.js),
+// dessinerEjectionsApercu (rendu/ejections-apercu.js) et depuisNotation
+// (moteur/plateau.js) viennent tous des fichiers charges avant celui-ci
+// dans index.html.
 
 // `elements` : { bouton, dialogue, apercu, liste, fermer, message,
-// toutSelectionner, toutDeselectionner, supprimer }.
+// caseTout, boutonFiltre, panneauFiltre, supprimer }.
 // `message` est optionnel (texte d'avertissement affiche seulement pour
 // une confirmation de reprise, voir l'en-tete du fichier).
 // `demarrerRechargement` (index.html) : a appeler pour CHAQUE
@@ -101,12 +114,22 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   // fichier). Toujours vide a l'ouverture : une selection ne survit pas a la
   // fermeture du dialogue.
   let idsSelectionnes = new Set();
+  // Le filtre choisi dans le panneau ▶/▼ (voir l'en-tete du fichier) : ce que
+  // `caseTout` selectionne quand on la coche. Ne change jamais la selection
+  // deja faite tout seul — seulement ce qu'un PROCHAIN clic sur la case fera.
+  let filtreSelection = 'toutes';
 
   elements.bouton.addEventListener('click', () => {
     modeConfirmationReprise = false;
     elements.fermer.textContent = 'Fermer';
     idPrevisualise = null;
     idsSelectionnes = new Set();
+    // Le filtre et son panneau ne survivent pas non plus a la fermeture,
+    // meme raison que la selection.
+    filtreSelection = 'toutes';
+    elements.panneauFiltre.querySelector('input[value="toutes"]').checked = true;
+    elements.panneauFiltre.hidden = true;
+    elements.boutonFiltre.textContent = '▶';
     afficherMessage(null);
     rafraichir();
     elements.dialogue.showModal();
@@ -127,14 +150,34 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     demarrerRechargement();
   }
 
-  elements.toutSelectionner.addEventListener('click', () => {
-    idsSelectionnes = new Set(listerPartiesEnregistrees().map((entree) => entree.id));
+  // Les entrees que `caseTout` doit cocher, selon le filtre choisi.
+  function partiesFiltrees() {
+    const parties = listerPartiesEnregistrees();
+    return filtreSelection === 'branches' ? parties.filter((entree) => possedeUneBranche(entree.donnees.Tree)) : parties;
+  }
+
+  // Remplace "Tout selectionner"/"Tout deselectionner" (saab, voir l'en-tete
+  // du fichier) : cochee, selectionne tout ce qui correspond au filtre ;
+  // decochee, vide la selection entiere (jamais seulement le filtre — un
+  // reclic doit vraiment tout desectionner, meme des parties cochees a la
+  // main hors filtre).
+  elements.caseTout.addEventListener('change', () => {
+    idsSelectionnes = elements.caseTout.checked ? new Set(partiesFiltrees().map((entree) => entree.id)) : new Set();
     rafraichir();
   });
-  elements.toutDeselectionner.addEventListener('click', () => {
-    idsSelectionnes = new Set();
-    rafraichir();
+
+  // Panneau du filtre, replie par defaut : meme idiome ▶/▼ que la Sequence
+  // (rendu/arbre-ligne.js) pour deplier/replier.
+  elements.boutonFiltre.addEventListener('click', () => {
+    elements.panneauFiltre.hidden = !elements.panneauFiltre.hidden;
+    elements.boutonFiltre.textContent = elements.panneauFiltre.hidden ? '▶' : '▼';
   });
+  for (const radio of elements.panneauFiltre.querySelectorAll('input[name="filtre-selection-parties"]')) {
+    radio.addEventListener('change', () => {
+      if (radio.checked) filtreSelection = radio.value;
+    });
+  }
+
   elements.supprimer.addEventListener('click', () => {
     const ids = [...idsSelectionnes];
     if (ids.length === 0) return;
@@ -158,13 +201,19 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   }
 
   // Le bouton "Supprimer la selection" dit combien de parties il va
-  // supprimer, et reste grise tant qu'aucune n'est cochee.
-  function actualiserBarre(nombreDeParties) {
+  // supprimer, et reste grise tant qu'aucune n'est cochee. `caseTout` reflete
+  // l'etat REEL de la selection (coche seule si TOUT le filtre courant est
+  // deja selectionne, "indeterminee" — le tiret natif du navigateur — pour
+  // une selection partielle) plutot que de garder son propre etat a part,
+  // qui aurait pu se desynchroniser d'une case cochee a la main.
+  function actualiserBarre() {
     const n = idsSelectionnes.size;
     elements.supprimer.disabled = n === 0;
     elements.supprimer.textContent = n === 0 ? 'Supprimer la sélection' : `Supprimer la sélection (${n})`;
-    elements.toutSelectionner.disabled = nombreDeParties === 0;
-    elements.toutDeselectionner.disabled = n === 0;
+    const filtrees = partiesFiltrees();
+    elements.caseTout.disabled = filtrees.length === 0;
+    elements.caseTout.checked = filtrees.length > 0 && filtrees.every((entree) => idsSelectionnes.has(entree.id));
+    elements.caseTout.indeterminate = n > 0 && !elements.caseTout.checked;
   }
 
   // Cliquer l'APERCU vaut confirmation, meme idee que pour Variantes/PZL.
@@ -179,7 +228,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     // Une partie supprimee ailleurs ne doit pas rester "cochee" a notre insu.
     const idsExistants = new Set(parties.map((entree) => entree.id));
     idsSelectionnes = new Set([...idsSelectionnes].filter((id) => idsExistants.has(id)));
-    actualiserBarre(parties.length);
+    actualiserBarre();
     if (parties.length === 0) {
       const vide = document.createElement('p');
       vide.textContent = "Aucune partie jouée pour l'instant.";
@@ -226,7 +275,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     coche.addEventListener('change', () => {
       if (coche.checked) idsSelectionnes.add(entree.id);
       else idsSelectionnes.delete(entree.id);
-      actualiserBarre(listerPartiesEnregistrees().length);
+      actualiserBarre();
     });
     ligne.appendChild(coche);
 

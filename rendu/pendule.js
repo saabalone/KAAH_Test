@@ -140,23 +140,27 @@ function masquerPause(svg) {
 
 // Le libelle du mode de pendule (phase 22bis, PLAN.md) : "Bonus | Coup+2
 // Éject+0", "Délai | Coup+5s" ou "Chrono" (moteur/pendules.js,
-// libellePendule). CORRIGE (saab : une premiere version l'affichait dans une
-// bande a part, qui agrandissait le viewBox et retrecissait donc le plateau
-// a l'ecran — "tout ce qu'on rajoute doit trouver sa place sans rien
-// toucher ni deplacer de ce qui existait") : ni bande, ni agrandissement,
-// juste un texte plus PETIT, coller CONTRE la pendule (meme y), dans le vide
-// deja libre entre elle et le plateau (verifie a l'oeil, aucune bille du
-// coin approchee). Pas de cadre autour de lui, comme le compteur Occ/Ref
-// (rendu/compteur-occurrences.js) : seulement du texte, tourne comme la
-// pendule pour se lire de haut en bas.
-const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE * 1.15 + JEU_PENDULE;
+// libellePendule). CORRIGE DEUX FOIS (saab) : une premiere version
+// l'affichait dans une bande a part, qui agrandissait le viewBox et
+// retrecissait donc le plateau a l'ecran — supprimee (voir CLAUDE.md, "tout
+// ce qu'on rajoute doit trouver sa place sans rien toucher ni deplacer de
+// ce qui existait"). La version suivante le recollait dans le vide entre le
+// plateau et la pendule, mais encore trop loin de celle-ci ("il y a plein
+// d'espace entre, ils doivent etre au raz des pendules") : DECALAGE_LIBELLE_
+// PENDULE ne vaut plus que l'epaisseur de la pendule (HAUTEUR_BOUTON_
+// PENDULE / 2) plus une marge minime, jamais un multiple genereux de cette
+// epaisseur. Couleur du camp (saab, "mets ces labels de la couleur du
+// camp") : classe `libelle-pendule-${camp}` en plus, comme .cadre-pendule-
+// noir/-blanc — voir styles.css, qui reutilise les memes variables CSS que
+// les billes (--couleur-bille-noire/-blanche, en direct des reglages).
+const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE / 2 + RAYON_PISTE;
 
 function dessinerLibellePendule(svg, camp, { x, y }) {
   const xLibelle = x - DECALAGE_LIBELLE_PENDULE;
   svg.appendChild(
     creerElementSVG('text', {
       id: `libelle-pendule-${camp}`,
-      class: 'libelle-pendule',
+      class: `libelle-pendule libelle-pendule-${camp}`,
       x: xLibelle,
       y,
       'text-anchor': 'middle',

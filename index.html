@@ -334,6 +334,15 @@
          signale pouvoir croire par erreur qu'il demarre une partie neuve
          alors qu'une partie est en fait reprise en silence. -->
     <p id="message-reprise-partie" class="message-reprise" hidden></p>
+    <!-- Jauge de l'icone "Mes parties" (phase 12ter) : le seuil qui la fait
+         rougir se regle ICI (pas dans "Réglages", saab) — bas par defaut (2)
+         pour voir le rouge sans creer 50 parties de test. Voir
+         interface/jauge-mes-parties.js. -->
+    <label class="ligne-seuil-jauge">
+      Alerte (icône rouge) au-delà de
+      <input id="champ-seuil-jauge-parties" type="number" min="0" step="1" />
+      parties
+    </label>
     <!-- Apercu de la partie previsualisee (meme principe qu'#apercu-variante
          et #apercu-puzzle) : la position a LA FIN DE LA BRANCHE PRINCIPALE
          (celle reellement jouee, `cheminOrigine` — jamais une branche
@@ -344,12 +353,29 @@
          MiniBoard._draw) — pas un <svg> a part, voir ce fichier. -->
     <svg id="apercu-partie"></svg>
     <!-- Suppression de plusieurs parties d'un coup (saab : une par une, c'etait
-         penible) : une case a cocher par ligne, ces trois boutons, puis une
-         confirmation verte. Voir interface/mes-parties.js. -->
+         penible) : une case a cocher par ligne, plus CETTE case-ci (correctif,
+         remplace les 2 boutons Tout selectionner/deselectionner d'avant, saab :
+         "plus simple et laisse de la place") qui selectionne/desselectionne
+         tout (ou le choix du panneau replie a cote, ▶/▼ comme dans Sequence),
+         puis une confirmation verte. Voir interface/mes-parties.js. -->
     <div id="barre-parties" class="barre-parties">
-      <button id="bouton-tout-selectionner-parties" class="bouton-dialogue" type="button">Tout sélectionner</button>
-      <button id="bouton-tout-deselectionner-parties" class="bouton-dialogue" type="button">Tout désélectionner</button>
+      <span class="groupe-selection-parties">
+        <input id="case-tout-parties" type="checkbox" class="case-partie" title="Tout sélectionner / tout désélectionner" />
+        <button
+          id="bouton-filtre-selection-parties"
+          class="bouton-repli-parties"
+          type="button"
+          title="Choisir quel type de partie sélectionner"
+          aria-label="Choisir quel type de partie sélectionner"
+        >
+          ▶
+        </button>
+      </span>
       <button id="bouton-supprimer-parties" class="bouton-dialogue" type="button" disabled>Supprimer la sélection</button>
+    </div>
+    <div id="panneau-filtre-selection-parties" class="panneau-filtre-selection" hidden>
+      <label><input type="radio" name="filtre-selection-parties" value="toutes" checked /> Toutes</label>
+      <label><input type="radio" name="filtre-selection-parties" value="branches" /> Avec branches (Br_)</label>
     </div>
     <div id="liste-parties" class="liste-dialogue"></div>
     <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
@@ -1575,6 +1601,10 @@
     // haut) et a chaque suppression (surSuppression, juste en dessous).
     const elementBadgeMesParties = document.getElementById('badge-mes-parties');
     actualiserJaugeMesParties(elementBadgeMesParties);
+    // Seuil reglable DANS la boite "Mes parties" (correctif, saab — voir
+    // l'en-tete de interface/jauge-mes-parties.js pour pourquoi pas dans
+    // "Réglages" comme prevu au depart).
+    demarrerReglageJaugeMesParties(document.getElementById('champ-seuil-jauge-parties'), elementBadgeMesParties);
 
     const listeParties = demarrerListeParties(
       {
@@ -1584,8 +1614,9 @@
         apercu: document.getElementById('apercu-partie'),
         liste: document.getElementById('liste-parties'),
         fermer: document.getElementById('bouton-fermer-mes-parties'),
-        toutSelectionner: document.getElementById('bouton-tout-selectionner-parties'),
-        toutDeselectionner: document.getElementById('bouton-tout-deselectionner-parties'),
+        caseTout: document.getElementById('case-tout-parties'),
+        boutonFiltre: document.getElementById('bouton-filtre-selection-parties'),
+        panneauFiltre: document.getElementById('panneau-filtre-selection-parties'),
         supprimer: document.getElementById('bouton-supprimer-parties'),
       },
       demarrerRechargement,
