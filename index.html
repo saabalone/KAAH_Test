@@ -1061,6 +1061,7 @@
   <script src="./interface/positions-my.js"></script>
   <script src="./interface/editeur-position.js"></script>
   <script src="./interface/formulaire-position-my.js"></script>
+  <script src="./interface/fermeture-dialogues.js"></script>
   <script src="./interface/nulle.js"></script>
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
@@ -1328,6 +1329,10 @@
     } catch (erreur) {
       console.error('Puzzles My illisibles :', erreur);
     }
+
+    // Toutes les boites se ferment aussi d'un clic en dehors, comme avec Echap
+    // (interface/fermeture-dialogues.js) : elles existent toutes deja dans le HTML.
+    fermerLesBoitesParClicExterieur();
 
     // Confirmation avant Annuler/supprimer une branche (correctif de
     // disposition) : ne depend de rien d'autre, peut se creer avant

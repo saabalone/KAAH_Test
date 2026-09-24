@@ -89,6 +89,7 @@ const FICHIERS_A_CACHER = [
   './interface/positions-my.js',
   './interface/editeur-position.js',
   './interface/formulaire-position-my.js',
+  './interface/fermeture-dialogues.js',
   './interface/nulle.js',
   './interface/sons.js',
   './interface/reglages-sons.js',

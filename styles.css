@@ -11,6 +11,16 @@
    meme seuil plutot qu'en choisir un autre. */
 
 :root {
+  /* ===== REGLAGE : hauteur des boutons, champs et lignes a cocher =====
+     Decide par saab (2026-09-24) : la place a l'ecran prime — "on perd de la
+     place inutilement". 44px est le minimum conseille par Apple pour un doigt
+     (ancienne regle de CLAUDE.md) ; 30px est la hauteur des boutons de pied de
+     boite, deja validee par saab. LA seule valeur a changer pour tout essayer
+     plus grand ou plus petit. */
+  --hauteur-commande: 30px;
+  /* Une ligne des listes Variantes / Puzzles / Mes parties (et son etoile). */
+  --hauteur-ligne-liste: 24px;
+
   /* ===== REGLAGE : taille de l'apercu dans "Variantes", "Puzzles" et
      "Mes parties" =====
      C'est LA seule valeur a changer pour l'essayer plus grand ou plus
@@ -391,7 +401,7 @@ button,
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .ligne-couleur input {
@@ -411,7 +421,7 @@ button,
 
 .barre-reglages-fichier .bouton-dialogue {
   flex: 1 1 0;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   margin-top: 0;
 }
 
@@ -426,7 +436,7 @@ button,
 #select-profil-reglages {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   background: #2a2a2a;
   color: #e4e4e4;
   border: 1px solid #5a5a5a;
@@ -450,7 +460,7 @@ button,
 .ligne-creation textarea {
   box-sizing: border-box;
   width: 100%;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   padding: 6px 8px;
   background: #2a2a2a;
   color: #e4e4e4;
@@ -487,7 +497,7 @@ button,
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .types-variante-my {
@@ -500,7 +510,7 @@ button,
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   font-size: 13px;
   color: #c4c4c4;
 }
@@ -591,7 +601,7 @@ button,
 }
 
 .bouton-dialogue {
-  min-height: 30px;
+  min-height: var(--hauteur-commande);
   /* 6px : saab, les boutons avaient trop de vide autour du libelle — la place
      est comptee partout. */
   padding: 0 6px;
@@ -667,7 +677,7 @@ button,
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 0;
+  padding: 1px 0;
   border-bottom: 1px solid #3a3a3a;
   font-size: 12px;
 }
@@ -680,7 +690,7 @@ button,
 
 .ligne-liste button {
   flex: 0 0 auto;
-  min-height: 32px;
+  min-height: var(--hauteur-ligne-liste);
   padding: 0 5px;
   background: #3a3a3a;
   color: #e4e4e4;
@@ -701,7 +711,7 @@ button,
 }
 
 .barre-parties .bouton-dialogue {
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   margin-top: 0;
 }
 
@@ -729,12 +739,12 @@ button,
 .groupe-selection-parties {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .bouton-repli-parties {
   min-width: 44px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   background: none;
   border: none;
   color: #e4e4e4;
@@ -770,7 +780,7 @@ button,
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   font-size: 13px;
   color: #c4c4c4;
 }
@@ -783,7 +793,7 @@ button,
 }
 
 .ligne-partie {
-  min-height: 44px;
+  min-height: var(--hauteur-ligne-liste);
 }
 
 /* La partie active (celle qu'on est en train de jouer), ou la variante
@@ -830,8 +840,8 @@ button,
    `.ligne-liste button.bouton-favori` (element + 2 classes) corrige ca en
    etant, cette fois, reellement plus specifique. */
 .ligne-liste button.bouton-favori {
-  min-width: 32px;
-  font-size: 20px;
+  min-width: var(--hauteur-ligne-liste);
+  font-size: 16px;
   line-height: 1;
   color: #8a8a8a;
 }
@@ -2861,7 +2871,7 @@ button,
 .aide-entete .bouton-dialogue {
   flex: 0 0 auto;
   margin-top: 0;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .dialogue-aide .aide-corps {
@@ -2871,7 +2881,7 @@ button,
 .dialogue-aide summary {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   font-weight: bold;
   cursor: pointer;
 }
@@ -2893,7 +2903,7 @@ button,
 
 #bouton-fermer-aide {
   flex: 0 0 auto;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 /* Rangee de classement des dialogues Variantes et Puzzles (interface/filtres-
@@ -2909,7 +2919,7 @@ button,
 
 .bouton-filtre {
   flex: 0 0 auto;
-  min-height: 44px; /* zone tactile minimale (CLAUDE.md) : seule la largeur est resserree */
+  min-height: var(--hauteur-commande);
   padding: 0 7px;
   background: #3a3a3a;
   color: #e4e4e4;
@@ -2940,7 +2950,7 @@ button,
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   cursor: pointer;
 }
 
@@ -2964,7 +2974,7 @@ button,
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .ligne-nombre-pendule input {
@@ -2991,7 +3001,7 @@ button,
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
 }
 
 .ligne-volume-sons input {
@@ -3004,7 +3014,7 @@ button,
 #champ-nom-joueur {
   width: 100%;
   box-sizing: border-box;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   margin-bottom: 8px;
   padding: 0 8px;
   font-size: 16px; /* 16 px : en dessous, Safari/iOS agrandit la page a la prise de focus */
@@ -3027,7 +3037,7 @@ button,
    explication dessous. */
 .options-fin .bouton-dialogue {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--hauteur-commande);
   margin-top: 8px;
 }
 
