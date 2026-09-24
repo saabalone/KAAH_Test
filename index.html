@@ -65,22 +65,6 @@
           </span>
           <span class="libelle-bouton">Nouvelle partie</span>
         </button>
-        <!-- Creer une partie depuis une suite de coups collee, Nacre ou AbaPro
-             (phase 23, interface/creation-partie.js) : meme groupe que
-             "Nouvelle partie", les deux font naitre une partie. Icone dessinee a
-             la main, dans le meme hexagone gris : une feuille ou s'ecrit une
-             suite de coups. -->
-        <button id="bouton-creer-partie" title="Créer une partie à partir d'une suite de coups collée (Nacre ou AbaPro)">
-          <span class="icone-bouton icone-hexagone" aria-hidden="true">
-            <svg viewBox="0 0 25 25" width="25" height="25">
-              <rect x="6" y="3.5" width="13" height="18" rx="1.2" fill="#e4e4e4" stroke="#1a1a1a" stroke-width="1" />
-              <line x1="8.5" y1="8" x2="16.5" y2="8" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
-              <line x1="8.5" y1="12" x2="16.5" y2="12" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
-              <line x1="8.5" y1="16" x2="13.5" y2="16" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span class="libelle-bouton">Créer une partie</span>
-        </button>
       </div>
       <div class="groupe-boutons">
         <button id="bouton-mes-parties" title="Voir et charger les parties enregistrées">
@@ -414,7 +398,13 @@
       <label><input type="radio" name="filtre-selection-parties" value="branches" /> Avec branches (Br_)</label>
     </div>
     <div id="liste-parties" class="liste-dialogue"></div>
-    <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
+    <!-- Creer une partie (phase 23, interface/creation-partie.js) : ici plutot
+         que dans la colonne de gauche (saab), depuis la position de depart de la
+         partie choisie. -->
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-creer-partie-mes-parties" class="bouton-dialogue" type="button">Créer partie</button>
+      <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
   </dialog>
 
   <!-- Dialogue "Variantes" (phase 13) : les positions de depart de
@@ -438,6 +428,7 @@
       <button id="bouton-nouvelle-variante-my" class="bouton-dialogue" type="button">Nouvelle</button>
       <button id="bouton-modifier-variante-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
       <button id="bouton-exporter-variantes-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <button id="bouton-creer-partie-variantes" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
@@ -456,6 +447,7 @@
       <button id="bouton-nouveau-puzzle-my" class="bouton-dialogue" type="button">Nouveau</button>
       <button id="bouton-modifier-puzzle-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
       <button id="bouton-exporter-puzzles-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <button id="bouton-creer-partie-puzzles" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
@@ -1746,10 +1738,12 @@
     // entree de "Mes parties", rechargement — jamais un second chemin de
     // chargement a entretenir. Meme securite que "Nouvelle partie" si une partie
     // est deja en cours ; pas de confirmation de reprise ensuite (on vient deja
-    // de confirmer, voir interface/sauvegarde.js).
-    demarrerCreationPartie(
+    // de confirmer, voir interface/sauvegarde.js). S'ouvre depuis Mes parties,
+    // Variantes et Puzzles (plus bas), pre-remplie avec la ligne choisie — ou, a
+    // defaut, avec la position de depart de la partie affichee.
+    const positionDeLaPartieAffichee = () => ecrirePosition(partie.obtenirArbre().racine.etat);
+    const creationPartie = demarrerCreationPartie(
       {
-        bouton: document.getElementById('bouton-creer-partie'),
         dialogue: document.getElementById('dialogue-creation-partie'),
         titre: document.getElementById('champ-titre-creation'),
         position: document.getElementById('champ-position-creation'),
@@ -1763,9 +1757,6 @@
         valider: document.getElementById('bouton-valider-creation'),
       },
       {
-        // La position de depart de la partie affichee : charger d'abord une
-        // variante (sa boite) suffit a la retrouver ici.
-        positionDeDepart: () => ecrirePosition(partie.obtenirArbre().racine.etat),
         creerLaPartie: (arbre, titre, texteDePosition) => {
           const tempsInitial = REGLAGES_PENDULES_PAR_DEFAUT.tempsInitial;
           const donnees = arbreVersDonnees(arbre, {
@@ -1848,6 +1839,11 @@
       confirmation.demander,
       () => actualiserJaugeMesParties(elementBadgeMesParties)
     );
+    document
+      .getElementById('bouton-creer-partie-mes-parties')
+      .addEventListener('click', () =>
+        creationPartie.ouvrir(listeParties.positionDeDepartPrevisualisee() ?? positionDeLaPartieAffichee())
+      );
     // Une partie reprise en silence peut donner l'impression d'une partie
     // neuve si on ne fait pas attention (signale par saab) : le dialogue
     // "Mes parties" s'ouvre alors tout seul, deja previsualise sur la
@@ -1912,7 +1908,7 @@
         enregistrer: document.getElementById('bouton-enregistrer-position-my'),
       },
       {
-        confirmer: (message, suite, mot) => confirmation.demander(message, suite, mot),
+        confirmer: (message, suite, mot, refus) => confirmation.demander(message, suite, mot, refus),
         enregistrer: (genre, entree) => {
           const nom = genre === 'variantes' ? entree.variant_name : entree.PZL_name;
           const charger = () => {
@@ -1955,6 +1951,9 @@
     );
     boutonExporterVariantes.hidden = listerEntreesMy('variantes').length === 0;
     boutonExporterVariantes.addEventListener('click', () => telechargerPositionsMy('variantes'));
+    document
+      .getElementById('bouton-creer-partie-variantes')
+      .addEventListener('click', () => creationPartie.ouvrir(variantePrevisualisee?.texteBrut ?? positionDeLaPartieAffichee()));
 
     demarrerSelectionVariantes(
       {
@@ -2006,6 +2005,9 @@
     );
     boutonExporterPuzzles.hidden = listerEntreesMy('puzzles').length === 0;
     boutonExporterPuzzles.addEventListener('click', () => telechargerPositionsMy('puzzles'));
+    document
+      .getElementById('bouton-creer-partie-puzzles')
+      .addEventListener('click', () => creationPartie.ouvrir(puzzlePrevisualise?.texteBrut ?? positionDeLaPartieAffichee()));
 
     demarrerSelectionPuzzles(
       {

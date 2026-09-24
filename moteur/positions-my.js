@@ -100,6 +100,27 @@ function createurEnregistre(createur) {
   return createur.trim() ? `${PREFIXE_CREATEUR}${createur}` : '';
 }
 
+function billesParCamp(position) {
+  const etat = lirePosition(position);
+  const couleurs = Object.values(couleursDuPlateau(etat.plateau));
+  const noiresPosees = couleurs.filter((couleur) => couleur === 'noir').length;
+  return {
+    noiresPosees,
+    blanchesPosees: couleurs.length - noiresPosees,
+    ejectionsNoires: etat.billesEjecteesNoires,
+    ejectionsBlanches: etat.billesEjecteesBlanches,
+  };
+}
+
+// Un Mini PZL se joue avec moins de billes qu'un jeu complet : c'est ce que
+// montrent les 104 puzzles de KAAWA (les 51 Mini ont un camp a moins de 14 billes,
+// posees + deja ejectees ; seuls 3 PZL aussi). Sert a POSER la question a la
+// creation d'un puzzle (demande de saab), jamais a trancher.
+function aMoinsDeBillesQuUnJeuComplet(position) {
+  const { noiresPosees, blanchesPosees, ejectionsNoires, ejectionsBlanches } = billesParCamp(position);
+  return noiresPosees + ejectionsNoires < BILLES_MAX_PAR_CAMP || blanchesPosees + ejectionsBlanches < BILLES_MAX_PAR_CAMP;
+}
+
 // Handicaps de KAAWA (process_final_save) : « score » si une bille est deja
 // ejectee ; « billes » si posees + ejectees ne font pas 14 dans un camp — une
 // variante a handicap garde ses 14 billes posees, elle compte donc aussi comme
@@ -108,17 +129,13 @@ function createurEnregistre(createur) {
 // `source` : l'original quand on « Modifie » (jamais touche, voir PLAN.md) ;
 // equilibre et handicaps restent vrais s'ils l'etaient.
 function entreeVarianteMy({ nomSaisi, createur, date, position, types, source }) {
-  const etat = lirePosition(position);
-  const couleurs = Object.values(couleursDuPlateau(etat.plateau));
-  const noiresPosees = couleurs.filter((couleur) => couleur === 'noir').length;
-  const blanchesPosees = couleurs.length - noiresPosees;
-  const handiScore = etat.billesEjecteesNoires !== 0 || etat.billesEjecteesBlanches !== 0;
+  const { noiresPosees, blanchesPosees, ejectionsNoires, ejectionsBlanches } = billesParCamp(position);
+  const handiScore = ejectionsNoires !== 0 || ejectionsBlanches !== 0;
   const handiBilles =
-    noiresPosees + etat.billesEjecteesNoires !== BILLES_MAX_PAR_CAMP ||
-    blanchesPosees + etat.billesEjecteesBlanches !== BILLES_MAX_PAR_CAMP;
+    noiresPosees + ejectionsNoires !== BILLES_MAX_PAR_CAMP || blanchesPosees + ejectionsBlanches !== BILLES_MAX_PAR_CAMP;
 
   let nom = nomSaisi || date;
-  if (handiScore) nom = `_${etat.billesEjecteesNoires}_${nom} _${etat.billesEjecteesBlanches}`;
+  if (handiScore) nom = `_${ejectionsNoires}_${nom} _${ejectionsBlanches}`;
   if (handiBilles) nom += `(${noiresPosees}_${blanchesPosees})`;
 
   return {

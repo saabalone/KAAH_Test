@@ -8,8 +8,8 @@
 // formulaire : on ne valide jamais a l'aveugle, sans boite de plus.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : entreeVarianteMy,
-// entreePuzzleMy, erreurDeSaisie, erreurDePuzzle, positionDeLaSaisie
-// (moteur/positions-my.js),
+// entreePuzzleMy, erreurDeSaisie, erreurDePuzzle, positionDeLaSaisie,
+// aMoinsDeBillesQuUnJeuComplet (moteur/positions-my.js),
 // TYPES_DE_VARIANTE (moteur/classement.js), formaterDateKAAWA
 // (interface/sauvegarde.js), demarrerEditeurPosition (interface/editeur-position.js)
 // viennent de fichiers charges avant celui-ci.
@@ -22,7 +22,8 @@ const CHOIX_PUZZLE_PAR_DEFAUT = { typeDePuzzle: 'PZL', niveau: 'E', premierJoueu
 // createur, sectionVariante, typesVariante, notesVariante, sectionPuzzle, tours,
 // solutions, debuts, resume, erreur, annuler, enregistrer }. Les boutons de choix
 // d'un puzzle portent data-choix / data-valeur (index.html).
-// `rappels` : { confirmer(message, suite, mot), enregistrer(genre, entree) }.
+// `rappels` : { confirmer(message, suite, mot, refus) (interface/confirmation.js,
+// demander), enregistrer(genre, entree) }.
 // Renvoie { ouvrir(genre, formulaire) } — genre 'variantes' ou 'puzzles' ;
 // formulaire null pour une position neuve (plateau vide, comme KAAWA).
 function demarrerFormulairePositionMy(elements, rappels) {
@@ -125,15 +126,38 @@ function demarrerFormulairePositionMy(elements, rappels) {
       montrerErreur(erreur);
       return;
     }
-    const enregistrer = () => rappels.enregistrer(genre, entreeActuelle());
-    const saisie = editeur.saisie();
-    // Garde-fou de KAAWA : un puzzle part presque toujours d'une fin de partie.
-    if (genre === 'puzzles' && saisie.ejectionsNoires === 0 && saisie.ejectionsBlanches === 0) {
-      rappels.confirmer('Aucune bille éjectée : est-ce bien la position de départ du puzzle ?', enregistrer, 'Oui');
-    } else {
-      enregistrer();
-    }
+    demanderSiMini(() => verifierEjections(() => rappels.enregistrer(genre, entreeActuelle())));
   });
+
+  // Demande de saab : un PZL auquel il manque des billes est peut-etre un Mini
+  // PZL — on le demande (jamais force : 3 vrais PZL de KAAWA en manquent aussi).
+  function demanderSiMini(suite) {
+    const position = positionDeLaSaisie(editeur.saisie());
+    if (genre !== 'puzzles' || choix.typeDePuzzle !== 'PZL' || !aMoinsDeBillesQuUnJeuComplet(position)) {
+      suite();
+      return;
+    }
+    rappels.confirmer(
+      'Moins de 14 billes dans un camp (éjectées comprises) : est-ce un Mini PZL ?',
+      () => {
+        choix = { ...choix, typeDePuzzle: 'Mini_PZL' };
+        afficherResume();
+        suite();
+      },
+      'Mini PZL',
+      { texte: 'Garder PZL', surRefus: suite }
+    );
+  }
+
+  // Garde-fou de KAAWA : un puzzle part presque toujours d'une fin de partie.
+  function verifierEjections(suite) {
+    const saisie = editeur.saisie();
+    if (genre === 'puzzles' && saisie.ejectionsNoires === 0 && saisie.ejectionsBlanches === 0) {
+      rappels.confirmer('Aucune bille éjectée : est-ce bien la position de départ du puzzle ?', suite, 'Oui');
+    } else {
+      suite();
+    }
+  }
 
   function ouvrir(nouveauGenre, formulaire) {
     genre = nouveauGenre;

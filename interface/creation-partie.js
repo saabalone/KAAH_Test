@@ -27,11 +27,13 @@ function messageErreurCreation(erreur, plusieursBranches) {
   return `${ou} : coup impossible dans cette position.`;
 }
 
-// `elements` : { bouton, dialogue, titre, position, sequence, notationAuto,
+// `elements` : { dialogue, titre, position, sequence, notationAuto,
 // notationNacre, notationAbaPro, notationReconnue, erreur, annuler, valider }.
-// `rappels` : { positionDeDepart() (texte de la position a pre-remplir),
-// creerLaPartie(arbre, titre, texteDePosition) (l'enregistre et l'affiche, voir
-// index.html ; `texteDePosition` tel que saisi, pour le nom par defaut de KAAWA) }.
+// `rappels` : { creerLaPartie(arbre, titre, texteDePosition) (l'enregistre et
+// l'affiche, voir index.html ; `texteDePosition` tel que saisi, pour le nom par
+// defaut de KAAWA) }. Renvoie { ouvrir(texteDePosition) } : la boite s'ouvre
+// depuis Mes parties, Variantes et Puzzles (demande de saab : une icone de moins
+// dans la colonne), pre-remplie avec la position de la ligne choisie.
 function demarrerCreationPartie(elements, rappels) {
   let notationForcee = null; // null = Auto
 
@@ -102,14 +104,16 @@ function demarrerCreationPartie(elements, rappels) {
     rappels.creerLaPartie(resultat.arbre, elements.titre.value.trim(), elements.position.value.trim());
   });
 
-  elements.bouton.addEventListener('click', () => {
+  function ouvrir(texteDePosition) {
     elements.titre.value = '';
-    elements.position.value = rappels.positionDeDepart();
+    elements.position.value = texteDePosition;
     elements.sequence.value = '';
     notationForcee = null;
     afficherNotation();
     afficherErreur(null);
     elements.dialogue.showModal();
     elements.sequence.focus();
-  });
+  }
+
+  return { ouvrir };
 }

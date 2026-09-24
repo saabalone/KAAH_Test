@@ -28,6 +28,7 @@
 // `elements` : { dialogue, message, confirmer, refuser }.
 function demarrerConfirmation(elements) {
   let rappelEnCours = null;
+  let rappelDeRefus = null;
 
   // Capture puis EFFACE `rappelEnCours` AVANT `dialogue.close()` : fermer
   // un <dialog> declenche son evenement `close` de facon SYNCHRONE (voir
@@ -37,17 +38,26 @@ function demarrerConfirmation(elements) {
   elements.confirmer.addEventListener('click', () => {
     const rappel = rappelEnCours;
     rappelEnCours = null;
+    rappelDeRefus = null;
     elements.dialogue.close();
     rappel?.();
   });
 
-  elements.refuser.addEventListener('click', () => elements.dialogue.close());
+  // Meme precaution que ci-dessus : capture avant `close()`.
+  elements.refuser.addEventListener('click', () => {
+    const rappel = rappelDeRefus;
+    rappelEnCours = null;
+    rappelDeRefus = null;
+    elements.dialogue.close();
+    rappel?.();
+  });
 
-  // Fermer par Echap doit se comporter comme "Refuser", jamais declencher
-  // le rappel de confirmation — cette seule ligne couvre Echap ET les deux
-  // boutons (déjà surs, `rappelEnCours` y est deja a null a ce stade).
+  // Fermer par Echap n'appelle ni l'un ni l'autre rappel : on renonce a tout
+  // — cette seule ligne couvre Echap ET les deux boutons (deja surs, les
+  // rappels y sont deja a null a ce stade).
   elements.dialogue.addEventListener('close', () => {
     rappelEnCours = null;
+    rappelDeRefus = null;
   });
 
   // `message` : la question posee, specifique a l'appelant (annuler un
@@ -58,10 +68,15 @@ function demarrerConfirmation(elements) {
   // defaut) : le mot du bouton de confirmation change selon l'action —
   // "Nouvelle partie" n'est pas une suppression (index.html,
   // #bouton-nouvelle-partie), garder "Supprimer" partout aurait ete faux.
-  function demander(message, surConfirmation, texteConfirmer) {
+  // `refus` (facultatif, phase 23bis) : { texte, surRefus } — pour une vraie
+  // question a deux reponses (« Mini PZL » / « Garder PZL »), ou le refus fait
+  // lui aussi quelque chose. Par defaut, "Refuser" ne fait que fermer.
+  function demander(message, surConfirmation, texteConfirmer, refus = {}) {
     elements.message.textContent = message;
     elements.confirmer.textContent = texteConfirmer ?? 'Supprimer';
+    elements.refuser.textContent = refus.texte ?? 'Refuser';
     rappelEnCours = surConfirmation;
+    rappelDeRefus = refus.surRefus ?? null;
     elements.dialogue.showModal();
   }
 

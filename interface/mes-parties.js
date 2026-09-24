@@ -404,5 +404,17 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     elements.dialogue.showModal();
   }
 
-  return { ouvrirPourConfirmationReprise };
+  // La position de depart de la partie previsualisee (texte compresse), ou null :
+  // « Créer partie » (phase 23) part d'elle. Meme protection que afficherApercu.
+  function positionDeDepartPrevisualisee() {
+    const entree = listerPartiesEnregistrees().find((e) => e.id === idPrevisualise);
+    if (!entree) return null;
+    try {
+      return ecrirePosition(donneesVersArbre(entree.donnees).racine.etat);
+    } catch {
+      return null;
+    }
+  }
+
+  return { ouvrirPourConfirmationReprise, positionDeDepartPrevisualisee };
 }

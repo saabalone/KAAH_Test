@@ -141,9 +141,9 @@ button,
 #boutons-sauvegarde button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-height: 36px;
-  padding: 0 10px;
+  padding: 0 6px;
   background: #3a3a3a;
   color: #e4e4e4;
   border: 1px solid #5a5a5a;
@@ -307,7 +307,7 @@ button,
 
 .colonne-gauche-etendue #boutons-sauvegarde button {
   justify-content: flex-start;
-  padding: 0 10px;
+  padding: 0 6px;
 }
 
 /* Dialogues (phase 12, "Mes parties" ; phase 13, "Variantes") — classe
@@ -592,7 +592,9 @@ button,
 
 .bouton-dialogue {
   min-height: 30px;
-  padding: 0 10px;
+  /* 6px : saab, les boutons avaient trop de vide autour du libelle — la place
+     est comptee partout. */
+  padding: 0 6px;
   background: #3a3a3a;
   color: #e4e4e4;
   border: 1px solid #5a5a5a;
@@ -607,7 +609,8 @@ button,
    defaut de .bouton-dialogue, pense pour un seul bouton "Fermer"). */
 .boutons-dialogue-cote-a-cote {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap; /* 5 boutons dans Variantes/Puzzles : 2 lignes sur telephone plutot qu'un debordement */
+  gap: 6px;
 }
 
 /* Plein ecran sur telephone, meme si les boutons qui ouvrent ces
@@ -678,7 +681,7 @@ button,
 .ligne-liste button {
   flex: 0 0 auto;
   min-height: 32px;
-  padding: 0 8px;
+  padding: 0 5px;
   background: #3a3a3a;
   color: #e4e4e4;
   border: 1px solid #5a5a5a;
@@ -2906,8 +2909,8 @@ button,
 
 .bouton-filtre {
   flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 12px;
+  min-height: 44px; /* zone tactile minimale (CLAUDE.md) : seule la largeur est resserree */
+  padding: 0 7px;
   background: #3a3a3a;
   color: #e4e4e4;
   border: 1px solid #5a5a5a;
