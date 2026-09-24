@@ -174,11 +174,38 @@ function createurSaisi(entree) {
   return (entree.creator ?? '').replaceAll(PREFIXE_CREATEUR, '');
 }
 
-// Le nom est repris ENTIER, comme KAAWA : c'est a l'utilisateur de le retoucher,
-// le nom final s'affiche avant d'enregistrer.
+// Ce que la boite ajoute au nom d'un puzzle (entreePuzzleMy) : le type, le niveau
+// et la date en tete, et la description `(-5-5)xtr3x1` — qu'on retrouve aussi au
+// milieu d'un nom deja copie une fois dans KAAWA, ou apres une virgule dans les
+// puzzles officiels (« Pzl_M_0018, (-5-3)xtr4y1 »).
+const EN_TETE_NOM_PUZZLE = /^(Mini_)?PZL_[EMH]_\d{10}_/i;
+const DESCRIPTION_NOM_PUZZLE = /\(-\d+-\d+\)xtr\d+[xy]\d*/g;
+const SEPARATEURS_EN_BORDURE = /^[\s,_]+|[\s,_]+$/g;
+
+// Decide avec saab : « Modifier » ne reprend que la partie LIBRE du nom (ce qui
+// avait ete tape), jamais ce que la boite y a ajoute — sinon le nouveau nom
+// l'empilerait une seconde fois, comme dans KAAWA. Une variante nommee par sa
+// seule date n'avait pas de nom : elle redonne un champ vide.
+function nomLibreDeVariante(entree) {
+  const nom = entree.variant_name
+    .replace(/^_\d+_/, '') // `_<ej. N>_` (handi score)
+    .replace(/\(\d+_\d+\)$/, '') // `(<N posees>_<B posees>)` (handi billes)
+    .replace(/ _\d+$/, ''); // ` _<ej. B>` (handi score)
+  return nom === entree.date ? '' : nom;
+}
+
+function nomLibreDePuzzle(nom) {
+  return nom
+    .replace(EN_TETE_NOM_PUZZLE, '')
+    .split(DESCRIPTION_NOM_PUZZLE)
+    .map((morceau) => morceau.replace(SEPARATEURS_EN_BORDURE, ''))
+    .filter((morceau) => morceau !== '')
+    .join(', ');
+}
+
 function formulaireVarianteDepuisEntree(entree) {
   return {
-    nomSaisi: entree.variant_name,
+    nomSaisi: nomLibreDeVariante(entree),
     createur: createurSaisi(entree),
     position: entree.pos,
     types: Object.entries(entree.Type ?? {}).filter(([, valeur]) => valeur === 'True').map(([cle]) => cle),
@@ -194,7 +221,7 @@ function formulairePuzzleDepuisEntree(entree) {
   const categorie = entree.type ?? '';
   const separation = categorie.lastIndexOf('_');
   return {
-    nomSaisi: entree.PZL_name,
+    nomSaisi: nomLibreDePuzzle(entree.PZL_name),
     createur: createurSaisi(entree),
     position: entree.pos,
     premierJoueur: 'noir',

@@ -33,7 +33,9 @@ const MARGE_COIN_EJECT_APERCU = RAYON_CASE * 0.4;
 // (rendu/ejections.js, styles.css : .piste-case, .piste-ejection-{couleur}
 // .piste-remplie) — UNE SEULE regle de couleur pour "case vide"/"case
 // ejectee", jamais une seconde version inventee ici (CLAUDE.md : une regle
-// n'est jamais ecrite a deux endroits).
+// n'est jamais ecrite a deux endroits). Chaque pion porte sa couleur et son
+// rang (1 = le plus bas) : l'editeur de la boite « My » s'en sert pour regler
+// les ejections d'un clic (interface/editeur-position.js) ; ailleurs, inertes.
 function dessinerColonneEjectionsApercu(svg, x, yBase, nombreEjectees, couleur) {
   const groupe = creerElementSVG('g', { class: `piste-ejection-${couleur}` });
   for (let i = 0; i < EJECTIONS_POUR_GAGNER; i++) {
@@ -44,6 +46,8 @@ function dessinerColonneEjectionsApercu(svg, x, yBase, nombreEjectees, couleur) 
         cy: yBase - i * ESPACE_EJECT_APERCU,
         r: RAYON_EJECT_APERCU,
         class: rempli ? 'piste-case piste-remplie' : 'piste-case',
+        'data-ejection-couleur': couleur,
+        'data-ejection-rang': String(i + 1),
       })
     );
   }

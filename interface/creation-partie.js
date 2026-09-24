@@ -3,10 +3,10 @@
 // `|`), comme « Créer Game (Nacre/AP) » de KAAWA. Toute la lecture est dans
 // moteur/creation-partie.js : ce fichier n'orchestre que la boite.
 //
-// Notation : Auto (detection de KAAWA, par defaut), ou imposee — AbaPro pour le
-// cas ambigu residuel (une suite AbaPro NUMEROTEE est prise pour du Nacre),
-// Nacre par symetrie. La notation reconnue s'affiche pendant la saisie, pour
-// ne jamais valider a l'aveugle.
+// Notation : Auto (par defaut : la detection de KAAWA, puis l'autre notation si
+// la suite ne se rejoue pas — voir construirePartieDepuisSequence), ou imposee.
+// La notation retenue s'affiche pendant la saisie, pour ne jamais valider a
+// l'aveugle.
 //
 // Non repris de KAAWA (decision documentee, PLAN.md phase 23) : le champ « Vérif
 // PZL » (coller titre + position + suite d'un bloc), le choix de position dans
@@ -41,10 +41,23 @@ function demarrerCreationPartie(elements, rappels) {
     [elements.notationAbaPro, 'abapro'],
   ];
 
+  // La notation que la construction retiendra VRAIMENT : en Auto, elle peut
+  // differer de la premiere devinette (voir construirePartieDepuisSequence, qui
+  // essaie l'autre notation si la suite ne se rejoue pas). Sans position
+  // lisible, on ne peut rien rejouer : la devinette seule.
+  function notationRetenue(texte) {
+    try {
+      const resultat = construirePartieDepuisSequence(lirePosition(elements.position.value.trim()), texte, notationForcee);
+      return resultat.erreur ? resultat.erreur.notation : resultat.notation;
+    } catch {
+      return detecterNotation(texte, notationForcee);
+    }
+  }
+
   function afficherNotation() {
     for (const [bouton, notation] of boutonsNotation) bouton.classList.toggle('bouton-actif', notation === notationForcee);
     const texte = elements.sequence.value;
-    const detectee = detecterNotation(texte, notationForcee);
+    const detectee = notationRetenue(texte);
     const nom = { nacre: 'Nacre', abapro: 'AbaPro', inconnue: '—' }[detectee];
     elements.notationReconnue.textContent =
       texte.trim() === '' ? '' : notationForcee ? `Notation imposée : ${nom}` : `Notation reconnue : ${nom}`;
@@ -65,7 +78,10 @@ function demarrerCreationPartie(elements, rappels) {
     afficherNotation();
     afficherErreur(null);
   });
-  elements.position.addEventListener('input', () => afficherErreur(null));
+  elements.position.addEventListener('input', () => {
+    afficherNotation();
+    afficherErreur(null);
+  });
 
   elements.annuler.addEventListener('click', () => elements.dialogue.close());
 

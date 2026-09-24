@@ -159,14 +159,37 @@ function lireCoupNacreDeSequence(plateau, joueurAuTrait, texte) {
 // jouee (estOrigine), les suivantes des branches d'exploration, meme quand
 // elles la prolongent. Renvoie { arbre, notation, nombreDeCoups } (coups
 // reellement crees, un prefixe commun ne comptant qu'une fois), ou
-// { erreur: { raison, branche, rang, texte } } — raison : 'aucun-coup',
-// 'coup-impossible', 'partie-terminee' ; branche et rang comptes a partir de 1
-// dans le texte colle. Ne modifie jamais `etatDepart`.
+// { erreur: { raison, branche, rang, texte, notation } } — raison :
+// 'aucun-coup', 'coup-impossible', 'partie-terminee' ; branche et rang comptes a
+// partir de 1 dans le texte colle. Ne modifie jamais `etatDepart`.
+//
+// Ecart assume avec KAAWA (retour de saab) : en Auto, si la suite ne se rejoue
+// pas EN ENTIER dans la notation devinee par detecterNotation, l'autre est
+// essayee, et celle qui se rejoue l'emporte. La regle de KAAWA reste le premier
+// choix — elle decide seule quand les deux se rejouent — mais une suite AbaPro
+// numerotee (« 1.C3B3 C5B4 2.G7H7... », que KAAWA prend pour du Nacre) n'est plus
+// refusee. Si aucune ne se rejoue, l'erreur est celle de la notation allee le
+// plus loin : c'est vraisemblablement la bonne, et son coup fautif le vrai.
 function construirePartieDepuisSequence(etatDepart, texteSequence, notationForcee = null) {
-  const notation = detecterNotation(texteSequence, notationForcee);
+  const devinee = detecterNotation(texteSequence, notationForcee);
+  const premierEssai = construireDansLaNotation(etatDepart, texteSequence, devinee);
+  if (!premierEssai.erreur || notationForcee || devinee === NOTATION_INCONNUE) return premierEssai;
+
+  const autre = devinee === NOTATION_NACRE ? NOTATION_ABAPRO : NOTATION_NACRE;
+  const secondEssai = construireDansLaNotation(etatDepart, texteSequence, autre);
+  if (!secondEssai.erreur) return secondEssai;
+  return estAlleePlusLoin(secondEssai.erreur, premierEssai.erreur) ? secondEssai : premierEssai;
+}
+
+function estAlleePlusLoin(erreur, autreErreur) {
+  if (erreur.branche !== autreErreur.branche) return erreur.branche > autreErreur.branche;
+  return erreur.rang > autreErreur.rang;
+}
+
+function construireDansLaNotation(etatDepart, texteSequence, notation) {
   const motif = notation === NOTATION_ABAPRO ? MOTIF_COUP_ABAPRO : MOTIF_COUP_NACRE;
   const lireCoup = notation === NOTATION_ABAPRO ? lireCoupAbaPro : lireCoupNacreDeSequence;
-  const erreur = (raison, branche, rang, texte) => ({ erreur: { raison, branche, rang, texte } });
+  const erreur = (raison, branche, rang, texte) => ({ erreur: { raison, branche, rang, texte, notation } });
 
   let arbre = creerArbre(etatDepart);
   let cheminOrigine = [];

@@ -57,8 +57,28 @@ function demarrerEditeurPosition(elements, surChangement) {
     surChangement();
   }
 
+  // Demande de saab : regler les ejections d'un clic sur les pions du coin
+  // (rendu/ejections-apercu.js), comme on les compte — toucher le 4e remplit
+  // jusqu'a 4 ; retoucher le dernier rempli l'enleve (pour revenir a 0). Jamais
+  // au-dela du maximum du curseur. Les curseurs restent : sur telephone, ces
+  // pions sont trop petits pour etre surs au doigt.
+  function ejectionsApresClic(actuelles, rang) {
+    const voulues = rang === actuelles ? rang - 1 : rang;
+    return Math.min(voulues, EJECTIONS_MAX_AU_DEPART);
+  }
+
   // Les cases ET les billes portent leur case (data-notation, rendu/plateau-svg.js).
   elements.plateau.addEventListener('click', (evenement) => {
+    const pion = evenement.target.closest('[data-ejection-rang]');
+    if (pion) {
+      const rang = Number(pion.dataset.ejectionRang);
+      if (pion.dataset.ejectionCouleur === 'noir') {
+        changer({ ...saisie, ejectionsNoires: ejectionsApresClic(saisie.ejectionsNoires, rang) });
+      } else {
+        changer({ ...saisie, ejectionsBlanches: ejectionsApresClic(saisie.ejectionsBlanches, rang) });
+      }
+      return;
+    }
     const notation = evenement.target.closest('[data-notation]')?.dataset.notation;
     if (!notation) return;
     texteLisible = true;
