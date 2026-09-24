@@ -65,6 +65,22 @@
           </span>
           <span class="libelle-bouton">Nouvelle partie</span>
         </button>
+        <!-- Creer une partie depuis une suite de coups collee, Nacre ou AbaPro
+             (phase 23, interface/creation-partie.js) : meme groupe que
+             "Nouvelle partie", les deux font naitre une partie. Icone dessinee a
+             la main, dans le meme hexagone gris : une feuille ou s'ecrit une
+             suite de coups. -->
+        <button id="bouton-creer-partie" title="Créer une partie à partir d'une suite de coups collée (Nacre ou AbaPro)">
+          <span class="icone-bouton icone-hexagone" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <rect x="6" y="3.5" width="13" height="18" rx="1.2" fill="#e4e4e4" stroke="#1a1a1a" stroke-width="1" />
+              <line x1="8.5" y1="8" x2="16.5" y2="8" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
+              <line x1="8.5" y1="12" x2="16.5" y2="12" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
+              <line x1="8.5" y1="16" x2="13.5" y2="16" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="libelle-bouton">Créer une partie</span>
+        </button>
       </div>
       <div class="groupe-boutons">
         <button id="bouton-mes-parties" title="Voir et charger les parties enregistrées">
@@ -634,6 +650,38 @@
     </div>
   </dialog>
 
+  <!-- Creer une partie (phase 23, interface/creation-partie.js) : titre,
+       position de depart (pre-remplie avec celle de la partie affichee), suite
+       de coups collee. Plein ecran sur telephone (styles.css). -->
+  <dialog id="dialogue-creation-partie" class="dialogue dialogue-grand">
+    <h2>Créer une partie</h2>
+    <div class="corps-creation-partie">
+      <label class="ligne-creation">
+        Titre
+        <input id="champ-titre-creation" type="text" placeholder="(facultatif)" autocomplete="off" />
+      </label>
+      <label class="ligne-creation">
+        Position de départ
+        <input id="champ-position-creation" type="text" spellcheck="false" autocomplete="off" />
+      </label>
+      <label class="ligne-creation">
+        Suite de coups — Nacre ou AbaPro, branches séparées par |
+        <textarea id="champ-sequence-creation" rows="6" spellcheck="false" autocomplete="off" placeholder="1.a1d4 1.-i5f5 2.b1b3 ..."></textarea>
+      </label>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-notation-auto" class="bouton-filtre" type="button">Auto</button>
+        <button id="bouton-notation-nacre" class="bouton-filtre" type="button">Nacre</button>
+        <button id="bouton-notation-abapro" class="bouton-filtre" type="button">AbaPro</button>
+      </div>
+      <p id="notation-reconnue-creation" class="note-reglages"></p>
+      <p id="erreur-creation" class="erreur-creation" hidden></p>
+    </div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-annuler-creation" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-valider-creation" class="bouton-dialogue" type="button">Créer</button>
+    </div>
+  </dialog>
+
   <!-- Mode de pendule (phase 22bis, interface/pendules-mode.js) : s'ouvre a
        la creation d'une partie neuve (bouton "Nouvelle partie" uniquement,
        jamais Revanche/Same qui gardent deja les reglages precedents, voir
@@ -883,6 +931,7 @@
   <script src="./moteur/pendules.js"></script>
   <script src="./moteur/sauvegarde.js"></script>
   <script src="./moteur/nom-partie.js"></script>
+  <script src="./moteur/creation-partie.js"></script>
   <script src="./moteur/variantes.js"></script>
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
@@ -923,6 +972,7 @@
   <script src="./rendu/menaces.js"></script>
   <script src="./interface/pendules.js"></script>
   <script src="./interface/pendules-mode.js"></script>
+  <script src="./interface/creation-partie.js"></script>
   <script src="./interface/sequence.js"></script>
   <script src="./interface/disposition.js"></script>
   <script src="./interface/face-a-face.js"></script>
@@ -1596,6 +1646,68 @@
         (message) => window.alert(message)
       );
     });
+
+    // Creer une partie depuis une suite de coups collee (phase 23,
+    // interface/creation-partie.js). La partie construite suit ensuite EXACTEMENT
+    // le chemin d'un import (juste au-dessus) : donnees au format KAAWA, nouvelle
+    // entree de "Mes parties", rechargement — jamais un second chemin de
+    // chargement a entretenir. Meme securite que "Nouvelle partie" si une partie
+    // est deja en cours ; pas de confirmation de reprise ensuite (on vient deja
+    // de confirmer, voir interface/sauvegarde.js).
+    demarrerCreationPartie(
+      {
+        bouton: document.getElementById('bouton-creer-partie'),
+        dialogue: document.getElementById('dialogue-creation-partie'),
+        titre: document.getElementById('champ-titre-creation'),
+        position: document.getElementById('champ-position-creation'),
+        sequence: document.getElementById('champ-sequence-creation'),
+        notationAuto: document.getElementById('bouton-notation-auto'),
+        notationNacre: document.getElementById('bouton-notation-nacre'),
+        notationAbaPro: document.getElementById('bouton-notation-abapro'),
+        notationReconnue: document.getElementById('notation-reconnue-creation'),
+        erreur: document.getElementById('erreur-creation'),
+        annuler: document.getElementById('bouton-annuler-creation'),
+        valider: document.getElementById('bouton-valider-creation'),
+      },
+      {
+        // La position de depart de la partie affichee : charger d'abord une
+        // variante (sa boite) suffit a la retrouver ici.
+        positionDeDepart: () => ecrirePosition(partie.obtenirArbre().racine.etat),
+        creerLaPartie: (arbre, titre, texteDePosition) => {
+          const tempsInitial = REGLAGES_PENDULES_PAR_DEFAUT.tempsInitial;
+          const donnees = arbreVersDonnees(arbre, {
+            date: formaterDateKAAWA(new Date()),
+            event: EVENEMENT_PAR_DEFAUT,
+            // Nom par defaut identique a KAAWA (open_game_creation_popup).
+            variantName: titre || `Game_${texteDePosition.slice(0, 15)}`,
+            joueurs: { ...NOMS_PAR_DEFAUT },
+            reglagesPendules: REGLAGES_PENDULES_PAR_DEFAUT,
+            finDePartie: null,
+            plateauRetourne: false,
+            pendulesActuelles: { tempsNoir: tempsInitial, tempsBlanc: tempsInitial },
+          });
+          const charger = () => {
+            const id = creerNouvellePartie(donnees);
+            if (!id) {
+              window.alert("Impossible d'enregistrer cette partie (stockage du navigateur indisponible).");
+              return;
+            }
+            definirIdPartieActive(id);
+            definirRepriseDejaConfirmee();
+            demarrerRechargement();
+          };
+          if (obtenirIdPartieActive()) {
+            confirmation.demander(
+              'Créer cette partie ? La partie en cours restera dans Mes parties, mais vous n\'y serez plus.',
+              charger,
+              'Créer'
+            );
+          } else {
+            charger();
+          }
+        },
+      }
+    );
 
     // Face-a-face (phase 20) : avant tout affichage, pour que les classes de
     // <body> soient deja posees quand la partie oriente ses noms.

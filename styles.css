@@ -352,7 +352,8 @@ button,
 .dialogue-grand .aide-corps,
 .dialogue-grand .options-fin,
 .dialogue-grand #liste-sons,
-.dialogue-grand .corps-reglages {
+.dialogue-grand .corps-reglages,
+.dialogue-grand .corps-creation-partie {
   flex: 1 1 auto;
   flex-shrink: 1;
   min-height: 0;
@@ -432,6 +433,44 @@ button,
   font-size: 14px;
 }
 
+/* Boite « Créer une partie » (phase 23, interface/creation-partie.js) : un
+   libelle AU-DESSUS de chaque champ (une position ou une suite de coups est
+   trop longue pour tenir a cote de son libelle), champs a pleine largeur. */
+.ligne-creation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #c4c4c4;
+}
+
+.ligne-creation input,
+.ligne-creation textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 8px;
+  background: #2a2a2a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font: 14px monospace;
+}
+
+.ligne-creation textarea {
+  resize: vertical;
+}
+
+/* Le rouge des alertes de KAAH (.pendule-alerte) : le coup qui arrete la
+   construction, avec son rang. */
+.erreur-creation {
+  margin: 6px 0 0;
+  color: #e04040;
+  font-weight: bold;
+  font-size: 13px;
+}
+
 .note-reglages {
   margin: 2px 0 0;
   font-size: 12px;
@@ -503,6 +542,7 @@ button,
   #dialogue-mes-parties,
   #dialogue-variantes,
   #dialogue-puzzles,
+  #dialogue-creation-partie,
   .dialogue-aide {
     width: 100vw;
     height: 100vh;
