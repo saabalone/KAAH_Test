@@ -24,7 +24,7 @@ const KAA_PZL_KAA = {
     {
       "PZL_name": "Mini_PZL_E_0002, (-5-5)xtr2x",
       "date": "",
-      "pos": "5g56h7_5b1i56",
+      "pos": "5g56h7_5b1i67",
       "creator": "©saab",
       "type": "Mini_PZL_E",
       "winner": "Noir",

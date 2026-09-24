@@ -17,9 +17,9 @@
 // en EXECUTANT les vraies fonctions Python (voir tests/puzzles.test.js).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition vient de
-// moteur/notation.js, erreurDePosition de moteur/variantes.js et
-// EJECTIONS_POUR_GAGNER de moteur/partie.js — tous charges avant celui-ci
-// dans index.html.
+// moteur/notation.js, erreurDePosition de moteur/variantes.js,
+// EJECTIONS_POUR_GAGNER de moteur/partie.js et NOMBRE_DE_PERMUTATIONS de
+// moteur/permutations.js — tous charges avant celui-ci dans index.html.
 
 // `xtr3x1` = "gagner en 3 tours, x = Noir" ; `xtr4y1` = "en 4 tours, y =
 // Blanc". Le chiffre qui suit parfois la lettre (`xtr3x1`) et tout ce qui
@@ -221,4 +221,23 @@ function etatDuPuzzle(puzzle, { coupsJoues, ejectionsDuGagnant, vainqueur }) {
     });
 
   return { resultat: perdu ? 'perdu' : 'en cours', tour, tropTot: false, verification };
+}
+
+// Phase 16bis (KAA_aide.txt, chapitre 12, « PERMUTATIONS ALEATOIRES DES PZL » ;
+// kaa_engine_ClO_Co.py, _pzl_pick_unsolved_permutation) : quelle orientation
+// proposer a l'ouverture d'un puzzle. Tire un index NON ENCORE RESOLU parmi
+// les 12 permutations « normales » de moteur/permutations.js — jamais les 12
+// « Camp », qui inversent noir et blanc et changeraient donc qui doit gagner.
+// Une fois les 12 resolues, KAAWA recommence a toutes les proposer : `resolues`
+// compte alors comme si elle etait vide, plutot que de ne plus rien pouvoir
+// tirer. `hasard` (0 inclus a 1 exclu, comme Math.random) est injectable pour
+// les tests : ce n'est jamais une regle du jeu qui se decide ici, seulement
+// QUELLE ORIENTATION du plateau on regarde.
+function tirerPermutationNonResolue(resolues, hasard = Math.random) {
+  const disponibles = [];
+  for (let index = 0; index < NOMBRE_DE_PERMUTATIONS; index++) {
+    if (!resolues.includes(index)) disponibles.push(index);
+  }
+  const choix = disponibles.length > 0 ? disponibles : Array.from({ length: NOMBRE_DE_PERMUTATIONS }, (_, i) => i);
+  return choix[Math.floor(hasard() * choix.length)];
 }

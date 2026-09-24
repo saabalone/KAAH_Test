@@ -12,9 +12,16 @@
 // sa solution, une variante un createur. La suite du PLAN les eloignera
 // encore (phase 28, le solveur ; les puzzles resolus a marquer).
 //
+// Permutation aleatoire (phase 16bis, interface/puzzles-permutations.js) :
+// l'apercu et le chargement montrent tous deux l'orientation CHOISIE pour ce
+// puzzle (choisirPermutationPourPuzzle), jamais forcement celle ecrite dans
+// donnees/kaa-puzzles.js — ce fichier-ci n'a pas besoin d'en savoir plus.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau,
 // poserBille (rendu/plateau-svg.js), dessinerEjectionsApercu
-// (rendu/ejections-apercu.js) et depuisNotation (moteur/plateau.js)
+// (rendu/ejections-apercu.js), depuisNotation (moteur/plateau.js),
+// lirePosition (moteur/notation.js), choisirPermutationPourPuzzle,
+// reinitialiserChoixPermutations (interface/puzzles-permutations.js)
 // viennent tous de fichiers charges avant celui-ci dans index.html.
 
 const CLE_FAVORIS_PUZZLES = 'kaah-puzzles-favoris';
@@ -72,9 +79,20 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
 
   elements.bouton.addEventListener('click', () => {
     previsualiser(null);
+    // Nouvelle visite de la boite : un nouveau tirage a chaque fois, plutot
+    // que de proposer indefiniment la meme orientation deja vue.
+    reinitialiserChoixPermutations();
     rafraichir();
     elements.dialogue.showModal();
   });
+
+  // La position CHOISIE pour ce puzzle (l'orientation tiree au hasard, ou
+  // celle du fichier si l'interrupteur est desactive) : celle que l'apercu
+  // dessine, et celle que le chargement doit reellement utiliser — jamais
+  // deux choix differents pour le meme puzzle (interface/puzzles-permutations.js).
+  function puzzleAJouer(puzzle) {
+    return { ...puzzle, texteBrut: choisirPermutationPourPuzzle(puzzle).texteBrut };
+  }
 
   function previsualiser(puzzle) {
     previsualise = puzzle;
@@ -89,7 +107,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
   // saab) : c'est ce qu'on regarde au moment de decider.
   elements.apercu.addEventListener('click', () => {
     if (!previsualise) return;
-    surChargement(previsualise);
+    surChargement(puzzleAJouer(previsualise));
     elements.dialogue.close();
   });
 
@@ -161,7 +179,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
 
     ligne.addEventListener('click', () => {
       if (previsualise === puzzle) {
-        surChargement(puzzle);
+        surChargement(puzzleAJouer(puzzle));
         elements.dialogue.close();
         return;
       }
@@ -172,20 +190,22 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
     return ligne;
   }
 
-  // Dessine la position du puzzle dans le <svg> d'apercu, independant du
-  // plateau principal — identifiants prefixes pour ne jamais entrer en
-  // collision avec ceux des vraies billes en jeu.
+  // Dessine la position CHOISIE du puzzle (voir puzzleAJouer plus haut) dans
+  // le <svg> d'apercu, independant du plateau principal — identifiants
+  // prefixes pour ne jamais entrer en collision avec ceux des vraies billes
+  // en jeu.
   function afficherApercu(puzzle) {
+    const position = lirePosition(choisirPermutationPourPuzzle(puzzle).texteBrut);
     elements.apercu.innerHTML = '';
     dessinerPlateau(elements.apercu);
-    for (const [notation, bille] of Object.entries(puzzle.position.plateau)) {
+    for (const [notation, bille] of Object.entries(position.plateau)) {
       const { q, r } = depuisNotation(notation);
       poserBille(elements.apercu, { id: `apercu-puzzle-${bille.id}`, q, r, couleur: bille.couleur });
     }
     // Utile surtout ici : une position a handicap (CLAUDE.md) demarre deja
     // avec un compteur a 3, 4 ou 5 — sans ces colonnes, l'apercu d'un tel
     // puzzle semblait commencer a zero.
-    dessinerEjectionsApercu(elements.apercu, puzzle.position.billesEjecteesNoires, puzzle.position.billesEjecteesBlanches);
+    dessinerEjectionsApercu(elements.apercu, position.billesEjecteesNoires, position.billesEjecteesBlanches);
   }
 }
 

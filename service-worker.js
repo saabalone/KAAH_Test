@@ -86,6 +86,7 @@ const FICHIERS_A_CACHER = [
   './interface/mes-parties.js',
   './interface/variantes.js',
   './interface/next-move.js',
+  './interface/puzzles-permutations.js',
   './interface/puzzles.js',
   './interface/positions-my.js',
   './interface/editeur-position.js',

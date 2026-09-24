@@ -449,6 +449,13 @@
     <svg id="apercu-puzzle"></svg>
     <div id="filtres-puzzles" class="barre-filtres"></div>
     <div id="liste-puzzles" class="liste-dialogue"></div>
+    <!-- Permutation aleatoire (phase 16bis, interface/puzzles-permutations.js) :
+         un choix de puzzle, pas un reglage d'apparence — reste ici, jamais
+         dans Réglages (demande de saab). -->
+    <label class="ligne-reglage">
+      <input id="case-permutation-aleatoire-puzzles" type="checkbox" />
+      Permutation aléatoire à l'ouverture d'un puzzle
+    </label>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-nouveau-puzzle-my" class="bouton-dialogue" type="button">Nouveau</button>
       <button id="bouton-modifier-puzzle-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
@@ -1143,6 +1150,7 @@
   <script src="./interface/filtres-classement.js"></script>
   <script src="./interface/variantes.js"></script>
   <script src="./interface/next-move.js"></script>
+  <script src="./interface/puzzles-permutations.js"></script>
   <script src="./interface/puzzles.js"></script>
   <script src="./interface/positions-my.js"></script>
   <script src="./interface/editeur-position.js"></script>
@@ -1630,14 +1638,26 @@
     // `game_position_name` a chaque fois plutot que de garder un drapeau a
     // jour. Une partie reprise retrouve donc son puzzle toute seule.
     const objectifPuzzle = lireNomPuzzle(variantName);
+    const puzzleOriginal = puzzlesDisponibles.find((puzzle) => puzzle.nom === variantName);
+    // Permutation aleatoire (phase 16bis, interface/puzzles-permutations.js) :
+    // quelle orientation est REELLEMENT chargee, deduite en comparant la racine
+    // de l'arbre aux 12 permutations de la position d'origine du puzzle — fixe
+    // pour toute la partie, calculee une seule fois ici (jamais a chaque coup).
+    // 0 (aucune permutation) si ce puzzle n'est plus dans la liste (fichier
+    // modifie depuis).
+    const indexPermutationActivePuzzle = puzzleOriginal
+      ? indexPermutationChargee(puzzleOriginal, ecrirePosition(partie.obtenirArbre().racine.etat))
+      : 0;
     const puzzleEnCours = objectifPuzzle && {
       ...objectifPuzzle,
       nom: variantName,
       // La solution en cache, elle, ne voyage pas dans la sauvegarde : on
       // la retrouve dans le fichier, par le nom. Absente (puzzle inconnu de
       // ce fichier) = puzzle jouable mais non verifiable, comme les 101
-      // puzzles sur 104 qui n'en ont de toute facon aucune.
-      branchesSolution: puzzlesDisponibles.find((puzzle) => puzzle.nom === variantName)?.branchesSolution ?? [],
+      // puzzles sur 104 qui n'en ont de toute facon aucune. Stockee dans
+      // l'orientation 0 (canonique du puzzle) : voir coupsJoues plus bas, qui
+      // depermute les coups joues avant de la comparer.
+      branchesSolution: puzzleOriginal?.branchesSolution ?? [],
     };
 
     // Lequel des 4 boutons "position de depart" represente la partie
@@ -1667,15 +1687,24 @@
 
     // Les coups deja joues, dans l'ordre, depuis la racine jusqu'au noeud
     // regarde : la sequence que moteur.etatDuPuzzle compare a la solution.
+    // Depermutes vers l'orientation 0 (moteur.permuterCoupNacreInverse, phase
+    // 14) quand une permutation est active (phase 16bis) : `branchesSolution`
+    // est toujours ecrite dans cette orientation-la, jamais celle affichee.
+    // Sans permutation (index 0), depermuter ne change rien (l'identite).
     function coupsJoues(arbre) {
       const coups = [];
       let noeud = arbre.racine;
       for (const index of arbre.chemin) {
         noeud = noeud.enfants[index];
-        coups.push(noeud.coup);
+        coups.push(permuterCoupNacreInverse(noeud.coup, indexPermutationActivePuzzle));
       }
       return coups;
     }
+
+    // Une orientation resolue le reste pour toujours (interface/puzzles-
+    // permutations.js) : marquee une seule fois par partie, jamais a chaque
+    // coup ni a chaque re-affichage (le puzzle reste "resolu" longtemps apres).
+    let permutationDejaMarqueeResolue = false;
 
     function etatDuPuzzleCourant(arbre) {
       const etat = etatCourant(arbre);
@@ -1683,11 +1712,16 @@
       // l'AUTRE camp : Noir gagne en ejectant des billes blanches.
       const ejectionsDuGagnant =
         puzzleEnCours.campGagnant === 'noir' ? etat.billesEjecteesBlanches : etat.billesEjecteesNoires;
-      return etatDuPuzzle(puzzleEnCours, {
+      const resultat = etatDuPuzzle(puzzleEnCours, {
         coupsJoues: coupsJoues(arbre),
         ejectionsDuGagnant,
         vainqueur: etat.vainqueur,
       });
+      if (resultat.resultat === 'resolu' && !permutationDejaMarqueeResolue) {
+        permutationDejaMarqueeResolue = true;
+        marquerPermutationResolue(variantName, indexPermutationActivePuzzle);
+      }
+      return resultat;
     }
 
     function actualiserBandeauPuzzle(arbre) {
@@ -2249,6 +2283,17 @@
     document
       .getElementById('bouton-creer-partie-puzzles')
       .addEventListener('click', () => creationPartie.ouvrir(puzzlePrevisualise?.texteBrut ?? positionDeLaPartieAffichee()));
+
+    // Interrupteur "Permutation aleatoire" (phase 16bis, interface/puzzles-
+    // permutations.js) : en direct, comme les reglages (phase 22) — jamais un
+    // "Valider" a part. Change juste le PROCHAIN tirage, jamais celui deja
+    // fait pour la partie en cours.
+    const casePermutationAleatoire = document.getElementById('case-permutation-aleatoire-puzzles');
+    casePermutationAleatoire.checked = permutationAleatoireActive();
+    casePermutationAleatoire.addEventListener('change', () => {
+      definirPermutationAleatoireActive(casePermutationAleatoire.checked);
+      reinitialiserChoixPermutations();
+    });
 
     demarrerSelectionPuzzles(
       {
