@@ -217,6 +217,13 @@ function demarrerPartie(
   // interface). Le predicat est relu A CHAQUE CLIC et non retenu : reculer
   // dans l'arbre suffit alors a rouvrir le jeu, sans rien avoir a annuler.
   let sansSuite = () => false;
+  // Correspondance (phase 24) : aucune pendule a lancer, on joue quand son tour
+  // vient, parfois des jours plus tard — les pendules restent figees, comme dans
+  // KAAWA (qui les arrete en mode correspondance). Voir jeuSuspendu.
+  let pauseIgnoree = false;
+  // Correspondance (phase 24) : un coup envoye a l'adversaire ne se reprend plus
+  // (les deux parties divergeraient) — ni Annuler, ni suppression dans la Sequence.
+  let suppressionsInterdites = false;
   // Declare ICI, avant tout affichage : le premier actualiserAffichagePartie de
   // l'initialisation le lit deja.
 
@@ -253,6 +260,7 @@ function demarrerPartie(
   const sequence = demarrerAffichageSequence(elementsArbre, texteEnTete, {
     surClicNoeud: sauterVersNoeud,
     surClicSupprimer: (chemin) => {
+      if (suppressionsInterdites) return;
       demanderConfirmation('Supprimer ce coup et tout ce qui en dépend ? Cette action est irréversible.', () =>
         naviguer((a) => supprimerBranche(a, chemin))
       );
@@ -311,9 +319,13 @@ function demarrerPartie(
     notifierChangement();
   }
 
+  // Qui decide de ce que fait un bouton Abandon/Nulle : par defaut, il termine la
+  // partie. Une partie de correspondance (phase 24, index.html) en fait une
+  // proposition a envoyer pour la nulle — voir definirFinDemandee plus bas.
+  let finDemandee = (statut, terminer) => terminer(statut);
   const abandonNulle = demarrerAbandonNulle(svg, {
     peutTerminer: () => estPointVivant() && !sansSuite(),
-    terminer: terminerPartie,
+    terminer: (statut) => finDemandee(statut, terminerPartie),
   });
 
   // UN SEUL PANNEAU PHYSIQUE pour Sequence et Commentaires (phase 18,
@@ -437,7 +449,7 @@ function demarrerPartie(
   // c'est de l'analyse, le vrai decompte reste fige de son cote et ne
   // reprendra qu'au retour sur le point vivant.
   function jeuSuspendu() {
-    return pendules.estEnPauseManuelle() && !pendules.estEnApercu();
+    return !pauseIgnoree && pendules.estEnPauseManuelle() && !pendules.estEnApercu();
   }
 
   function basculerPause() {
@@ -499,7 +511,7 @@ function demarrerPartie(
     });
   }
   elementsNavigation.annuler.addEventListener('click', () => {
-    if (!peutSupprimerNoeud(arbre, arbre.chemin)) return;
+    if (suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin)) return;
     demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () =>
       naviguer((a) => supprimerBranche(a, a.chemin))
     );
@@ -777,7 +789,7 @@ function demarrerPartie(
     // Annuler est destructif (voir plus haut) : grise aussi sur un coup
     // d'origine deja depasse, que la securite de moteur.peutSupprimerNoeud
     // interdirait de toute facon de supprimer.
-    elementsNavigation.annuler.disabled = !peutSupprimerNoeud(arbre, arbre.chemin);
+    elementsNavigation.annuler.disabled = suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin);
     elementsNavigation.suivant.disabled = alaFin;
     elementsNavigation.fin.disabled = alaFin;
   }
@@ -831,5 +843,18 @@ function demarrerPartie(
       return applique;
     },
     jouerCoupTexte,
+    // Correspondance (phase 24, index.html) : voir jeuSuspendu, finDemandee et
+    // terminerPartie plus haut.
+    ignorerLaPause: () => {
+      pauseIgnoree = true;
+    },
+    definirFinDemandee: (rappel) => {
+      finDemandee = rappel;
+    },
+    interdireLesSuppressions: () => {
+      suppressionsInterdites = true;
+      actualiserBoutonsNavigation();
+    },
+    terminer: terminerPartie,
   };
 }

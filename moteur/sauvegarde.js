@@ -165,6 +165,16 @@ function arbreVersDonnees(arbre, metadonnees) {
     // Champ propre a KAAH (comme NullesRefusees, KAAWA l'ignore) : la Revanche en
     // face-a-face retourne le plateau de 180 degres (moteur/revanche.js).
     PlateauRetourne: metadonnees.plateauRetourne ?? false,
+    // Partie de correspondance (phase 24, moteur/correspondance.js) : les trois
+    // champs que KAAWA ajoute lui-meme a ses fichiers (save_game_sequence_to_file),
+    // pour qu'une telle partie se reconnaisse dans les deux applications.
+    ...(metadonnees.correspondance
+      ? {
+          corr_mode: true,
+          corr_black_name: metadonnees.correspondance.nomNoir,
+          corr_white_name: metadonnees.correspondance.nomBlanc,
+        }
+      : {}),
   };
 }
 

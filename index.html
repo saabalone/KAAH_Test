@@ -65,6 +65,12 @@
           </span>
           <span class="libelle-bouton">Nouvelle partie</span>
         </button>
+        <!-- Correspondance (phase 24, interface/correspondance.js) : comme le
+             menu « Correspondance ✉ » de KAAWA — creer, recevoir un coup,
+             renvoyer son dernier code. -->
+        <button id="bouton-correspondance" title="Correspondance : jouer à distance en s'envoyant des codes KAA1">
+          <span class="icone-bouton icone-texte" aria-hidden="true">✉</span><span class="libelle-bouton">Correspondance</span>
+        </button>
       </div>
       <div class="groupe-boutons">
         <button id="bouton-mes-parties" title="Voir et charger les parties enregistrées">
@@ -560,8 +566,9 @@
       <ul>
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
+        <li><b>Correspondance</b> (✉) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — pensez à en supprimer.</li>
-        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.</li>
+        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
@@ -727,6 +734,52 @@
   <!-- Creer une partie (phase 23, interface/creation-partie.js) : titre,
        position de depart (pre-remplie avec celle de la partie affichee), suite
        de coups collee. Plein ecran sur telephone (styles.css). -->
+  <!-- Correspondance (phase 24, interface/correspondance.js). -->
+  <dialog id="dialogue-correspondance" class="dialogue dialogue-grand">
+    <h2>Correspondance ✉</h2>
+    <div class="corps-correspondance">
+      <h3 class="titre-section-correspondance">Recevoir un coup</h3>
+      <label class="ligne-creation">
+        Collez le code KAA1 reçu de votre adversaire
+        <textarea id="champ-code-correspondance" rows="3" spellcheck="false" autocomplete="off" placeholder="KAA1:..."></textarea>
+      </label>
+      <p id="erreur-correspondance" class="erreur-creation" hidden></p>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-recevoir-correspondance" class="bouton-dialogue" type="button">Appliquer</button>
+        <button id="bouton-renvoyer-correspondance" class="bouton-dialogue" type="button">Renvoyer mon dernier code</button>
+      </div>
+      <h3 class="titre-section-correspondance">Nouvelle partie</h3>
+      <p class="note-reglages">Depuis la position de départ de la partie affichée (chargez d'abord une variante pour en changer).</p>
+      <label class="ligne-creation">
+        Votre nom
+        <input id="champ-nom-local-correspondance" type="text" autocomplete="off" placeholder="Joueur 1" />
+      </label>
+      <label class="ligne-creation">
+        Adversaire
+        <input id="champ-nom-adversaire-correspondance" type="text" autocomplete="off" placeholder="Adversaire" />
+      </label>
+      <div class="boutons-dialogue-cote-a-cote ligne-choix-my">
+        <span class="libelle-choix-my">Vous jouez</span>
+        <button id="bouton-jouer-noir-correspondance" class="bouton-filtre" type="button">Noir</button>
+        <button id="bouton-jouer-blanc-correspondance" class="bouton-filtre" type="button">Blanc</button>
+        <button id="bouton-creer-correspondance" class="bouton-dialogue" type="button">Créer</button>
+      </div>
+    </div>
+    <button id="bouton-fermer-correspondance" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Un code KAA1 a envoyer, ou un message de correspondance
+       (interface/code-correspondance.js). -->
+  <dialog id="dialogue-code-correspondance" class="dialogue">
+    <h2 id="titre-code-correspondance"></h2>
+    <p id="message-code-correspondance"></p>
+    <textarea id="texte-code-correspondance" class="texte-code-correspondance" rows="4" readonly spellcheck="false"></textarea>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-copier-code-correspondance" class="bouton-dialogue" type="button">Copier</button>
+      <button id="bouton-fermer-code-correspondance" class="bouton-dialogue" type="button">OK</button>
+    </div>
+  </dialog>
+
   <dialog id="dialogue-creation-partie" class="dialogue dialogue-grand">
     <h2>Créer une partie</h2>
     <div class="corps-creation-partie">
@@ -1006,6 +1059,7 @@
   <script src="./moteur/sauvegarde.js"></script>
   <script src="./moteur/nom-partie.js"></script>
   <script src="./moteur/creation-partie.js"></script>
+  <script src="./moteur/correspondance.js"></script>
   <script src="./moteur/variantes.js"></script>
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
@@ -1062,6 +1116,9 @@
   <script src="./interface/editeur-position.js"></script>
   <script src="./interface/formulaire-position-my.js"></script>
   <script src="./interface/fermeture-dialogues.js"></script>
+  <script src="./interface/code-correspondance.js"></script>
+  <script src="./interface/correspondance-rangement.js"></script>
+  <script src="./interface/correspondance.js"></script>
   <script src="./interface/nulle.js"></script>
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
@@ -1176,6 +1233,8 @@
     }
     const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne } =
       etatDepart;
+    // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
+    const correspondanceActive = correspondanceDesDonnees(donneesReprises);
 
     // Le nom de la partie active, EXACTEMENT comme KAAWA l'ecrirait
     // (voir moteur/nom-partie.js) — saab a demande cette convention
@@ -1519,6 +1578,7 @@
         // voir interface/menaces.js.
         menaces?.actualiser();
         actualiserBandeauPuzzle(arbre);
+        surChangementCorrespondance(arbre);
       },
       sons.jouer
     );
@@ -1607,6 +1667,111 @@
       () => puzzleEnCours !== null && etatDuPuzzleCourant(partie.obtenirArbre()).resultat === 'perdu'
     );
 
+    // Correspondance (phase 24, moteur/correspondance.js et
+    // interface/correspondance.js). Une partie par correspondance ne se joue qu'a
+    // son tour, sur son dernier coup reel, sans pendule a lancer ; aucun coup
+    // envoye ne se reprend. Apres chaque coup joue ICI (un coup recu recharge la
+    // page, il n'arrive donc jamais par ce chemin), le code a envoyer s'affiche
+    // tout seul, comme dans KAAWA. Le bouton Nulle y devient une PROPOSITION.
+    const affichageCodeCorrespondance = demarrerAffichageCodeCorrespondance({
+      dialogue: document.getElementById('dialogue-code-correspondance'),
+      titre: document.getElementById('titre-code-correspondance'),
+      message: document.getElementById('message-code-correspondance'),
+      code: document.getElementById('texte-code-correspondance'),
+      copier: document.getElementById('bouton-copier-code-correspondance'),
+      fermer: document.getElementById('bouton-fermer-code-correspondance'),
+    });
+    // Le dernier coup reel deja annonce : un nouveau coup, un abandon ou une nulle
+    // acceptee le changent, et c'est ce changement qui fait afficher le code.
+    const dernierCoupReel = (arbre) =>
+      `${arbre.cheminOrigine.length}:${noeudA(arbre, arbre.cheminOrigine).statutFin ?? ''}`;
+    let dernierCoupAnnonce = dernierCoupReel(partie.obtenirArbre());
+    function surChangementCorrespondance(arbre) {
+      if (!correspondanceActive?.couleurLocale || dernierCoupReel(arbre) === dernierCoupAnnonce) return;
+      dernierCoupAnnonce = dernierCoupReel(arbre);
+      const fin = noeudA(arbre, arbre.cheminOrigine);
+      const partieFinie = Boolean(fin.statutFin || fin.etat.vainqueur);
+      affichageCodeCorrespondance.afficher({
+        titre: partieFinie ? 'Fin de partie — code KAA1' : 'Envoyer le coup — code KAA1',
+        message: `Envoyez ce code à ${nomDeLAdversaire(correspondanceActive)} (SMS, courriel...) :`,
+        code: codeAEnvoyer(arbre, correspondanceActive),
+      });
+    }
+    if (correspondanceActive) {
+      partie.ignorerLaPause();
+      partie.interdireLesSuppressions();
+      partie.definirPositionSansSuite(
+        () => !correspondanceActive.couleurLocale || !peutJouerEnCorrespondance(partie.obtenirArbre(), correspondanceActive.couleurLocale)
+      );
+      // (La nulle vient d'etre validee sur le plateau, interface/abandon-nulle.js :
+      // aucune question de plus.)
+      partie.definirFinDemandee((statut, terminer) => {
+        if (statut !== 'D') return terminer(statut);
+        affichageCodeCorrespondance.afficher({
+          titre: 'Proposition de nulle — code KAA1',
+          message: `Envoyez ce code à ${nomDeLAdversaire(correspondanceActive)} : la nulle ne compte que s'il l'accepte.`,
+          code: codeAEnvoyer(partie.obtenirArbre(), correspondanceActive, 'P'),
+        });
+      });
+      // Une partie venue d'un fichier (Importer) : cet appareil ne sait pas
+      // encore quel camp il joue — KAAWA le demande aussi (_corr_ask_color_popup).
+      const choisirCouleur = (couleur) => {
+        correspondanceActive.couleurLocale = couleur;
+        memoriserCouleurLocale(correspondanceActive.idPartie, couleur);
+      };
+      if (!correspondanceActive.couleurLocale) {
+        confirmation.demander(
+          'Partie par correspondance : quel camp jouez-vous sur cet appareil ?',
+          () => choisirCouleur('noir'),
+          `Noir — ${correspondanceActive.nomNoir}`,
+          { texte: `Blanc — ${correspondanceActive.nomBlanc}`, surRefus: () => choisirCouleur('blanc') }
+        );
+      }
+      // Ce qu'il fallait dire apres le rechargement (interface/correspondance.js).
+      const annonce = prendreAnnonceCorrespondance();
+      if (annonce?.type === 'code') affichageCodeCorrespondance.afficher(annonce);
+      if (annonce?.type === 'message') affichageCodeCorrespondance.afficher({ titre: 'Correspondance ✉', message: annonce.message });
+      if (annonce?.type === 'proposition') {
+        confirmation.demander(`${annonce.nom} propose la nulle. L'accepter ?`, () => partie.terminer('D'), 'Accepter', {
+          texte: 'Refuser',
+          surRefus: () =>
+            affichageCodeCorrespondance.afficher({
+              titre: 'Refus de la nulle — code KAA1',
+              message: `Envoyez ce code à ${annonce.nom} : c'est de nouveau à lui de jouer.`,
+              code: codeDeRefusDeNulle(partie.obtenirArbre(), correspondanceActive),
+            }),
+        });
+      }
+    }
+    demarrerCorrespondance(
+      {
+        bouton: document.getElementById('bouton-correspondance'),
+        dialogue: document.getElementById('dialogue-correspondance'),
+        nomLocal: document.getElementById('champ-nom-local-correspondance'),
+        nomAdversaire: document.getElementById('champ-nom-adversaire-correspondance'),
+        jouerNoir: document.getElementById('bouton-jouer-noir-correspondance'),
+        jouerBlanc: document.getElementById('bouton-jouer-blanc-correspondance'),
+        creer: document.getElementById('bouton-creer-correspondance'),
+        champCode: document.getElementById('champ-code-correspondance'),
+        recevoir: document.getElementById('bouton-recevoir-correspondance'),
+        erreur: document.getElementById('erreur-correspondance'),
+        renvoyer: document.getElementById('bouton-renvoyer-correspondance'),
+        fermer: document.getElementById('bouton-fermer-correspondance'),
+      },
+      {
+        correspondanceActive: () => correspondanceActive,
+        arbreActif: () => partie.obtenirArbre(),
+        positionDeDepart: () => ({ texte: ecrirePosition(partie.obtenirArbre().racine.etat), nom: variantName }),
+        ouvrirPartie: (id) => {
+          definirIdPartieActive(id);
+          definirRepriseDejaConfirmee();
+          demarrerRechargement();
+        },
+        confirmer: (message, suite, mot) => confirmation.demander(message, suite, mot),
+        afficherCode: (contenu) => affichageCodeCorrespondance.afficher(contenu),
+      }
+    );
+
     actualiserBandeauPuzzle(partie.obtenirArbre());
 
     // Les memes metadonnees servent a l'auto-sauvegarde (ci-dessus),
@@ -1631,6 +1796,8 @@
         // plus haut relit au prochain demarrage, pour ne plus jamais
         // remettre les pendules a plein temps en fermant/rouvrant l'appli.
         pendulesActuelles: partie.obtenirPendulesActuelles(),
+        // Les champs corr_* de KAAWA doivent survivre a chaque sauvegarde.
+        correspondance: correspondanceActive,
       };
     }
 

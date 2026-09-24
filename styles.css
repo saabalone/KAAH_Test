@@ -364,7 +364,8 @@ button,
 .dialogue-grand #liste-sons,
 .dialogue-grand .corps-reglages,
 .dialogue-grand .corps-creation-partie,
-.dialogue-grand .corps-position-my {
+.dialogue-grand .corps-position-my,
+.dialogue-grand .corps-correspondance {
   flex: 1 1 auto;
   flex-shrink: 1;
   min-height: 0;
@@ -540,6 +541,34 @@ button,
   overflow-wrap: anywhere;
 }
 
+/* Boites de correspondance (phase 24, interface/correspondance.js et
+   interface/code-correspondance.js). */
+.ligne-choix-my .bouton-dialogue {
+  margin-top: 0;
+}
+
+.titre-section-correspondance {
+  margin: 10px 0 4px;
+  font-size: 14px;
+}
+
+.texte-code-correspondance {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 8px;
+  background: #102010;
+  color: #e4ffe4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  font: 13px monospace;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.texte-code-correspondance[hidden] {
+  display: none;
+}
+
 .champ-invalide {
   border-color: #e04040 !important;
 }
@@ -634,6 +663,7 @@ button,
   #dialogue-puzzles,
   #dialogue-creation-partie,
   #dialogue-position-my,
+  #dialogue-correspondance,
   .dialogue-aide {
     width: 100vw;
     height: 100vh;
