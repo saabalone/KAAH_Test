@@ -431,7 +431,15 @@
     <!-- Classement (phase 20ter) : interface/filtres-classement.js. -->
     <div id="filtres-variantes" class="barre-filtres"></div>
     <div id="liste-variantes" class="liste-dialogue"></div>
-    <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
+    <!-- Positions « My » (phase 23bis, interface/formulaire-position-my.js) :
+         Modifier agit sur la variante previsualisee (et la copie, comme KAAWA) ;
+         Exporter My n'apparait que s'il y en a. -->
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-nouvelle-variante-my" class="bouton-dialogue" type="button">Nouvelle</button>
+      <button id="bouton-modifier-variante-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
+      <button id="bouton-exporter-variantes-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
   </dialog>
 
   <!-- Dialogue "Puzzles" (phase 16) : les 104 puzzles de KAAWA
@@ -444,7 +452,81 @@
     <svg id="apercu-puzzle"></svg>
     <div id="filtres-puzzles" class="barre-filtres"></div>
     <div id="liste-puzzles" class="liste-dialogue"></div>
-    <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-nouveau-puzzle-my" class="bouton-dialogue" type="button">Nouveau</button>
+      <button id="bouton-modifier-puzzle-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
+      <button id="bouton-exporter-puzzles-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
+  <!-- Creer une variante ou un puzzle a soi (phase 23bis) : plateau propre a la
+       boite (interface/editeur-position.js), puis les champs de KAAWA
+       (interface/formulaire-position-my.js). Plein ecran sur telephone. -->
+  <dialog id="dialogue-position-my" class="dialogue dialogue-grand">
+    <h2 id="titre-position-my"></h2>
+    <div class="corps-position-my">
+      <svg id="plateau-position-my"></svg>
+      <p id="prochaine-couleur-my" class="note-reglages"></p>
+      <label class="ligne-creation">
+        Position
+        <input id="champ-position-my" type="text" spellcheck="false" autocomplete="off" />
+      </label>
+      <div class="ligne-ejections-my">
+        <label>Noires éjectées <input id="ejections-noires-my" type="range" /> <b id="valeur-ejections-noires-my"></b></label>
+        <label>Blanches éjectées <input id="ejections-blanches-my" type="range" /> <b id="valeur-ejections-blanches-my"></b></label>
+      </div>
+      <label class="ligne-creation">
+        Nom
+        <input id="champ-nom-my" type="text" placeholder="(facultatif)" autocomplete="off" />
+      </label>
+      <label class="ligne-creation">
+        Créateur
+        <input id="champ-createur-my" type="text" placeholder="(facultatif)" autocomplete="off" />
+      </label>
+      <div id="section-variante-my">
+        <div id="types-variante-my" class="types-variante-my"></div>
+      </div>
+      <div id="section-puzzle-my">
+        <div class="boutons-dialogue-cote-a-cote ligne-choix-my">
+          <button class="bouton-filtre" type="button" data-choix="typeDePuzzle" data-valeur="PZL">PZL</button>
+          <button class="bouton-filtre" type="button" data-choix="typeDePuzzle" data-valeur="Mini_PZL">Mini PZL</button>
+        </div>
+        <div class="boutons-dialogue-cote-a-cote ligne-choix-my">
+          <button class="bouton-filtre" type="button" data-choix="niveau" data-valeur="E">Easy</button>
+          <button class="bouton-filtre" type="button" data-choix="niveau" data-valeur="M">Medium</button>
+          <button class="bouton-filtre" type="button" data-choix="niveau" data-valeur="H">Hard</button>
+        </div>
+        <div class="boutons-dialogue-cote-a-cote ligne-choix-my">
+          <span class="libelle-choix-my">Commence</span>
+          <button class="bouton-filtre" type="button" data-choix="premierJoueur" data-valeur="noir">Noir</button>
+          <button class="bouton-filtre" type="button" data-choix="premierJoueur" data-valeur="blanc">Blanc</button>
+        </div>
+        <div class="boutons-dialogue-cote-a-cote ligne-choix-my">
+          <span class="libelle-choix-my">Gagne</span>
+          <button class="bouton-filtre" type="button" data-choix="gagnant" data-valeur="noir">Noir</button>
+          <button class="bouton-filtre" type="button" data-choix="gagnant" data-valeur="blanc">Blanc</button>
+        </div>
+        <label class="ligne-creation">
+          Nombre de tours
+          <input id="champ-tours-my" type="number" min="1" inputmode="numeric" />
+        </label>
+        <label class="ligne-creation">
+          Solutions au 1er coup
+          <input id="champ-solutions-my" type="number" min="0" inputmode="numeric" placeholder="(facultatif)" />
+        </label>
+        <label class="ligne-creation">
+          Débuts de solution — branches séparées par |
+          <input id="champ-debuts-my" type="text" spellcheck="false" autocomplete="off" placeholder="1.h5h4 | 1.g5h4" />
+        </label>
+      </div>
+      <p id="resume-position-my" class="resume-position-my"></p>
+      <p id="erreur-position-my" class="erreur-creation" hidden></p>
+    </div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-annuler-position-my" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-enregistrer-position-my" class="bouton-dialogue" type="button">Enregistrer</button>
+    </div>
   </dialog>
 
   <!-- Confirmation avant une action irreversible (Annuler le dernier
@@ -939,6 +1021,7 @@
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
+  <script src="./moteur/positions-my.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
   <script src="./moteur/couleurs.js"></script>
@@ -983,6 +1066,9 @@
   <script src="./interface/variantes.js"></script>
   <script src="./interface/next-move.js"></script>
   <script src="./interface/puzzles.js"></script>
+  <script src="./interface/positions-my.js"></script>
+  <script src="./interface/editeur-position.js"></script>
+  <script src="./interface/formulaire-position-my.js"></script>
   <script src="./interface/nulle.js"></script>
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
@@ -1237,11 +1323,18 @@
     // Les puzzles sont lus AVANT la partie : celle-ci peut deja en etre un
     // (une partie reprise, ou un puzzle qu'on vient de choisir), et son
     // bandeau a besoin de la solution en cache des le premier affichage.
+    // Les puzzles « My » (phase 23bis, interface/positions-my.js) a la suite :
+    // un puzzle My en cours retrouve ainsi sa solution comme les autres.
     let puzzlesDisponibles = [];
     try {
       puzzlesDisponibles = lirePuzzles(KAA_PZL_KAA);
     } catch (erreur) {
       console.error('Puzzles illisibles :', erreur);
+    }
+    try {
+      puzzlesDisponibles = [...puzzlesDisponibles, ...lirePuzzles({ content: listerEntreesMy('puzzles') }, true)];
+    } catch (erreur) {
+      console.error('Puzzles My illisibles :', erreur);
     }
 
     // Confirmation avant Annuler/supprimer une branche (correctif de
@@ -1780,6 +1873,89 @@
     } catch (erreur) {
       console.error('Variantes illisibles :', erreur);
     }
+    try {
+      variantesDisponibles = [...variantesDisponibles, ...lireVariantes({ content: listerEntreesMy('variantes') }, true)];
+    } catch (erreur) {
+      console.error('Variantes My illisibles :', erreur);
+    }
+
+    // Positions « My » (phase 23bis) : la boite de creation, ouverte depuis les
+    // boites Variantes et Puzzles (plus bas). Enregistrer charge aussitot la
+    // position, comme KAAWA — par le meme chemin qu'une variante choisie dans la
+    // liste, avec la meme securite si une partie est en cours ; refuser
+    // n'enregistre rien. KAAWA range aussi toute position creee dans ses
+    // « Usuals » : ici, les favoris.
+    const formulairePositionMy = demarrerFormulairePositionMy(
+      {
+        dialogue: document.getElementById('dialogue-position-my'),
+        titre: document.getElementById('titre-position-my'),
+        editeur: {
+          plateau: document.getElementById('plateau-position-my'),
+          position: document.getElementById('champ-position-my'),
+          ejectionsNoires: document.getElementById('ejections-noires-my'),
+          ejectionsBlanches: document.getElementById('ejections-blanches-my'),
+          valeurEjectionsNoires: document.getElementById('valeur-ejections-noires-my'),
+          valeurEjectionsBlanches: document.getElementById('valeur-ejections-blanches-my'),
+          prochaineCouleur: document.getElementById('prochaine-couleur-my'),
+        },
+        nom: document.getElementById('champ-nom-my'),
+        createur: document.getElementById('champ-createur-my'),
+        sectionVariante: document.getElementById('section-variante-my'),
+        typesVariante: document.getElementById('types-variante-my'),
+        sectionPuzzle: document.getElementById('section-puzzle-my'),
+        tours: document.getElementById('champ-tours-my'),
+        solutions: document.getElementById('champ-solutions-my'),
+        debuts: document.getElementById('champ-debuts-my'),
+        resume: document.getElementById('resume-position-my'),
+        erreur: document.getElementById('erreur-position-my'),
+        annuler: document.getElementById('bouton-annuler-position-my'),
+        enregistrer: document.getElementById('bouton-enregistrer-position-my'),
+      },
+      {
+        confirmer: (message, suite, mot) => confirmation.demander(message, suite, mot),
+        enregistrer: (genre, entree) => {
+          const nom = genre === 'variantes' ? entree.variant_name : entree.PZL_name;
+          const charger = () => {
+            if (!ajouterEntreeMy(genre, entree)) {
+              window.alert("Impossible d'enregistrer cette position (stockage du navigateur indisponible).");
+              return;
+            }
+            if (genre === 'variantes') {
+              if (!listerVariantesFavorites().includes(nom)) basculerVarianteFavorite(nom);
+            } else if (!listerPuzzlesFavoris().includes(nom)) {
+              basculerPuzzleFavori(nom);
+            }
+            oublierPartieActive();
+            definirPositionDepartSuivante(entree.pos, nom);
+            demarrerRechargement();
+          };
+          if (obtenirIdPartieActive()) {
+            confirmation.demander(
+              'Enregistrer et charger cette position ? La partie en cours restera dans Mes parties, mais vous n\'y serez plus.',
+              charger,
+              'Enregistrer'
+            );
+          } else {
+            charger();
+          }
+        },
+      }
+    );
+
+    // Nouvelle / Modifier / Exporter My, dans la boite Variantes. « Modifier »
+    // agit sur la variante previsualisee et la COPIE dans My (comme KAAWA).
+    const boutonModifierVariante = document.getElementById('bouton-modifier-variante-my');
+    const boutonExporterVariantes = document.getElementById('bouton-exporter-variantes-my');
+    let variantePrevisualisee = null;
+    document
+      .getElementById('bouton-nouvelle-variante-my')
+      .addEventListener('click', () => formulairePositionMy.ouvrir('variantes', null));
+    boutonModifierVariante.addEventListener('click', () =>
+      formulairePositionMy.ouvrir('variantes', formulaireVarianteDepuisEntree(variantePrevisualisee.entree))
+    );
+    boutonExporterVariantes.hidden = listerEntreesMy('variantes').length === 0;
+    boutonExporterVariantes.addEventListener('click', () => telechargerPositionsMy('variantes'));
+
     demarrerSelectionVariantes(
       {
         bouton: document.getElementById('bouton-variantes'),
@@ -1811,8 +1987,25 @@
         } else {
           charger();
         }
+      },
+      (variante) => {
+        variantePrevisualisee = variante;
+        boutonModifierVariante.disabled = variante === null;
       }
     );
+
+    // Memes trois boutons dans la boite Puzzles.
+    const boutonModifierPuzzle = document.getElementById('bouton-modifier-puzzle-my');
+    const boutonExporterPuzzles = document.getElementById('bouton-exporter-puzzles-my');
+    let puzzlePrevisualise = null;
+    document
+      .getElementById('bouton-nouveau-puzzle-my')
+      .addEventListener('click', () => formulairePositionMy.ouvrir('puzzles', null));
+    boutonModifierPuzzle.addEventListener('click', () =>
+      formulairePositionMy.ouvrir('puzzles', formulairePuzzleDepuisEntree(puzzlePrevisualise.entree))
+    );
+    boutonExporterPuzzles.hidden = listerEntreesMy('puzzles').length === 0;
+    boutonExporterPuzzles.addEventListener('click', () => telechargerPositionsMy('puzzles'));
 
     demarrerSelectionPuzzles(
       {
@@ -1843,6 +2036,10 @@
         } else {
           charger();
         }
+      },
+      (puzzle) => {
+        puzzlePrevisualise = puzzle;
+        boutonModifierPuzzle.disabled = puzzle === null;
       }
     );
 

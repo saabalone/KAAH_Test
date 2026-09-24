@@ -154,8 +154,8 @@ function puzzlePerduApresCoup({ toursMaximum, campGagnant, joueurAuTrait, tourCo
 // modifie. Une entree dont le nom ne porte aucun marqueur xtr est ignoree
 // plutot que refusee — les fichiers de saab melangent parfois puzzles et
 // autres entrees, et un fichier entier ne doit pas devenir illisible pour
-// une ligne.
-function lirePuzzles(donnees) {
+// une ligne. `estMy` et `entree` : comme lireVariantes (moteur/variantes.js).
+function lirePuzzles(donnees, estMy = false) {
   const puzzles = [];
   for (const entree of donnees.content ?? []) {
     const objectif = lireNomPuzzle(entree.PZL_name);
@@ -173,6 +173,8 @@ function lirePuzzles(donnees) {
       toursMaximum: objectif.toursMaximum,
       campGagnant: objectif.campGagnant,
       branchesSolution: lireBranchesSolution(entree.sol_starts, objectif.campGagnant),
+      my: estMy,
+      entree,
     });
   }
   return puzzles;

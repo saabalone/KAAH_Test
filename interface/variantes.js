@@ -62,8 +62,10 @@ function basculerVarianteFavorite(nom) {
 // `variantes` : le tableau renvoye par moteur.lireVariantes.
 // `surChargement(variante)` est appele quand l'utilisateur confirme le
 // chargement d'une variante (voir index.html, qui sait demarrer une
-// partie neuve sur cette position).
-function demarrerSelectionVariantes(elements, variantes, surChargement) {
+// partie neuve sur cette position). `surPrevisualisation(variante ou null)` :
+// a chaque changement de la ligne choisie — « Modifier » (phase 23bis) agit sur
+// elle.
+function demarrerSelectionVariantes(elements, variantes, surChargement, surPrevisualisation) {
   let previsualisee = null;
   // Rangee de classement (phase 20ter) : seulement les categories non vides.
   const filtre = creerBarreFiltres(
@@ -71,18 +73,24 @@ function demarrerSelectionVariantes(elements, variantes, surChargement) {
     categoriesNonVides(CATEGORIES_VARIANTES, (cle) => filtrerVariantes(variantes, cle)),
     'kaah-filtre-variantes',
     () => {
-      previsualisee = null;
-      elements.apercu.innerHTML = '';
+      previsualiser(null);
       rafraichir();
     }
   );
 
   elements.bouton.addEventListener('click', () => {
-    previsualisee = null;
-    elements.apercu.innerHTML = '';
+    previsualiser(null);
     rafraichir();
     elements.dialogue.showModal();
   });
+
+  function previsualiser(variante) {
+    previsualisee = variante;
+    if (variante) afficherApercu(variante);
+    else elements.apercu.innerHTML = '';
+    surPrevisualisation(variante);
+  }
+
   elements.fermer.addEventListener('click', () => elements.dialogue.close());
 
   // Cliquer l'APERCU lui-meme vaut confirmation (idee de saab) : c'est ce
@@ -168,7 +176,9 @@ function demarrerSelectionVariantes(elements, variantes, surChargement) {
 
     const texte = document.createElement('span');
     texte.className = 'ligne-liste-texte';
-    texte.textContent = variante.createur ? `${variante.nom} (${variante.createur})` : variante.nom;
+    // "(my) " : le prefixe de KAAWA pour les positions creees soi-meme.
+    const nom = variante.my ? `(my) ${variante.nom}` : variante.nom;
+    texte.textContent = variante.createur ? `${nom} (${variante.createur})` : nom;
     ligne.appendChild(texte);
 
     ligne.addEventListener('click', () => {
@@ -177,8 +187,7 @@ function demarrerSelectionVariantes(elements, variantes, surChargement) {
         elements.dialogue.close();
         return;
       }
-      previsualisee = variante;
-      afficherApercu(variante);
+      previsualiser(variante);
       rafraichir(); // remet en evidence la ligne previsualisee
     });
 

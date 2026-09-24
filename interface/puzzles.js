@@ -55,8 +55,9 @@ function decrireObjectif(puzzle) {
 // coin bas-gauche, comme KAAWA. `puzzles` : le tableau renvoye par
 // moteur.lirePuzzles. `surChargement(puzzle)` est appele quand
 // l'utilisateur confirme (voir index.html, qui sait demarrer une partie
-// neuve sur cette position).
-function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
+// neuve sur cette position). `surPrevisualisation(puzzle ou null)` : comme dans
+// interface/variantes.js.
+function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisualisation) {
   let previsualise = null;
   // Rangee de classement (phase 20ter) : seulement les categories non vides.
   const filtre = creerBarreFiltres(
@@ -64,18 +65,24 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
     categoriesNonVides(CATEGORIES_PUZZLES, (cle) => filtrerPuzzles(puzzles, cle)),
     'kaah-filtre-puzzles',
     () => {
-      previsualise = null;
-      elements.apercu.innerHTML = '';
+      previsualiser(null);
       rafraichir();
     }
   );
 
   elements.bouton.addEventListener('click', () => {
-    previsualise = null;
-    elements.apercu.innerHTML = '';
+    previsualiser(null);
     rafraichir();
     elements.dialogue.showModal();
   });
+
+  function previsualiser(puzzle) {
+    previsualise = puzzle;
+    if (puzzle) afficherApercu(puzzle);
+    else elements.apercu.innerHTML = '';
+    surPrevisualisation(puzzle);
+  }
+
   elements.fermer.addEventListener('click', () => elements.dialogue.close());
 
   // Cliquer l'APERCU vaut confirmation, comme dans les Variantes (idee de
@@ -142,7 +149,8 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
     // Le nom brut contient le marqueur "(-5-5)xtr2x", illisible : on n'en
     // garde que ce qui precede la virgule, et l'objectif s'ecrit en clair
     // dans sa propre colonne.
-    texte.textContent = puzzle.nom.split(',')[0];
+    // "(my) " : le prefixe de KAAWA pour les puzzles crees soi-meme.
+    texte.textContent = `${puzzle.my ? '(my) ' : ''}${puzzle.nom.split(',')[0]}`;
     texte.title = puzzle.nom; // le nom complet reste consultable au survol
     ligne.appendChild(texte);
 
@@ -157,8 +165,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement) {
         elements.dialogue.close();
         return;
       }
-      previsualise = puzzle;
-      afficherApercu(puzzle);
+      previsualiser(puzzle);
       rafraichir(); // remet en evidence la ligne previsualisee
     });
 

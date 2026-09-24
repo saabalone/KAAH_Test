@@ -63,7 +63,10 @@ function erreurDePosition(texte) {
 // demarrer une partie sans repasser par le texte compresse. Leve une
 // erreur explicite, en nommant la variante en cause, plutot que de
 // construire un tableau a moitie faux en silence.
-function lireVariantes(donnees) {
+// `estMy` : les positions creees soi-meme (phase 23bis, moteur/positions-my.js),
+// rangees dans leur categorie « My ». `entree` garde l'original tel quel : c'est
+// de lui que « Modifier » repart, champ par champ.
+function lireVariantes(donnees, estMy = false) {
   return (donnees.content ?? []).map((entree) => {
     const erreur = erreurDePosition(entree.pos);
     if (erreur) throw new Error(`Variante "${entree.variant_name}" invalide : ${erreur}`);
@@ -75,6 +78,8 @@ function lireVariantes(donnees) {
       equilibre: entree.equilibre === 'True',
       handi: entree.handi_score === 'True' || entree.handi_bille === 'True',
       types: Object.entries(entree.Type ?? {}).filter(([, valeur]) => valeur === 'True').map(([cle]) => cle),
+      my: estMy,
+      entree,
     };
   });
 }

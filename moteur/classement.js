@@ -8,18 +8,16 @@
 // lireVariantes, les convertit une fois pour toutes) : "False" ne doit jamais passer
 // pour vrai.
 //
-// Les positions « My » de KAAWA (celles qu'on cree soi-meme) n'existent pas encore dans
-// KAAH — elles naitront avec la phase 23 (creer une partie) : aucune categorie « My »
-// tant qu'il n'y en a pas (PLAN.md, phase 20ter).
+// « My » : les positions creees soi-meme (phase 23bis, moteur/positions-my.js),
+// marquees `my` a la lecture. Comme toute categorie, son bouton n'apparait que s'il y
+// en a au moins une (categoriesNonVides).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
-// Les categories de variantes, dans l'ordre d'affichage : `cle`, `libelle`. Les huit
-// derniers sont les « Type » de KAAWA, dans son ordre (« 1. bloc defensif »...).
-const CATEGORIES_VARIANTES = [
-  { cle: 'tous', libelle: 'Toutes' },
-  { cle: 'equilibre', libelle: 'Équilibrées' },
-  { cle: 'handi', libelle: 'Handi' },
+// Les huit « Type » de variante de KAAWA, dans son ordre (« 1. bloc defensif »...) :
+// categories de classement ici, cases a cocher dans la boite de creation
+// (interface/formulaire-position-my.js) — une seule liste pour les deux.
+const TYPES_DE_VARIANTE = [
   { cle: 'bloc_def', libelle: 'Bloc défensif' },
   { cle: 'bloc_emp', libelle: 'Bloc emprisonnant' },
   { cle: 'espace_def', libelle: 'Espace défensif' },
@@ -30,9 +28,19 @@ const CATEGORIES_VARIANTES = [
   { cle: 'eclate', libelle: 'Éclatement' },
 ];
 
-// Les categories de puzzles : la valeur du champ `type` de KAAWA.
+// Les categories de variantes, dans l'ordre d'affichage : `cle`, `libelle`.
+const CATEGORIES_VARIANTES = [
+  { cle: 'tous', libelle: 'Toutes' },
+  { cle: 'my', libelle: 'My' },
+  { cle: 'equilibre', libelle: 'Équilibrées' },
+  { cle: 'handi', libelle: 'Handi' },
+  ...TYPES_DE_VARIANTE,
+];
+
+// Les categories de puzzles : « My », puis la valeur du champ `type` de KAAWA.
 const CATEGORIES_PUZZLES = [
   { cle: 'tous', libelle: 'Tous' },
+  { cle: 'my', libelle: 'My' },
   { cle: 'PZL_E', libelle: 'Easy' },
   { cle: 'PZL_M', libelle: 'Medium' },
   { cle: 'PZL_H', libelle: 'Hard' },
@@ -45,13 +53,16 @@ const CATEGORIES_PUZZLES = [
 // populate_handi_variants). Une variante a plusieurs types apparait dans chacun.
 function filtrerVariantes(variantes, cle) {
   if (cle === 'tous') return variantes;
+  if (cle === 'my') return variantes.filter((variante) => variante.my);
   if (cle === 'equilibre') return variantes.filter((variante) => variante.equilibre);
   if (cle === 'handi') return variantes.filter((variante) => variante.handi);
   return variantes.filter((variante) => variante.types.includes(cle));
 }
 
 function filtrerPuzzles(puzzles, cle) {
-  return cle === 'tous' ? puzzles : puzzles.filter((puzzle) => puzzle.categorie === cle);
+  if (cle === 'tous') return puzzles;
+  if (cle === 'my') return puzzles.filter((puzzle) => puzzle.my);
+  return puzzles.filter((puzzle) => puzzle.categorie === cle);
 }
 
 // Les categories qui ont au moins un element : une categorie vide (Hard, Mini Hard
