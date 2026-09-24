@@ -233,22 +233,23 @@ button,
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 18px;
-  height: 14px;
+  transform: translate(-50%, -40%);
+  min-width: 16px;
+  height: 9px;
   padding: 0 3px;
   box-sizing: border-box;
   border-radius: 3px;
-  background: rgba(20, 20, 20, 0.75);
+  background: #ffffff00;
   color: #ffffff;
-  font: bold 10px sans-serif;
-  line-height: 14px;
+  font: bold 9px sans-serif;
+  line-height: 12px;
   text-align: center;
   pointer-events: none; /* ne gene jamais le clic sur le bouton lui-meme */
 }
 
 .badge-mes-parties-alerte {
-  background: #b3261e; /* meme rouge que le bouton Abandonner */
+  background: #b3261edd; /* meme rouge que le bouton Abandonner */
+  color: #ffffff;
 }
 
 /* UNE BANDE D'ICONES, DANS LES DEUX MISES EN PAGE. Les libelles en toutes

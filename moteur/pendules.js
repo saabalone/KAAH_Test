@@ -121,9 +121,16 @@ function changerModePendules(pendules, nouveauxReglages) {
 // Le texte affiche sous chaque pendule (phase 22bis), tel que KAAWA le
 // construit (kaa_board_widget_ClO_Co.py) : uniquement a partir de ce que
 // `pendules` porte deja sur elle (jamais un etat separe qui pourrait
-// diverger, PLAN.md, phase 22bis, test 3).
+// diverger, PLAN.md, phase 22bis, test 3). Un terme a zero (Coup+0,
+// Éject+0) n'est pas ecrit (correctif, saab : "ça fera moins lourd") — un
+// coup ou une ejection qui n'ajoute rien n'a rien a annoncer.
 function libellePendule(pendules) {
   if (pendules.modeChoisi === 'delai') return `Délai | Coup+${pendules.delai}s`;
-  if (pendules.modeChoisi === 'bonus') return `Bonus | Coup+${pendules.bonusParCoup} Éject+${pendules.bonusParEjection}`;
+  if (pendules.modeChoisi === 'bonus') {
+    const termes = [];
+    if (pendules.bonusParCoup !== 0) termes.push(`Coup+${pendules.bonusParCoup}`);
+    if (pendules.bonusParEjection !== 0) termes.push(`Éject+${pendules.bonusParEjection}`);
+    return termes.length > 0 ? `Bonus | ${termes.join(' ')}` : 'Bonus';
+  }
   return 'Chrono';
 }
