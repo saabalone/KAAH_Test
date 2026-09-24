@@ -409,7 +409,24 @@
          partie choisie. -->
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-creer-partie-mes-parties" class="bouton-dialogue" type="button">Créer partie</button>
+      <!-- Corbeille (phase 26) : un seul dialogue partage entre parties,
+           variantes et puzzles My (interface/corbeille.js) — ici seulement,
+           pour ne pas ajouter ce bouton dans les 3 boites (saab : reduire le
+           nombre de boutons). -->
+      <button id="bouton-corbeille-mes-parties" class="bouton-dialogue" type="button">Corbeille</button>
       <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
+  <!-- Corbeille (phase 26) : suppression reversible des variantes/puzzles My
+       et des parties, un seul dialogue pour les trois genres (voir
+       interface/corbeille.js). Ouvert depuis "Mes parties". -->
+  <dialog id="dialogue-corbeille" class="dialogue dialogue-grand">
+    <h2>Corbeille</h2>
+    <div id="liste-corbeille" class="liste-dialogue"></div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-vider-corbeille" class="bouton-dialogue" type="button" disabled>Vider la corbeille</button>
+      <button id="bouton-fermer-corbeille" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
 
@@ -433,7 +450,15 @@
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-nouvelle-variante-my" class="bouton-dialogue" type="button">Nouvelle</button>
       <button id="bouton-modifier-variante-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
+      <!-- Supprimer (phase 26) : seulement une variante My previsualisee,
+           jamais une officielle (donnees/, jamais modifiee) — envoie a la
+           corbeille, voir interface/corbeille.js. -->
+      <button id="bouton-supprimer-variante-my" class="bouton-dialogue" type="button" disabled>Supprimer</button>
       <button id="bouton-exporter-variantes-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <!-- Importer My (phase 26) : fusionne un KAA_variants_my.json dans les
+           siennes, en renommant les doublons (moteur/positions-my.js,
+           fusionnerEntreesMy) plutot que de les perdre comme KAAWA. -->
+      <button id="bouton-importer-variantes-my" class="bouton-dialogue" type="button">Importer My</button>
       <button id="bouton-creer-partie-variantes" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -459,7 +484,9 @@
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-nouveau-puzzle-my" class="bouton-dialogue" type="button">Nouveau</button>
       <button id="bouton-modifier-puzzle-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
+      <button id="bouton-supprimer-puzzle-my" class="bouton-dialogue" type="button" disabled>Supprimer</button>
       <button id="bouton-exporter-puzzles-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
+      <button id="bouton-importer-puzzles-my" class="bouton-dialogue" type="button">Importer My</button>
       <button id="bouton-creer-partie-puzzles" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -1106,6 +1133,7 @@
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
+  <script src="./moteur/corbeille.js"></script>
   <script src="./moteur/positions-my.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
@@ -1153,6 +1181,7 @@
   <script src="./interface/puzzles-permutations.js"></script>
   <script src="./interface/puzzles.js"></script>
   <script src="./interface/positions-my.js"></script>
+  <script src="./interface/corbeille.js"></script>
   <script src="./interface/editeur-position.js"></script>
   <script src="./interface/formulaire-position-my.js"></script>
   <script src="./interface/fermeture-dialogues.js"></script>
@@ -2119,6 +2148,20 @@
       .addEventListener('click', () =>
         creationPartie.ouvrir(listeParties.positionDeDepartPrevisualisee() ?? positionDeLaPartieAffichee())
       );
+
+    // Corbeille (phase 26, interface/corbeille.js) : un seul dialogue pour
+    // les parties, les variantes My et les puzzles My, ouvert ici seulement
+    // (voir la note dans index.html, dialogue-mes-parties).
+    demarrerCorbeille(
+      {
+        boutons: [document.getElementById('bouton-corbeille-mes-parties')],
+        dialogue: document.getElementById('dialogue-corbeille'),
+        liste: document.getElementById('liste-corbeille'),
+        vider: document.getElementById('bouton-vider-corbeille'),
+        fermer: document.getElementById('bouton-fermer-corbeille'),
+      },
+      { demanderConfirmation: confirmation.demander, demarrerRechargement }
+    );
     // Une partie reprise en silence peut donner l'impression d'une partie
     // neuve si on ne fait pas attention (signale par saab) : le dialogue
     // "Mes parties" s'ouvre alors tout seul, deja previsualise sur la
@@ -2216,6 +2259,7 @@
     // Nouvelle / Modifier / Exporter My, dans la boite Variantes. « Modifier »
     // agit sur la variante previsualisee et la COPIE dans My (comme KAAWA).
     const boutonModifierVariante = document.getElementById('bouton-modifier-variante-my');
+    const boutonSupprimerVariante = document.getElementById('bouton-supprimer-variante-my');
     const boutonExporterVariantes = document.getElementById('bouton-exporter-variantes-my');
     let variantePrevisualisee = null;
     document
@@ -2224,8 +2268,56 @@
     boutonModifierVariante.addEventListener('click', () =>
       formulairePositionMy.ouvrir('variantes', formulaireVarianteDepuisEntree(variantePrevisualisee.entree))
     );
+    // Supprimer (phase 26) : seulement une variante My (voir index.html,
+    // bouton-supprimer-variante-my) — envoie a la corbeille, jamais un
+    // effacement direct (interface/corbeille.js).
+    boutonSupprimerVariante.addEventListener('click', () => {
+      const entree = variantePrevisualisee.entree;
+      confirmation.demander(
+        `Supprimer "${variantePrevisualisee.nom}" ? Elle ira dans la corbeille.`,
+        () => {
+          if (!envoyerALaCorbeille('variantes', entree)) {
+            window.alert("Impossible d'enregistrer dans la corbeille (stockage du navigateur indisponible).");
+            return;
+          }
+          retirerEntreeMy('variantes', entree);
+          demarrerRechargement();
+        },
+        'Supprimer'
+      );
+    });
     boutonExporterVariantes.hidden = listerEntreesMy('variantes').length === 0;
     boutonExporterVariantes.addEventListener('click', () => telechargerPositionsMy('variantes'));
+    // Importer My (phase 26) : fusionne un KAA_variants_my.json (le sien ou
+    // celui d'un autre joueur) dans les siennes, en renommant les doublons
+    // (moteur/positions-my.js, fusionnerEntreesMy) plutot que de les perdre
+    // comme KAAWA.
+    document.getElementById('bouton-importer-variantes-my').addEventListener('click', () => {
+      demarrerImportation(
+        (donnees) => {
+          const importees = donnees.content ?? [];
+          if (importees.length === 0) {
+            window.alert('Aucune variante trouvée dans ce fichier.');
+            return;
+          }
+          let renommees;
+          try {
+            renommees = importerEntreesMy('variantes', importees);
+          } catch (erreur) {
+            window.alert(`Fichier illisible : ${erreur.message}`);
+            return;
+          }
+          if (renommees === null) {
+            window.alert("Impossible d'enregistrer (stockage du navigateur indisponible).");
+            return;
+          }
+          const suffixe = renommees.length > 0 ? `, dont ${renommees.length} renommée(s) (nom déjà pris)` : '';
+          window.alert(`${importees.length} variante(s) importée(s)${suffixe}.`);
+          demarrerRechargement();
+        },
+        (message) => window.alert(message)
+      );
+    });
     document
       .getElementById('bouton-creer-partie-variantes')
       .addEventListener('click', () => creationPartie.ouvrir(variantePrevisualisee?.texteBrut ?? positionDeLaPartieAffichee()));
@@ -2265,11 +2357,15 @@
       (variante) => {
         variantePrevisualisee = variante;
         boutonModifierVariante.disabled = variante === null;
+        // Supprimer n'agit jamais sur une variante officielle (donnees/,
+        // jamais modifiee) : seulement sur une variante My previsualisee.
+        boutonSupprimerVariante.disabled = !variante?.my;
       }
     );
 
-    // Memes trois boutons dans la boite Puzzles.
+    // Memes boutons dans la boite Puzzles.
     const boutonModifierPuzzle = document.getElementById('bouton-modifier-puzzle-my');
+    const boutonSupprimerPuzzle = document.getElementById('bouton-supprimer-puzzle-my');
     const boutonExporterPuzzles = document.getElementById('bouton-exporter-puzzles-my');
     let puzzlePrevisualise = null;
     document
@@ -2278,8 +2374,49 @@
     boutonModifierPuzzle.addEventListener('click', () =>
       formulairePositionMy.ouvrir('puzzles', formulairePuzzleDepuisEntree(puzzlePrevisualise.entree))
     );
+    boutonSupprimerPuzzle.addEventListener('click', () => {
+      const entree = puzzlePrevisualise.entree;
+      confirmation.demander(
+        `Supprimer "${puzzlePrevisualise.nom}" ? Il ira dans la corbeille.`,
+        () => {
+          if (!envoyerALaCorbeille('puzzles', entree)) {
+            window.alert("Impossible d'enregistrer dans la corbeille (stockage du navigateur indisponible).");
+            return;
+          }
+          retirerEntreeMy('puzzles', entree);
+          demarrerRechargement();
+        },
+        'Supprimer'
+      );
+    });
     boutonExporterPuzzles.hidden = listerEntreesMy('puzzles').length === 0;
     boutonExporterPuzzles.addEventListener('click', () => telechargerPositionsMy('puzzles'));
+    document.getElementById('bouton-importer-puzzles-my').addEventListener('click', () => {
+      demarrerImportation(
+        (donnees) => {
+          const importees = donnees.content ?? [];
+          if (importees.length === 0) {
+            window.alert('Aucun puzzle trouvé dans ce fichier.');
+            return;
+          }
+          let renommees;
+          try {
+            renommees = importerEntreesMy('puzzles', importees);
+          } catch (erreur) {
+            window.alert(`Fichier illisible : ${erreur.message}`);
+            return;
+          }
+          if (renommees === null) {
+            window.alert("Impossible d'enregistrer (stockage du navigateur indisponible).");
+            return;
+          }
+          const suffixe = renommees.length > 0 ? `, dont ${renommees.length} renommé(s) (nom déjà pris)` : '';
+          window.alert(`${importees.length} puzzle(s) importé(s)${suffixe}.`);
+          demarrerRechargement();
+        },
+        (message) => window.alert(message)
+      );
+    });
     document
       .getElementById('bouton-creer-partie-puzzles')
       .addEventListener('click', () => creationPartie.ouvrir(puzzlePrevisualise?.texteBrut ?? positionDeLaPartieAffichee()));
@@ -2328,6 +2465,7 @@
       (puzzle) => {
         puzzlePrevisualise = puzzle;
         boutonModifierPuzzle.disabled = puzzle === null;
+        boutonSupprimerPuzzle.disabled = !puzzle?.my;
       }
     );
 

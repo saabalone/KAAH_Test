@@ -76,9 +76,10 @@
 // (interface/sauvegarde.js), nomDeFichierKAAWA, possedeUneBranche
 // (moteur/nom-partie.js), donneesVersArbre (moteur/sauvegarde.js), noeudA
 // (moteur/arbre.js), dessinerPlateau, poserBille (rendu/plateau-svg.js),
-// dessinerEjectionsApercu (rendu/ejections-apercu.js) et depuisNotation
-// (moteur/plateau.js) viennent tous des fichiers charges avant celui-ci
-// dans index.html.
+// dessinerEjectionsApercu (rendu/ejections-apercu.js), depuisNotation
+// (moteur/plateau.js) et envoyerALaCorbeille (interface/corbeille.js,
+// phase 26) viennent tous des fichiers charges avant celui-ci dans
+// index.html.
 
 // `elements` : { bouton, dialogue, apercu, liste, fermer, message,
 // caseTout, boutonFiltre, panneauFiltre, supprimer }.
@@ -183,14 +184,23 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     if (ids.length === 0) return;
     const contientLaPartieEnCours = ids.includes(obtenirIdPartieActive());
     demanderConfirmation(
-      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} Cette action est irréversible.`,
+      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} Elle${ids.length > 1 ? 's' : ''} ira${ids.length > 1 ? 'ont' : ''} dans la corbeille.`,
       () => supprimerSelection(ids),
       'Supprimer'
     );
   });
 
+  // Phase 26 (corbeille) : chaque partie supprimee y part intacte AVANT
+  // d'etre retiree de "Mes parties" — envoyerALaCorbeille (interface/
+  // corbeille.js) vient d'un fichier charge avant celui-ci dans index.html.
+  // Une partie dont la mise en corbeille echoue (stockage plein) n'est pas
+  // supprimee : mieux vaut la garder que la perdre sans recours.
   function supprimerSelection(ids) {
-    for (const id of ids) supprimerPartieNommee(id);
+    const parties = listerPartiesEnregistrees();
+    for (const id of ids) {
+      const entree = parties.find((partie) => partie.id === id);
+      if (entree && envoyerALaCorbeille('parties', entree)) supprimerPartieNommee(id);
+    }
     if (ids.includes(idPrevisualise)) {
       idPrevisualise = null;
       elements.apercu.innerHTML = '';

@@ -16,7 +16,8 @@
 // SEPARATEUR_DES_CAMPS (moteur/notation.js), couleursDuPlateau,
 // EJECTIONS_POUR_GAGNER (moteur/partie.js), erreurDePosition, BILLES_MAX_PAR_CAMP
 // (moteur/variantes.js), lireNomPuzzle (moteur/puzzles.js), TYPES_DE_VARIANTE
-// (moteur/classement.js) viennent de fichiers charges avant celui-ci.
+// (moteur/classement.js), nomDisponible (moteur/corbeille.js) viennent de
+// fichiers charges avant celui-ci.
 
 // La « couleur en cours » de l'editeur apres avoir vide une case (KAAWA : 'empty').
 const COULEUR_VIDE = 'vide';
@@ -249,6 +250,31 @@ function formulairePuzzleDepuisEntree(entree) {
     solutionsAuPremierCoup: entree['move1 sol '] ?? '',
     debutsDeSolution: entree.sol_starts ?? '',
   };
+}
+
+// --- Phase 26 : import d'un fichier My -------------------------------------------
+
+// Fusionne un fichier My importe (KAA_variants_my.json / KAA_PZL_my.json,
+// meme format que fichierPositionsMy ecrit) avec les entrees deja
+// enregistrees. `champNom` : 'variant_name' ou 'PZL_name'. Renvoie les
+// entrees fusionnees (les existantes d'abord, jamais touchees) et la liste
+// des renommages faits, pour que l'appelant (interface/positions-my.js)
+// puisse les annoncer. Ecart assume avec KAAWA (kaa_menus_ClO_Co.py,
+// _merge_json), qui ignore silencieusement un nom deja pris et PERD
+// l'entree importee : nomDisponible (moteur/corbeille.js) lui trouve un nom
+// libre a la place, decide avec saab (phase 26) — aucune importation ne doit
+// faire disparaitre une entree sans le dire.
+function fusionnerEntreesMy(existantes, importees, champNom) {
+  const nomsPris = existantes.map((entree) => entree[champNom]);
+  const renommees = [];
+  const ajoutees = importees.map((entree) => {
+    const nom = nomDisponible(entree[champNom], nomsPris);
+    nomsPris.push(nom);
+    if (nom === entree[champNom]) return entree;
+    renommees.push({ ancien: entree[champNom], nouveau: nom });
+    return { ...entree, [champNom]: nom };
+  });
+  return { fusionnees: [...existantes, ...ajoutees], renommees };
 }
 
 // --- Export -------------------------------------------------------------------------
