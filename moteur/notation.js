@@ -157,8 +157,9 @@ function ecrireCoupNacre(coup) {
 // N'A PAS choisie. Une poussee laterale a toujours deux cases-reperes
 // possibles (une par extremite du groupe) ; ecrireCoupNacre() n'en choisit
 // QU'UNE, fidele a KAAWA (kaa_utils_ClO_Co.convert_move_to_nacre). Utilisee
-// par lireCoupNacre ci-dessous pour un ECART ASSUME (voir cette fonction) —
-// jamais par l'ecriture elle-meme, qui reste fidele a KAAWA sans exception.
+// par lireCoupNacre ci-dessous pour un ECART ASSUME (voir cette fonction),
+// et par ecrireCoupNacreSansAmbiguite quand l'ecriture habituelle se
+// relirait comme un autre coup.
 // null pour une bille seule ou un deplacement en ligne : aucune ambiguite
 // d'ancre n'existe dans ces deux cas, une seule ecriture est possible.
 function ecrireCoupNacreAlternatif(coup) {
@@ -226,4 +227,45 @@ function lireCoupNacre(plateau, joueurAuTrait, texte) {
   }
   if (autresCandidats.length === 0) return null;
   return autresCandidats.sort((a, b) => a.billes.length - b.billes.length)[0];
+}
+
+function designentLeMemeCoup(coupA, coupB) {
+  return (
+    [...coupA.billes].sort().join() === [...coupB.billes].sort().join() &&
+    coupA.direction.q === coupB.direction.q &&
+    coupA.direction.r === coupB.direction.r
+  );
+}
+
+// L'ecriture a ranger dans l'arbre de la partie, donc dans les fichiers.
+// Le plus petit groupe gagne a la relecture (voir lireCoupNacre) : un
+// glissement lateral a 3 billes dont l'ecriture habituelle designe aussi un
+// groupe de 2 serait relu comme ce groupe de 2 au rechargement. Il s'ecrit
+// alors depuis l'autre extremite du groupe, comme le prevoit CLAUDE.md —
+// KAAH et KAAWA (apply_nacre_move) relisent tous deux cette ecriture comme
+// le bon coup : verifie sur 613 355 coups (JOURNAL.md). Dans tous les
+// autres cas, l'ecriture reste celle de KAAWA, au caractere pres.
+function ecrireCoupNacreSansAmbiguite(plateau, joueurAuTrait, coup) {
+  const habituelle = ecrireCoupNacre(coup);
+  const relu = lireCoupNacre(plateau, joueurAuTrait, habituelle);
+  if (relu && designentLeMemeCoup(relu, coup)) return habituelle;
+  return ecrireCoupNacreAlternatif(coup) ?? habituelle;
+}
+
+// Tous les coups legaux qu'un texte Nacre peut designer, par l'une ou
+// l'autre de ses ecritures, sans departager : c'est a l'appelant de
+// trancher avec ce qu'il sait de plus (moteur/sauvegarde.js a la position
+// enregistree apres le coup). Un groupe se retrouve depuis chacune de ses
+// billes : chaque coup n'est garde qu'une fois.
+function coupsDesignesPar(plateau, joueurAuTrait, texte) {
+  const normalise = String(texte).toLowerCase();
+  const coups = [];
+  for (const depart of Object.keys(plateau)) {
+    if (plateau[depart] !== joueurAuTrait) continue;
+    for (const coup of coupsDepuis(plateau, joueurAuTrait, depart)) {
+      const designe = ecrireCoupNacre(coup) === normalise || ecrireCoupNacreAlternatif(coup) === normalise;
+      if (designe && !coups.some((dejaGarde) => designentLeMemeCoup(dejaGarde, coup))) coups.push(coup);
+    }
+  }
+  return coups;
 }

@@ -90,7 +90,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : coupsDepuis,
 // appliquerCoup, couleursDuPlateau, caseDansLaDirection, depuisNotation,
-// ecrireCoupNacre, lireCoupNacre, ecrirePosition, creerArbre, jouerDansArbre,
+// ecrireCoupNacreSansAmbiguite, lireCoupNacre, ecrirePosition, creerArbre, jouerDansArbre,
 // reculerDansArbre, avancerDansArbre, avancerVersEnfant,
 // avancerJusquauProchainChoix, allerALaRacine, allerAuNoeud, supprimerBranche,
 // peutSupprimerNoeud, peutRemonterNoeud, remonterNoeud, marquerStatutFin, marquerPendulesSnapshot,
@@ -571,10 +571,14 @@ function demarrerPartie(
   }
 
   function jouerCoup(coup) {
-    const joueurQuiJoue = etatCourant(arbre).joueurAuTrait;
-    const resultat = appliquerCoup(etatCourant(arbre), coup);
+    const etatAvant = etatCourant(arbre);
+    const joueurQuiJoue = etatAvant.joueurAuTrait;
+    const resultat = appliquerCoup(etatAvant, coup);
     const arbreAvant = arbre;
-    arbre = jouerDansArbre(arbre, ecrireCoupNacre(coup), resultat.etat);
+    // Jamais ecrireCoupNacre seul : son texte peut designer un autre coup,
+    // que jouerDansArbre confondrait avec celui-ci (voir moteur/notation.js).
+    const texte = ecrireCoupNacreSansAmbiguite(couleursDuPlateau(etatAvant.plateau), joueurQuiJoue, coup);
+    arbre = jouerDansArbre(arbre, texte, resultat.etat);
     // Phase 19bis : quelles billes recoivent la fleche, calcule une seule
     // fois ici (moteur.informationFlecheDernierCoup) a partir du MEME coup
     // structure que celui qui vient d'etre joue — jamais une deuxieme regle

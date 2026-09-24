@@ -45,7 +45,8 @@
 // marquerStatutFin, marquerPendulesSnapshot, marquerCommentaire,
 // couleurAdverse (moteur/regles.js),
 // marquerFlecheDernierCoup, noeudA, cheminsEgaux,
-// lireCoupNacre, ecrireCoupNacre (moteur/notation.js et moteur/arbre.js),
+// lireCoupNacre, ecrireCoupNacreSansAmbiguite, coupsDesignesPar
+// (moteur/notation.js et moteur/arbre.js),
 // appliquerCoup, couleursDuPlateau (moteur/partie.js) et
 // informationFlecheDernierCoup (moteur/fleche-dernier-coup.js) viennent
 // tous des fichiers charges avant celui-ci dans index.html.
@@ -194,6 +195,22 @@ function cheminOrigineDuFichier(donneesRacine) {
   }
 }
 
+// Un texte Nacre peut designer deux coups (le plus petit groupe gagne, voir
+// moteur/notation.js) : KAAWA, et KAAH avant ecrireCoupNacreSansAmbiguite,
+// ecrivent ainsi "d3c1" un glissement a 3 billes que la relecture donne a 2.
+// KAAWA ne relit jamais ce texte : il reprend la position `pos` enregistree
+// avec le coup. C'est donc elle qui tranche ici entre les coups possibles —
+// sans jamais remplacer le rejeu par le moteur.
+function lireCoupDuFichier(etatParent, texte, positionEnregistree) {
+  const plateau = couleursDuPlateau(etatParent.plateau);
+  const coup = lireCoupNacre(plateau, etatParent.joueurAuTrait, texte);
+  if (!coup || typeof positionEnregistree !== 'string') return coup;
+
+  const donneLaPosition = (candidat) => ecrirePosition(appliquerCoup(etatParent, candidat).etat) === positionEnregistree;
+  if (donneLaPosition(coup)) return coup;
+  return coupsDesignesPar(plateau, etatParent.joueurAuTrait, texte).find(donneLaPosition) ?? coup;
+}
+
 // Rejoue recursivement les enfants de `donneesNoeud` (donnees KAAWA)
 // depuis `chemin` (deja positionne sur son parent dans `arbre`) : chaque
 // coup passe par le moteur (lireCoupNacre + appliquerCoup), exactement
@@ -204,11 +221,12 @@ function rejouerEnfants(arbre, chemin, enfantsDonnees) {
   for (const enfantDonnees of enfantsDonnees) {
     arbre = { ...arbre, chemin };
     const etatParent = etatCourant(arbre);
-    const coup = lireCoupNacre(couleursDuPlateau(etatParent.plateau), etatParent.joueurAuTrait, enfantDonnees.nacre);
+    const coup = lireCoupDuFichier(etatParent, enfantDonnees.nacre, enfantDonnees.pos);
     if (!coup) throw new Error(`Coup illisible dans le fichier : "${enfantDonnees.nacre}"`);
 
     const resultat = appliquerCoup(etatParent, coup);
-    arbre = jouerDansArbre(arbre, ecrireCoupNacre(coup), resultat.etat);
+    const texte = ecrireCoupNacreSansAmbiguite(couleursDuPlateau(etatParent.plateau), etatParent.joueurAuTrait, coup);
+    arbre = jouerDansArbre(arbre, texte, resultat.etat);
     const cheminEnfant = arbre.chemin;
 
     arbre = fixerOrigine(arbre, cheminEnfant, Boolean(enfantDonnees.is_origin));

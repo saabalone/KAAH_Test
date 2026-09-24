@@ -35,7 +35,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : depuisNotation,
 // caseDansLaDirection (moteur/plateau.js), coupsDepuis, directionsEgales,
 // BILLES_MAX_PAR_COUP (moteur/regles.js), appliquerCoup, couleursDuPlateau
-// (moteur/partie.js), lireCoupNacre, ecrireCoupNacre, vecteurEntre,
+// (moteur/partie.js), lireCoupNacre, ecrireCoupNacreSansAmbiguite, vecteurEntre,
 // estUneDirection (moteur/notation.js), creerArbre, allerALaRacine,
 // etatCourant, jouerDansArbre, marquerFlecheDernierCoup, marquerStatutFin
 // (moteur/arbre.js), informationFlecheDernierCoup (moteur/fleche-dernier-coup.js)
@@ -191,7 +191,8 @@ function construirePartieDepuisSequence(etatDepart, texteSequence, notationForce
 
       const racineAvant = arbre.racine;
       const resultat = appliquerCoup(etat, coup);
-      arbre = jouerDansArbre(arbre, ecrireCoupNacre(coup), resultat.etat);
+      const texte = ecrireCoupNacreSansAmbiguite(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, coup);
+      arbre = jouerDansArbre(arbre, texte, resultat.etat);
       if (arbre.racine === racineAvant) continue; // coup deja cree par une branche precedente
       nombreDeCoups += 1;
       // Comme un coup joue a la main (interface/saisie.js, jouerCoup).
