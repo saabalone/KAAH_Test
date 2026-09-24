@@ -366,7 +366,8 @@ button,
 .dialogue-grand .corps-creation-partie,
 .dialogue-grand .corps-position-my,
 .dialogue-grand .corps-correspondance,
-.dialogue-grand .corps-permutations {
+.dialogue-grand .corps-permutations,
+.dialogue-grand .champ-notes-perso {
   flex: 1 1 auto;
   flex-shrink: 1;
   min-height: 0;
@@ -756,6 +757,7 @@ button,
   #dialogue-correspondance,
   #dialogue-permutations,
   #dialogue-corbeille,
+  #dialogue-notes-perso,
   .dialogue-aide {
     width: 100vw;
     height: 100vh;
@@ -941,6 +943,21 @@ button,
   color: #e8a33d;
   font-size: 12px;
   font-weight: bold;
+}
+
+/* Rappel "touchez une pendule" (phase 27) : meme vert que ce que les
+   pendules demandent elles-memes (--vert-demande, voir CLAUDE.md,
+   "tout ce qui attend une reponse de votre part est en vert"), affiche/
+   masque par interface/pendules.js (signalerEtatPause). */
+.message-demarrage {
+  margin: 0 0 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #12321f;
+  color: #3fcf7a;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .ligne-partie-label {
@@ -3021,6 +3038,22 @@ button,
   margin: 0 0 4px;
   color: #9a9a9a;
   font-size: 12px;
+}
+
+/* Bloc-notes personnel (phase 27, interface/notes-perso.js) : un simple
+   <textarea> pleine largeur/hauteur, enregistre a chaque frappe. */
+.champ-notes-perso {
+  width: 100%;
+  min-height: 200px;
+  margin: 8px 0;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  background: #101010;
+  color: #e4e4e4;
+  font: 13px/1.4 sans-serif;
+  resize: none; /* deja plein ecran/hauteur disponible, un redimensionnement manuel n'ajouterait rien */
 }
 
 #bouton-fermer-aide {

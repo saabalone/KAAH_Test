@@ -102,6 +102,7 @@ const FICHIERS_A_CACHER = [
   './interface/sons.js',
   './interface/reglages-sons.js',
   './interface/aide.js',
+  './interface/notes-perso.js',
   './interface/abandon-nulle.js',
   './interface/filtres-classement.js',
   './interface/fin-de-partie.js',

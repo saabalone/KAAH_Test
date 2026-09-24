@@ -1,8 +1,8 @@
-// L'aide simplifiee (phase 26, partielle) : une boite avec des rubriques
-// repliables, ecrite en dur dans index.html — juste ce qui sert a tester KAAH
-// aujourd'hui (jouer, les boutons, l'installation, les problemes connus, quoi
-// envoyer pour signaler un bug). Le bloc-notes NP et l'aide complete de KAAWA
-// (KAA_aide.txt) restent a faire, phase 26.
+// L'aide (phase 26 puis 27) : une boite avec des rubriques repliables, ecrite
+// en dur dans index.html — ce qui sert a jouer et tester KAAH, complete
+// phase apres phase (KAA_aide.txt de KAAWA, adapte, pas retraduit mot pour
+// mot : KAAH n'a ni menus, ni fichiers, ni plugins). Le bloc-notes NP
+// (phase 27) est un fichier a part, interface/notes-perso.js.
 //
 // Ce fichier n'a qu'un travail : afficher, dans la boite, la VERSION de KAAH
 // que fait tourner cet appareil (« KAAH_Test_ph21_v1 »), pour que chaque rapport de test dise

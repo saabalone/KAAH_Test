@@ -332,7 +332,17 @@
           <span class="icone-bouton icone-texte" aria-hidden="true">📂</span><span class="libelle-bouton">Importer</span>
         </button>
       </div>
-      <!-- Aide (phase 26, partielle) : "i?" comme dans KAAWA. -->
+      <!-- Bloc-notes personnel (phase 27) : "NP" comme dans KAAWA
+           (kaa_app_ClO_Co.py, action_notes_perso) — un texte libre, jamais
+           lie a une partie, qui survit au rechargement. Voir
+           interface/notes-perso.js. Juste avant "i?", meme ordre que la
+           barre d'outils de KAAWA. -->
+      <div class="groupe-boutons">
+        <button id="bouton-notes-perso" title="Bloc-notes personnel : notes libres, qui restent d'une partie à l'autre">
+          <span class="icone-bouton icone-texte" aria-hidden="true">NP</span><span class="libelle-bouton">Notes</span>
+        </button>
+      </div>
+      <!-- Aide (phase 27, complétée) : "i?" comme dans KAAWA. -->
       <div class="groupe-boutons">
         <button id="bouton-aide" title="Aide : jouer, boutons, installation, problèmes connus">
           <span class="icone-bouton icone-texte" aria-hidden="true">i?</span><span class="libelle-bouton">Aide</span>
@@ -566,9 +576,26 @@
        window.confirm(), dont les boutons ("OK"/"Annuler", au choix du
        navigateur) preteraient a confusion avec le bouton de navigation
        "Annuler" qui declenche cette meme boite. Voir interface/confirmation.js. -->
-  <!-- Aide simplifiee (phase 26, partielle) : juste ce qui sert a tester KAAH
-       aujourd'hui. Voir interface/aide.js. Les explications d'installation
-       detaillees sont dans docs/ (INSTALLATION_PC.md, _ANDROID.md, _IOS.md). -->
+  <!-- Bloc-notes personnel (phase 27) : notes libres, enregistrees a chaque
+       frappe (localStorage, jamais liees a une partie) — voir
+       interface/notes-perso.js. -->
+  <dialog id="dialogue-notes-perso" class="dialogue dialogue-grand">
+    <div class="aide-entete">
+      <h2>Notes personnelles</h2>
+      <button id="bouton-fermer-notes-perso-haut" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+    <textarea
+      id="champ-notes-perso"
+      class="champ-notes-perso"
+      placeholder="Bug, idées, choses à retester..."
+      aria-label="Notes personnelles"
+    ></textarea>
+    <button id="bouton-fermer-notes-perso" class="bouton-dialogue" type="button">Fermer</button>
+  </dialog>
+
+  <!-- Aide (phase 27, completee) : ce qui sert a jouer et tester KAAH. Voir
+       interface/aide.js. Les explications d'installation detaillees sont
+       dans docs/ (INSTALLATION_PC.md, _ANDROID.md, _IOS.md). -->
   <dialog id="dialogue-aide" class="dialogue dialogue-grand dialogue-aide">
     <!-- Titre et bouton Fermer FIXES en haut, corps qui defile au milieu (avec sa
          barre de defilement TOUJOURS visible), Fermer aussi en bas : on ne doit
@@ -584,14 +611,14 @@
     <details open>
       <summary>Jouer un coup</summary>
       <ul>
+        <li><b>Rien ne démarre tout seul :</b> touchez une pendule (cadre gris à droite du plateau) pour lancer la partie. Touchez-la encore pour mettre en pause (un grand rond vert masque alors le plateau) ; toucher n'importe où dessus reprend. Un message vert le rappelle au-dessus du plateau tant que c'est le cas.</li>
         <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
-        <li>Les pendules (cadres gris à droite du plateau) démarrent quand on en touche une. Touchez-la encore pour mettre en pause : le plateau se cache.</li>
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande. Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom.</li>
-        <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier.</li>
-        <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même setup) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
+        <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
+        <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
-        <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler).</li>
+        <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler, pendule qui attend).</li>
       </ul>
     </details>
 
@@ -601,8 +628,8 @@
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b>Correspondance</b> (✉) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.</li>
-        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — pensez à en supprimer.</li>
-        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.</li>
+        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).</li>
+        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties. Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
@@ -610,6 +637,24 @@
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
         <li><b>Réglages</b> (⚙) : couleurs des billes et du plateau (s'appliquent tout de suite), mode simple sans relief et coordonnées sur les billes (rechargent la page), export/import d'un fichier de réglages.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
+        <li><b>NP</b> : un bloc-notes personnel (bug, idées, à retester...), enregistré tout seul à chaque frappe — jamais lié à une partie précise.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Corbeille</summary>
+      <ul>
+        <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b>, accessible par un bouton dans Mes parties.</li>
+        <li>La Corbeille liste tout ce qui a été supprimé (des trois genres à la fois) avec un bouton <b>Restaurer</b> par ligne, qui la remet exactement où elle était.</li>
+        <li><b>Vider la corbeille</b> est la seule action définitive — une confirmation le rappelle.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Permutations</summary>
+      <ul>
+        <li>Touchez la position affichée (au-dessus du nom de la partie) : elle se copie, comme avant, ET une boîte s'ouvre avec ses <b>12 permutations</b> (rotations, miroirs du plateau) et leurs 12 « Camp_Permut » (camps échangés) — la ligne qui correspond à la position de référence de la base de coups est mise en évidence. Toucher une valeur l'affiche sur le plateau le temps de la regarder, avec un bouton pour revenir.</li>
+        <li><b>Puzzles</b> : depuis la phase 16bis, chaque <b>ouverture</b> d'un puzzle propose automatiquement une orientation différente parmi les 12 (jamais deux fois la même avant d'avoir vu les 12) — le nom du puzzle et sa solution ne changent pas, seule l'orientation visuelle du plateau varie. Une fois les 12 résolues, le cycle recommence. Un interrupteur dans la boîte Puzzles permet de le désactiver (toujours la position exacte du fichier).</li>
       </ul>
     </details>
 
@@ -658,7 +703,7 @@
         <li><b>iPhone</b> : pas de verrouillage automatique en paysage ; le premier son ne sort qu'après un premier toucher.</li>
         <li><b>Face-à-face en paysage</b> : le zoom à deux doigts ne fonctionne pas (il fonctionne dans les autres modes).</li>
         <li>Les sons « Occ » se déclenchent peut-être trop souvent : à revoir.</li>
-        <li>Cette aide est volontairement courte.</li>
+        <li>Pas de son à la fin d'un puzzle.</li>
       </ul>
     </details>
 
@@ -673,9 +718,8 @@
     <details>
       <summary>Ce qui n'est pas encore dans KAAH</summary>
       <ul>
-        <li>Pas encore là : <b>modes de pendules</b> (Chrono/Bonus/Délai), <b>créer une partie</b> depuis une suite de coups Nacre / AbaPro (et les positions « My »), <b>mode correspondance</b> (code KAA1), <b>corbeille</b> et import de fichiers .json / .csv, <b>bloc-notes NP</b> et aide complète, <b>fenêtre Permutations</b>, <b>solveur de puzzles</b>, <b>adversaire artificiel</b> (jouer seul contre la machine).</li>
-        <li>Petits points connus : pas de zoom à deux doigts en face-à-face paysage ; pas de son à la fin d'un puzzle ; le son d'Occ est peut-être trop fréquent.</li>
-        <li>La liste complète est dans la page « Ce qui n'est pas encore dans KAAH » (dossier docs). <b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
+        <li>Pas encore là : le <b>solveur de puzzles</b> (vérifier/résoudre par le calcul) et l'<b>adversaire artificiel</b> (jouer seul contre la machine).</li>
+        <li>La liste à jour, avec le détail, est dans la page « Ce qui n'est pas encore dans KAAH » (dossier docs, ou le lien envoyé avec KAAH). <b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
       </ul>
     </details>
 
@@ -961,6 +1005,15 @@
            index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
       <div id="etat-sauvegarde"></div>
     </div>
+    <!-- Rappel (phase 27) : visible tant qu'aucune pendule n'a ete touchee
+         (au demarrage) ou pendant une pause volontaire — masque par
+         interface/pendules.js (signalerEtatPause) des qu'on touche une
+         pendule, et pendant une navigation dans l'historique ou une partie
+         terminee (cliquer n'y ferait rien). Demande par saab : les testeurs
+         ne savaient pas qu'il fallait toucher une pendule pour demarrer. -->
+    <p id="message-demarrage-pendules" class="message-demarrage" hidden>
+      Touchez une pendule (à droite du plateau) pour démarrer ou mettre en pause la partie.
+    </p>
     <svg id="plateau" role="img" aria-label="Plateau d'Abalone"></svg>
     <!-- Poignee de hauteur du plateau, TELEPHONE SEULEMENT (phase 18) :
          exception assumee a la regle "le plateau garde sa taille maximale"
@@ -1193,6 +1246,7 @@
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
   <script src="./interface/aide.js"></script>
+  <script src="./interface/notes-perso.js"></script>
   <script src="./interface/abandon-nulle.js"></script>
   <script src="./interface/fin-de-partie.js"></script>
   <script src="./interface/position-copiable.js"></script>
@@ -1584,12 +1638,23 @@
       }
     );
 
-    // Aide simplifiee (phase 26, partielle) : interface/aide.js.
+    // Aide (phase 27, completee) : interface/aide.js.
     demarrerAide({
       bouton: document.getElementById('bouton-aide'),
       dialogue: document.getElementById('dialogue-aide'),
       version: document.getElementById('version-kaah'),
       fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
+    });
+
+    // Bloc-notes personnel "NP" (phase 27) : interface/notes-perso.js.
+    demarrerNotesPerso({
+      bouton: document.getElementById('bouton-notes-perso'),
+      dialogue: document.getElementById('dialogue-notes-perso'),
+      champ: document.getElementById('champ-notes-perso'),
+      fermer: [
+        document.getElementById('bouton-fermer-notes-perso-haut'),
+        document.getElementById('bouton-fermer-notes-perso'),
+      ],
     });
 
     const partie = demarrerPartie(
@@ -1611,6 +1676,11 @@
         // simples <span>.
         noir: document.getElementById('pendule-noir'),
         blanc: document.getElementById('pendule-blanc'),
+        // Phase 27 : rappel visible tant que les pendules attendent un
+        // premier clic (testeurs, retour de saab : "pas bien renseigne
+        // dans Aide, on me le demande souvent"). Voir interface/pendules.js,
+        // signalerEtatPause.
+        message: document.getElementById('message-demarrage-pendules'),
       },
       reglagesPendules,
       pendulesReprises,

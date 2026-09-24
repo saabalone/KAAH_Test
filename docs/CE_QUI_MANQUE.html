@@ -34,7 +34,7 @@ chercher, ce n'est pas un bogue.</p>
 (une fonction, un bouton, un réglage, un détail) et qui ne figure <b>ni</b> dans « Déjà là » <b>ni</b> dans « Pas encore là ».
 Je n'y ai peut-être pas pensé.</div>
 
-<h2>Déjà là (phases 1 à 26, et 16bis)</h2>
+<h2>Déjà là (phases 1 à 27, et 16bis)</h2>
 <ul>
 <li>Le plateau de 61 cases, les coups (1 à 3 billes, latéral, en ligne, poussée, éjection), la victoire à 6 billes éjectées.</li>
 <li>Les billes qui glissent, l'installation sur téléphone et le mode hors ligne.</li>
@@ -66,12 +66,12 @@ fichiers <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> de KAA
 <li><b>Permutations</b> : cliquez la position affichée (au-dessus du titre de la partie) pour la copier ET voir ses 12 permutations (rotations, miroirs) et leurs 12 « Camp_Permut » (camps échangés). Cliquer une valeur l'affiche sur le plateau, avec un bouton pour revenir.</li>
 <li><b>Permutation aléatoire des puzzles</b> : chaque ouverture d'un puzzle propose une orientation différente (jamais deux fois la même avant d'avoir vu les 12), un interrupteur dans la boîte Puzzles permet de la désactiver.</li>
 <li><b>Corbeille</b> (bouton dans Mes parties) : supprimer une partie ou une position « My » (Variantes/Puzzles) l'envoie dans la corbeille au lieu de l'effacer — on peut la restaurer, ou vider la corbeille pour de bon. <b>Importer My</b> (dans Variantes/Puzzles) : fusionne un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> dans les vôtres, en renommant automatiquement un nom déjà pris plutôt que de le perdre.</li>
+<li><b>Bloc-notes personnel</b> (bouton <b>NP</b>) : notes libres (bug, idées, à retester...), enregistrées à chaque frappe, jamais liées à une partie précise. <b>Aide</b> (bouton <b>i?</b>) complétée : Corbeille, Permutations, positions « My », et un message affiché tant qu'aucune pendule n'a été touchée.</li>
 </ul>
 
 <h2>Pas encore là (dans l'ordre prévu)</h2>
 <table>
 <tr><th>Phase</th><th>Ce que ce sera</th></tr>
-<tr><td><b>27</b> — Notes et aide</td><td>Le bloc-notes personnel <b>NP</b>, et l'aide complète de KAAWA adaptée à KAAH (l'aide actuelle est une version courte).</td></tr>
 <tr><td><b>28</b> — Solveur de puzzles</td><td>Vérifier ou résoudre un puzzle par le calcul, dans le téléphone (lent : jusqu'à plusieurs dizaines de secondes pour les puzzles à 6 tours). Le programme existant sera réutilisé (compilé pour le navigateur) plutôt que réécrit.</td></tr>
 <tr><td><b>29</b> — Adversaire artificiel</td><td>Jouer seul contre la machine, en plusieurs niveaux (du plus simple au plus réfléchi).</td></tr>
 </table>
@@ -92,7 +92,7 @@ utilisable en attendant, juste plus à l'étroit.</li>
 <h2>Ce qui ne sera pas repris de KAAWA, et pourquoi</h2>
 <table>
 <tr><th>Fonction de KAAWA</th><th>Raison</th></tr>
-<tr><td>Système de plugins</td><td>Une page web hors ligne ne peut pas charger du code écrit après coup. Le plugin Permut devient la phase 27.</td></tr>
+<tr><td>Système de plugins</td><td>Une page web hors ligne ne peut pas charger du code écrit après coup. Le plugin Permut est devenu la fenêtre <b>Permutations</b> (déjà là, voir plus haut).</td></tr>
 <tr><td>Accès direct aux dossiers de KAAWA (parties, sons)</td><td>Une page web n'a pas accès au disque : Mes parties (mémoire du navigateur) et Exporter / Importer les remplacent.</td></tr>
 <tr><td>Le solveur en programme Windows</td><td>Un navigateur ne lance pas de programme Windows : il est réécrit en JavaScript (phase 28).</td></tr>
 </table>

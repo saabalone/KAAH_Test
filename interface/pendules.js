@@ -37,7 +37,9 @@ const SECONDES_ALERTE_PENDULE = 30;
 //
 // Demarre les pendules. `reglagesPendules` : voir
 // moteur.creerPendules. `elementsAffichage` : { noir, blanc }, deux
-// elements dont on definit le texte (format m:ss). `surDefaite(camp)` est
+// elements dont on definit le texte (format m:ss) ; `message` (facultatif,
+// phase 27) : un element affiche/masque avec le meme etat que le vert des
+// pendules (voir signalerEtatPause plus bas). `surDefaite(camp)` est
 // appele une seule fois si un camp tombe a zero — la partie continue
 // ensuite en analyse (voir interface/saisie.js) : plutot que d'arreter le
 // minuteur, on bascule en chrono (passerEnChrono), qui ne fait jamais
@@ -84,8 +86,11 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // Commence a TRUE (signale par saab) : une partie neuve OU reprise ne
   // doit jamais decompter toute seule des l'affichage — seul un clic
   // explicite sur une pendule (ou le grand bouton rond) demarre vraiment
-  // le decompte, comme un vrai Start. index.html affiche le grand bouton
-  // rond des la creation si c'est le cas (voir demarrerPartie).
+  // le decompte, comme un vrai Start. Le grand bouton rond, LUI, ne
+  // s'affiche PAS des la creation (voir interface/saisie.js, demarrerPartie :
+  // saab a demande de laisser le plateau visible au tout debut) — seul le
+  // vert des pendules (et, phase 27, `elementsAffichage.message` plus bas)
+  // signale alors qu'un clic est attendu.
   let pauseManuelle = true;
   let alerteTempsDonnee = false;
 
@@ -204,6 +209,15 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     // si le joueur au trait l'avait reflechi (meme precaution que
     // quitterApercu ci-dessus).
     if (!pauseManuelle) dernierInstant = Date.now();
+    // BOGUE TROUVE EN VERIFIANT LA PHASE 27 : se METTRE en pause n'appelait
+    // jamais afficherPendules (verifier() s'arrete des sa premiere ligne
+    // tant que pauseManuelle est vrai, voir plus bas) — le vert des
+    // pendules et `elementsAffichage.message` restaient donc figes sur
+    // l'etat "en marche" jusqu'au prochain coup joue. Invisible jusqu'ici :
+    // le grand bouton rond (interface/saisie.js) masque deja tout ça
+    // visuellement. Un appel explicite ici couvre les DEUX sens de la
+    // bascule, immediatement.
+    afficherPendules();
     return true;
   }
 
@@ -230,11 +244,17 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // l'etat change : appelee a chaque affichage.
   function signalerEtatPause() {
     const cliquable = apercu === null;
+    const enAttente = cliquable && pauseManuelle;
     for (const element of [elementsAffichage.noir, elementsAffichage.blanc]) {
       const bouton = element.closest('.bouton-pendule');
-      bouton?.classList.toggle('pendule-en-attente', cliquable && pauseManuelle);
+      bouton?.classList.toggle('pendule-en-attente', enAttente);
       bouton?.classList.toggle('pendule-en-marche', cliquable && !pauseManuelle);
     }
+    // Phase 27 : meme condition que le vert des pendules ci-dessus — visible
+    // tant qu'un clic les demarrerait ou les reprendrait, jamais pendant une
+    // navigation dans l'historique ou une partie terminee (cliquer n'y ferait
+    // rien, voir interface/saisie.js, basculerPauseManuelle).
+    if (elementsAffichage.message) elementsAffichage.message.hidden = !enAttente;
   }
 
   function afficherPendules() {
