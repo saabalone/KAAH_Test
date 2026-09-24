@@ -94,6 +94,7 @@ const FICHIERS_A_CACHER = [
   './interface/code-correspondance.js',
   './interface/correspondance-rangement.js',
   './interface/correspondance.js',
+  './interface/permutations.js',
   './interface/nulle.js',
   './interface/sons.js',
   './interface/reglages-sons.js',

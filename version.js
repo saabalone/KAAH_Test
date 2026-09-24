@@ -8,6 +8,6 @@
 // chaque version sont dans VERSIONS_TEST.md.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
-const PHASE_KAAH_TEST = 24;
+const PHASE_KAAH_TEST = 25;
 const VERSION_KAAH_TEST = 1;
 const NOM_VERSION_KAAH_TEST = `KAAH_Test_ph${PHASE_KAAH_TEST}_v${VERSION_KAAH_TEST}`;

@@ -198,3 +198,41 @@ function positionCanonique(texte) {
     codePermutation: meilleure.index + (inversionFinale ? DECALAGE_CAMPS_INVERSES : 0),
   };
 }
+
+// ---------------------------------------------------------------------
+// Popup Permutations (phase 25)
+// ---------------------------------------------------------------------
+
+// KAAWA numerote les 6 rotations 0-5, puis SAUTE a 10-15 pour les 6 miroirs
+// (compute_all_permutations, _display_index) — pour que 0-5 et 10-15 ne se
+// touchent jamais a l'oeil dans le tableau affiche, la difference entre une
+// rotation et un miroir se voit sans avoir a la lire.
+function indiceAffichePermutation(index) {
+  return index < NOMBRE_DE_ROTATIONS ? index : index + 4;
+}
+
+// Les 12 lignes du popup Permutations : `normale` garde les deux camps dans
+// leur ordre d'origine (chacun ses propres cases tournees, son propre
+// compteur d'ejection) ; `camp` echange leur PLACE (le second passe en
+// premier) — jamais un texte recompose a la main, c'est exactement
+// compute_all_permutations de KAAWA (plugins/permut_plugin). `texte` est une
+// position compressee ; ne modifie rien, ne lit aucun etat de partie.
+function toutesLesPermutations(texte) {
+  const etat = lirePosition(texte);
+  const casesNoires = casesTriees(etat.plateau, 'noir');
+  const casesBlanches = casesTriees(etat.plateau, 'blanc');
+
+  const permutations = [];
+  for (let index = 0; index < NOMBRE_DE_PERMUTATIONS; index++) {
+    const noiresPermutees = comprimer(casesNoires.map((notation) => permuterCase(notation, index)));
+    const blanchesPermutees = comprimer(casesBlanches.map((notation) => permuterCase(notation, index)));
+    const noir = `${etat.billesEjecteesNoires}${noiresPermutees}`;
+    const blanc = `${etat.billesEjecteesBlanches}${blanchesPermutees}`;
+    permutations.push({
+      index,
+      normale: `${noir}${SEPARATEUR_DES_CAMPS}${blanc}`,
+      camp: `${blanc}${SEPARATEUR_DES_CAMPS}${noir}`,
+    });
+  }
+  return permutations;
+}

@@ -365,7 +365,8 @@ button,
 .dialogue-grand .corps-reglages,
 .dialogue-grand .corps-creation-partie,
 .dialogue-grand .corps-position-my,
-.dialogue-grand .corps-correspondance {
+.dialogue-grand .corps-correspondance,
+.dialogue-grand .corps-permutations {
   flex: 1 1 auto;
   flex-shrink: 1;
   min-height: 0;
@@ -569,6 +570,95 @@ button,
   display: none;
 }
 
+/* Popup Permutations (phase 25, interface/permutations.js) : un tableau a 2
+   colonnes (Permut / Camp_Permut), comme celui de KAAWA. */
+.tableau-permutations {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font: 11px monospace;
+}
+
+.ligne-permutation {
+  display: flex;
+  gap: 6px;
+}
+
+.ligne-permutation-entete {
+  font: 12px sans-serif;
+  font-weight: bold;
+  color: #9a9a9a;
+  margin-bottom: 4px;
+}
+
+.ligne-permutation-entete span {
+  flex: 1 1 0;
+}
+
+.cellule-permutation {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 3px 4px;
+  background: transparent;
+  color: #c4c4c4;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.cellule-permutation:hover {
+  border-color: #5a5a5a;
+}
+
+/* La ligne qui correspond a la position CANONIQUE (posRef) — meme orange que
+   .bouton-actif/.arbre-courant ailleurs dans KAAH (jamais le jaune de KAAWA,
+   deja pris par autre chose ici). */
+.cellule-permutation-posref {
+  color: #cc6a00;
+  font-weight: bold;
+}
+
+.posref-permutations {
+  margin: 6px 0 0;
+  font: 12px monospace;
+  color: #cc6a00;
+  overflow-wrap: anywhere;
+}
+
+/* Apercu d'une permutation (phase 25) : petite barre FIXE en bas de l'ecran,
+   non modale (voir index.html, .show() plutot que .showModal()) — le plateau
+   derriere doit rester visible et cliquable (Retour excepte, le jeu est
+   suspendu pendant l'apercu, interface/saisie.js). */
+.dialogue-apercu-permutation {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  margin: 0;
+  width: min(92vw, 480px);
+  max-width: none;
+  padding: 8px 10px;
+  background: #1a1a1a;
+  color: #e4ffe4;
+  border: 1px solid #5a5a5a;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.dialogue-apercu-permutation[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#texte-apercu-permutation {
+  font: 12px monospace;
+  overflow-wrap: anywhere;
+}
+
 .champ-invalide {
   border-color: #e04040 !important;
 }
@@ -664,6 +754,7 @@ button,
   #dialogue-creation-partie,
   #dialogue-position-my,
   #dialogue-correspondance,
+  #dialogue-permutations,
   .dialogue-aide {
     width: 100vw;
     height: 100vh;

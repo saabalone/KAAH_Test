@@ -780,6 +780,38 @@
     </div>
   </dialog>
 
+  <!-- Permutations (phase 25, interface/permutations.js) : les 12
+       permutations et les 12 « Camp_Permut » d'une position. Ouvert par la
+       position copiable (interface/position-copiable.js), jamais par un
+       bouton a part (KAAWA n'en a pas non plus). -->
+  <dialog id="dialogue-permutations" class="dialogue dialogue-grand">
+    <h2>Permutations</h2>
+    <div class="corps-permutations">
+      <label class="ligne-creation">
+        Position
+        <input id="champ-position-permutations" type="text" spellcheck="false" autocomplete="off" />
+      </label>
+      <div id="tableau-permutations" class="tableau-permutations"></div>
+      <p id="posref-permutations" class="posref-permutations"></p>
+    </div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-copier-permutations" class="bouton-dialogue" type="button">Copier tout</button>
+      <button id="bouton-fermer-permutations" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
+  <!-- Apercu d'une permutation sur le vrai plateau (phase 25) : une petite
+       boite NON MODALE (.show(), pas .showModal()) — le plateau derriere
+       reste visible et c'est bien le but, comme KAAWA qui masque son popup
+       principal pendant l'apercu. -->
+  <dialog id="dialogue-apercu-permutation" class="dialogue-apercu-permutation">
+    <span id="texte-apercu-permutation"></span>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-copier-apercu-permutation" class="bouton-dialogue" type="button">Copier</button>
+      <button id="bouton-retour-apercu-permutation" class="bouton-dialogue" type="button">Retour</button>
+    </div>
+  </dialog>
+
   <dialog id="dialogue-creation-partie" class="dialogue dialogue-grand">
     <h2>Créer une partie</h2>
     <div class="corps-creation-partie">
@@ -1119,6 +1151,7 @@
   <script src="./interface/code-correspondance.js"></script>
   <script src="./interface/correspondance-rangement.js"></script>
   <script src="./interface/correspondance.js"></script>
+  <script src="./interface/permutations.js"></script>
   <script src="./interface/nulle.js"></script>
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
@@ -1259,13 +1292,20 @@
     elementEtatSauvegarde.textContent = donneesReprises ? nomDeFichierKAAWA(donneesReprises) : 'Nouvelle partie (pas encore jouée)';
     elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
 
+    // Popup Permutations (phase 25, interface/permutations.js) : cree bien
+    // plus bas (a besoin de `partie`), mais la position copiable (juste en
+    // dessous) doit deja pouvoir l'ouvrir — reference avancee, assignee une
+    // fois pour toutes plus bas, meme principe que `conseils`/`menaces`.
+    let ouvrirPermutationsDepuisPosition = null;
+
     // Position copiable (phase 12bis, interface/position-copiable.js) :
     // `arbreDepart.chemin`, quand il existe, est deja celui d'une partie
     // reprise (moteur/sauvegarde.js, donneesVersArbre) — jamais forcement la
     // racine. Sans lui (partie neuve), c'est la position de depart elle-meme.
     const positionCopiable = demarrerPositionCopiable(
       document.getElementById('position-copiable'),
-      ecrirePosition(arbreDepart ? etatCourant(arbreDepart) : lirePosition(positionChoisie?.texteBrut ?? MARGUERITE_BELGE))
+      ecrirePosition(arbreDepart ? etatCourant(arbreDepart) : lirePosition(positionChoisie?.texteBrut ?? MARGUERITE_BELGE)),
+      (texte) => ouvrirPermutationsDepuisPosition?.(texte)
     );
 
     const svg = document.getElementById('plateau');
@@ -1771,6 +1811,35 @@
         afficherCode: (contenu) => affichageCodeCorrespondance.afficher(contenu),
       }
     );
+
+    // Popup Permutations (phase 25, interface/permutations.js) : les 12
+    // permutations et les 12 « Camp_Permut » d'une position tapee ou collee,
+    // avec apercu sur le VRAI plateau (interface/saisie.js,
+    // demarrerApercuPermutation/terminerApercuPermutation — jamais un second
+    // plateau miniature). PAS de bouton dedie dans la colonne (comme KAAWA,
+    // qui n'en a pas non plus) : il ne s'ouvre QUE depuis la position copiable
+    // juste au-dessus (clic = copier ET ouvrir, comme KAAWA).
+    const permutations = demarrerPermutations(
+      {
+        dialogue: document.getElementById('dialogue-permutations'),
+        position: document.getElementById('champ-position-permutations'),
+        tableau: document.getElementById('tableau-permutations'),
+        posRef: document.getElementById('posref-permutations'),
+        copierTout: document.getElementById('bouton-copier-permutations'),
+        fermer: document.getElementById('bouton-fermer-permutations'),
+        apercu: {
+          dialogue: document.getElementById('dialogue-apercu-permutation'),
+          texte: document.getElementById('texte-apercu-permutation'),
+          copier: document.getElementById('bouton-copier-apercu-permutation'),
+          retour: document.getElementById('bouton-retour-apercu-permutation'),
+        },
+      },
+      {
+        demarrerApercu: (texteDePosition) => partie.demarrerApercuPermutation(texteDePosition),
+        terminerApercu: () => partie.terminerApercuPermutation(),
+      }
+    );
+    ouvrirPermutationsDepuisPosition = permutations.ouvrir;
 
     actualiserBandeauPuzzle(partie.obtenirArbre());
 

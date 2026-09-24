@@ -90,7 +90,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : coupsDepuis,
 // appliquerCoup, couleursDuPlateau, caseDansLaDirection, depuisNotation,
-// ecrireCoupNacreSansAmbiguite, lireCoupNacre, ecrirePosition, creerArbre, jouerDansArbre,
+// ecrireCoupNacreSansAmbiguite, lireCoupNacre, ecrirePosition, lirePosition, creerArbre, jouerDansArbre,
 // reculerDansArbre, avancerDansArbre, avancerVersEnfant,
 // avancerJusquauProchainChoix, allerALaRacine, allerAuNoeud, supprimerBranche,
 // peutSupprimerNoeud, peutRemonterNoeud, remonterNoeud, marquerStatutFin, marquerPendulesSnapshot,
@@ -224,6 +224,15 @@ function demarrerPartie(
   // Correspondance (phase 24) : un coup envoye a l'adversaire ne se reprend plus
   // (les deux parties divergeraient) — ni Annuler, ni suppression dans la Sequence.
   let suppressionsInterdites = false;
+  // Apercu d'une permutation (phase 25, interface/permutations.js) : le plateau
+  // affiche momentanement une AUTRE position (celle d'une ligne du popup
+  // Permutations, ou du camp inverse), sans toucher a `arbre` — jamais un coup
+  // ni une navigation, juste un remplacement visuel. Bloque tout clic de jeu
+  // pendant ce temps (voir jeuSuspendu) : sans ca, cliquer une bille du plateau
+  // affiche tenterait de jouer un coup sur une position que l'arbre ne connait
+  // pas. terminerApercuPermutation() reaffiche l'etat REEL, exactement comme
+  // apres une navigation (memes fonctions que `naviguer`, sans transformer `arbre`).
+  let apercuPermutationActif = false;
   // Declare ICI, avant tout affichage : le premier actualiserAffichagePartie de
   // l'initialisation le lit deja.
 
@@ -449,7 +458,7 @@ function demarrerPartie(
   // c'est de l'analyse, le vrai decompte reste fige de son cote et ne
   // reprendra qu'au retour sur le point vivant.
   function jeuSuspendu() {
-    return !pauseIgnoree && pendules.estEnPauseManuelle() && !pendules.estEnApercu();
+    return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle() && !pendules.estEnApercu());
   }
 
   function basculerPause() {
@@ -854,6 +863,23 @@ function demarrerPartie(
     interdireLesSuppressions: () => {
       suppressionsInterdites = true;
       actualiserBoutonsNavigation();
+    },
+    // Correspondance (phase 24) et Permutations (phase 25, interface/permutations.js) :
+    // afficher momentanement une position quelconque, texte compressee
+    // (moteur/notation.lirePosition), puis revenir a la partie reelle.
+    demarrerApercuPermutation: (texteDePosition) => {
+      const etat = lirePosition(texteDePosition);
+      deselectionner();
+      apercuPermutationActif = true;
+      synchroniserBilles(svg, etat.plateau);
+      actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
+      actualiserCoordonneesBilles(svg, null);
+      actualiserFlecheDernierCoup(svg, undefined);
+    },
+    terminerApercuPermutation: () => {
+      apercuPermutationActif = false;
+      synchroniserBilles(svg, etatCourant(arbre).plateau);
+      actualiserAffichagePartie();
     },
     terminer: terminerPartie,
   };
