@@ -654,7 +654,17 @@
       <summary>Permutations</summary>
       <ul>
         <li>Touchez la position affichée (au-dessus du nom de la partie) : elle se copie, comme avant, ET une boîte s'ouvre avec ses <b>12 permutations</b> (rotations, miroirs du plateau) et leurs 12 « Camp_Permut » (camps échangés) — la ligne qui correspond à la position de référence de la base de coups est mise en évidence. Toucher une valeur l'affiche sur le plateau le temps de la regarder, avec un bouton pour revenir.</li>
-        <li><b>Puzzles</b> : depuis la phase 16bis, chaque <b>ouverture</b> d'un puzzle propose automatiquement une orientation différente parmi les 12 (jamais deux fois la même avant d'avoir vu les 12) — le nom du puzzle et sa solution ne changent pas, seule l'orientation visuelle du plateau varie. Une fois les 12 résolues, le cycle recommence. Un interrupteur dans la boîte Puzzles permet de le désactiver (toujours la position exacte du fichier).</li>
+        <li><b>Puzzles</b> : depuis la phase 16bis, chaque <b>ouverture</b> d'un puzzle propose automatiquement une orientation différente parmi les 12 (jamais deux fois la même avant d'avoir vu les 12) — le nom du puzzle et sa solution ne changent pas, seule l'orientation visuelle du plateau varie. Une fois les 12 « Bravo » obtenus, le cycle recommence. Un interrupteur dans la boîte Puzzles permet de le désactiver (toujours la position exacte du fichier).</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Vérification des puzzles (solveur)</summary>
+      <ul>
+        <li>Un puzzle gagné au bon tour est vérifié par le <b>solveur de KAAWA</b>, en arrière-plan (le plateau ne se fige jamais) : le bandeau affiche « vérification par le solveur… », puis <b>« Bravo! C'est la solution! »</b> (vert) ou <b>« Ce n'est pas la solution! »</b> (rouge) — par exemple si la défense jouée était trop faible pour être la vraie.</li>
+        <li>Le calcul commence <b>dès que vous sortez d'un chemin déjà connu</b>, sans attendre la fin : quelques secondes pour un puzzle court, jusqu'à une vingtaine sur ordinateur pour un puzzle à 6 tours (davantage sur un téléphone).</li>
+        <li>Une solution confirmée est mise en cache : la suivante, identique, est reconnue tout de suite.</li>
+        <li>« C'est peut-être la solution... » (orange) : le calcul a dépassé sa limite de temps, rien n'est prouvé ni dans un sens ni dans l'autre.</li>
       </ul>
     </details>
 
@@ -718,7 +728,7 @@
     <details>
       <summary>Ce qui n'est pas encore dans KAAH</summary>
       <ul>
-        <li>Pas encore là : le <b>solveur de puzzles</b> (vérifier/résoudre par le calcul) et l'<b>adversaire artificiel</b> (jouer seul contre la machine).</li>
+        <li>Pas encore là : l'<b>adversaire artificiel</b> (jouer seul contre la machine).</li>
         <li>La liste à jour, avec le détail, est dans la page « Ce qui n'est pas encore dans KAAH » (dossier docs, ou le lien envoyé avec KAAH). <b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
       </ul>
     </details>
@@ -1183,6 +1193,7 @@
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
   <script src="./moteur/puzzles.js"></script>
+  <script src="./moteur/solveur.js"></script>
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
@@ -1233,6 +1244,9 @@
   <script src="./interface/next-move.js"></script>
   <script src="./interface/puzzles-permutations.js"></script>
   <script src="./interface/puzzles.js"></script>
+  <script src="./solveur/kaa-solveur.js"></script>
+  <script src="./interface/solveur.js"></script>
+  <script src="./interface/verification-puzzle.js"></script>
   <script src="./interface/positions-my.js"></script>
   <script src="./interface/corbeille.js"></script>
   <script src="./interface/editeur-position.js"></script>
@@ -1747,16 +1761,19 @@
     const indexPermutationActivePuzzle = puzzleOriginal
       ? indexPermutationChargee(puzzleOriginal, ecrirePosition(partie.obtenirArbre().racine.etat))
       : 0;
+    // La solution en cache, elle, ne voyage pas dans la sauvegarde : on la
+    // retrouve dans le fichier, par le nom, plus ce que le solveur de KAAH a
+    // prouve depuis (phase 28, interface/verification-puzzle.js). Stockee dans
+    // l'orientation 0 (canonique du puzzle) : voir coupsJoues plus bas, qui
+    // depermute les coups joues avant de la comparer.
+    const solutionDuFichierPuzzle = puzzleOriginal?.entree?.sol_starts ?? '';
     const puzzleEnCours = objectifPuzzle && {
       ...objectifPuzzle,
       nom: variantName,
-      // La solution en cache, elle, ne voyage pas dans la sauvegarde : on
-      // la retrouve dans le fichier, par le nom. Absente (puzzle inconnu de
-      // ce fichier) = puzzle jouable mais non verifiable, comme les 101
-      // puzzles sur 104 qui n'en ont de toute facon aucune. Stockee dans
-      // l'orientation 0 (canonique du puzzle) : voir coupsJoues plus bas, qui
-      // depermute les coups joues avant de la comparer.
-      branchesSolution: puzzleOriginal?.branchesSolution ?? [],
+      branchesSolution: lireBranchesSolution(
+        solutionEnCacheDuPuzzle(variantName, solutionDuFichierPuzzle),
+        objectifPuzzle.campGagnant
+      ),
     };
 
     // Lequel des 4 boutons "position de depart" represente la partie
@@ -1791,19 +1808,20 @@
     // est toujours ecrite dans cette orientation-la, jamais celle affichee.
     // Sans permutation (index 0), depermuter ne change rien (l'identite).
     function coupsJoues(arbre) {
+      return coupsAffiches(arbre).map((coup) => permuterCoupNacreInverse(coup, indexPermutationActivePuzzle));
+    }
+
+    // Les memes, tels qu'ils ont ete joues et ecrits (orientation affichee) :
+    // ce que le solveur verifie (phase 28), depuis la racine affichee.
+    function coupsAffiches(arbre) {
       const coups = [];
       let noeud = arbre.racine;
       for (const index of arbre.chemin) {
         noeud = noeud.enfants[index];
-        coups.push(permuterCoupNacreInverse(noeud.coup, indexPermutationActivePuzzle));
+        coups.push(noeud.coup);
       }
       return coups;
     }
-
-    // Une orientation resolue le reste pour toujours (interface/puzzles-
-    // permutations.js) : marquee une seule fois par partie, jamais a chaque
-    // coup ni a chaque re-affichage (le puzzle reste "resolu" longtemps apres).
-    let permutationDejaMarqueeResolue = false;
 
     function etatDuPuzzleCourant(arbre) {
       const etat = etatCourant(arbre);
@@ -1811,16 +1829,45 @@
       // l'AUTRE camp : Noir gagne en ejectant des billes blanches.
       const ejectionsDuGagnant =
         puzzleEnCours.campGagnant === 'noir' ? etat.billesEjecteesBlanches : etat.billesEjecteesNoires;
-      const resultat = etatDuPuzzle(puzzleEnCours, {
+      return etatDuPuzzle(puzzleEnCours, {
         coupsJoues: coupsJoues(arbre),
         ejectionsDuGagnant,
         vainqueur: etat.vainqueur,
       });
-      if (resultat.resultat === 'resolu' && !permutationDejaMarqueeResolue) {
-        permutationDejaMarqueeResolue = true;
-        marquerPermutationResolue(variantName, indexPermutationActivePuzzle);
-      }
-      return resultat;
+    }
+
+    // Le solveur (phase 28, interface/solveur.js et interface/verification-
+    // puzzle.js) : cree seulement pour une partie qui EST un puzzle. Une
+    // orientation n'est marquee resolue (phase 16bis) que sur son "Bravo",
+    // comme KAAWA (_pzl_mark_permutation_solved sur full_match) — plus sur une
+    // simple victoire, la simplification assumee faute de solveur est levee.
+    const verificationPuzzle =
+      puzzleEnCours &&
+      demarrerVerificationPuzzle(
+        creerSolveur(),
+        puzzleEnCours,
+        ecrirePosition(partie.obtenirArbre().racine.etat),
+        solutionDuFichierPuzzle,
+        {
+          surVerdict: () => actualiserBandeauPuzzle(partie.obtenirArbre()),
+          marquerResolue: () => marquerPermutationResolue(variantName, indexPermutationActivePuzzle),
+          reglagesPzl: () => lireReglagesActifs().pzl,
+          consommerReglagesPzl: () => {
+            const reglages = lireReglagesActifs();
+            const consommes = consommerReglagesPzlUsageUnique(reglages);
+            if (JSON.stringify(consommes) !== JSON.stringify(reglages)) sauverProfilActif(consommes);
+          },
+        }
+      );
+
+    // KAAWA : "[offset:2, seuil:1s]" tant qu'un reglage PZL a usage unique
+    // n'est pas revenu a son defaut (KAA_aide.txt, chapitre 12).
+    function etiquetteReglagesPzl() {
+      const { cache_offset_tours: decalage, save_threshold_sec: seuil } = lireReglagesActifs().pzl;
+      const morceaux = [];
+      if (decalage !== REGLAGES_PAR_DEFAUT.pzl.cache_offset_tours) morceaux.push(`offset:${decalage}`);
+      if (seuil !== REGLAGES_PAR_DEFAUT.pzl.save_threshold_sec) morceaux.push(`seuil:${seuil}s`);
+      return morceaux.length > 0 ? `[${morceaux.join(', ')}]` : '';
     }
 
     function actualiserBandeauPuzzle(arbre) {
@@ -1828,7 +1875,9 @@
         afficherEtatPuzzle(elementBandeauPuzzle, null, null);
         return;
       }
-      afficherEtatPuzzle(elementBandeauPuzzle, puzzleEnCours, etatDuPuzzleCourant(arbre));
+      const etat = etatDuPuzzleCourant(arbre);
+      const verdict = verificationPuzzle.suivre(coupsAffiches(arbre), coupsJoues(arbre), etat);
+      afficherEtatPuzzle(elementBandeauPuzzle, puzzleEnCours, etat, verdict, etiquetteReglagesPzl());
     }
 
     // Un puzzle perdu ferme le jeu EN AVANT, sans rien empecher en arriere

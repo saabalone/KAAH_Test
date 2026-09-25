@@ -212,15 +212,28 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
 // Le bandeau qui suit un puzzle EN COURS de partie : l'objectif, puis le
 // verdict des que la partie bascule. `element` est masque tant qu'aucun
 // puzzle n'est charge — une partie ordinaire ne doit rien voir de tout ca.
-// `etat` vient de moteur.etatDuPuzzle.
-function afficherEtatPuzzle(element, puzzle, etat) {
+// `etat` vient de moteur.etatDuPuzzle ; `verdict` (phase 28, interface/
+// verification-puzzle.js) : celui du solveur pour une victoire au bon tour,
+// ou null. `etiquette` (facultative) : les reglages PZL a usage unique encore
+// en attente (KAAWA : "[offset:2, seuil:1s]").
+function afficherEtatPuzzle(element, puzzle, etat, verdict = null, etiquette = '') {
   if (!puzzle) {
     element.hidden = true;
     return;
   }
   element.hidden = false;
-  element.className = `bandeau-puzzle bandeau-puzzle-${etat.resultat.replace(' ', '-')}`;
-  element.textContent = `${decrireObjectif(puzzle)} — ${phraseDeResultat(puzzle, etat)}`;
+  element.className = `bandeau-puzzle bandeau-puzzle-${classeDuBandeau(etat, verdict)}`;
+  const suffixe = etiquette ? ` ${etiquette}` : '';
+  element.textContent = `${decrireObjectif(puzzle)} — ${phraseDeResultat(puzzle, etat, verdict)}${suffixe}`;
+}
+
+// Memes couleurs que KAAWA (KAA_aide.txt, chapitre 12, "MESSAGES") : vert pour
+// la solution, rouge pour un refus, orange pour tout ce qui reste incertain.
+function classeDuBandeau(etat, verdict) {
+  if (!verdict) return etat.resultat.replace(' ', '-');
+  if (verdict.verdict === 'valide') return 'resolu';
+  if (verdict.verdict === 'invalide') return 'perdu';
+  return 'incertain';
 }
 
 // LE RANG DU COUP FAUTIF N'EST JAMAIS DIT, ni pendant, ni apres. Le dire
@@ -229,19 +242,32 @@ function afficherEtatPuzzle(element, puzzle, etat) {
 // revient exactement au meme : on relance le puzzle en sachant que c'est le
 // coup 1 qu'il faut changer (signale par saab, "ca revient au meme que le
 // dire sur le coup 1 !"). Le bandeau se contente donc de dire ou en est la
-// partie. Que la sequence colle ou non a la solution en cache ne sert qu'a
-// nuancer une VICTOIRE, ou ca ne renseigne plus sur rien a trouver.
+// partie — et, phase 28, le verdict du solveur une fois le puzzle gagne, SANS
+// le coup fautif qu'il connait pourtant (moteur/solveur.js, lireReponseSolveur).
 //
 // Phrases volontairement COURTES : ce bandeau vit dans la colonne qui borde
 // le plateau, et le plateau ne doit jamais retrecir a cause d'elle (styles.css
 // s'en assure aussi de son cote, minmax(0, 1fr) — mais autant ne pas ecrire
-// des romans a cet endroit).
-function phraseDeResultat(puzzle, etat) {
+// des romans a cet endroit). Les verdicts reprennent les messages de KAAWA
+// (KAA_aide.txt, chapitre 12).
+function phraseDeResultat(puzzle, etat, verdict) {
   if (etat.resultat === 'resolu') {
     if (etat.tropTot) return `gagne au tour ${etat.tour}/${puzzle.toursMaximum} : trop rapide`;
-    if (!etat.verification.verifiable) return 'resolu (aucune solution en cache)';
-    return etat.verification.conforme ? 'resolu, solution verifiee' : 'resolu par un autre chemin';
+    return phraseDuVerdict(verdict);
   }
   if (etat.resultat === 'perdu') return 'perdu — revenir en arriere pour reessayer';
   return `tour ${etat.tour}/${puzzle.toursMaximum}`;
+}
+
+// Une verification qui a pris plus que le seuil pzl.save_threshold_sec le dit
+// (KAAWA : popup "Vérification lente") — la prochaine fois, le cache repondra.
+function phraseDuVerdict(verdict) {
+  if (!verdict || verdict.verdict === 'en cours') return 'gagné — vérification par le solveur…';
+  if (verdict.verdict === 'valide') {
+    return verdict.lente ? `Bravo! C'est la solution! (vérifié en ${Math.round(verdict.duree)} s, mis en cache)` : "Bravo! C'est la solution!";
+  }
+  if (verdict.verdict === 'invalide') return "Ce n'est pas la solution!";
+  if (verdict.verdict === 'indetermine') return "C'est peut-être la solution... (calcul trop long)";
+  if (verdict.raison === 'SOLVEUR_INDISPONIBLE') return 'Vérification impossible (solveur indisponible)';
+  return 'Erreur du solveur pendant la vérif';
 }

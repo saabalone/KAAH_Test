@@ -1505,6 +1505,9 @@ button,
    = perdu), pour que le verdict se lise sans avoir a lire. */
 .bandeau-puzzle-resolu { color: #2ecc55; }
 .bandeau-puzzle-perdu { color: #e04040; }
+/* Phase 28 : verification en cours, "peut-etre", solveur indisponible —
+   l'orange de KAAWA pour tout ce qui reste incertain. */
+.bandeau-puzzle-incertain { color: #e8a33d; }
 
 /* L'objectif, a droite du nom dans la liste des puzzles : pousse au bout de
    la ligne (flex, voir .ligne-liste) et un cran plus discret que le nom —
