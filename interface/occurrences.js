@@ -61,7 +61,14 @@ function demarrerAffichageOccurrences(svg, elements, rappels) {
     dernierArbre = arbre;
     const compteurs = calculerCompteurs(arbre);
     actualiserCompteurOccurrences(svg, compteurs, SEUIL_NULLE_PAR_DEFAUT);
-    ajusterCadreOccurrences(svg); // sa longueur a pu changer (rendu/corde.js)
+    // Purement decoratif, appele a CHAQUE coup : un `try` pour ne jamais
+    // casser la partie a cause de son cadre (voir index.html, meme raison
+    // pour rendu/corde.js).
+    try {
+      ajusterCadreOccurrences(svg); // sa longueur a pu changer (rendu/corde.js)
+    } catch (erreur) {
+      console.error("Le cadre d'Occ n'a pas pu s'ajuster (jeu inchange) :", erreur);
+    }
     rappels.surOccurrences?.(compteurs.occ);
     if (!elements.panneau.hidden) rafraichirPanneau(arbre);
   }

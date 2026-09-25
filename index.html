@@ -1515,7 +1515,17 @@
     fixerProportionsPlateau(svg);
     // La corde autour du plateau et de ses groupes (rendu/corde.js) : mesuree
     // sur ce qui est dessine, donc une fois tout pose et le viewBox definitif.
-    dessinerCorde(svg, hexFondPlateau);
+    // PUREMENT decorative : un `try` autour (saab a signale un plateau sans
+    // relief ni boutons fonctionnels sur un Android bas de gamme, Opera/
+    // Chrome — une exception ici, non reproduite mais plausible sur un
+    // moteur de rendu SVG different, aurait alors arrete tout le reste de ce
+    // script AVANT d'avoir branche le moindre bouton) : jamais au prix de
+    // pouvoir jouer.
+    try {
+      dessinerCorde(svg, hexFondPlateau);
+    } catch (erreur) {
+      console.error('La corde autour du plateau n\'a pas pu se dessiner (jeu inchange) :', erreur);
+    }
     // Le decor (fond, relief, trous) fige en une image : voir rendu/cache-relief.js.
     // Apres tout ce qui touche au viewBox. Le handle renvoye (`{
     // forcerRedessin }`) est reutilise par interface/reglages.js pour

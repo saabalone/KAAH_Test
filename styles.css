@@ -3477,10 +3477,19 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
      `max(200px, ...)` pour ne jamais tomber a rien sur un ecran presque carre. */
   body.face-a-face {
     /* Meme epaisseur que les pendules (voir interface/face-a-face.js), plus les
-       2 x 2 px de marge de la barre. */
+       2 x 2 px de marge de la barre. `vh` en repli, `svh` (comme `html`/`body`
+       plus haut) par-dessus des qu'il est compris : CORRIGE (saab, testeur sur
+       Android/Xiaomi, Chrome et Opera) — `vh` compte la page ENTIERE, barre
+       d'adresse comprise, alors que `body` lui-meme est deja borne a `100svh`
+       (la hauteur VISIBLE la plus petite garantie) ; l'ecart entre les deux
+       faisait deborder le bas de la fenetre retournee sur le plateau, variable
+       selon que la barre d'adresse etait affichee ou non au moment du
+       basculement. */
     --epaisseur-bouton-navigation-fa: calc(100vh * var(--rapport-pendule, 0.07));
+    --epaisseur-bouton-navigation-fa: calc(100svh * var(--rapport-pendule, 0.07));
     --largeur-navigation-fa: calc(var(--epaisseur-bouton-navigation-fa) + 4px);
     --epaisseur-fenetres-fa: max(200px, calc(100vw - 44px - var(--largeur-navigation-fa) - 100vh * var(--rapport-plateau, 1.08)));
+    --epaisseur-fenetres-fa: max(200px, calc(100vw - 44px - var(--largeur-navigation-fa) - 100svh * var(--rapport-plateau, 1.08)));
     padding-right: calc(var(--epaisseur-fenetres-fa) + var(--largeur-navigation-fa));
   }
 
@@ -3489,11 +3498,13 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     top: 0;
     right: 0;
     width: 100vh;
+    width: 100svh;
     height: var(--epaisseur-fenetres-fa);
     max-height: none;
     margin: 0;
     transform-origin: top right;
     transform: translateY(100vh) rotate(90deg);
+    transform: translateY(100svh) rotate(90deg);
   }
 
   /* Dans la boite a plat, chaque fenetre prend toute la largeur (= la hauteur
