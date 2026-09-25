@@ -30,8 +30,9 @@
 // compterOccurrencesRef, SEUIL_NULLE_PAR_DEFAUT (moteur/nulle.js),
 // etatOccurrencesArbre (moteur/occurrences.js), numeroDeTour, noeudA
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js, petit
-// utilitaire partage — voir ce fichier) et actualiserCompteurOccurrences
-// (rendu/compteur-occurrences.js) viennent tous des fichiers charges avant
+// utilitaire partage — voir ce fichier), actualiserCompteurOccurrences
+// (rendu/compteur-occurrences.js) et ajusterCadreOccurrences
+// (rendu/corde.js) viennent tous des fichiers charges avant
 // celui-ci dans index.html.
 
 // `elements` : { bouton, panneau, entete, liste }. `rappels` :
@@ -60,6 +61,7 @@ function demarrerAffichageOccurrences(svg, elements, rappels) {
     dernierArbre = arbre;
     const compteurs = calculerCompteurs(arbre);
     actualiserCompteurOccurrences(svg, compteurs, SEUIL_NULLE_PAR_DEFAUT);
+    ajusterCadreOccurrences(svg); // sa longueur a pu changer (rendu/corde.js)
     rappels.surOccurrences?.(compteurs.occ);
     if (!elements.panneau.hidden) rafraichirPanneau(arbre);
   }

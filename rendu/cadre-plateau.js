@@ -131,9 +131,10 @@ function dessinerCadrePlateau(cadre, hexFond) {
 // cette fonction, un changement de board.bg_color dans les reglages ne se
 // voyait qu'en changeant de partie (le decor est fige en bitmap, voir
 // rendu/cache-relief.js — c'est l'appelant qui force son redessin apres
-// avoir change cette couleur).
+// avoir change cette couleur). Le fond de la corde (rendu/corde.js) est de
+// la meme couleur que le plateau : il suit.
 function actualiserCouleurCadrePlateau(svg, hexFond) {
-  svg.querySelector('.fond-plateau')?.setAttribute('fill', hexFond);
+  for (const fond of svg.querySelectorAll('.fond-plateau, .fond-corde')) fond.setAttribute('fill', hexFond);
 }
 
 // Marge autour du cadre dans le viewBox : de quoi laisser voir son ombre

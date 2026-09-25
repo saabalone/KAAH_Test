@@ -12,9 +12,10 @@
 //     jamais suffixe.
 //   - SAME : ni les noms ni les couleurs ne changent.
 //
-// L'ORIENTATION (demande de saab) : en face-a-face, la Revanche retourne le
-// plateau de 180 degres — l'ancien Joueur 2, assis en haut, joue maintenant Noir et
-// doit avoir les Noirs en bas POUR LUI. A la revanche suivante il revient ; Same ne
+// L'ORIENTATION (demande de saab) : la Revanche retourne le plateau de 180
+// degres — l'ancien Joueur 2, assis en haut, joue maintenant Noir et doit avoir
+// les Noirs de SON cote (d'abord en face-a-face seulement, partout depuis le
+// 2026-09-25). A la revanche suivante il revient ; Same ne
 // la change pas. `plateauRetourne` est ecrit dans le fichier de la partie (champ
 // propre a KAAH, comme NullesRefusees : KAAWA l'ignore) pour survivre a un
 // rechargement.

@@ -462,9 +462,13 @@ function demarrerPartie(
     return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle() && !pendules.estEnApercu());
   }
 
+  // Pauses prises depuis l'ouverture de la partie, affichees sur le grand
+  // bouton rond (rendu/pendule.js). Le premier clic, qui DEMARRE la partie,
+  // leve la pause de depart : il ne compte pas.
+  let nombreDePauses = 0;
   function basculerPause() {
     if (!pendules.basculerPauseManuelle()) return;
-    if (pendules.estEnPauseManuelle()) afficherPause(svg);
+    if (pendules.estEnPauseManuelle()) afficherPause(svg, ++nombreDePauses);
     else masquerPause(svg);
   }
 

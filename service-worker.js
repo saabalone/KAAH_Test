@@ -73,6 +73,8 @@ const FICHIERS_A_CACHER = [
   './rendu/pistes-triangle.js',
   './rendu/ejections-apercu.js',
   './rendu/pendule.js',
+  './rendu/courroie.js',
+  './rendu/corde.js',
   './rendu/animation.js',
   './rendu/arbre-ligne.js',
   './rendu/arbre-html.js',

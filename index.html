@@ -615,12 +615,13 @@
     <details open>
       <summary>Jouer un coup</summary>
       <ul>
-        <li><b>Rien ne démarre tout seul :</b> touchez une pendule (cadre gris à droite du plateau) pour lancer la partie. Touchez-la encore pour mettre en pause (un grand rond vert masque alors le plateau) ; toucher n'importe où dessus reprend. Un message vert le rappelle au-dessus du plateau tant que c'est le cas.</li>
+        <li><b>Rien ne démarre tout seul :</b> touchez une pendule (cadre gris à droite du plateau) pour lancer la partie. Touchez-la encore pour mettre en pause (un grand rond vert masque alors le plateau, avec le numéro de la pause : en revenant, vous voyez si quelqu'un en a pris une autre entre-temps) ; toucher n'importe où dessus reprend. Un message vert le rappelle au-dessus du plateau tant que c'est le cas.</li>
+        <li><b>La corde autour du plateau</b> reste toujours noire du côté de Noir (qui a commencé) et blanche du côté de Blanc, même avec des billes d'autres couleurs : on sait ainsi toujours qui a commencé.</li>
         <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande. Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom.</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
-        <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante). En face-à-face, chacun reste assis à sa place : le plateau se retourne (les Noirs sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
+        <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante). Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler, pendule qui attend).</li>
       </ul>
@@ -935,10 +936,13 @@
   </dialog>
 
   <!-- Mode de pendule (phase 22bis, interface/pendules-mode.js) : s'ouvre a
-       la creation d'une partie neuve (bouton "Nouvelle partie" uniquement,
-       jamais Revanche/Same qui gardent deja les reglages precedents, voir
+       CHAQUE debut de partie (Nouvelle partie, Variantes, Puzzles — jamais
+       Revanche/Same qui gardent deja les reglages precedents, voir
        moteur/revanche.js) ET depuis le bouton dedie de la colonne de gauche
-       pour changer de mode SANS perdre le temps deja ecoule (PLAN.md). -->
+       pour changer de mode SANS perdre le temps deja ecoule (PLAN.md).
+       Valider, Fermer OU un clic en dehors demarrent avec les reglages
+       affiches (demande de saab, 2026-09-25) : Annuler revient seulement a
+       ceux d'avant l'ouverture, sans fermer. -->
   <dialog id="dialogue-mode-pendules" class="dialogue">
     <h2>Mode de pendule</h2>
     <div class="boutons-dialogue-cote-a-cote">
@@ -969,8 +973,9 @@
       </div>
     </div>
     <div class="boutons-dialogue-cote-a-cote">
-      <button id="bouton-annuler-mode-pendules" class="bouton-dialogue" type="button">Annuler</button>
+      <button id="bouton-annuler-mode-pendules" class="bouton-dialogue" type="button" title="Revient aux réglages d'avant l'ouverture, sans fermer">Annuler</button>
       <button id="bouton-valider-mode-pendules" class="bouton-dialogue" type="button">Valider</button>
+      <button id="bouton-fermer-mode-pendules" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
 
@@ -1238,6 +1243,8 @@
   <script src="./rendu/pistes-triangle.js"></script>
   <script src="./rendu/ejections-apercu.js"></script>
   <script src="./rendu/pendule.js"></script>
+  <script src="./rendu/courroie.js"></script>
+  <script src="./rendu/corde.js"></script>
   <script src="./rendu/animation.js"></script>
   <script src="./rendu/arbre-ligne.js"></script>
   <script src="./rendu/arbre-html.js"></script>
@@ -1441,11 +1448,13 @@
     );
 
     const svg = document.getElementById('plateau');
-    // Revanche en face-a-face : le plateau est dessine retourne de 180 degres, et
-    // les camps changent de place autour de lui (rendu/plateau-svg.js, orienterPlateau ;
-    // rendu/ejections.js). Ni pendules, ni compteurs, ni noms ne tournent. Hors
-    // face-a-face, la partie garde son drapeau mais le plateau reste normal.
-    const plateauAfficheRetourne = plateauRetourne && lireFaceAFace();
+    // Revanche : le plateau est dessine retourne de 180 degres, et les camps
+    // changent de place autour de lui (rendu/plateau-svg.js, orienterPlateau ;
+    // rendu/ejections.js) — chaque joueur garde sa place, les couleurs changent de
+    // cote. Ni pendules, ni compteurs, ni noms ne tournent. D'abord reserve au
+    // face-a-face ; partout depuis le 2026-09-25 (saab : "pour la Revanche rien n'a
+    // tourne, cordes et camps sont tjs noir en bas blanc en haut").
+    const plateauAfficheRetourne = plateauRetourne;
     orienterPlateau(plateauAfficheRetourne);
     document.body.classList.toggle('plateau-retourne', plateauAfficheRetourne);
     dessinerPlateau(svg);
@@ -1504,6 +1513,9 @@
     // fois les bandes d'ejection ET le compteur d'occurrences loges dans
     // le viewBox (voir rendu/plateau-svg.js, fixerProportionsPlateau).
     fixerProportionsPlateau(svg);
+    // La corde autour du plateau et de ses groupes (rendu/corde.js) : mesuree
+    // sur ce qui est dessine, donc une fois tout pose et le viewBox definitif.
+    dessinerCorde(svg, hexFondPlateau);
     // Le decor (fond, relief, trous) fige en une image : voir rendu/cache-relief.js.
     // Apres tout ce qui touche au viewBox. Le handle renvoye (`{
     // forcerRedessin }`) est reutilise par interface/reglages.js pour
@@ -1645,10 +1657,14 @@
       delaiParCoup: document.getElementById('pendule-delai-coup'),
       annuler: document.getElementById('bouton-annuler-mode-pendules'),
       valider: document.getElementById('bouton-valider-mode-pendules'),
+      fermer: document.getElementById('bouton-fermer-mode-pendules'),
     });
     document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
+      // `ouvrir` renvoie toujours des reglages (jamais `null`, voir
+      // interface/pendules-mode.js) : les reappliquer ici est un non-evenement
+      // si rien n'a change (memes valeurs qu'avant l'ouverture).
       const reglages = await choixModePendules.ouvrir(partie.obtenirPendulesActuelles());
-      if (reglages) partie.changerModePendule(reglages);
+      partie.changerModePendule(reglages);
     });
 
     // Fin de partie : Options (phase 20bis) : voir interface/fin-de-partie.js. Les
@@ -2149,14 +2165,14 @@
     // partie qu'on etait en train de jouer, pas contre une vraie perte de
     // donnees.
     document.getElementById('bouton-nouvelle-partie').addEventListener('click', async () => {
-      // Phase 22bis : le mode de pendule se choisit AVANT de demarrer,
-      // jamais pour Revanche/Same (moteur/revanche.js, qui gardent deja
-      // les reglages de la partie precedente) ni pour Variantes/Puzzles
-      // (portee volontairement limitee au bouton "Nouvelle partie", voir
-      // PLAN.md phase 22bis). Annuler le popup annule tout : la partie en
-      // cours, s'il y en a une, reste intouchee.
+      // Phase 22bis, elargie le 2026-09-25 : le mode de pendule se choisit
+      // AVANT de demarrer, a CHAQUE debut de partie (Nouvelle partie,
+      // Variantes, Puzzles plus bas) — jamais pour Revanche/Same
+      // (moteur/revanche.js, qui gardent deja les reglages de la partie
+      // precedente). Fermer la boite sans rien changer demarre quand meme,
+      // avec les reglages affiches (interface/pendules-mode.js) : plus
+      // besoin de Valider a l'aveugle pour garder les reglages proposes.
       const reglagesChoisis = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
-      if (!reglagesChoisis) return;
       const demarrer = () => {
         // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
         // definirPositionDepartSuivante) : les reglages choisis survivent
@@ -2271,7 +2287,7 @@
 
     // Face-a-face (phase 20) : avant tout affichage, pour que les classes de
     // <body> soient deja posees quand la partie oriente ses noms.
-    demarrerFaceAFace(document.getElementById('bouton-face-a-face'), plateauRetourne, demarrerRechargement);
+    demarrerFaceAFace(document.getElementById('bouton-face-a-face'));
     // Nom d'un joueur : un clic sur son cadre, sur le plateau (interface/
     // noms-joueurs.js). Changer un nom change la sauvegarde (Players) et le
     // nom de la partie affiche : on sauvegarde donc tout de suite.
@@ -2512,10 +2528,14 @@
       variantesDisponibles,
       (variante) => {
         // Meme principe que "Nouvelle partie" : rien n'est perdu, la
-        // partie en cours reste dans "Mes parties" sous son propre nom.
-        const charger = () => {
+        // partie en cours reste dans "Mes parties" sous son propre nom. Le
+        // mode de pendule se choisit ici aussi depuis le 2026-09-25 (saab),
+        // apres la confirmation de remplacement s'il y en a une : inutile
+        // de la demander pour rien si elle est ensuite refusee.
+        const charger = async () => {
+          const reglagesPendules = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
           oublierPartieActive();
-          definirPositionDepartSuivante(variante.texteBrut, variante.nom);
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules });
           demarrerRechargement();
         };
         // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
@@ -2623,10 +2643,12 @@
       (puzzle) => {
         // Meme chemin qu'une variante : le NOM choisi devient le nom de la
         // partie, et c'est lui qui portera le marqueur xtrNx d'un bout a
-        // l'autre (voir puzzleEnCours plus haut).
-        const charger = () => {
+        // l'autre (voir puzzleEnCours plus haut). Mode de pendule choisi ici
+        // aussi (voir le commentaire equivalent sur les variantes plus haut).
+        const charger = async () => {
+          const reglagesPendules = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
           oublierPartieActive();
-          definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom);
+          definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom, { reglagesPendules });
           demarrerRechargement();
         };
         // Meme securite que Variantes/Nouvelle partie, voir plus haut.

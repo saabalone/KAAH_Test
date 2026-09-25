@@ -102,6 +102,20 @@ function dessinerPisteTriangle(svg, couleur, disposition) {
     );
   });
   svg.appendChild(groupe);
+  // Le cadre du compte, de la couleur du camp qui a ejecte ces billes (styles.css),
+  // a la hauteur des boutons Abandonner/Nulle qui l'encadrent (rendu/boutons-fin-piste.js).
+  const proprietaire = couleur === 'noir' ? 'blanc' : 'noir';
+  const largeurCadre = DEMI_LARGEUR_COMPTE * 2 + ECART_BOUTON_FIN_PISTE;
+  svg.appendChild(
+    creerElementSVG('rect', {
+      x: disposition.compte.x - largeurCadre / 2,
+      y: disposition.compte.y - COTE_BOUTON_FIN_PISTE / 2,
+      width: largeurCadre,
+      height: COTE_BOUTON_FIN_PISTE,
+      rx: RAYON_COIN_BOUTON_FIN_PISTE,
+      class: `cadre-compte-ejections cadre-compte-ejections-${proprietaire}`,
+    })
+  );
   const compte = creerElementSVG('text', {
     id: `nombre-${couleur}`,
     x: disposition.compte.x,

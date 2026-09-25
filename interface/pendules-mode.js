@@ -10,8 +10,12 @@
 //     `partie.changerModePendule` (interface/saisie.js), sans recharger,
 //     pour ne jamais perdre le temps deja ecoule (moteur/pendules.js,
 //     changerModePendules).
-// Ce fichier ne sait rien de ces deux appelants : `ouvrir(valeurs)` renvoie
-// une Promise des reglages choisis (ou `null` si Annuler), a eux de
+//   - a chaque debut de partie (variante, puzzle) depuis les phase 26/27,
+//     demande de saab le 2026-09-25 : plus reserve au seul bouton
+//     "Nouvelle partie".
+// Ce fichier ne sait rien de ses appelants : `ouvrir(valeurs)` renvoie une
+// Promise des reglages AFFICHES au moment de la fermeture (Valider, Fermer,
+// Echap ou un clic en dehors — jamais `null`, voir plus bas), a eux de
 // decider quoi en faire.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ce fichier se charge
@@ -34,11 +38,20 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 
 // `elements` : { dialogue, boutonChrono, boutonBonus, boutonDelai,
 // sectionTemps, sectionBonus, sectionDelai, tempsInitial, bonusParCoup,
-// bonusParEjection, delaiParCoup, annuler, valider }.
+// bonusParEjection, delaiParCoup, annuler, valider, fermer }.
+//
+// Fermer LA BOITE (Valider, Fermer, ou un clic en dehors — interface/
+// fermeture-dialogues.js) applique toujours les reglages AFFICHES, jamais
+// seulement ceux d'un Valider explicite (demande de saab : "on peut
+// commencer la partie avec les reglages affiches ... vaut mieux les 2
+// facons"). Annuler n'a donc plus besoin de fermer la boite ni de tout
+// annuler : il revient seulement aux reglages d'AVANT cette ouverture, sans
+// fermer (comme .Annuler de la boite Reglages) — Fermer, lui, ferme sans
+// rien changer de plus.
 function demarrerChoixModePendules(elements) {
   let modeChoisi = null;
   let resoudre = null;
-  let reglagesValides = null;
+  let valeursOuverture = null;
 
   // Affiche/masque les sections numeriques selon le mode : Chrono n'en a
   // aucune (rien a regler, il ne fait jamais perdre), Bonus et Delai
@@ -73,20 +86,20 @@ function demarrerChoixModePendules(elements) {
   elements.boutonBonus.addEventListener('click', () => choisirModeDepuisClic('bonus'));
   elements.boutonDelai.addEventListener('click', () => choisirModeDepuisClic('delai'));
 
-  elements.annuler.addEventListener('click', () => elements.dialogue.close());
-  elements.valider.addEventListener('click', () => {
-    reglagesValides = construireReglages();
-    elements.dialogue.close();
-  });
+  // Annuler : revient aux reglages d'avant cette ouverture, SANS fermer (on
+  // peut ensuite en rechoisir d'autres). Valider et Fermer ferment tous les
+  // deux ; Echap et le clic en dehors (interface/fermeture-dialogues.js)
+  // ferment de la meme facon, jamais un evenement `cancel` intercepte ici.
+  elements.annuler.addEventListener('click', () => appliquerValeurs(valeursOuverture));
+  elements.valider.addEventListener('click', () => elements.dialogue.close());
+  elements.fermer.addEventListener('click', () => elements.dialogue.close());
 
-  // Echap (ou toute autre fermeture native du <dialog>) doit se comporter
-  // comme Annuler, jamais laisser l'appelant en attente indefiniment d'une
-  // Promise qui ne se resoudrait plus : ce SEUL ecouteur resout, que la
-  // fermeture vienne d'un bouton ou d'Echap — `reglagesValides` porte le
-  // resultat pose par Valider juste au-dessus, `null` sinon.
+  // Resout TOUJOURS avec les reglages actuellement affiches, quelle que soit
+  // la facon dont la boite s'est fermee (voir l'en-tete du fichier) : jamais
+  // `null`, jamais laisser l'appelant en attente indefiniment d'une Promise
+  // qui ne se resoudrait plus.
   elements.dialogue.addEventListener('close', () => {
-    resoudre?.(reglagesValides);
-    reglagesValides = null;
+    resoudre?.(construireReglages());
     resoudre = null;
   });
 
@@ -113,16 +126,24 @@ function demarrerChoixModePendules(elements) {
     };
   }
 
-  // Ouvre le popup pre-rempli avec `valeurs` (REGLAGES_PENDULES_PAR_DEFAUT
-  // pour une partie neuve, les reglages EN DIRECT de la partie en cours
-  // pour un changement de mode, voir l'en-tete du fichier). Renvoie une
-  // Promise : les reglages choisis, ou `null` si Annuler.
-  function ouvrir(valeurs) {
+  // Remplit les champs depuis `valeurs` : au premier affichage (`ouvrir`) et
+  // sur Annuler, qui y revient.
+  function appliquerValeurs(valeurs) {
     choisirMode(valeurs.modeChoisi ?? 'bonus');
     elements.tempsInitial.value = valeurs.tempsInitial || TEMPS_INITIAL_PAR_DEFAUT;
     elements.bonusParCoup.value = valeurs.bonusParCoup ?? BONUS_PAR_COUP_PAR_DEFAUT;
     elements.bonusParEjection.value = valeurs.bonusParEjection ?? BONUS_PAR_EJECTION_PAR_DEFAUT;
     elements.delaiParCoup.value = valeurs.delai || DELAI_PAR_COUP_PAR_DEFAUT;
+  }
+
+  // Ouvre le popup pre-rempli avec `valeurs` (REGLAGES_PENDULES_PAR_DEFAUT ou
+  // ceux de la derniere partie pour un debut de partie, les reglages EN
+  // DIRECT de la partie en cours pour un changement de mode, voir l'en-tete
+  // du fichier). Renvoie une Promise : les reglages affiches au moment de la
+  // fermeture (jamais `null`, voir plus haut).
+  function ouvrir(valeurs) {
+    valeursOuverture = valeurs;
+    appliquerValeurs(valeurs);
     elements.dialogue.showModal();
     return new Promise((r) => {
       resoudre = r;

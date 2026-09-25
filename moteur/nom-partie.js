@@ -50,12 +50,16 @@ function nomJoueurNettoye(nom) {
 // designe, par exemple).
 function elementsDuTitre(donnees) {
   const profondeurOrigine = cheminOrigineDuFichier(donnees.Tree).length;
+  const joueurNoir = nomJoueurNettoye(donnees.Players.P1_black);
+  const joueurBlanc = nomJoueurNettoye(donnees.Players.P2_white);
   return {
     branches: possedeUneBranche(donnees.Tree),
     date: String(donnees.Date),
     evenement: String(donnees.Event),
     variante: String(donnees.VariantName),
-    joueurs: `${nomJoueurNettoye(donnees.Players.P1_black)}-${nomJoueurNettoye(donnees.Players.P2_white)}`,
+    joueurs: `${joueurNoir}-${joueurBlanc}`,
+    joueurNoir,
+    joueurBlanc,
     score: `-${donnees.Eject.P1}-${donnees.Eject.P2}`,
     tours: Math.max(1, Math.floor((profondeurOrigine + 1) / 2)),
     vainqueur: donnees.Winner && donnees.Winner !== 'None' ? String(donnees.Winner) : '(en cours)',

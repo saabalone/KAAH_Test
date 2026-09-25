@@ -14,14 +14,14 @@
 // Dans l'ordre du titre "Br_2608172039, Amical, Marguerite Belge,
 // Player_1-Player_2, -0-0tr2 Player_2, R".
 const CHAMPS_DU_FILTRE_PARTIES = [
-  { champ: 'date', libelle: 'Date', exemple: '2609 (AAMMJJHHMM)' },
-  { champ: 'evenement', libelle: 'Événement', exemple: 'Amical, Corr...' },
-  { champ: 'variante', libelle: 'Variante', exemple: 'Marguerite, PZL...' },
-  { champ: 'joueurs', libelle: 'Joueurs', exemple: 'nom d\'un joueur' },
-  { champ: 'score', libelle: 'Score', exemple: '-5-6' },
-  { champ: 'tours', libelle: 'Tours', exemple: 'nombre exact' },
-  { champ: 'vainqueur', libelle: 'Vainqueur', exemple: 'nom, ou (en cours)' },
-  { champ: 'statut', libelle: 'Statut', exemple: 'N, R, D, T, M, _' },
+  { champ: 'date', libelle: 'Date', exemple: '260925, <2609, >260801' },
+  { champ: 'evenement', libelle: 'Événement', exemple: 'Amical, Corr' },
+  { champ: 'variante', libelle: 'Variante', exemple: 'Marguerite, PZL' },
+  { champ: 'joueurs', libelle: 'Joueurs', exemple: 'saab, j1, saab-ami' },
+  { champ: 'score', libelle: 'Score', exemple: '5-6' },
+  { champ: 'tours', libelle: 'Tours', exemple: '12, <5, >20' },
+  { champ: 'vainqueur', libelle: 'Vainqueur', exemple: 'saab, (en cours)' },
+  { champ: 'statut', libelle: 'Statut', exemple: 'N,T (N R D T M _)' },
 ];
 
 // Renvoie { valeur() (le filtre, au format de FILTRE_VIDE), estActif(),
@@ -53,7 +53,7 @@ function demarrerFiltreParties(panneau, surChangement) {
     const nom = document.createElement('span');
     nom.textContent = libelle;
     const saisie = document.createElement('input');
-    saisie.type = champ === 'tours' ? 'number' : 'text';
+    saisie.type = 'text'; // jamais 'number' : "<5" doit pouvoir s'ecrire
     saisie.placeholder = exemple;
     // Remplir un champ le coche tout seul ; le decocher garde son texte.
     saisie.addEventListener('input', () => {
@@ -66,6 +66,14 @@ function demarrerFiltreParties(panneau, surChangement) {
     cases[champ] = coche;
     saisies[champ] = saisie;
   }
+
+  // Le mode d'emploi en une ligne (saab : "indiquer qu'on peut mettre ces signes").
+  const aide = document.createElement('p');
+  aide.className = 'filtre-parties-aide';
+  aide.textContent =
+    'Plusieurs choix : séparés par une virgule. Date et Tours : < avant, > après, rien ou = exact. ' +
+    'Joueurs : « A-B » dans un sens ou l’autre, « j1 » pour Joueur 1. Score : 5-6 ou 6-5.';
+  panneau.appendChild(aide);
 
   const effacer = document.createElement('button');
   effacer.type = 'button';

@@ -27,6 +27,9 @@ const LARGEUR_BOUTON_PENDULE = RAYON_PISTE * 11;
 const HAUTEUR_BOUTON_PENDULE = RAYON_PISTE * 3;
 const ROTATION_PENDULE = 90;
 const JEU_PENDULE = RAYON_PISTE * 0.4;
+// Le cadre est elargi, cote plateau, d'une bande ou s'ecrit le libelle de mode
+// (saab : "le label Bonus ... que tu vas mettre dans la pendule").
+const BANDE_LIBELLE_PENDULE = RAYON_PISTE * 1.5;
 // Retrait des bandes "||" par rapport aux bouts arrondis du cadre.
 const JEU_BANDE_PENDULE = RAYON_PISTE * 0.3;
 
@@ -55,7 +58,8 @@ function dessinerPendule(svg, camp, { x, y }) {
       x: x - LARGEUR_BOUTON_PENDULE / 2,
       y: y - HAUTEUR_BOUTON_PENDULE / 2,
       width: LARGEUR_BOUTON_PENDULE,
-      height: HAUTEUR_BOUTON_PENDULE,
+      // Vers +y avant la rotation de 90 degres : vers la GAUCHE a l'ecran, cote plateau.
+      height: HAUTEUR_BOUTON_PENDULE + BANDE_LIBELLE_PENDULE,
       rx: RAYON_PISTE * 0.6,
       class: `cadre-pendule cadre-pendule-${camp}`,
     })
@@ -97,7 +101,10 @@ function dessinerPendule(svg, camp, { x, y }) {
 // gris fonce sur tout le viewBox, un rond vert avec "||" au centre).
 // Idempotent : appeler deux fois de suite sans masquerPause entre les deux
 // ne cree pas un second cadre par-dessus le premier.
-function afficherPause(svg) {
+// `numeroDePause` s'ecrit sous le "||" (saab : "celui qui est parti verra si
+// le compteur n'a pas change") : la meme pause qu'en partant, ou une autre
+// prise entre-temps.
+function afficherPause(svg, numeroDePause) {
   if (svg.querySelector('#pause-plateau')) return;
 
   const [xMin, yMin, largeur, hauteur] = svg.getAttribute('viewBox').split(' ').map(Number);
@@ -131,6 +138,17 @@ function afficherPause(svg) {
     );
   }
 
+  const numero = creerElementSVG('text', {
+    x: cx,
+    y: cy + hauteurBarre / 2 + (rayon - hauteurBarre / 2) / 2,
+    'font-size': rayon * 0.16,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    class: 'numero-pause',
+  });
+  numero.textContent = `Pause n° ${numeroDePause}`;
+  groupe.appendChild(numero);
+
   svg.appendChild(groupe);
 }
 
@@ -149,23 +167,22 @@ function masquerPause(svg) {
 // d'espace entre, ils doivent etre au raz des pendules") : DECALAGE_LIBELLE_
 // PENDULE ne vaut plus que l'epaisseur de la pendule (HAUTEUR_BOUTON_
 // PENDULE / 2) plus une marge minime, jamais un multiple genereux de cette
-// epaisseur. Couleur du camp (saab, "mets ces labels de la couleur du
-// camp") : classe `libelle-pendule-${camp}` en plus, comme .cadre-pendule-
-// noir/-blanc — voir styles.css, qui reutilise les memes variables CSS que
-// les billes (--couleur-bille-noire/-blanche, en direct des reglages).
-const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE / 2 + RAYON_PISTE;
+// epaisseur. Puis DANS la pendule (saab, 2026-09-25), sur la bande
+// BANDE_LIBELLE_PENDULE du cadre, ecrit en gris comme les chiffres : c'est le
+// cadre noir ou blanc qui dit le camp, et le texte reste lisible quelles que
+// soient les couleurs des billes (en bleu sur le gris, on ne le voyait pas).
+// Dans le groupe de la pendule : il tourne avec elle, et le toucher la touche.
+const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE / 2 + BANDE_LIBELLE_PENDULE / 2;
 
 function dessinerLibellePendule(svg, camp, { x, y }) {
-  const xLibelle = x - DECALAGE_LIBELLE_PENDULE;
-  svg.appendChild(
+  svg.querySelector(`#bouton-pendule-${camp}`).appendChild(
     creerElementSVG('text', {
       id: `libelle-pendule-${camp}`,
       class: `libelle-pendule libelle-pendule-${camp}`,
-      x: xLibelle,
-      y,
+      x,
+      y: y + DECALAGE_LIBELLE_PENDULE,
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      transform: `rotate(${ROTATION_PENDULE} ${xLibelle} ${y})`,
     })
   );
 }

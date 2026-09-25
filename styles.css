@@ -871,7 +871,10 @@ button,
   min-height: var(--hauteur-commande);
   background: none;
   border: none;
-  color: #e4e4e4;
+  /* Vert tant qu'on ne s'en est pas servi (saab : "pour bien montrer qu'on doit
+     le cliquer pour commencer les selections"), orange tant qu'un filtre cache
+     des parties (.filtre-actif, plus bas). */
+  color: #3fcf7a;
   font-size: 14px;
   cursor: pointer;
 }
@@ -926,6 +929,12 @@ button,
 /* Un filtre cache des parties : le bouton ▶/▼ le rappelle, en orange. */
 .bouton-repli-parties.filtre-actif {
   color: #e8a33d;
+}
+
+.filtre-parties-aide {
+  margin: 4px 0;
+  color: #9a9a9a;
+  font-size: 11px;
 }
 
 /* Seuil de la jauge "Mes parties" (correctif, saab : deplace de "Réglages"
@@ -2605,23 +2614,63 @@ button,
 /* Le cercle de chaque case de piste est TOUJOURS de la couleur du camp qui
    possede la piste, vide ou remplie ; la case se remplit, elle, de la couleur
    des billes ejectees (saab). Noir joue en bas : la piste du bas, celle des
-   billes BLANCHES qu'il a ejectees, a donc un cercle noir, et inversement. */
+   billes BLANCHES qu'il a ejectees, a donc un cercle noir, et inversement.
+   Couleurs des billes reglees (index.html pose les variables) : comme le
+   libelle Bonus, cercles et cases suivent les billes (saab) — seule la corde
+   (rendu/corde.js) reste en noir et blanc. */
 .piste-ejection-noir .piste-case {
-  stroke: #e4e4e4;
+  stroke: var(--couleur-bille-blanche, #e4e4e4);
   stroke-width: 0.6;
 }
 
 .piste-ejection-blanc .piste-case {
-  stroke: #1f1f1f;
+  stroke: var(--couleur-bille-noire, #1f1f1f);
   stroke-width: 0.6;
 }
 
 .piste-ejection-noir .piste-remplie {
-  fill: #1f1f1f;
+  fill: var(--couleur-bille-noire, #1f1f1f);
 }
 
 .piste-ejection-blanc .piste-remplie {
-  fill: #e4e4e4;
+  fill: var(--couleur-bille-blanche, #e4e4e4);
+}
+
+/* La corde (rendu/corde.js) : toujours en noir et blanc, jamais aux couleurs
+   des billes — on sait ainsi qui a commence. Son fond prend la couleur du
+   plateau en attribut (reglable), comme .fond-plateau. */
+.corde {
+  fill: none;
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.corde-noir { stroke: #1f1f1f; }
+.corde-blanc { stroke: #e4e4e4; }
+
+.fond-corde {
+  pointer-events: none;
+}
+
+/* Le cadre du compteur Occ : pointille noir et blanc sur le gris du plateau
+   PAR DEFAUT (moteur/reglages.js, bg_color) — il ne change jamais (saab). */
+.cadre-occurrences {
+  pointer-events: none;
+}
+
+.cadre-occurrences-fond {
+  fill: #828282;
+  stroke: #e4e4e4;
+  stroke-width: 0.5;
+}
+
+.cadre-occurrences-tirets {
+  fill: none;
+  stroke: #1f1f1f;
+  stroke-width: 0.5;
+  stroke-dasharray: 1.5 1.5;
 }
 
 /* Alerte sur une piste : il ne reste plus qu'une ejection avant la
@@ -2848,17 +2897,15 @@ button,
   font: bold 4px sans-serif;
 }
 
-/* Couleur du CAMP (saab : "mets ces labels de la couleur du camp"), pas un
-   gris neutre comme les chiffres de la pendule (.pendule-camp-noir/-blanc) —
-   memes variables CSS que les billes (index.html/interface/reglages.js), en
-   direct : changer la couleur des billes dans les reglages recolore aussi
-   ces labels. */
-.libelle-pendule-noir {
-  fill: var(--couleur-bille-noire, #1f1f1f);
+/* Dans la pendule, en gris comme ses chiffres (saab, 2026-09-25) : c'est le
+   cadre noir ou blanc qui dit le camp, jamais le texte — aux couleurs des
+   billes, il ne se voyait pas sur le gris. Clair sur le vert d'attente. */
+.libelle-pendule {
+  fill: #828282;
 }
 
-.libelle-pendule-blanc {
-  fill: var(--couleur-bille-blanche, #e4e4e4);
+.bouton-pendule.pendule-en-attente .libelle-pendule {
+  fill: #e4e4e4;
 }
 
 /* Compte numerique des billes ejectees (rendu.dessinerNombreEjecte), a
@@ -2873,9 +2920,26 @@ button,
 }
 
 /* Le compte est le SCORE du camp qui possede la piste (celui qui a ejecte ces
-   billes), donc de SA couleur : Blanc en haut, Noir en bas (saab). */
-.nombre-ejecte-noir { fill: #e4e4e4; }
-.nombre-ejecte-blanc { fill: #1f1f1f; }
+   billes) : ecrit en gris, comme les chiffres des pendules, dans un cadre de
+   la couleur de ce camp — noir ou blanc, comme le cadre de sa pendule, quelles
+   que soient les couleurs des billes (saab). */
+.nombre-ejecte {
+  fill: #828282;
+}
+
+.cadre-compte-ejections-noir { fill: #1f1f1f; }
+.cadre-compte-ejections-blanc { fill: #e4e4e4; }
+
+/* Chaque bouton Abandonner / Nulle entoure de la couleur de son camp. */
+.bouton-fin-piste[data-camp='noir'] .bouton-fin-piste-fond {
+  stroke: #1f1f1f;
+  stroke-width: 0.6;
+}
+
+.bouton-fin-piste[data-camp='blanc'] .bouton-fin-piste-fond {
+  stroke: #e4e4e4;
+  stroke-width: 0.6;
+}
 
 /* Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du plateau
    (rendu/ejections.js, dessinerCompteurOccurrences) — comme KAAWA
@@ -3004,6 +3068,13 @@ button,
 .barre-pause {
   fill: #fff;
   pointer-events: none; /* le clic doit atteindre le rond en dessous, pas s'arreter sur une barre */
+}
+
+.numero-pause {
+  fill: #fff;
+  font-family: sans-serif;
+  font-weight: bold;
+  pointer-events: none; /* meme raison que .barre-pause */
 }
 
 /* Colonne d'icones (saab : "les cadres de tous les 12 boutons ... toucher la

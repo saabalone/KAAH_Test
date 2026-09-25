@@ -28,6 +28,7 @@ const COTE_BOUTON_FIN_PISTE = RAYON_PISTE * 3;
 // chaque bouton.
 const DEMI_LARGEUR_COMPTE = RAYON_PISTE * 1.1;
 const ECART_BOUTON_FIN_PISTE = RAYON_PISTE * 0.6;
+const RAYON_COIN_BOUTON_FIN_PISTE = RAYON_PISTE * 0.4;
 
 // Le dessin d'un bouton, dans un carre de COTE_BOUTON_FIN_PISTE dont (x, y) est le
 // coin haut-gauche. Mesures en douziemes du cote.
@@ -64,7 +65,7 @@ function creerBoutonFinPiste(camp, action, x, y, nom) {
       y,
       width: COTE_BOUTON_FIN_PISTE,
       height: COTE_BOUTON_FIN_PISTE,
-      rx: RAYON_PISTE * 0.4,
+      rx: RAYON_COIN_BOUTON_FIN_PISTE,
     }),
     ...dessinerIconeFin(action, x, y)
   );
