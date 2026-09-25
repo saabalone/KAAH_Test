@@ -65,11 +65,25 @@
           </span>
           <span class="libelle-bouton">Nouvelle partie</span>
         </button>
-        <!-- Correspondance (phase 24, interface/correspondance.js) : comme le
-             menu « Correspondance ✉ » de KAAWA — creer, recevoir un coup,
-             renvoyer son dernier code. -->
-        <button id="bouton-correspondance" title="Correspondance : jouer à distance en s'envoyant des codes KAA1">
-          <span class="icone-bouton icone-texte" aria-hidden="true">✉</span><span class="libelle-bouton">Correspondance</span>
+        <!-- Face-a-face (phase 20) : deux joueurs de chaque cote d'un telephone
+             pose a plat — voir interface/face-a-face.js. UN seul bouton : le
+             plateau ne tourne jamais ; noms et coordonnees s'orientent, les
+             fenetres de droite se retournent toutes seules vers le joueur qui
+             doit jouer. Icone dessinee a la main (demande de saab, plutot que
+             l'emoji de deux silhouettes de face) : deux tetes DE PROFIL qui se
+             regardent, l'une noire, l'autre blanche. Intervertie avec
+             Correspondance (saab, 2026-09-25), pour rester pres de "Nouvelle
+             partie". -->
+        <button id="bouton-face-a-face" title="Face-à-face : deux joueurs de chaque côté du téléphone (noms, coordonnées et fenêtres orientés vers celui qui joue)">
+          <span class="icone-bouton" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="25" height="25">
+              <defs>
+                <path id="icone-profil" d="M3 24 V17.5 C3 15.5 4.5 14.5 5 13 C2.5 12 1.5 9.5 2 7 C2.7 3.8 5.5 2 8.5 2.5 C11 3 12 5 12 6.5 L14 9.2 L12.2 10 L12.6 12 L11.5 12.5 C11.6 13.3 11 14 10 14.2 V17.5 C12 18.3 13 20 13 21.5 V24 Z"/>
+              </defs>
+              <use href="#icone-profil" transform="translate(0.3 1.2) scale(0.86)" fill="#1a1a1a" stroke="#888" stroke-width="0.7"/>
+              <use href="#icone-profil" transform="translate(24.7 1.2) scale(-0.86 0.86)" fill="#e4e4e4" stroke="#888" stroke-width="0.7"/>
+            </svg>
+          </span><span class="libelle-bouton">Face-à-face</span>
         </button>
       </div>
       <div class="groupe-boutons">
@@ -268,24 +282,14 @@
           <span class="libelle-bouton">Occurrences</span>
         </button>
       </div>
-      <!-- Face-a-face (phase 20) : deux joueurs de chaque cote d'un telephone
-           pose a plat — voir interface/face-a-face.js. UN seul bouton : le
-           plateau ne tourne jamais ; noms et coordonnees s'orientent, les
-           fenetres de droite se retournent toutes seules vers le joueur qui
-           doit jouer. Icone dessinee a la main (demande de saab, plutot que
-           l'emoji de deux silhouettes de face) : deux tetes DE PROFIL qui se
-           regardent, l'une noire, l'autre blanche. -->
+      <!-- Correspondance (phase 24, interface/correspondance.js) : comme le
+           menu « Correspondance ✉ » de KAAWA — creer, recevoir un coup,
+           renvoyer son dernier code. Intervertie avec Face-à-face (saab,
+           2026-09-25). Icone agrandie (styles.css, #bouton-correspondance
+           .icone-texte) a sa demande. -->
       <div class="groupe-boutons">
-        <button id="bouton-face-a-face" title="Face-à-face : deux joueurs de chaque côté du téléphone (noms, coordonnées et fenêtres orientés vers celui qui joue)">
-          <span class="icone-bouton" aria-hidden="true">
-            <svg viewBox="0 0 25 25" width="25" height="25">
-              <defs>
-                <path id="icone-profil" d="M3 24 V17.5 C3 15.5 4.5 14.5 5 13 C2.5 12 1.5 9.5 2 7 C2.7 3.8 5.5 2 8.5 2.5 C11 3 12 5 12 6.5 L14 9.2 L12.2 10 L12.6 12 L11.5 12.5 C11.6 13.3 11 14 10 14.2 V17.5 C12 18.3 13 20 13 21.5 V24 Z"/>
-              </defs>
-              <use href="#icone-profil" transform="translate(0.3 1.2) scale(0.86)" fill="#1a1a1a" stroke="#888" stroke-width="0.7"/>
-              <use href="#icone-profil" transform="translate(24.7 1.2) scale(-0.86 0.86)" fill="#e4e4e4" stroke="#888" stroke-width="0.7"/>
-            </svg>
-          </span><span class="libelle-bouton">Face-à-face</span>
+        <button id="bouton-correspondance" title="Correspondance : jouer à distance en s'envoyant des codes KAA1">
+          <span class="icone-bouton icone-texte" aria-hidden="true">✉</span><span class="libelle-bouton">Correspondance</span>
         </button>
       </div>
       <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
@@ -1030,7 +1034,11 @@
          interface/pendules.js (signalerEtatPause) des qu'on touche une
          pendule, et pendant une navigation dans l'historique ou une partie
          terminee (cliquer n'y ferait rien). Demande par saab : les testeurs
-         ne savaient pas qu'il fallait toucher une pendule pour demarrer. -->
+         ne savaient pas qu'il fallait toucher une pendule pour demarrer.
+         Place ici par defaut, mais TOUJOURS deplace juste apres #navigation
+         par interface/disposition.js (correctif, saab : apparaitre au-dessus
+         du plateau lui faisait changer de taille) — sa place definitive ne
+         depend donc jamais de son emplacement dans ce fichier. -->
     <p id="message-demarrage-pendules" class="message-demarrage" hidden>
       Touchez une pendule (à droite du plateau) pour démarrer ou mettre en pause la partie.
     </p>
@@ -2154,7 +2162,8 @@
       document.getElementById('colonne-principale'),
       document.getElementById('arbre-panneau'),
       document.getElementById('entete-partie'),
-      document.getElementById('colonne-droite')
+      document.getElementById('colonne-droite'),
+      document.getElementById('message-demarrage-pendules')
     );
     demarrerExtensionColonneGauche(
       document.getElementById('bouton-etendre-colonne'),

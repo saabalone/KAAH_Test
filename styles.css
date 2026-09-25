@@ -189,6 +189,13 @@ button,
   line-height: 1;
 }
 
+/* Correspondance (saab, 2026-09-25 : "grossir l'icone Correspondance") :
+   plus grande que les autres icones-texte (18px) sans toucher aux autres,
+   qui la partagent toutes (Conseils, Sons, Réglages...). */
+#bouton-correspondance .icone-texte {
+  font-size: 26px;
+}
+
 /* Icone "en hexagone" (Nouvelle partie, Variantes, Puzzles, Mes parties) :
    clin d'oeil au plateau lui-meme, un hexagone fait de cases rondes —
    demande par saab, pour les 4 boutons qui CHOISISSENT ou CHARGENT une
@@ -1006,9 +1013,16 @@ button,
 /* Rappel "touchez une pendule" (phase 27) : meme vert que ce que les
    pendules demandent elles-memes (--vert-demande, voir CLAUDE.md,
    "tout ce qui attend une reponse de votre part est en vert"), affiche/
-   masque par interface/pendules.js (signalerEtatPause). */
+   masque par interface/pendules.js (signalerEtatPause). CORRIGE (saab,
+   2026-09-25) : toujours place juste apres #navigation par interface/
+   disposition.js, jamais au-dessus du plateau (ou apparaitre/disparaitre lui
+   faisait changer de taille, #plateau etant en `height: 100%` d'un flex
+   item) — `flex: 0 0 auto` pour ne jamais s'etirer ni se comprimer a cote de
+   #navigation, marge en HAUT (plus de raison d'en avoir en bas, il n'est
+   plus jamais suivi du plateau). */
 .message-demarrage {
-  margin: 0 0 6px;
+  flex: 0 0 auto;
+  margin: 6px 0 0;
   padding: 4px 6px;
   border-radius: 6px;
   background: #12321f;
@@ -3582,5 +3596,21 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     min-height: var(--epaisseur-bouton-navigation-fa);
     padding: 0;
     font-size: 11px;
+  }
+
+  /* Le rappel "Touchez une pendule..." (voir .message-demarrage et
+     interface/disposition.js) : au-dessus de la bande de #navigation
+     (centree verticalement, voir juste au-dessus), donc jamais dessus.
+     Simplifie par rapport a la demande de saab (une place au plus pres de
+     #navigation, dans sa bande verticale) : une phrase entiere s'y lirait
+     tournee lettre par lettre, peu lisible — a revoir avec lui une fois
+     vu a l'ecran si cette version ne convient pas. */
+  body.face-a-face > .message-demarrage {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(80vw, 320px);
+    z-index: 5;
   }
 }

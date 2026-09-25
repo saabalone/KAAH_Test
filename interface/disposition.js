@@ -54,7 +54,18 @@ function replacerNavigation() {
 // `colonneDroite` sur ordinateur (saab : "on passe la barre du titre de la
 // game a droite en haut, ce qui fait gagner encore un peu"), et redescend
 // au-dessus du plateau en portrait.
-function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite) {
+//
+// Troisieme voyageur (correctif, saab, 2026-09-25) : `messageDemarrage`
+// (index.html, #message-demarrage-pendules — "Touchez une pendule..."). Il
+// vivait a cote d'`enteteJeu`, AU-DESSUS du plateau : apparaitre/disparaitre
+// y changeait la hauteur disponible pour `#plateau` (`height: 100%` d'un
+// FLEX ITEM, styles.css), donc la taille du plateau elle-meme — signale par
+// saab, "le bandeau fait baisser le plateau, en paysage on est oblige de le
+// remonter [pour] mettre le nom de J1". Il rejoint desormais TOUJOURS
+// `navigation`, juste apres elle, quel que soit le parent de celle-ci pour
+// ce mode : le plateau, calcule independamment, ne bouge plus jamais quand
+// il apparait ou disparait.
+function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite, messageDemarrage) {
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
       // Face-a-face (phase 20, saab) : la barre quitte la colonne des fenetres
@@ -62,6 +73,7 @@ function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanne
       // centre, les deux joueurs a egale distance. Voir styles.css.
       if (document.body.classList.contains('face-a-face')) document.body.appendChild(navigation);
       else arbrePanneau.appendChild(navigation);
+      navigation.after(messageDemarrage);
       colonneDroite.prepend(enteteJeu);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
       // DEFAUT sur telephone (laisser toute la place au plateau) — sur
@@ -87,6 +99,7 @@ function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanne
     } else {
       colonnePrincipale.prepend(enteteJeu); // au-dessus du plateau, sa place d'origine
       colonnePrincipale.appendChild(navigation);
+      navigation.after(messageDemarrage);
       // Symetrique du nettoyage ci-dessus : une hauteur choisie a la main
       // sur ORDINATEUR (interface/sequence.js, activerRedimensionnementHauteur)
       // n'a pas plus de sens en portrait, ou c'est le flex-grow
