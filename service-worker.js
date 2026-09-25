@@ -9,7 +9,7 @@
 // supplementaire.
 //
 // Augmenter la version (version.js) a chaque fois que le CONTENU d'un fichier cache
-// change, pas seulement quand la liste FICHIERS_A_CACHER s'allonge : en
+// change, pas seulement quand la liste des fichiers s'allonge : en
 // cache-first, un fichier deja en cache n'est plus jamais redemande, donc
 // un correctif dans styles.css ou interface/*.js n'atteindrait jamais les
 // utilisateurs deja installes sans ce changement de nom.
@@ -19,7 +19,21 @@
 importScripts('./version.js');
 const NOM_CACHE = `kaah-${NOM_VERSION_KAAH_TEST}`;
 
-const FICHIERS_A_CACHER = [
+// ESSENTIELS/SECONDAIRES (saab, 2026-09-25 : sur son iPhone, rouvrir l'icone
+// hors ligne affichait la page sans le plateau) : `cache.addAll` echoue EN
+// BLOC si un seul des fichiers demandes echoue a se telecharger — jusqu'ici
+// une seule liste d'environ 3 Mo (dont la base Next Move a elle seule 1,6 Mo,
+// voir CLAUDE.md), toute entiere ou rien. Sur un reseau mobile lent ou une
+// installation interrompue trop tot, l'installation entiere pouvait donc ne
+// jamais aboutir, et l'appli hors ligne se retrouvait sans AUCUN cache — le
+// navigateur retombe alors sur son cache HTTP ordinaire, peu fiable (d'ou la
+// page sans plateau). Separees en deux : les ESSENTIELS (tout ce qu'il faut
+// pour afficher et jouer) doivent reussir pour que l'installation compte ;
+// les SECONDAIRES (la base Next Move de Conseils, le solveur de puzzles, les
+// sons — deja concus pour se charger en arriere-plan ou echouer sans rien
+// casser, voir leurs fichiers) sont mis en cache a part, sans jamais faire
+// echouer l'installation si eux n'y arrivent pas.
+const FICHIERS_ESSENTIELS = [
   './',
   './index.html',
   './version.js',
@@ -53,7 +67,6 @@ const FICHIERS_A_CACHER = [
   './moteur/couleurs.js',
   './moteur/reglages.js',
   './donnees/kaa-variantes.js',
-  './donnees/kaa-next-move.js',
   './donnees/kaa-puzzles.js',
   './rendu/plateau-svg.js',
   './rendu/relief-cylindres.js',
@@ -95,7 +108,6 @@ const FICHIERS_A_CACHER = [
   './interface/next-move.js',
   './interface/puzzles-permutations.js',
   './interface/puzzles.js',
-  './solveur/kaa-solveur.js',
   './interface/solveur.js',
   './interface/verification-puzzle.js',
   './interface/positions-my.js',
@@ -127,12 +139,6 @@ const FICHIERS_A_CACHER = [
   './interface/confirmation.js',
   './interface/embranchement.js',
   './interface/saisie.js',
-  './sons/move.wav',
-  './sons/eject.wav',
-  './sons/game_over.wav',
-  './sons/occ_change.wav',
-  './sons/occ_draw.wav',
-  './sons/time_alert.wav',
   './pwa/manifeste.webmanifest',
   './pwa/icones/icone-192.png',
   './pwa/icones/icone-512.png',
@@ -140,8 +146,31 @@ const FICHIERS_A_CACHER = [
   './pwa/icones/favicon-32.png',
 ];
 
+// Voir le commentaire au-dessus de FICHIERS_ESSENTIELS : gros (Next Move,
+// 1,6 Mo) ou simplement dispensables (solveur, sons), jamais au prix d'une
+// installation qui echoue entierement a cause d'eux.
+const FICHIERS_SECONDAIRES = [
+  './donnees/kaa-next-move.js',
+  './solveur/kaa-solveur.js',
+  './sons/move.wav',
+  './sons/eject.wav',
+  './sons/game_over.wav',
+  './sons/occ_change.wav',
+  './sons/occ_draw.wav',
+  './sons/time_alert.wav',
+];
+
 self.addEventListener('install', (evenement) => {
-  evenement.waitUntil(caches.open(NOM_CACHE).then((cache) => cache.addAll(FICHIERS_A_CACHER)));
+  evenement.waitUntil(
+    caches.open(NOM_CACHE).then((cache) =>
+      cache
+        .addAll(FICHIERS_ESSENTIELS)
+        // Les secondaires ne doivent jamais faire echouer l'installation :
+        // une erreur ici (reseau coupe en cours de route, par exemple) est
+        // avalee, l'appli reste installee et jouable hors ligne sans eux.
+        .then(() => cache.addAll(FICHIERS_SECONDAIRES).catch(() => {}))
+    )
+  );
   self.skipWaiting(); // active la nouvelle version des le prochain rechargement, sans attendre
 });
 

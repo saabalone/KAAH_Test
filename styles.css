@@ -173,6 +173,17 @@ button,
   border-color: #cc6a00;
 }
 
+/* Face-a-face, seul bouton de la colonne a le signaler AINSI (saab,
+   2026-09-25) : vert (le meme vert que toute demande en attente,
+   --vert-demande) tant qu'il n'est PAS actif, pour inviter a l'essayer —
+   l'orange de .bouton-actif ci-dessus reste la regle une fois actif, cette
+   regle-ci ne s'applique donc que quand cette classe est absente. */
+#bouton-face-a-face:not(.bouton-actif) {
+  background: var(--vert-demande);
+  color: #ffffff;
+  border-color: var(--vert-demande);
+}
+
 .icone-bouton {
   font-size: 18px;
   line-height: 1;
@@ -3153,6 +3164,17 @@ button,
 }
 #plateau.verdict-puzzle-refus .nom-joueur.resultat-fin .nom-tour-cadre { fill: #a82828; }
 #plateau.verdict-puzzle-incertain .nom-joueur.resultat-fin .nom-tour-cadre { fill: #9a5a00; }
+
+/* Le camp qui a PERDU (ejections ou abandon, jamais une nulle) recoit "Perdu"
+   / "Perdu Options" dans le meme cadre que le gagnant, mais en ROUGE
+   (rendu/ligne-joueur.js, .perdant) : demande de saab, pour que le perdant
+   puisse lui aussi ouvrir les Options. Selecteur a deux classes, plus
+   specifique que .resultat-fin/.attend-choix-fin seuls : l'emporte quel que
+   soit l'ordre du fichier. */
+.nom-joueur.perdant.resultat-fin .nom-tour-cadre,
+.nom-joueur.perdant.attend-choix-fin .nom-tour-cadre {
+  fill: #a82828;
+}
 
 /* Aide simplifiee (interface/aide.js) : le titre et Fermer restent FIXES en haut,
    le corps defile au milieu avec sa barre TOUJOURS visible (`overflow-y: scroll`),

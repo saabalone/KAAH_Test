@@ -111,13 +111,18 @@ function actualiserNomJoueur(svg, camp, nombreEjecteesDeCeCamp) {
 // Le cadre orange ne montre que le camp qui a la main ("Tour N"), ou le
 // resultat de la partie :
 //   - le camp qui vient de gagner (`gagnant`) : "Gagne" ;
+//   - le camp qui a perdu (ejections ou abandon, jamais une nulle) : "Perdu" —
+//     meme cadre, meme clic pour ouvrir les Options, mais en ROUGE (styles.css,
+//     .perdant) : demande de saab, pour que le perdant puisse lui aussi
+//     proposer Revanche/Same/Change, sans devoir passer par le gagnant ;
 //   - sinon, le camp au trait (`joueurAuTrait`) : "Tour N" ;
 //   - `optionsFin` (phase 20bis) : la partie est finie sur son noeud final, le cadre
 //     porte " Options" et ouvre « Fin de partie : Options » (interface/fin-de-partie.js) ;
 //   - l'autre camp : rien, pas de cadre orange.
 // `joueurAuTrait`/`gagnant` valent chacun 'noir', 'blanc' ou `null` ;
 // `gagnant` accepte aussi 'nul' (phase 17, nulle par repetition acceptee) —
-// ni l'un ni l'autre camp n'a "gagne", les DEUX recoivent alors "Nulle".
+// ni l'un ni l'autre camp n'a "gagne" ni "perdu", les DEUX recoivent alors
+// "Nulle".
 // `actionnable` : la partie est vivante sur la position regardee (les boutons d'abandon
 // et de nulle sont alors utilisables).
 function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false, optionsFin = false) {
@@ -125,17 +130,21 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false,
     const groupe = svg.querySelector(`#nom-${camp}`);
     const estAuTrait = joueurAuTrait === camp;
     groupe.classList.toggle('au-trait', estAuTrait);
+    const perdant = Boolean(gagnant) && gagnant !== 'nul' && gagnant !== camp;
     let numero = '';
     if (gagnant === 'nul') numero = 'Nulle';
     else if (gagnant === camp) numero = 'Gagné';
+    else if (perdant) numero = 'Perdu';
     else if (estAuTrait) numero = `Tour ${tour}`;
     ecrireSiChange(groupe.querySelector('.nom-tour-numero'), numero);
-    // « Gagné » / « Nulle » : un resultat, qui doit se voir (saab) — vert et
-    // clignotant (styles.css), avec ou sans « Options ».
+    groupe.classList.toggle('perdant', perdant);
+    // « Gagné » / « Perdu » / « Nulle » : un resultat, qui doit se voir (saab)
+    // — vert et clignotant (rouge pour le perdant, voir .perdant plus haut),
+    // avec ou sans « Options ».
     groupe.classList.toggle('resultat-fin', Boolean(gagnant) && numero !== '');
     const suffixe = optionsFin && numero !== '' ? ' Options' : '';
-    // « Gagné Options » / « Nulle Options » attend un geste (Revanche, Same, Change) :
-    // vert comme toute demande en attente (saab).
+    // « ... Options » attend un geste (Revanche, Same, Change) : vert (ou
+    // rouge pour le perdant) comme toute demande en attente (saab).
     groupe.classList.toggle('attend-choix-fin', suffixe !== '');
     ecrireSiChange(groupe.querySelector('.nom-tour-options'), suffixe);
     disposerLigneNom(groupe);
