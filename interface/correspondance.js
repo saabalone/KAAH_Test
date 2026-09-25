@@ -16,8 +16,20 @@
 // (moteur/notation.js), donneesVersArbre (moteur/sauvegarde.js), le rangement des
 // parties (interface/correspondance-rangement.js),
 // listerPartiesEnregistrees, creerNouvellePartie, mettreAJourPartie,
-// obtenirIdPartieActive, formaterDateKAAWA (interface/sauvegarde.js) viennent de
-// fichiers charges avant celui-ci.
+// obtenirIdPartieActive, formaterDateKAAWA (interface/sauvegarde.js),
+// nomJoueurAutorise (moteur/nom-partie.js), NOMS_PAR_DEFAUT (moteur/revanche.js)
+// viennent de fichiers charges avant celui-ci ; brancherSaisieNomJoueur
+// (interface/noms-joueurs.js), charge apres, n'est appele qu'une fois tout charge.
+
+// Le bouton de la colonne (saab) : le nombre de parties par correspondance en
+// cours ecrit dans son enveloppe ouverte (index.html, .nombre-correspondances),
+// et vert — le vert de ce qui attend un geste — des qu'il y en a une. A
+// rappeler a chaque sauvegarde ou suppression (index.html).
+function actualiserBoutonCorrespondance(bouton) {
+  const nombre = compterCorrespondancesEnCours();
+  bouton.querySelector('.nombre-correspondances').textContent = nombre > 0 ? String(nombre) : '';
+  bouton.classList.toggle('correspondance-en-cours', nombre > 0);
+}
 
 // `elements` : { bouton, dialogue, nomLocal, nomAdversaire, jouerNoir, jouerBlanc,
 // creer, champCode, recevoir, erreur, renvoyer, fermer }.
@@ -26,6 +38,10 @@
 // message, code }) }.
 function demarrerCorrespondance(elements, rappels) {
   let couleurChoisie = 'noir';
+  // Memes caracteres permis que partout (interface/noms-joueurs.js, appele
+  // seulement une fois tout charge : l'ordre des fichiers n'y change rien).
+  brancherSaisieNomJoueur(elements.nomLocal);
+  brancherSaisieNomJoueur(elements.nomAdversaire);
 
   function afficherChoix() {
     elements.jouerNoir.classList.toggle('bouton-actif', couleurChoisie === 'noir');
@@ -59,8 +75,8 @@ function demarrerCorrespondance(elements, rappels) {
   // suite la config ; Noir joue d'abord, son code partira avec son 1er coup.
   elements.creer.addEventListener('click', () => {
     const depart = rappels.positionDeDepart();
-    const moi = elements.nomLocal.value.trim() || 'Joueur 1';
-    const lui = elements.nomAdversaire.value.trim() || 'Adversaire';
+    const moi = nomJoueurAutorise(elements.nomLocal.value) || NOMS_PAR_DEFAUT[couleurChoisie];
+    const lui = nomJoueurAutorise(elements.nomAdversaire.value) || 'Adversaire';
     const correspondance = {
       idPartie: formaterDateKAAWA(new Date()),
       couleurLocale: couleurChoisie,

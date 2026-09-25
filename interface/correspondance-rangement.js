@@ -6,7 +6,9 @@
 // qu'il faut dire au joueur apres le rechargement qui suit un code recu.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : arbreVersDonnees
-// (moteur/sauvegarde.js) vient d'un fichier charge avant celui-ci.
+// (moteur/sauvegarde.js), STATUT_EN_COURS (moteur/correspondance.js) et
+// listerPartiesEnregistrees (interface/sauvegarde.js) viennent de fichiers
+// charges avant celui-ci.
 
 const CLE_COULEURS_CORRESPONDANCE = 'kaah-correspondance-couleurs';
 const CLE_ANNONCE_CORRESPONDANCE = 'kaah-correspondance-annonce';
@@ -56,6 +58,13 @@ function donneesDeCorrespondance(arbre, correspondance) {
     pendulesActuelles: { tempsNoir: 0, tempsBlanc: 0 },
     correspondance,
   });
+}
+
+// Les parties par correspondance pas encore terminees (statut KAAWA "_",
+// moteur/correspondance.js) parmi celles enregistrees — le nombre affiche dans
+// l'enveloppe du bouton Correspondance (interface/correspondance.js).
+function compterCorrespondancesEnCours() {
+  return listerPartiesEnregistrees().filter((entree) => entree.donnees?.corr_mode && entree.donnees.Term === STATUT_EN_COURS).length;
 }
 
 function nomDeLAdversaire(correspondance) {

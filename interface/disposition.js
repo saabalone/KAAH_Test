@@ -61,19 +61,26 @@ function replacerNavigation() {
 // y changeait la hauteur disponible pour `#plateau` (`height: 100%` d'un
 // FLEX ITEM, styles.css), donc la taille du plateau elle-meme — signale par
 // saab, "le bandeau fait baisser le plateau, en paysage on est oblige de le
-// remonter [pour] mettre le nom de J1". Il rejoint desormais TOUJOURS
-// `navigation`, juste apres elle, quel que soit le parent de celle-ci pour
-// ce mode : le plateau, calcule independamment, ne bouge plus jamais quand
-// il apparait ou disparait.
+// remonter [pour] mettre le nom de J1". Il suit desormais `navigation`,
+// juste apres elle (portrait, paysage) ; en face-a-face, la derniere ligne de
+// la colonne des fenetres, tournee a la verticale, a cote de la barre. Jamais
+// plus au-dessus du plateau, qui ne bouge plus quand il apparait ou disparait.
 function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite, messageDemarrage) {
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
       // Face-a-face (phase 20, saab) : la barre quitte la colonne des fenetres
       // pour se poser au milieu du plateau, contre lui — Annuler pile a son
       // centre, les deux joueurs a egale distance. Voir styles.css.
-      if (document.body.classList.contains('face-a-face')) document.body.appendChild(navigation);
-      else arbrePanneau.appendChild(navigation);
-      navigation.after(messageDemarrage);
+      // Le rappel, lui, y rejoint la colonne des fenetres, tournee a la
+      // verticale : dans l'etroite bande de la barre, une phrase entiere ne
+      // tiendrait pas (styles.css, body.face-a-face #colonne-droite).
+      if (document.body.classList.contains('face-a-face')) {
+        document.body.appendChild(navigation);
+        colonneDroite.append(messageDemarrage);
+      } else {
+        arbrePanneau.appendChild(navigation);
+        navigation.after(messageDemarrage);
+      }
       colonneDroite.prepend(enteteJeu);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
       // DEFAUT sur telephone (laisser toute la place au plateau) — sur

@@ -189,11 +189,14 @@ button,
   line-height: 1;
 }
 
-/* Correspondance (saab, 2026-09-25 : "grossir l'icone Correspondance") :
-   plus grande que les autres icones-texte (18px) sans toucher aux autres,
-   qui la partagent toutes (Conseils, Sons, Réglages...). */
-#bouton-correspondance .icone-texte {
-  font-size: 26px;
+/* Correspondance vert des qu'une partie par correspondance est en cours (saab ;
+   interface/correspondance.js, actualiserBoutonCorrespondance) — le meme vert
+   que tout ce qui attend un geste. L'icone (une enveloppe ouverte qui porte le
+   nombre de parties en cours) est dessinee plus grande dans index.html. */
+#bouton-correspondance.correspondance-en-cours {
+  background: var(--vert-demande);
+  color: #ffffff;
+  border-color: var(--vert-demande);
 }
 
 /* Icone "en hexagone" (Nouvelle partie, Variantes, Puzzles, Mes parties) :
@@ -1019,7 +1022,9 @@ button,
    faisait changer de taille, #plateau etant en `height: 100%` d'un flex
    item) — `flex: 0 0 auto` pour ne jamais s'etirer ni se comprimer a cote de
    #navigation, marge en HAUT (plus de raison d'en avoir en bas, il n'est
-   plus jamais suivi du plateau). */
+   plus jamais suivi du plateau). Clignote comme "Gagné"/"Perdu" (saab ;
+   @keyframes clignoter-fin, plus bas) : relance a chaque reapparition, un
+   element masque par `hidden` reprenant son animation depuis le debut. */
 .message-demarrage {
   flex: 0 0 auto;
   margin: 6px 0 0;
@@ -1030,6 +1035,7 @@ button,
   font-size: 12px;
   font-weight: bold;
   text-align: center;
+  animation: clignoter-fin 0.8s ease-in-out 8;
 }
 
 .ligne-partie-label {
@@ -1609,6 +1615,7 @@ button,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .message-demarrage,
   #bandeau-puzzle.bandeau-puzzle-final,
   .nom-joueur.resultat-fin .nom-tour-cadre,
   .nom-joueur.resultat-fin .nom-tour {
@@ -3599,18 +3606,15 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
   }
 
   /* Le rappel "Touchez une pendule..." (voir .message-demarrage et
-     interface/disposition.js) : au-dessus de la bande de #navigation
-     (centree verticalement, voir juste au-dessus), donc jamais dessus.
-     Simplifie par rapport a la demande de saab (une place au plus pres de
-     #navigation, dans sa bande verticale) : une phrase entiere s'y lirait
-     tournee lettre par lettre, peu lisible — a revoir avec lui une fois
-     vu a l'ecran si cette version ne convient pas. */
-  body.face-a-face > .message-demarrage {
-    position: fixed;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: min(80vw, 320px);
-    z-index: 5;
+     interface/disposition.js) : DERNIERE ligne de la colonne des fenetres,
+     donc tournee avec elle — a la verticale, lue de haut en bas, juste a
+     droite de #navigation ("au-dessus" d'elle dans le sens de lecture,
+     saab). En haut de l'ecran, horizontal, il chevauchait le plateau et le
+     nom du joueur du haut. `order` : toujours apres les fenetres, quel que
+     soit l'ordre dans lequel elles ont ete ajoutees. */
+  body.face-a-face #colonne-droite > .message-demarrage {
+    order: 1;
+    margin: 0;
+    border-radius: 0;
   }
 }

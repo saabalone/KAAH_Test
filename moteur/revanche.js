@@ -4,10 +4,10 @@
 //
 // Regle lue dans KAAWA (kaa_engine_ClO_Co.py, start_game et `_toggle_r`) :
 //   - REVANCHE : les noms s'echangent entre les camps (le joueur qui avait Noir a
-//     maintenant Blanc, et inversement). Pour les noms PAR DEFAUT (Joueur 1 /
-//     Joueur 2), un suffixe « R » s'ajoute ou se retire en alternance : l'ancien
-//     Joueur 1 (Noir) devient « Joueur 1R » (Blanc), l'ancien Joueur 2 (Blanc)
-//     devient « Joueur 2R » (Noir), et le titre de la partie le montre ; une
+//     maintenant Blanc, et inversement). Pour les noms PAR DEFAUT (Joueur_1 /
+//     Joueur_2), un suffixe « R » s'ajoute ou se retire en alternance : l'ancien
+//     Joueur_1 (Noir) devient « Joueur_1R » (Blanc), l'ancien Joueur_2 (Blanc)
+//     devient « Joueur_2R » (Noir), et le titre de la partie le montre ; une
 //     seconde revanche retire les R. Un nom PERSONNALISE est seulement echange,
 //     jamais suffixe.
 //   - SAME : ni les noms ni les couleurs ne changent.
@@ -22,10 +22,12 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
-// Les noms d'un joueur qui n'en a pas choisi : « Joueur 1 » pour Noir, « Joueur 2 »
+// Les noms d'un joueur qui n'en a pas choisi : « Joueur_1 » pour Noir, « Joueur_2 »
 // pour Blanc (KAAWA : Player_1 / Player_2). Seule source de ces noms — index.html et
 // rendu/ejections.js les lisent ici.
-const NOMS_PAR_DEFAUT = { noir: 'Joueur 1', blanc: 'Joueur 2' };
+// Avec "_" et jamais d'espace, comme tout nom (moteur/nom-partie.js,
+// nomJoueurAutorise).
+const NOMS_PAR_DEFAUT = { noir: 'Joueur_1', blanc: 'Joueur_2' };
 
 const SUFFIXE_REVANCHE = 'R';
 

@@ -35,6 +35,20 @@ function nomJoueurNettoye(nom) {
   return String(nom).replace(/\([^)]*\)\s*/g, '').trim().replace(/ /g, '_');
 }
 
+// Ce qu'un joueur a le droit de taper comme nom (saab : lettres A-Z a-z,
+// chiffres 0-9 et "_", rien d'autre) : le nom finit dans le titre de la
+// partie, ou "-" separe les deux joueurs et "," les elements (voir plus bas).
+// Plutot que refuser, on corrige : un espace (ou plusieurs) devient un seul
+// "_", une lettre accentuee perd son accent, tout autre signe disparait.
+function nomJoueurAutorise(saisie) {
+  return String(saisie)
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Za-z0-9_]/g, '');
+}
+
 // Les elements du titre "Br_2608172039, Amical, Marguerite Belge,
 // Player_1-Player_2, -0-0tr2 Player_2, R", dans cet ordre, lus dans les
 // donnees — ce que nomDeFichierKAAWA assemble, et ce que les filtres de Mes

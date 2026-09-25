@@ -160,15 +160,24 @@ const FICHIERS_SECONDAIRES = [
   './sons/time_alert.wav',
 ];
 
+// Chaque fichier redemande AU SERVEUR (`cache: 'reload'`), jamais au cache
+// HTTP ordinaire du navigateur : GitHub Pages y laisse un fichier 10 minutes,
+// et une nouvelle version s'installait alors avec des fichiers de la
+// precedente (saab : "si on est passe a v6 alors que j'etais a v4, je
+// recharge en v5 puis en v6").
+function demandesFraiches(fichiers) {
+  return fichiers.map((fichier) => new Request(fichier, { cache: 'reload' }));
+}
+
 self.addEventListener('install', (evenement) => {
   evenement.waitUntil(
     caches.open(NOM_CACHE).then((cache) =>
       cache
-        .addAll(FICHIERS_ESSENTIELS)
+        .addAll(demandesFraiches(FICHIERS_ESSENTIELS))
         // Les secondaires ne doivent jamais faire echouer l'installation :
         // une erreur ici (reseau coupe en cours de route, par exemple) est
         // avalee, l'appli reste installee et jouable hors ligne sans eux.
-        .then(() => cache.addAll(FICHIERS_SECONDAIRES).catch(() => {}))
+        .then(() => cache.addAll(demandesFraiches(FICHIERS_SECONDAIRES)).catch(() => {}))
     )
   );
   self.skipWaiting(); // active la nouvelle version des le prochain rechargement, sans attendre

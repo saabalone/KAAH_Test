@@ -285,11 +285,21 @@
       <!-- Correspondance (phase 24, interface/correspondance.js) : comme le
            menu « Correspondance ✉ » de KAAWA — creer, recevoir un coup,
            renvoyer son dernier code. Intervertie avec Face-à-face (saab,
-           2026-09-25). Icone agrandie (styles.css, #bouton-correspondance
-           .icone-texte) a sa demande. -->
+           2026-09-25). Icone dessinee a la main, plus grande que les autres (saab) :
+           une enveloppe OUVERTE, rabat leve, d'ou depasse une lettre qui porte
+           le nombre de parties par correspondance en cours (vide s'il n'y en a
+           aucune) ; le bouton passe en vert des qu'il y en a une —
+           interface/correspondance.js, actualiserBoutonCorrespondance. -->
       <div class="groupe-boutons">
         <button id="bouton-correspondance" title="Correspondance : jouer à distance en s'envoyant des codes KAA1">
-          <span class="icone-bouton icone-texte" aria-hidden="true">✉</span><span class="libelle-bouton">Correspondance</span>
+          <span class="icone-bouton" aria-hidden="true">
+            <svg viewBox="0 0 25 25" width="29" height="29">
+              <path d="M2 11 L12.5 2.5 L23 11 Z" fill="#9a9a9a" stroke="#555" stroke-width="0.7" stroke-linejoin="round"/>
+              <rect x="5.5" y="4.5" width="14" height="14" rx="1" fill="#ffffff" stroke="#555" stroke-width="0.7"/>
+              <text class="nombre-correspondances" x="12.5" y="12.6" font-size="8" font-weight="bold" fill="#1a1a1a" text-anchor="middle"></text>
+              <path d="M2 11 L12.5 18 L23 11 V23 H2 Z" fill="#e4e4e4" stroke="#555" stroke-width="0.7" stroke-linejoin="round"/>
+            </svg>
+          </span><span class="libelle-bouton">Correspondance</span>
         </button>
       </div>
       <!-- Mode de pendule (phase 22bis) : rouvre le popup Chrono/Bonus/Delai
@@ -623,9 +633,9 @@
         <li><b>La corde autour du plateau</b> reste toujours noire du côté de Noir (qui a commencé) et blanche du côté de Blanc, même avec des billes d'autres couleurs : on sait ainsi toujours qui a commencé.</li>
         <li>Noir joue en bas et commence. Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers. Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur. Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande. Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
-        <li>Touchez le cadre d'un joueur pour changer son nom.</li>
+        <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ » (un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs).</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
-        <li>Partie terminée : touchez le cadre orange <b>Gagné Options</b> (ou <b>Nulle Options</b>) pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante). Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
+        <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante). Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler, pendule qui attend).</li>
       </ul>
@@ -636,7 +646,7 @@
       <ul>
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
-        <li><b>Correspondance</b> (✉) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.</li>
+        <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition. Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une.</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas). Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles. Le ▶ devient orange tant qu'un filtre cache des parties.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties. Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
@@ -707,7 +717,9 @@
     <details>
       <summary>Installer ou ouvrir KAAH</summary>
       <ul>
-        <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »). Il marche ensuite hors ligne.</li>
+        <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; Opera : menu, « Écran d'accueil » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »). Il marche ensuite hors ligne.</li>
+        <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes). Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
+        <li>Une nouvelle version s'installe toute seule à l'ouverture, avec internet : si vous n'avez encore rien touché, KAAH se recharge aussitôt en nouvelle version ; sinon, elle sera là à la prochaine ouverture.</li>
         <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).</li>
         <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).</li>
         <li><b>iPhone</b> : pas de méthode simple sans adresse internet (voir le mode d'emploi iPhone dans le dossier <b>docs</b>).</li>
@@ -850,7 +862,7 @@
       <p class="note-reglages">Depuis la position de départ de la partie affichée (chargez d'abord une variante pour en changer).</p>
       <label class="ligne-creation">
         Votre nom
-        <input id="champ-nom-local-correspondance" type="text" autocomplete="off" placeholder="Joueur 1" />
+        <input id="champ-nom-local-correspondance" type="text" autocomplete="off" placeholder="Votre nom (lettres, chiffres, _)" />
       </label>
       <label class="ligne-creation">
         Adversaire
@@ -2153,8 +2165,9 @@
       actualiserEtatSauvegarde(sauvegarderPartieActive(donnees), donnees);
       // Une partie neuve qui vient de recevoir son tout premier coup ajoute
       // une entree (phase 12ter) : la jauge doit donc etre relue a chaque
-      // sauvegarde, pas seulement a la suppression.
-      actualiserJaugeMesParties(elementBadgeMesParties);
+      // sauvegarde, pas seulement a la suppression. Meme chose pour le compte
+      // des parties par correspondance en cours (une partie qui se termine).
+      actualiserCompteursDeParties();
     }
 
     demarrerDispositionNavigation(
@@ -2327,7 +2340,13 @@
     // chaque coup/navigation sauvegarde (voir sauvegarderMaintenant plus
     // haut) et a chaque suppression (surSuppression, juste en dessous).
     const elementBadgeMesParties = document.getElementById('badge-mes-parties');
-    actualiserJaugeMesParties(elementBadgeMesParties);
+    // Le nombre dans l'enveloppe de Correspondance (interface/correspondance.js,
+    // actualiserBoutonCorrespondance) change aux memes moments que la jauge.
+    function actualiserCompteursDeParties() {
+      actualiserJaugeMesParties(elementBadgeMesParties);
+      actualiserBoutonCorrespondance(document.getElementById('bouton-correspondance'));
+    }
+    actualiserCompteursDeParties();
     // Seuil reglable DANS la boite "Mes parties" (correctif, saab — voir
     // l'en-tete de interface/jauge-mes-parties.js pour pourquoi pas dans
     // "Réglages" comme prevu au depart).
@@ -2348,7 +2367,7 @@
       },
       demarrerRechargement,
       confirmation.demander,
-      () => actualiserJaugeMesParties(elementBadgeMesParties)
+      actualiserCompteursDeParties
     );
     document
       .getElementById('bouton-creer-partie-mes-parties')
@@ -2764,9 +2783,27 @@
     // Ne fonctionne que via une vraie adresse http(s) (localhost compris) :
     // ne rien faire d'autre en cas d'echec, ouvrir le fichier directement
     // reste le mode d'emploi normal de KAAH et marche tres bien sans ca.
+    //
+    // Mises a jour (saab : "si on est passe a v6 alors que j'etais a v4, je
+    // recharge en v5 puis en v6") :
+    //   - `updateViaCache: 'none'` : la verification d'une nouvelle version
+    //     relit service-worker.js ET version.js au serveur, jamais dans le cache
+    //     HTTP du navigateur (voir aussi `cache: 'reload'`, service-worker.js) ;
+    //   - une fois la nouvelle version installee, elle prend la main
+    //     (`controllerchange`), mais la page affichee reste l'ancienne : on
+    //     recharge donc tout de suite — seulement si l'appli etait deja
+    //     installee (sinon c'est la premiere visite, deja a jour) et si le
+    //     joueur n'a encore rien touche (jamais un rechargement en pleine
+    //     partie ; sinon la nouvelle version sera la au prochain lancement).
     if ('serviceWorker' in navigator) {
+      const dejaInstallee = Boolean(navigator.serviceWorker.controller);
+      let joueurAInteragi = false;
+      document.addEventListener('pointerdown', () => (joueurAInteragi = true), { capture: true, once: true });
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (dejaInstallee && !joueurAInteragi && !rechargementImminent) demarrerRechargement();
+      });
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
       });
     }
   </script>
