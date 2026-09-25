@@ -130,6 +130,9 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false,
     else if (gagnant === camp) numero = 'Gagné';
     else if (estAuTrait) numero = `Tour ${tour}`;
     ecrireSiChange(groupe.querySelector('.nom-tour-numero'), numero);
+    // « Gagné » / « Nulle » : un resultat, qui doit se voir (saab) — vert et
+    // clignotant (styles.css), avec ou sans « Options ».
+    groupe.classList.toggle('resultat-fin', Boolean(gagnant) && numero !== '');
     const suffixe = optionsFin && numero !== '' ? ' Options' : '';
     // « Gagné Options » / « Nulle Options » attend un geste (Revanche, Same, Change) :
     // vert comme toute demande en attente (saab).

@@ -77,8 +77,10 @@
 // (moteur/nom-partie.js), donneesVersArbre (moteur/sauvegarde.js), noeudA
 // (moteur/arbre.js), dessinerPlateau, poserBille (rendu/plateau-svg.js),
 // dessinerEjectionsApercu (rendu/ejections-apercu.js), depuisNotation
-// (moteur/plateau.js) et envoyerALaCorbeille (interface/corbeille.js,
-// phase 26) viennent tous des fichiers charges avant celui-ci dans
+// (moteur/plateau.js), envoyerALaCorbeille (interface/corbeille.js,
+// phase 26), elementsDuTitre (moteur/nom-partie.js), partieCorrespond
+// (moteur/filtre-parties.js) et demarrerFiltreParties (interface/
+// filtre-parties.js) viennent tous des fichiers charges avant celui-ci dans
 // index.html.
 
 // `elements` : { bouton, dialogue, apercu, liste, fermer, message,
@@ -115,10 +117,10 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   // fichier). Toujours vide a l'ouverture : une selection ne survit pas a la
   // fermeture du dialogue.
   let idsSelectionnes = new Set();
-  // Le filtre choisi dans le panneau ▶/▼ (voir l'en-tete du fichier) : ce que
-  // `caseTout` selectionne quand on la coche. Ne change jamais la selection
-  // deja faite tout seul — seulement ce qu'un PROCHAIN clic sur la case fera.
-  let filtreSelection = 'toutes';
+  // Le filtre du panneau ▶/▼ (interface/filtre-parties.js : un champ par
+  // element du titre, demande de saab) : seules les parties qui correspondent
+  // sont AFFICHEES — donc cochables, et prises par `caseTout`.
+  const filtre = demarrerFiltreParties(elements.panneauFiltre, () => rafraichir());
 
   elements.bouton.addEventListener('click', () => {
     modeConfirmationReprise = false;
@@ -127,8 +129,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     idsSelectionnes = new Set();
     // Le filtre et son panneau ne survivent pas non plus a la fermeture,
     // meme raison que la selection.
-    filtreSelection = 'toutes';
-    elements.panneauFiltre.querySelector('input[value="toutes"]').checked = true;
+    filtre.reinitialiser();
     elements.panneauFiltre.hidden = true;
     elements.boutonFiltre.textContent = '▶';
     afficherMessage(null);
@@ -151,10 +152,18 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     demarrerRechargement();
   }
 
-  // Les entrees que `caseTout` doit cocher, selon le filtre choisi.
+  // Les entrees affichees (et que `caseTout` coche) : celles qui
+  // correspondent au filtre. Une entree illisible (fichier corrompu a la
+  // main) ne reste visible que sans filtre, comme nomAffiche plus bas.
   function partiesFiltrees() {
-    const parties = listerPartiesEnregistrees();
-    return filtreSelection === 'branches' ? parties.filter((entree) => possedeUneBranche(entree.donnees.Tree)) : parties;
+    const valeur = filtre.valeur();
+    return listerPartiesEnregistrees().filter((entree) => {
+      try {
+        return partieCorrespond(elementsDuTitre(entree.donnees), valeur);
+      } catch {
+        return !filtre.estActif();
+      }
+    });
   }
 
   // Remplace "Tout selectionner"/"Tout deselectionner" (saab, voir l'en-tete
@@ -173,11 +182,6 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     elements.panneauFiltre.hidden = !elements.panneauFiltre.hidden;
     elements.boutonFiltre.textContent = elements.panneauFiltre.hidden ? '▶' : '▼';
   });
-  for (const radio of elements.panneauFiltre.querySelectorAll('input[name="filtre-selection-parties"]')) {
-    radio.addEventListener('change', () => {
-      if (radio.checked) filtreSelection = radio.value;
-    });
-  }
 
   elements.supprimer.addEventListener('click', () => {
     const ids = [...idsSelectionnes];
@@ -234,14 +238,18 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
 
   function rafraichir() {
     elements.liste.innerHTML = '';
-    const parties = listerPartiesEnregistrees();
-    // Une partie supprimee ailleurs ne doit pas rester "cochee" a notre insu.
-    const idsExistants = new Set(parties.map((entree) => entree.id));
-    idsSelectionnes = new Set([...idsSelectionnes].filter((id) => idsExistants.has(id)));
+    const parties = partiesFiltrees();
+    // Une partie supprimee ailleurs, ou cachee par le filtre, ne doit pas
+    // rester "cochee" a notre insu : "Supprimer la selection" ne touche
+    // jamais une partie qu'on ne voit pas.
+    const idsAffiches = new Set(parties.map((entree) => entree.id));
+    idsSelectionnes = new Set([...idsSelectionnes].filter((id) => idsAffiches.has(id)));
+    // Le bouton ▶/▼ passe en orange tant qu'un filtre cache des parties.
+    elements.boutonFiltre.classList.toggle('filtre-actif', filtre.estActif());
     actualiserBarre();
     if (parties.length === 0) {
       const vide = document.createElement('p');
-      vide.textContent = "Aucune partie jouée pour l'instant.";
+      vide.textContent = filtre.estActif() ? 'Aucune partie ne correspond au filtre.' : "Aucune partie jouée pour l'instant.";
       elements.liste.appendChild(vide);
       return;
     }

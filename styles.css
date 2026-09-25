@@ -893,8 +893,39 @@ button,
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: var(--hauteur-ligne-liste);
   cursor: pointer;
+}
+
+/* Filtre de Mes parties (interface/filtre-parties.js) : une ligne par element
+   du titre — case, libelle, champ. */
+.filtre-parties-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 10px;
+}
+
+.panneau-filtre-selection .filtre-parties-ligne {
+  display: grid;
+  grid-template-columns: auto 6.5em minmax(0, 1fr);
+  min-height: var(--hauteur-ligne-liste);
+}
+
+.filtre-parties-ligne input[type='text'],
+.filtre-parties-ligne input[type='number'] {
+  min-width: 0;
+  min-height: var(--hauteur-ligne-liste);
+  padding: 0 6px;
+  background: #1f1f1f;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Un filtre cache des parties : le bouton ▶/▼ le rappelle, en orange. */
+.bouton-repli-parties.filtre-actif {
+  color: #e8a33d;
 }
 
 /* Seuil de la jauge "Mes parties" (correctif, saab : deplace de "Réglages"
@@ -942,6 +973,13 @@ button,
   background: #3a2a10;
   color: #e8a33d;
   font-size: 12px;
+  font-weight: bold;
+}
+
+/* Le prefixe Br_ du titre de la partie, en violet comme KAAWA (#8000ff,
+   kaa_board_widget_ClO_Co.py) : la partie a des branches d'analyse. */
+.prefixe-branche {
+  color: #8000ff;
   font-weight: bold;
 }
 
@@ -1229,14 +1267,16 @@ button,
    interface/saisie.js, `elementsCommentaires.barre`). Meme piege de
    specificite que #panneau-conseils[hidden] plus haut : `[hidden]` doit
    l'emporter sur la regle de disposition ci-dessous. */
-#commentaires-barre {
+#commentaires-barre,
+#sequence-barre {
   display: flex;
   gap: 4px;
   padding: 4px 0;
   flex: 0 0 auto;
 }
 
-#commentaires-barre[hidden] {
+#commentaires-barre[hidden],
+#sequence-barre[hidden] {
   display: none;
 }
 
@@ -1253,7 +1293,8 @@ button,
 }
 
 #commentaires-repli-tout,
-#commentaires-copier {
+#commentaires-copier,
+#sequence-barre button {
   flex: 0 0 auto;
   min-height: 24px;
   padding: 0 6px;
@@ -1501,13 +1542,45 @@ button,
   display: none;
 }
 
-/* Memes trois couleurs que partout ailleurs dans KAAH (vert = gagne, rouge
-   = perdu), pour que le verdict se lise sans avoir a lire. */
-.bandeau-puzzle-resolu { color: #2ecc55; }
-.bandeau-puzzle-perdu { color: #e04040; }
-/* Phase 28 : verification en cours, "peut-etre", solveur indisponible —
-   l'orange de KAAWA pour tout ce qui reste incertain. */
-.bandeau-puzzle-incertain { color: #e8a33d; }
+/* Fin de puzzle (interface/puzzles.js, tonDuPuzzle) : vert pour la solution,
+   rouge pour tout "ce n'est pas la solution", orange pour ce qui reste
+   incertain (verification en cours, peut-etre, solveur indisponible).
+   `#bandeau-puzzle` en tete de chaque regle : sans lui, la couleur de base
+   (#bandeau-puzzle, plus haut, un identifiant) l'emportait TOUJOURS — ces
+   couleurs ne s'etaient jamais affichees depuis la phase 16. */
+#bandeau-puzzle.bandeau-puzzle-solution { color: #2ecc55; }
+#bandeau-puzzle.bandeau-puzzle-refus { color: #e04040; }
+#bandeau-puzzle.bandeau-puzzle-incertain { color: #e8a33d; }
+
+/* Une fin de puzzle doit SE VOIR (saab : "pas assez visible, le faire
+   clignoter") : texte blanc sur fond de la couleur du verdict, plus gros, et
+   quelques clignotements — pas indefiniment, on reste parfois longtemps a
+   analyser une partie finie. Relances a chaque changement de verdict (la classe
+   change). */
+#bandeau-puzzle.bandeau-puzzle-final {
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  animation: clignoter-fin 0.8s ease-in-out 8;
+}
+#bandeau-puzzle.bandeau-puzzle-final.bandeau-puzzle-solution { background: #1f7a3a; }
+#bandeau-puzzle.bandeau-puzzle-final.bandeau-puzzle-refus { background: #a82828; }
+#bandeau-puzzle.bandeau-puzzle-final.bandeau-puzzle-incertain { background: #9a5a00; }
+
+@keyframes clignoter-fin {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #bandeau-puzzle.bandeau-puzzle-final,
+  .nom-joueur.resultat-fin .nom-tour-cadre,
+  .nom-joueur.resultat-fin .nom-tour {
+    animation: none;
+  }
+}
 
 /* L'objectif, a droite du nom dans la liste des puzzles : pousse au bout de
    la ligne (flex, voir .ligne-liste) et un cran plus discret que le nom —
@@ -2991,6 +3064,24 @@ button,
 .nom-joueur.attend-choix-fin .nom-tour {
   fill: #ffffff;
 }
+
+/* Le cadre du resultat ("Gagné", "Nulle", avec ou sans " Options",
+   rendu/ligne-joueur.js) : vert et quelques clignotements, comme le bandeau
+   d'un puzzle (saab : texte de fin pas assez visible). Dans un puzzle, il prend
+   la couleur du verdict (index.html pose la classe sur le plateau) : rouge si
+   ce n'est pas la solution, orange tant que ce n'est pas tranche. */
+.nom-joueur.resultat-fin .nom-tour-cadre {
+  fill: var(--vert-demande);
+}
+.nom-joueur.resultat-fin .nom-tour {
+  fill: #ffffff;
+}
+.nom-joueur.resultat-fin .nom-tour-cadre,
+.nom-joueur.resultat-fin .nom-tour {
+  animation: clignoter-fin 0.8s ease-in-out 8;
+}
+#plateau.verdict-puzzle-refus .nom-joueur.resultat-fin .nom-tour-cadre { fill: #a82828; }
+#plateau.verdict-puzzle-incertain .nom-joueur.resultat-fin .nom-tour-cadre { fill: #9a5a00; }
 
 /* Aide simplifiee (interface/aide.js) : le titre et Fermer restent FIXES en haut,
    le corps defile au milieu avec sa barre TOUJOURS visible (`overflow-y: scroll`),

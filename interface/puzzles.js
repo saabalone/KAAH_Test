@@ -222,17 +222,24 @@ function afficherEtatPuzzle(element, puzzle, etat, verdict = null, etiquette = '
     return;
   }
   element.hidden = false;
-  element.className = `bandeau-puzzle bandeau-puzzle-${classeDuBandeau(etat, verdict)}`;
+  const ton = tonDuPuzzle(etat, verdict);
+  // `bandeau-puzzle-final` : une fin de puzzle doit SE VOIR (saab : "pas assez
+  // visible, le faire clignoter") — gros, fond de couleur, clignotant (styles.css).
+  element.className = `bandeau-puzzle bandeau-puzzle-${ton}${etat.resultat === 'en cours' ? '' : ' bandeau-puzzle-final'}`;
   const suffixe = etiquette ? ` ${etiquette}` : '';
   element.textContent = `${decrireObjectif(puzzle)} — ${phraseDeResultat(puzzle, etat, verdict)}${suffixe}`;
 }
 
-// Memes couleurs que KAAWA (KAA_aide.txt, chapitre 12, "MESSAGES") : vert pour
-// la solution, rouge pour un refus, orange pour tout ce qui reste incertain.
-function classeDuBandeau(etat, verdict) {
-  if (!verdict) return etat.resultat.replace(' ', '-');
-  if (verdict.verdict === 'valide') return 'resolu';
-  if (verdict.verdict === 'invalide') return 'perdu';
+// La couleur d'une fin de puzzle, partagee par ce bandeau et le cadre de fin
+// sur le plateau (index.html) : 'solution' (vert, Bravo), 'refus' (rouge, tout
+// "ce n'est pas la solution" — demande de saab), 'incertain' (orange :
+// verification en cours, peut-etre, solveur indisponible), 'en-cours' (partie
+// pas finie).
+function tonDuPuzzle(etat, verdict) {
+  if (etat.resultat === 'en cours') return 'en-cours';
+  if (etat.resultat === 'perdu' || etat.tropTot) return 'refus';
+  if (verdict?.verdict === 'valide') return 'solution';
+  if (verdict?.verdict === 'invalide') return 'refus';
   return 'incertain';
 }
 
@@ -245,29 +252,31 @@ function classeDuBandeau(etat, verdict) {
 // partie — et, phase 28, le verdict du solveur une fois le puzzle gagne, SANS
 // le coup fautif qu'il connait pourtant (moteur/solveur.js, lireReponseSolveur).
 //
-// Phrases volontairement COURTES : ce bandeau vit dans la colonne qui borde
-// le plateau, et le plateau ne doit jamais retrecir a cause d'elle (styles.css
-// s'en assure aussi de son cote, minmax(0, 1fr) — mais autant ne pas ecrire
-// des romans a cet endroit). Les verdicts reprennent les messages de KAAWA
-// (KAA_aide.txt, chapitre 12).
+// Les textes de fin sont ceux de KAAWA, mot pour mot (demande de saab ;
+// kaa_board_widget_ClO_Co.py, show_end_options et _apply_sol_result), accents
+// en plus.
 function phraseDeResultat(puzzle, etat, verdict) {
   if (etat.resultat === 'resolu') {
-    if (etat.tropTot) return `gagne au tour ${etat.tour}/${puzzle.toursMaximum} : trop rapide`;
+    if (etat.tropTot) return "Trop rapide, ce n'est pas la solution! L'adversaire a mal joué!";
     return phraseDuVerdict(verdict);
   }
-  if (etat.resultat === 'perdu') return 'perdu — revenir en arriere pour reessayer';
+  if (etat.resultat === 'perdu') return "Ce n'est pas la solution! Nombre de tours dépassé sans atteindre l'objectif.";
   return `tour ${etat.tour}/${puzzle.toursMaximum}`;
 }
+
+const DEMANDE_D_ENVOI = 'Copie-colle le nom du PZL et la séquence et envoie-les sur mon WhatsApp.';
 
 // Une verification qui a pris plus que le seuil pzl.save_threshold_sec le dit
 // (KAAWA : popup "Vérification lente") — la prochaine fois, le cache repondra.
 function phraseDuVerdict(verdict) {
-  if (!verdict || verdict.verdict === 'en cours') return 'gagné — vérification par le solveur…';
+  if (!verdict || verdict.verdict === 'en cours') return 'Gagné — vérification par le solveur…';
   if (verdict.verdict === 'valide') {
     return verdict.lente ? `Bravo! C'est la solution! (vérifié en ${Math.round(verdict.duree)} s, mis en cache)` : "Bravo! C'est la solution!";
   }
   if (verdict.verdict === 'invalide') return "Ce n'est pas la solution!";
-  if (verdict.verdict === 'indetermine') return "C'est peut-être la solution... (calcul trop long)";
-  if (verdict.raison === 'SOLVEUR_INDISPONIBLE') return 'Vérification impossible (solveur indisponible)';
-  return 'Erreur du solveur pendant la vérif';
+  if (verdict.verdict === 'indetermine') return `C'est peut-être la solution! Mais ça demande vérification. ${DEMANDE_D_ENVOI}`;
+  if (verdict.raison === 'SOLVEUR_INDISPONIBLE') {
+    return `Vérification impossible (solveur introuvable sur cet appareil). ${DEMANDE_D_ENVOI}`;
+  }
+  return `Erreur du solveur pendant la vérif. ${DEMANDE_D_ENVOI}`;
 }

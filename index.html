@@ -409,30 +409,32 @@
         parties
       </label>
     </div>
-    <div id="panneau-filtre-selection-parties" class="panneau-filtre-selection" hidden>
-      <label><input type="radio" name="filtre-selection-parties" value="toutes" checked /> Toutes</label>
-      <label><input type="radio" name="filtre-selection-parties" value="branches" /> Avec branches (Br_)</label>
-    </div>
+    <!-- Rempli par interface/filtre-parties.js : un champ a cocher et remplir
+         par element du titre des parties (demande de saab). -->
+    <div id="panneau-filtre-selection-parties" class="panneau-filtre-selection" hidden></div>
     <div id="liste-parties" class="liste-dialogue"></div>
     <!-- Creer une partie (phase 23, interface/creation-partie.js) : ici plutot
          que dans la colonne de gauche (saab), depuis la position de depart de la
          partie choisie. -->
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-creer-partie-mes-parties" class="bouton-dialogue" type="button">Créer partie</button>
-      <!-- Corbeille (phase 26) : un seul dialogue partage entre parties,
-           variantes et puzzles My (interface/corbeille.js) — ici seulement,
-           pour ne pas ajouter ce bouton dans les 3 boites (saab : reduire le
-           nombre de boutons). -->
+      <!-- Corbeille (phase 26) : un bouton dans chacune des 3 boites, chacun
+           ouvrant la corbeille de SON genre (interface/corbeille.js). -->
       <button id="bouton-corbeille-mes-parties" class="bouton-dialogue" type="button">Corbeille</button>
       <button id="bouton-fermer-mes-parties" class="bouton-dialogue" type="button">Fermer</button>
     </div>
   </dialog>
 
   <!-- Corbeille (phase 26) : suppression reversible des variantes/puzzles My
-       et des parties, un seul dialogue pour les trois genres (voir
-       interface/corbeille.js). Ouvert depuis "Mes parties". -->
+       et des parties. Un seul dialogue, ouvert depuis chaque boite sur SON
+       genre ; une case par ligne, "Tout selectionner", "Restaurer la
+       selection" (voir interface/corbeille.js). -->
   <dialog id="dialogue-corbeille" class="dialogue dialogue-grand">
-    <h2>Corbeille</h2>
+    <h2 id="titre-corbeille">Corbeille</h2>
+    <div class="barre-parties">
+      <input id="case-tout-corbeille" type="checkbox" class="case-partie" title="Tout sélectionner / tout désélectionner" aria-label="Tout sélectionner" />
+      <button id="bouton-restaurer-corbeille" class="bouton-dialogue" type="button" disabled>Restaurer la sélection</button>
+    </div>
     <div id="liste-corbeille" class="liste-dialogue"></div>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-vider-corbeille" class="bouton-dialogue" type="button" disabled>Vider la corbeille</button>
@@ -469,6 +471,7 @@
            siennes, en renommant les doublons (moteur/positions-my.js,
            fusionnerEntreesMy) plutot que de les perdre comme KAAWA. -->
       <button id="bouton-importer-variantes-my" class="bouton-dialogue" type="button">Importer My</button>
+      <button id="bouton-corbeille-variantes" class="bouton-dialogue" type="button">Corbeille</button>
       <button id="bouton-creer-partie-variantes" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-variantes" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -497,6 +500,7 @@
       <button id="bouton-supprimer-puzzle-my" class="bouton-dialogue" type="button" disabled>Supprimer</button>
       <button id="bouton-exporter-puzzles-my" class="bouton-dialogue" type="button" hidden>Exporter My</button>
       <button id="bouton-importer-puzzles-my" class="bouton-dialogue" type="button">Importer My</button>
+      <button id="bouton-corbeille-puzzles" class="bouton-dialogue" type="button">Corbeille</button>
       <button id="bouton-creer-partie-puzzles" class="bouton-dialogue" type="button">Créer partie</button>
       <button id="bouton-fermer-puzzles" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -628,11 +632,11 @@
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b>Correspondance</b> (✉) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.</li>
-        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).</li>
+        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas). Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles. Le ▶ devient orange tant qu'un filtre cache des parties.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties. Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
-        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
+        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
         <li><b>Réglages</b> (⚙) : couleurs des billes et du plateau (s'appliquent tout de suite), mode simple sans relief et coordonnées sur les billes (rechargent la page), export/import d'un fichier de réglages.</li>
@@ -644,9 +648,10 @@
     <details>
       <summary>Corbeille</summary>
       <ul>
-        <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b>, accessible par un bouton dans Mes parties.</li>
-        <li>La Corbeille liste tout ce qui a été supprimé (des trois genres à la fois) avec un bouton <b>Restaurer</b> par ligne, qui la remet exactement où elle était.</li>
-        <li><b>Vider la corbeille</b> est la seule action définitive — une confirmation le rappelle.</li>
+        <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b> de sa boîte — un bouton <b>Corbeille</b> en bas de Mes parties, de Variantes et de Puzzles, chacune ne montrant que ce que cette boîte a supprimé.</li>
+        <li>Seules vos positions « My » se suppriment : les variantes et puzzles de KAAWA ne s'effacent jamais.</li>
+        <li>Cochez une ou plusieurs lignes (ou la case du haut pour tout sélectionner), puis <b>Restaurer la sélection</b> : elles reviennent exactement comme elles étaient. La boîte reste ouverte ; la page se recharge une seule fois, en la fermant.</li>
+        <li><b>Vider la corbeille</b> est la seule action définitive (seulement pour la boîte ouverte) — une confirmation le rappelle.</li>
       </ul>
     </details>
 
@@ -1119,6 +1124,13 @@
         <input id="commentaires-recherche" type="text" placeholder="Recherche... (ex: occ)" />
         <button id="commentaires-copier" type="button">Copier</button>
       </div>
+      <!-- Copie de la sequence (kaa_tab_manager_ClO_Co.py : "Copie séquence
+           Nacre" / "Copie séquence AP") : du depart au coup regarde, en mode
+           Sequence seulement (interface/saisie.js). Voir moteur/copie-sequence.js. -->
+      <div id="sequence-barre">
+        <button id="copie-sequence-nacre" type="button" title="Copier la suite des coups en notation Nacre">Copie séquence Nacre</button>
+        <button id="copie-sequence-abapro" type="button" title="Copier la suite des coups en notation AbaPro">Copie séquence AP</button>
+      </div>
       <div id="arbre"></div>
       <div id="commentaires-liste" hidden></div>
       <div id="arbre-poignee-hauteur" title="Glisser pour changer la hauteur de la sequence"></div>
@@ -1187,7 +1199,9 @@
   <script src="./moteur/pendules.js"></script>
   <script src="./moteur/sauvegarde.js"></script>
   <script src="./moteur/nom-partie.js"></script>
+  <script src="./moteur/filtre-parties.js"></script>
   <script src="./moteur/creation-partie.js"></script>
+  <script src="./moteur/copie-sequence.js"></script>
   <script src="./moteur/correspondance.js"></script>
   <script src="./moteur/variantes.js"></script>
   <script src="./moteur/permutations.js"></script>
@@ -1238,6 +1252,7 @@
   <script src="./interface/face-a-face.js"></script>
   <script src="./interface/sauvegarde.js"></script>
   <script src="./interface/fichiers.js"></script>
+  <script src="./interface/filtre-parties.js"></script>
   <script src="./interface/mes-parties.js"></script>
   <script src="./interface/filtres-classement.js"></script>
   <script src="./interface/variantes.js"></script>
@@ -1381,21 +1396,33 @@
     // du meme appel que la sauvegarde elle-meme (voir plus bas) : jamais
     // recalcule deux fois pour la meme chose.
     const elementEtatSauvegarde = document.getElementById('etat-sauvegarde');
+    // Le prefixe Br_ (la partie a des branches, moteur/nom-partie.js) en
+    // violet, comme KAAWA (demande de saab). Construit noeud par noeud, jamais
+    // par innerHTML : le nom contient les noms des joueurs, saisis a la main.
+    // Le CSS tronque cette ligne a "…" sur ordinateur (elle y tient dans une
+    // colonne etroite, voir styles.css) : le texte entier reste consultable au
+    // survol, jamais indispensable au jeu lui-meme (CLAUDE.md, "rien
+    // d'important au survol seul").
+    function ecrireTitrePartie(texte) {
+      if (texte.startsWith('Br_')) {
+        const prefixe = document.createElement('span');
+        prefixe.className = 'prefixe-branche';
+        prefixe.textContent = 'Br_';
+        elementEtatSauvegarde.replaceChildren(prefixe, texte.slice('Br_'.length));
+      } else {
+        elementEtatSauvegarde.textContent = texte;
+      }
+      elementEtatSauvegarde.title = texte;
+    }
     function actualiserEtatSauvegarde(reussie, donnees) {
       const nom = nomDeFichierKAAWA(donnees);
-      elementEtatSauvegarde.textContent = reussie ? nom : `${nom} — sauvegarde impossible (stockage du navigateur indisponible)`;
-      // Le CSS tronque cette ligne a "…" sur ordinateur (elle y tient dans
-      // une colonne etroite, voir styles.css) : le texte entier reste
-      // consultable au survol, jamais indispensable au jeu lui-meme
-      // (CLAUDE.md, "rien d'important au survol seul").
-      elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
+      ecrireTitrePartie(reussie ? nom : `${nom} — sauvegarde impossible (stockage du navigateur indisponible)`);
       elementEtatSauvegarde.classList.toggle('etat-sauvegarde-erreur', !reussie);
     }
     // Au demarrage, rien n'a encore ete ecrit pour de vrai s'il n'y a pas
     // de partie reprise (rien a perdre avant le premier coup) : un texte
     // neutre plutot qu'un nom pour une partie qui n'existe pas encore.
-    elementEtatSauvegarde.textContent = donneesReprises ? nomDeFichierKAAWA(donneesReprises) : 'Nouvelle partie (pas encore jouée)';
-    elementEtatSauvegarde.title = elementEtatSauvegarde.textContent;
+    ecrireTitrePartie(donneesReprises ? nomDeFichierKAAWA(donneesReprises) : 'Nouvelle partie (pas encore jouée)');
 
     // Popup Permutations (phase 25, interface/permutations.js) : cree bien
     // plus bas (a besoin de `partie`), mais la position copiable (juste en
@@ -1705,6 +1732,7 @@
         bouton: document.getElementById('bouton-sequence'),
         poigneeHauteur: document.getElementById('arbre-poignee-hauteur'),
         poigneeLargeur: document.getElementById('arbre-poignee-largeur'),
+        barreCopie: document.getElementById('sequence-barre'),
       },
       {
         bouton: document.getElementById('bouton-commentaires'),
@@ -1836,6 +1864,26 @@
       });
     }
 
+    // "Copie séquence Nacre" / "Copie séquence AP" (moteur/copie-sequence.js) :
+    // du depart jusqu'au coup REGARDE, comme KAAWA (qui remonte depuis son
+    // current_node). "Copié !" un instant, comme le Copier des Commentaires.
+    function copierSequence(bouton, ecrire) {
+      const arbre = partie.obtenirArbre();
+      const texte = ecrire(arbre.racine.etat, coupsAffiches(arbre));
+      if (!texte) return;
+      navigator.clipboard?.writeText(texte).then(() => {
+        const texteDepart = bouton.textContent;
+        bouton.textContent = 'Copié !';
+        setTimeout(() => {
+          bouton.textContent = texteDepart;
+        }, 1200);
+      }, () => {});
+    }
+    const boutonCopieNacre = document.getElementById('copie-sequence-nacre');
+    const boutonCopieAbaPro = document.getElementById('copie-sequence-abapro');
+    boutonCopieNacre.addEventListener('click', () => copierSequence(boutonCopieNacre, (_, coups) => sequenceNacre(coups)));
+    boutonCopieAbaPro.addEventListener('click', () => copierSequence(boutonCopieAbaPro, sequenceAbaPro));
+
     // Le solveur (phase 28, interface/solveur.js et interface/verification-
     // puzzle.js) : cree seulement pour une partie qui EST un puzzle. Une
     // orientation n'est marquee resolue (phase 16bis) que sur son "Bravo",
@@ -1878,6 +1926,11 @@
       const etat = etatDuPuzzleCourant(arbre);
       const verdict = verificationPuzzle.suivre(coupsAffiches(arbre), coupsJoues(arbre), etat);
       afficherEtatPuzzle(elementBandeauPuzzle, puzzleEnCours, etat, verdict, etiquetteReglagesPzl());
+      // Le cadre de fin du plateau ("Gagné Options") prend la couleur du verdict
+      // (styles.css) : rouge si ce n'est pas la solution, orange si pas tranche.
+      const ton = tonDuPuzzle(etat, verdict);
+      svg.classList.toggle('verdict-puzzle-refus', ton === 'refus');
+      svg.classList.toggle('verdict-puzzle-incertain', ton === 'incertain');
     }
 
     // Un puzzle perdu ferme le jeu EN AVANT, sans rien empecher en arriere
@@ -2268,14 +2321,20 @@
         creationPartie.ouvrir(listeParties.positionDeDepartPrevisualisee() ?? positionDeLaPartieAffichee())
       );
 
-    // Corbeille (phase 26, interface/corbeille.js) : un seul dialogue pour
-    // les parties, les variantes My et les puzzles My, ouvert ici seulement
-    // (voir la note dans index.html, dialogue-mes-parties).
+    // Corbeille (phase 26, interface/corbeille.js) : un seul dialogue, ouvert
+    // depuis chaque boite sur SON genre.
     demarrerCorbeille(
       {
-        boutons: [document.getElementById('bouton-corbeille-mes-parties')],
+        ouvertures: [
+          { bouton: document.getElementById('bouton-corbeille-mes-parties'), genre: 'parties' },
+          { bouton: document.getElementById('bouton-corbeille-variantes'), genre: 'variantes' },
+          { bouton: document.getElementById('bouton-corbeille-puzzles'), genre: 'puzzles' },
+        ],
         dialogue: document.getElementById('dialogue-corbeille'),
+        titre: document.getElementById('titre-corbeille'),
         liste: document.getElementById('liste-corbeille'),
+        caseTout: document.getElementById('case-tout-corbeille'),
+        restaurer: document.getElementById('bouton-restaurer-corbeille'),
         vider: document.getElementById('bouton-vider-corbeille'),
         fermer: document.getElementById('bouton-fermer-corbeille'),
       },

@@ -375,6 +375,7 @@ function demarrerPartie(
       elementsArbre.conteneur.hidden = mode !== 'sequence';
       elementsCommentaires.conteneur.hidden = mode !== 'commentaires';
       elementsCommentaires.barre.hidden = mode !== 'commentaires';
+      elementsArbre.barreCopie.hidden = mode !== 'sequence';
       synchroniserBoutonsPanneauArbre();
       if (mode === 'sequence') sequence.actualiser(arbre);
       else commentaires.actualiser(arbre);

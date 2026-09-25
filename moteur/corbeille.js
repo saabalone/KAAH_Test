@@ -22,17 +22,24 @@ function mettreALaCorbeille(corbeille, genre, donnees, maintenant = () => new Da
   return [...corbeille, { genre, donnees, dateSuppression: maintenant().toISOString() }];
 }
 
-// Retire l'entree de rang `index` et la renvoie a part : la corbeille ne
-// sait pas ou est sa liste d'origine (interface/corbeille.js s'en charge,
-// avec le `genre` de l'entree).
-function restaurerDepuisCorbeille(corbeille, index) {
-  return { corbeille: corbeille.filter((_, rang) => rang !== index), entree: corbeille[index] };
+// Retire les entrees de rangs `rangs` (cases cochees dans la corbeille) et
+// les renvoie a part, dans l'ordre de la corbeille, quel que soit l'ordre des
+// rangs recus : la corbeille ne sait pas ou sont leurs listes d'origine
+// (interface/corbeille.js s'en charge, avec le `genre` de chaque entree).
+function restaurerPlusieurs(corbeille, rangs) {
+  const choisis = new Set(rangs);
+  return {
+    corbeille: corbeille.filter((_, rang) => !choisis.has(rang)),
+    entrees: corbeille.filter((_, rang) => choisis.has(rang)),
+  };
 }
 
-// Definitif, comme empty_trash_confirm de KAAWA : rien de plus qu'une liste
-// vide, quoi que contenait `corbeille`.
-function viderLaCorbeille() {
-  return [];
+// Chaque boite (Mes parties, Variantes, Puzzles) a SA corbeille, vue et
+// videe a part — demande de saab : une seule corbeille dans Mes parties etait
+// introuvable depuis les deux autres. Definitif, comme empty_trash_confirm de
+// KAAWA, mais pour ce genre seulement.
+function viderLeGenre(corbeille, genre) {
+  return corbeille.filter((entree) => entree.genre !== genre);
 }
 
 // Renomme `nomSouhaite` s'il est deja dans `nomsExistants`, en ajoutant
