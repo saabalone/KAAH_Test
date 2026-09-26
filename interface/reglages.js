@@ -50,11 +50,19 @@
 // (base de coups) : KAAH n'en propose qu'UNE (donnees/kaa-next-move.js),
 // donc une ligne d'info plutot qu'un vrai choix.
 //
-// 4 couleurs de plus (saab, 2026-09-26 : "Fond eject, Fond Occ, Couleur coord
-// plateau et Couleur coord bille") : sans equivalent KAAWA, rangees dans leur
-// propre categorie `kaah` (moteur/reglages.js) plutot que `board`/`colors` —
-// memes mecanique de previsualisation en direct que les autres couleurs,
-// juste 4 proprietes CSS de plus posees dans appliquerEnDirect.
+// 6 couleurs de plus (saab, 2026-09-26 : "Fond eject, Fond Occ, Couleur coord
+// plateau, Couleur coord bille, Couleur bille sélect, Couleur case arrivée") :
+// sans equivalent KAAWA, rangees dans leur propre categorie `kaah`
+// (moteur/reglages.js) plutot que `board`/`colors` — meme mecanique de
+// previsualisation en direct que les autres couleurs, juste 6 proprietes CSS
+// de plus posees dans appliquerEnDirect.
+//
+// Supprimer un profil (saab, 2026-09-26) : demande desormais confirmation
+// (window.confirm), et le bouton reste toujours ACTIF (jamais `disabled`) —
+// sur « Défaut », il affiche une alerte au lieu de rien faire. Un bouton
+// desactive sans explication n'aurait rien dit du POURQUOI sur telephone
+// (CLAUDE.md : "rien d'important au survol seul", un titre HTML ne s'affiche
+// pas au doigt) ; l'alerte, elle, se voit partout.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
 // fusionnerReglages (moteur/reglages.js), couleurVersHex, hexVersCouleur,
@@ -68,10 +76,11 @@
 
 // `elements` : { bouton, dialogue, poignee, couleurNoir, couleurBlanc,
 // couleurFond, couleurTrou, couleurFenetre, couleurFondEject, couleurFondOcc,
-// couleurCoordPlateau, couleurCoordBille, modeSimple, coordonneesBilles,
-// selectProfil, supprimerProfil, exporter, importer, defaut, annuler,
-// sauverSous, fermer }. `svg` : #plateau, pour appliquer les couleurs en
-// direct et nommer le fichier exporte. `decorFige` (rendu/cache-relief.js,
+// couleurCoordPlateau, couleurCoordBille, couleurSelectBille, couleurCaseArrivee,
+// modeSimple, coordonneesBilles, selectProfil, supprimerProfil, exporter,
+// importer, defaut, annuler, sauverSous, fermer }. `svg` : #plateau, pour
+// appliquer les couleurs en direct et nommer le fichier exporte.
+// `decorFige` (rendu/cache-relief.js,
 // figerLeDecor) : `{ forcerRedessin }` ou `undefined` (mode simple, ou
 // navigateur sans ResizeObserver) — voir appliquerEnDirect. `demarrerRechargement`
 // (index.html) : seul le mode simple (structurel) y a encore recours.
@@ -99,6 +108,8 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     elements.couleurFondOcc.value = couleurVersHex(actuel.kaah.occ_bg_color);
     elements.couleurCoordPlateau.value = couleurVersHex(actuel.kaah.coord_board_color);
     elements.couleurCoordBille.value = couleurVersHex(actuel.kaah.coord_ball_color);
+    elements.couleurSelectBille.value = couleurVersHex(actuel.kaah.select_ring_color);
+    elements.couleurCaseArrivee.value = couleurVersHex(actuel.kaah.dest_fill_color);
     elements.modeSimple.checked = !actuel.board.show_shadows;
     elements.coordonneesBilles.checked = actuel.board.show_ball_coords;
   }
@@ -114,7 +125,6 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
         return option;
       })
     );
-    elements.supprimerProfil.disabled = actif === NOM_PROFIL_DEFAUT;
   }
 
   // Recolore le plateau DEJA CONSTRUIT et masque/montre les coordonnees,
@@ -131,12 +141,14 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFond, 0x8a));
     document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
     svg.classList.toggle('coordonnees-billes-masquees', !reglages.board.show_ball_coords);
-    // 4 couleurs sans equivalent KAAWA (moteur/reglages.js, kaah.*) : memes
+    // 6 couleurs sans equivalent KAAWA (moteur/reglages.js, kaah.*) : memes
     // proprietes CSS que poserait index.html au tout premier affichage.
     svg.style.setProperty('--fond-case-piste-vide', couleurVersHex(reglages.kaah.eject_bg_color));
     svg.style.setProperty('--fond-cadre-occurrences', couleurVersHex(reglages.kaah.occ_bg_color));
     svg.style.setProperty('--couleur-coordonnee-bord', couleurVersHex(reglages.kaah.coord_board_color));
     svg.style.setProperty('--couleur-coordonnee-bille', couleurVersHex(reglages.kaah.coord_ball_color));
+    svg.style.setProperty('--couleur-case-selectionnee', couleurVersHex(reglages.kaah.select_ring_color));
+    svg.style.setProperty('--couleur-case-arrivee', couleurVersHex(reglages.kaah.dest_fill_color));
   }
 
   function modifierReglages(retouche) {
@@ -209,6 +221,8 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     [elements.couleurFondOcc, (r) => ((r.kaah.occ_bg_color = hexVersCouleur(elements.couleurFondOcc.value)), r)],
     [elements.couleurCoordPlateau, (r) => ((r.kaah.coord_board_color = hexVersCouleur(elements.couleurCoordPlateau.value)), r)],
     [elements.couleurCoordBille, (r) => ((r.kaah.coord_ball_color = hexVersCouleur(elements.couleurCoordBille.value)), r)],
+    [elements.couleurSelectBille, (r) => ((r.kaah.select_ring_color = hexVersCouleur(elements.couleurSelectBille.value)), r)],
+    [elements.couleurCaseArrivee, (r) => ((r.kaah.dest_fill_color = hexVersCouleur(elements.couleurCaseArrivee.value)), r)],
   ];
   for (const [champ, retouche] of champsCouleur) {
     champ.addEventListener('input', () => actualiserBrouillon(retouche));
@@ -258,7 +272,13 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
   });
 
   elements.supprimerProfil.addEventListener('click', () => {
-    supprimerProfil(lireNomProfilActif());
+    const nom = lireNomProfilActif();
+    if (nom === NOM_PROFIL_DEFAUT) {
+      window.alert('Le profil par défaut n\'est pas supprimable.');
+      return;
+    }
+    if (!window.confirm(`Supprimer le profil « ${nom} » ?`)) return;
+    supprimerProfil(nom);
     chargerReglages(lireReglagesActifs());
   });
 

@@ -48,6 +48,8 @@
   --fond-cadre-occurrences: #828282; /* "Fond Occ" */
   --couleur-coordonnee-bord: #cfcfcf; /* "Couleur coord plateau" */
   --couleur-coordonnee-bille: #e4e4e4; /* "Couleur coord bille" */
+  --couleur-case-selectionnee: #c87f32; /* "Couleur bille sélect" */
+  --couleur-case-arrivee: #00aa3e; /* "Couleur case arrivée" */
 }
 
 html {
@@ -2571,11 +2573,13 @@ button,
 /* Case de la bille selectionnee (rendu/selection.js) : un anneau, jamais
    un remplissage — sa propre couleur de case reste visible dessous,
    contrairement a .case-possible. Meme orange cuivre que KAAWA
-   (BG_COLOR, kaa_constants_ClO_Co.py : rgb(200, 127, 50)). Declaree apres
-   .case pour l'emporter (meme specificite, l'ordre du fichier tranche —
-   comme .case-possible juste au-dessus). */
+   (BG_COLOR, kaa_constants_ClO_Co.py : rgb(200, 127, 50)) par defaut,
+   reglable depuis Reglages (saab, 2026-09-26, "Couleur bille sélect" —
+   moteur/reglages.js, kaah.select_ring_color). Declaree apres .case pour
+   l'emporter (meme specificite, l'ordre du fichier tranche — comme
+   .case-possible juste au-dessus). */
 .case-selectionnee {
-  stroke: #c87f32;
+  stroke: var(--couleur-case-selectionnee, #c87f32);
   stroke-width: 1.6;
 }
 
@@ -3110,9 +3114,11 @@ button,
 
 /* Case d'arrivee possible : un rond vert TRANSLUCIDE de la taille du trou,
    pose PAR-DESSUS sa coordonnee (rendu/coordonnees-jeu.js), qui la rend verte
-   par transparence (saab). */
+   par transparence (saab). Vert par defaut, reglable depuis Reglages
+   (saab, 2026-09-26, "Couleur case arrivée" — moteur/reglages.js,
+   kaah.dest_fill_color). */
 .voile-destination {
-  fill: #00aa3e;
+  fill: var(--couleur-case-arrivee, #00aa3e);
   fill-opacity: 0.6;
   pointer-events: none;
 }

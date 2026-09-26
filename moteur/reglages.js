@@ -68,7 +68,7 @@ const REGLAGES_PAR_DEFAUT = {
     save_threshold_sec: 180,
     random_permut_enabled: true,
   },
-  // Quatre couleurs SANS EQUIVALENT KAAWA (comme le volume des sons, phase
+  // Six couleurs SANS EQUIVALENT KAAWA (comme le volume des sons, phase
   // 21bis) : demandees par saab, absentes du vrai Settings de KAAWA — rangees
   // a part, jamais dans `board`/`colors` ci-dessus qui, elles, doivent rester
   // identiques a KAAWA (voir l'en-tete du fichier). Un fichier exporte par
@@ -81,6 +81,8 @@ const REGLAGES_PAR_DEFAUT = {
     occ_bg_color: [0x82 / 255, 0x82 / 255, 0x82 / 255, 1], // cadre du compteur Occ (rendu/corde.js)
     coord_board_color: [0xcf / 255, 0xcf / 255, 0xcf / 255, 1], // bordure de coordonnees a-i/1-9
     coord_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1], // coordonnee ecrite sur chaque bille, meme couleur sur les deux camps
+    select_ring_color: [0xc8 / 255, 0x7f / 255, 0x32 / 255, 1], // anneau autour de la case de la bille selectionnee (rendu/selection.js)
+    dest_fill_color: [0x00 / 255, 0xaa / 255, 0x3e / 255, 1], // rond translucide d'une case d'arrivee possible (rendu/coordonnees-jeu.js)
   },
 };
 
