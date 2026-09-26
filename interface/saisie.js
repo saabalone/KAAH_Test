@@ -97,7 +97,8 @@
 // marquerCommentaire, etatCourant, noeudCourant, poserBille,
 // mettreEnEvidence, synchroniserBilles, animerDeplacements,
 // actualiserPistesEjection, actualiserTrait, actualiserCoordonneesBilles,
-// actualiserCoordonneesDestinations (rendu/coordonnees-jeu.js),
+// actualiserCoordonneesDestinations, actualiserBillesSelectionnables
+// (rendu/coordonnees-jeu.js),
 // informationFlecheDernierCoup (moteur/fleche-dernier-coup.js),
 // marquerFlecheDernierCoup (moteur/arbre.js),
 // actualiserFlecheDernierCoup (rendu/fleche-dernier-coup.js),
@@ -586,6 +587,10 @@ function demarrerPartie(
     // Contour orange sur la case de depart elle-meme, comme KAAWA (signale
     // par saab) — voir rendu/selection.js.
     mettreEnEvidenceSelection(svg, notation);
+    // Le rond vert de cette bille s'efface (l'anneau orange ci-dessus tient
+    // desormais lieu de mise en evidence) ; les autres billes selectionnables
+    // restent vertes, saab : "on change d'avis" reste possible sur elles.
+    actualiserBillesSelectionnables(svg, etat.joueurAuTrait, notation);
   }
 
   function deselectionner() {
@@ -594,6 +599,12 @@ function demarrerPartie(
     mettreEnEvidence(svg, []);
     actualiserCoordonneesDestinations(svg, [], null);
     mettreEnEvidenceSelection(svg, null);
+    // Toutes les billes selectionnables retrouvent leur rond vert (voir
+    // selectionner ci-dessus) — meme camp qu'avant, aucun coup n'a encore
+    // ete joue ici (voir les appelants : jouerCoup/naviguer relancent de
+    // toute facon actualiserAffichagePartie juste apres, avec le nouveau
+    // camp au trait).
+    actualiserBillesSelectionnables(svg, etatCourant(arbre).joueurAuTrait, null);
   }
 
   function jouerCoup(coup) {
@@ -785,6 +796,12 @@ function demarrerPartie(
     // CSS sur `svg` (interface/reglages.js), pour s'appliquer EN DIRECT sans
     // reconstruire quoi que ce soit ici.
     actualiserCoordonneesBilles(svg, joueurAuTrait);
+    // Rond vert sur les billes selectionnables (saab, "logique du vert") :
+    // toujours appele APRES actualiserCoordonneesBilles, jamais avant (voir
+    // rendu/coordonnees-jeu.js) ; aucune selection n'est active a cet endroit
+    // (deselectionner() a deja ete appele par tous les appelants de cette
+    // fonction), d'ou le `null`.
+    actualiserBillesSelectionnables(svg, joueurAuTrait, null);
     // Fleche du coup qui a mene A CE noeud precis (phase 19bis) — jamais
     // celle du dernier noeud de la branche : lue sur le noeud COURANT,
     // suit donc fidelement toute navigation dans l'historique. `undefined`
@@ -879,6 +896,7 @@ function demarrerPartie(
       synchroniserBilles(svg, etat.plateau);
       actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
       actualiserCoordonneesBilles(svg, null);
+      actualiserBillesSelectionnables(svg, null, null);
       actualiserFlecheDernierCoup(svg, undefined);
     },
     terminerApercuPermutation: () => {

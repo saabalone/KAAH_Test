@@ -64,6 +64,14 @@
 // (CLAUDE.md : "rien d'important au survol seul", un titre HTML ne s'affiche
 // pas au doigt) ; l'alerte, elle, se voit partout.
 //
+// « Sélection sur bille » (saab, 2026-09-27, kaah.show_selectable_balls) :
+// une case a cocher de plus dans Affichage, meme mecanique EN DIRECT que
+// « Coordonnées sur les billes » (une classe CSS qui masque, rien a
+// reconstruire) — bascule le rond vert que rendu/coordonnees-jeu.js pose
+// sur chaque bille selectionnable (interface/saisie.js s'en occupe a
+// chaque changement de trait/selection, ce fichier-ci ne fait que
+// lire/ecrire le reglage et poser la classe CSS).
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
 // fusionnerReglages (moteur/reglages.js), couleurVersHex, hexVersCouleur,
 // teinterNiveauGris (moteur/couleurs.js), actualiserCouleursPlateau
@@ -77,7 +85,7 @@
 // `elements` : { bouton, dialogue, poignee, couleurNoir, couleurBlanc,
 // couleurFond, couleurTrou, couleurFenetre, couleurFondEject, couleurFondOcc,
 // couleurCoordPlateau, couleurCoordBille, couleurSelectBille, couleurCaseArrivee,
-// modeSimple, coordonneesBilles, selectProfil, supprimerProfil, exporter,
+// modeSimple, coordonneesBilles, selectionBille, selectProfil, supprimerProfil, exporter,
 // importer, defaut, annuler, sauverSous, fermer }. `svg` : #plateau, pour
 // appliquer les couleurs en direct et nommer le fichier exporte.
 // `decorFige` (rendu/cache-relief.js,
@@ -112,6 +120,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     elements.couleurCaseArrivee.value = couleurVersHex(actuel.kaah.dest_fill_color);
     elements.modeSimple.checked = !actuel.board.show_shadows;
     elements.coordonneesBilles.checked = actuel.board.show_ball_coords;
+    elements.selectionBille.checked = actuel.kaah.show_selectable_balls;
   }
 
   function remplirProfils() {
@@ -149,6 +158,11 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     svg.style.setProperty('--couleur-coordonnee-bille', couleurVersHex(reglages.kaah.coord_ball_color));
     svg.style.setProperty('--couleur-case-selectionnee', couleurVersHex(reglages.kaah.select_ring_color));
     svg.style.setProperty('--couleur-case-arrivee', couleurVersHex(reglages.kaah.dest_fill_color));
+    // Rond vert des billes selectionnables (saab, "Sélection sur bille") :
+    // meme mecanique de masquage EN DIRECT que coordonnees-billes-masquees
+    // juste au-dessus, jamais de reconstruction (interface/saisie.js pose
+    // et retire ces ronds, ce fichier-ci ne fait que les cacher ou non).
+    svg.classList.toggle('selection-bille-masquee', !reglages.kaah.show_selectable_balls);
   }
 
   function modifierReglages(retouche) {
@@ -241,6 +255,13 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
   // suffit, previsualisation et fin de geste en meme temps.
   elements.coordonneesBilles.addEventListener('change', () => {
     actualiserBrouillon((r) => ((r.board.show_ball_coords = elements.coordonneesBilles.checked), r));
+    terminerGeste();
+  });
+
+  // Cosmetique (une classe CSS, voir appliquerEnDirect), meme mecanique que
+  // coordonneesBilles juste au-dessus.
+  elements.selectionBille.addEventListener('change', () => {
+    actualiserBrouillon((r) => ((r.kaah.show_selectable_balls = elements.selectionBille.checked), r));
     terminerGeste();
   });
 

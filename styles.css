@@ -3123,6 +3123,23 @@ button,
   pointer-events: none;
 }
 
+/* Bille SELECTIONNABLE (celles du camp au trait, sauf celle deja
+   selectionnee) : meme rond vert translucide, meme taille (celle du trou,
+   pas de la bille) et meme couleur reglable que .voile-destination
+   ci-dessus (saab, 2026-09-27 : "rester dans la logique du vert" —
+   rendu/coordonnees-jeu.js, actualiserBillesSelectionnables). Un
+   interrupteur a part ("Sélection sur bille", moteur/reglages.js
+   kaah.show_selectable_balls) la masque en direct, voir juste en dessous. */
+.voile-selectionnable {
+  fill: var(--couleur-case-arrivee, #00aa3e);
+  fill-opacity: 0.6;
+  pointer-events: none;
+}
+
+#plateau.selection-bille-masquee .voile-selectionnable {
+  display: none;
+}
+
 /* Fleche (chevron) du dernier coup, phase 19bis (rendu/fleche-dernier-coup.js) :
    contraste inverse de la bille qui la porte, meme principe que
    .coordonnee-bille juste au-dessus. `fill: none` : seul le CONTOUR du

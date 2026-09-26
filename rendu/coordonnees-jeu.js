@@ -11,6 +11,16 @@
 //     translucide de la taille du trou les recouvre (elles en deviennent vertes
 //     par transparence).
 //
+// Meme rond vert translucide, MEME TAILLE que sur une case d'arrivee (celle du
+// trou, pas celle de la bille — saab, 2026-09-27 : "rester dans la logique du
+// vert"), sur chaque bille SELECTIONNABLE (celles du camp au trait) — SAUF
+// celle deja selectionnee, dont l'anneau orange (rendu/selection.js) tient
+// lieu de mise en evidence. Pose EN ENFANT de la bille (comme sa coordonnee
+// juste au-dessus), jamais par coordonnees cx/cy absolues comme
+// .voile-destination : une bille ejectee glisse puis vole encore quelques
+// instants avec sa classe de camp intacte (rendu/vol-ejection.js) et doit
+// emporter ce rond avec elle plutot que le laisser fixe a l'ancienne case.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : creerElementSVG
 // (rendu/plateau-svg.js) et RAYON_TROU_CENTRAL (rendu/relief-plateau.js)
 // viennent de fichiers charges avant celui-ci dans index.html.
@@ -69,5 +79,19 @@ function actualiserCoordonneesDestinations(svg, notations, camp) {
         class: 'voile-destination',
       })
     );
+  }
+}
+
+// Rond vert translucide sur chaque bille SELECTIONNABLE de `joueurAuTrait`
+// (voir l'en-tete du fichier), sauf `notationSelectionnee` — a appeler APRES
+// actualiserCoordonneesBilles (le rond doit recouvrir la coordonnee, comme
+// pour une destination, jamais l'inverse). `joueurAuTrait` peut valoir
+// `null` (partie terminee, ou apercu d'une permutation) : aucun rond alors.
+function actualiserBillesSelectionnables(svg, joueurAuTrait, notationSelectionnee) {
+  for (const voile of svg.querySelectorAll('.voile-selectionnable')) voile.remove();
+  if (!joueurAuTrait) return;
+  for (const bille of svg.querySelectorAll(`.bille-${joueurAuTrait}`)) {
+    if (bille.dataset.notation === notationSelectionnee) continue;
+    bille.appendChild(creerElementSVG('circle', { r: RAYON_TROU_CENTRAL, class: 'voile-selectionnable' }));
   }
 }

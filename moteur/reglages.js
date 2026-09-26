@@ -83,6 +83,12 @@ const REGLAGES_PAR_DEFAUT = {
     coord_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1], // coordonnee ecrite sur chaque bille, meme couleur sur les deux camps
     select_ring_color: [0xc8 / 255, 0x7f / 255, 0x32 / 255, 1], // anneau autour de la case de la bille selectionnee (rendu/selection.js)
     dest_fill_color: [0x00 / 255, 0xaa / 255, 0x3e / 255, 1], // rond translucide d'une case d'arrivee possible (rendu/coordonnees-jeu.js)
+    // Rond vert translucide sur chaque bille SELECTIONNABLE (camp au trait), la
+    // meme couleur/mecanique que dest_fill_color (saab : "rester dans la logique
+    // du vert") — pas une couleur a part, un simple interrupteur "Sélection sur
+    // bille" dans Affichage (interface/reglages.js). true par defaut : nouveaute
+    // KAAH, jamais dans un vrai fichier KAAWA.
+    show_selectable_balls: true,
   },
 };
 

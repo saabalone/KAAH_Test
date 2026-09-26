@@ -638,7 +638,7 @@
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
         <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
-        <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> (choix d'une branche, confirmations, nulle, Annuler, pendule qui attend).</li>
+        <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> : vos billes jouables (un léger voile vert dessus, désactivable dans Réglages, « Sélection sur bille »), les cases de destination une fois une bille choisie, un choix de branche, des confirmations, une nulle, Annuler, une pendule qui attend.<br>Sélectionner une bille remplace son propre voile vert par un anneau orange, sans toucher aux autres.</li>
       </ul>
     </details>
 
@@ -725,11 +725,11 @@
         <li>Sous le numéro de version, en haut de cette Aide, <b>Hors ligne</b> dit si KAAH marche sans internet sur cet appareil (« prêt ✓ »), ou pourquoi pas.</li>
         <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes).<br>Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
         <li>Une nouvelle version s'installe toute seule à l'ouverture, avec internet : si vous n'avez encore rien touché, KAAH se recharge aussitôt en nouvelle version ; sinon, elle sera là à la prochaine ouverture.</li>
-        <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).</li>
-        <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).</li>
-        <li><b>iPhone</b> : pas de méthode simple sans adresse internet (voir le mode d'emploi iPhone dans le dossier <b>docs</b>, ci-dessous).</li>
+        <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_PC.html" target="_blank" rel="noopener">INSTALLATION_PC</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b> reçu avec KAAH).</li>
+        <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_ANDROID.html" target="_blank" rel="noopener">INSTALLATION_ANDROID</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
+        <li><b>iPhone</b> : pas de méthode simple sans adresse internet — voir <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_IOS.html" target="_blank" rel="noopener">INSTALLATION_IOS</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
         <li>Ouvert depuis un fichier, KAAH se joue très bien mais ne s'installe pas comme une application ; la version s'affiche « inconnue » : c'est normal.</li>
-        <li>Les modes d'emploi complets (PC, Android, iPhone) sont dans le dossier <b>docs</b> : <a href="https://github.com/saabalone/KAAH_Test/tree/main/docs" target="_blank" rel="noopener">l'ouvrir en ligne</a> (avec internet — sinon, copiez cette adresse dans un navigateur : <code>https://github.com/saabalone/KAAH_Test/tree/main/docs</code>).</li>
+        <li>Tout le dossier <b>docs</b> (modes d'emploi, et le reste) est aussi consultable en ligne : <a href="https://github.com/saabalone/KAAH_Test/tree/main/docs" target="_blank" rel="noopener">l'ouvrir</a> (avec internet — sinon, copiez cette adresse dans un navigateur : <code>https://github.com/saabalone/KAAH_Test/tree/main/docs</code>).</li>
       </ul>
     </details>
 
@@ -837,6 +837,10 @@
       <label class="ligne-reglage">
         <input id="case-coordonnees-billes" type="checkbox" />
         Coordonnées sur les billes
+      </label>
+      <label class="ligne-reglage">
+        <input id="case-selection-bille" type="checkbox" />
+        Sélection sur bille
       </label>
 
       <!-- Ordre des groupes d'icones (interface/ordre-colonne.js) : a part des
@@ -1559,6 +1563,10 @@
     // sur la case a cocher les fasse disparaitre EN DIRECT (interface/
     // reglages.js), sans reconstruire le plateau.
     svg.classList.toggle('coordonnees-billes-masquees', !reglages.board.show_ball_coords);
+    // Rond vert des billes selectionnables (kaah.show_selectable_balls, saab
+    // 2026-09-27) : meme principe, toujours CONSTRUITS par interface/saisie.js,
+    // seulement masques ici si le reglage est faux.
+    svg.classList.toggle('selection-bille-masquee', !reglages.kaah.show_selectable_balls);
     // Bordure de coordonnees a-i/1-9 (phase 19bis), toujours visible : doit
     // etre la PREMIERE bande ajoutee au viewBox (voir
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
@@ -1703,6 +1711,7 @@
         couleurCaseArrivee: document.getElementById('couleur-case-arrivee'),
         modeSimple: document.getElementById('case-mode-simple'),
         coordonneesBilles: document.getElementById('case-coordonnees-billes'),
+        selectionBille: document.getElementById('case-selection-bille'),
         selectProfil: document.getElementById('select-profil-reglages'),
         supprimerProfil: document.getElementById('bouton-supprimer-profil-reglages'),
         exporter: document.getElementById('bouton-exporter-reglages'),
