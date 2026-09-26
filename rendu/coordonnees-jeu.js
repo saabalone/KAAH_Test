@@ -8,18 +8,28 @@
 //     KAAWA) ;
 //   - sur chaque case de DESTINATION possible, en vert, UNIQUEMENT pendant
 //     qu'une selection est active — disparait avec elle. Un rond vert
-//     translucide de la taille du trou les recouvre (elles en deviennent vertes
-//     par transparence).
+//     translucide de la taille du trou est pose SOUS elle (jamais dessus,
+//     voir plus bas pourquoi) : elle reste ainsi toujours lisible, meme sur
+//     un fond de case clair.
 //
-// Meme rond vert translucide, MEME TAILLE que sur une case d'arrivee (celle du
-// trou, pas celle de la bille — saab, 2026-09-27 : "rester dans la logique du
-// vert"), sur chaque bille SELECTIONNABLE (celles du camp au trait) — SAUF
-// celle deja selectionnee, dont l'anneau orange (rendu/selection.js) tient
-// lieu de mise en evidence. Pose EN ENFANT de la bille (comme sa coordonnee
-// juste au-dessus), jamais par coordonnees cx/cy absolues comme
-// .voile-destination : une bille ejectee glisse puis vole encore quelques
-// instants avec sa classe de camp intacte (rendu/vol-ejection.js) et doit
-// emporter ce rond avec elle plutot que le laisser fixe a l'ancienne case.
+// Meme rond vert, MEME TAILLE que sur une case d'arrivee (celle du trou, pas
+// celle de la bille — saab, 2026-09-27 : "rester dans la logique du vert"),
+// sur chaque bille SELECTIONNABLE (celles du camp au trait) TANT QU'AUCUNE
+// SELECTION N'EST ACTIVE — ils s'effacent TOUS des qu'une bille est
+// selectionnee (saab : "sinon ca n'a aucun sens", seules les cases de
+// DESTINATION comptent alors) et reviennent tous ensemble a la deselection.
+// Pose EN ENFANT de la bille, JUSTE APRES son .bille-cercle (jamais un
+// simple appendChild en bout de liste) — la coordonnee, elle, doit toujours
+// rester PAR-DESSUS ce rond, jamais l'inverse (saab, 2026-09-27bis : sur
+// fond vert, elle restait illisible quelle que soit l'opacite choisie,
+// surtout sur les billes blanches). Cette position fixe rend l'ordre
+// d'appel de cette fonction et de actualiserCoordonneesBilles sans
+// importance : la coordonnee, ajoutee par un appendChild qui la place
+// toujours EN DERNIER, finit de toute facon au-dessus.
+// Jamais par coordonnees cx/cy absolues comme .voile-destination : une
+// bille ejectee glisse puis vole encore quelques instants avec sa classe de
+// camp intacte (rendu/vol-ejection.js) et doit emporter ce rond avec elle
+// plutot que le laisser fixe a l'ancienne case.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : creerElementSVG
 // (rendu/plateau-svg.js) et RAYON_TROU_CENTRAL (rendu/relief-plateau.js)
@@ -60,6 +70,19 @@ function actualiserCoordonneesDestinations(svg, notations, camp) {
   for (const notation of notations) {
     const caseElement = svg.querySelector(`.case[data-notation="${notation}"]`);
     if (!caseElement) continue;
+    // Le voile vert translucide, de la taille du trou, SOUS la coordonnee
+    // (ajoute EN PREMIER : voir actualiserBillesSelectionnables plus bas,
+    // meme raisonnement) — sur un fond de case clair (Reglages, "Fond du
+    // plateau"), elle restait illisible si le voile passait par-dessus,
+    // quelle que soit son opacite (saab, 2026-09-27).
+    svg.appendChild(
+      creerElementSVG('circle', {
+        cx: caseElement.getAttribute('cx'),
+        cy: caseElement.getAttribute('cy'),
+        r: RAYON_TROU_CENTRAL,
+        class: 'voile-destination',
+      })
+    );
     const texte = creerElementSVG('text', {
       x: caseElement.getAttribute('cx'),
       y: caseElement.getAttribute('cy'),
@@ -69,29 +92,21 @@ function actualiserCoordonneesDestinations(svg, notations, camp) {
     });
     texte.textContent = notation;
     svg.appendChild(texte);
-    // Le voile vert translucide, de la taille du trou, PAR-DESSUS la
-    // coordonnee : elle en devient verte par transparence (saab).
-    svg.appendChild(
-      creerElementSVG('circle', {
-        cx: caseElement.getAttribute('cx'),
-        cy: caseElement.getAttribute('cy'),
-        r: RAYON_TROU_CENTRAL,
-        class: 'voile-destination',
-      })
-    );
   }
 }
 
-// Rond vert translucide sur chaque bille SELECTIONNABLE de `joueurAuTrait`
-// (voir l'en-tete du fichier), sauf `notationSelectionnee` — a appeler APRES
-// actualiserCoordonneesBilles (le rond doit recouvrir la coordonnee, comme
-// pour une destination, jamais l'inverse). `joueurAuTrait` peut valoir
-// `null` (partie terminee, ou apercu d'une permutation) : aucun rond alors.
-function actualiserBillesSelectionnables(svg, joueurAuTrait, notationSelectionnee) {
+// Rond vert sur chaque bille SELECTIONNABLE de `joueurAuTrait` (voir
+// l'en-tete du fichier). `joueurAuTrait` vaut `null` pour n'en afficher
+// aucun : partie terminee, apercu d'une permutation, OU une selection est
+// deja active (interface/saisie.js, selectionner).
+function actualiserBillesSelectionnables(svg, joueurAuTrait) {
   for (const voile of svg.querySelectorAll('.voile-selectionnable')) voile.remove();
   if (!joueurAuTrait) return;
   for (const bille of svg.querySelectorAll(`.bille-${joueurAuTrait}`)) {
-    if (bille.dataset.notation === notationSelectionnee) continue;
-    bille.appendChild(creerElementSVG('circle', { r: RAYON_TROU_CENTRAL, class: 'voile-selectionnable' }));
+    const voile = creerElementSVG('circle', { r: RAYON_TROU_CENTRAL, class: 'voile-selectionnable' });
+    // Juste apres .bille-cercle, jamais en bout de liste (voir l'en-tete) :
+    // une coordonnee deja posee (actualiserCoordonneesBilles) reste ainsi
+    // toujours au-dessus, quel que soit l'ordre d'appel des deux fonctions.
+    bille.querySelector('.bille-cercle').insertAdjacentElement('afterend', voile);
   }
 }

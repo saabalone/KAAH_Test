@@ -3113,9 +3113,11 @@ button,
 }
 
 /* Case d'arrivee possible : un rond vert TRANSLUCIDE de la taille du trou,
-   pose PAR-DESSUS sa coordonnee (rendu/coordonnees-jeu.js), qui la rend verte
-   par transparence (saab). Vert par defaut, reglable depuis Reglages
-   (saab, 2026-09-26, "Couleur case arrivée" — moteur/reglages.js,
+   pose SOUS sa coordonnee dans le DOM (rendu/coordonnees-jeu.js) — elle
+   reste ainsi toujours lisible, meme sur un fond de case clair (saab,
+   2026-09-27 : "le meme pb si ca tombe sur une blanche", voir
+   .voile-selectionnable plus bas). Vert par defaut, reglable depuis
+   Reglages (saab, 2026-09-26, "Couleur case arrivée" — moteur/reglages.js,
    kaah.dest_fill_color). */
 .voile-destination {
   fill: var(--couleur-case-arrivee, #00aa3e);
@@ -3123,13 +3125,18 @@ button,
   pointer-events: none;
 }
 
-/* Bille SELECTIONNABLE (celles du camp au trait, sauf celle deja
-   selectionnee) : meme rond vert translucide, meme taille (celle du trou,
-   pas de la bille) et meme couleur reglable que .voile-destination
+/* Bille SELECTIONNABLE (celles du camp au trait, tant qu'aucune selection
+   n'est active) : meme rond vert, meme taille (celle du trou, pas de la
+   bille), meme opacite et meme couleur reglable que .voile-destination
    ci-dessus (saab, 2026-09-27 : "rester dans la logique du vert" —
-   rendu/coordonnees-jeu.js, actualiserBillesSelectionnables). Un
-   interrupteur a part ("Sélection sur bille", moteur/reglages.js
-   kaah.show_selectable_balls) la masque en direct, voir juste en dessous. */
+   rendu/coordonnees-jeu.js, actualiserBillesSelectionnables). Toujours SOUS
+   la coordonnee de la bille dans le DOM (voir cette fonction) : la meme
+   opacite qu'une case d'arrivee reste lisible ici, contrairement a un
+   premier essai ou ce rond passait PAR-DESSUS la coordonnee (saab,
+   2026-09-27bis : illisible sur les billes blanches, quelle que soit
+   l'opacite choisie). Un interrupteur a part ("Sélection sur bille",
+   moteur/reglages.js kaah.show_selectable_balls) la masque en direct, voir
+   juste en dessous. */
 .voile-selectionnable {
   fill: var(--couleur-case-arrivee, #00aa3e);
   fill-opacity: 0.6;

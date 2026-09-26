@@ -587,10 +587,11 @@ function demarrerPartie(
     // Contour orange sur la case de depart elle-meme, comme KAAWA (signale
     // par saab) — voir rendu/selection.js.
     mettreEnEvidenceSelection(svg, notation);
-    // Le rond vert de cette bille s'efface (l'anneau orange ci-dessus tient
-    // desormais lieu de mise en evidence) ; les autres billes selectionnables
-    // restent vertes, saab : "on change d'avis" reste possible sur elles.
-    actualiserBillesSelectionnables(svg, etat.joueurAuTrait, notation);
+    // TOUS les ronds verts de selectionnabilite s'effacent des qu'une
+    // selection est active (saab : "sinon ca n'a aucun sens") — seules les
+    // cases de DESTINATION (ci-dessus) comptent alors ; ils reviennent tous
+    // ensemble a la deselection, voir plus bas.
+    actualiserBillesSelectionnables(svg, null);
   }
 
   function deselectionner() {
@@ -604,7 +605,7 @@ function demarrerPartie(
     // ete joue ici (voir les appelants : jouerCoup/naviguer relancent de
     // toute facon actualiserAffichagePartie juste apres, avec le nouveau
     // camp au trait).
-    actualiserBillesSelectionnables(svg, etatCourant(arbre).joueurAuTrait, null);
+    actualiserBillesSelectionnables(svg, etatCourant(arbre).joueurAuTrait);
   }
 
   function jouerCoup(coup) {
@@ -801,7 +802,7 @@ function demarrerPartie(
     // rendu/coordonnees-jeu.js) ; aucune selection n'est active a cet endroit
     // (deselectionner() a deja ete appele par tous les appelants de cette
     // fonction), d'ou le `null`.
-    actualiserBillesSelectionnables(svg, joueurAuTrait, null);
+    actualiserBillesSelectionnables(svg, joueurAuTrait);
     // Fleche du coup qui a mene A CE noeud precis (phase 19bis) — jamais
     // celle du dernier noeud de la branche : lue sur le noeud COURANT,
     // suit donc fidelement toute navigation dans l'historique. `undefined`
@@ -896,7 +897,7 @@ function demarrerPartie(
       synchroniserBilles(svg, etat.plateau);
       actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
       actualiserCoordonneesBilles(svg, null);
-      actualiserBillesSelectionnables(svg, null, null);
+      actualiserBillesSelectionnables(svg, null);
       actualiserFlecheDernierCoup(svg, undefined);
     },
     terminerApercuPermutation: () => {
