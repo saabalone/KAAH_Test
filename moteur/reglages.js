@@ -68,6 +68,13 @@ const REGLAGES_PAR_DEFAUT = {
     save_threshold_sec: 180,
     random_permut_enabled: true,
   },
+  // La base de coups choisie ("BDD moves", kaa_settings_popup_ClO_Co.py F6) :
+  // un nom de fichier KAA_NEXT_MOVE_REF_*.csv, ou null ("(auto)" chez KAAWA,
+  // aucun defaut dans kaa_constants). null vaut, dans KAAH, sa base integree
+  // (moteur/bases-coups.js, nomBaseAUtiliser).
+  nextmove: {
+    bdd_file: null,
+  },
   // Six couleurs SANS EQUIVALENT KAAWA (comme le volume des sons, phase
   // 21bis) : demandees par saab, absentes du vrai Settings de KAAWA — rangees
   // a part, jamais dans `board`/`colors` ci-dessus qui, elles, doivent rester

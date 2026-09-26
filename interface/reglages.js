@@ -47,8 +47,10 @@
 // d'ambiance secondaires (deja fixees dans styles.css). `pzl.
 // random_permut_enabled` voyage dans le fichier mais n'a pas de case ici
 // (rien ne le consomme encore, phase 16 amendee pas codee). "BDD moves"
-// (base de coups) : KAAH n'en propose qu'UNE (donnees/kaa-next-move.js),
-// donc une ligne d'info plutot qu'un vrai choix.
+// (base de coups, saab 2026-09-27) : un vrai choix desormais,
+// `nextmove.bdd_file` comme KAAWA — ce fichier-ci ne fait que le lire,
+// l'ecrire et le passer a interface/bases-coups.js (`baseCoups`), qui
+// remplit la liste et charge la base.
 //
 // 6 couleurs de plus (saab, 2026-09-26 : "Fond eject, Fond Occ, Couleur coord
 // plateau, Couleur coord bille, Couleur bille sélect, Couleur case arrivée") :
@@ -85,14 +87,15 @@
 // `elements` : { bouton, dialogue, poignee, couleurNoir, couleurBlanc,
 // couleurFond, couleurTrou, couleurFenetre, couleurFondEject, couleurFondOcc,
 // couleurCoordPlateau, couleurCoordBille, couleurSelectBille, couleurCaseArrivee,
-// modeSimple, coordonneesBilles, selectionBille, selectProfil, supprimerProfil, exporter,
-// importer, defaut, annuler, sauverSous, fermer }. `svg` : #plateau, pour
-// appliquer les couleurs en direct et nommer le fichier exporte.
-// `decorFige` (rendu/cache-relief.js,
-// figerLeDecor) : `{ forcerRedessin }` ou `undefined` (mode simple, ou
-// navigateur sans ResizeObserver) — voir appliquerEnDirect. `demarrerRechargement`
+// modeSimple, coordonneesBilles, selectionBille, baseCoups, selectProfil,
+// supprimerProfil, exporter, importer, defaut, annuler, sauverSous, fermer }.
+// `svg` : #plateau, pour appliquer les couleurs en direct et nommer le
+// fichier exporte. `decorFige` (rendu/cache-relief.js, figerLeDecor) :
+// `{ forcerRedessin }` ou `undefined` (mode simple, ou navigateur sans
+// ResizeObserver) — voir appliquerEnDirect. `demarrerRechargement`
 // (index.html) : seul le mode simple (structurel) y a encore recours.
-function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
+// `baseCoups` : { afficher(nom), charger(nom) } (interface/bases-coups.js).
+function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCoups) {
   let actuel = REGLAGES_PAR_DEFAUT;
   // Pile d'annulation (Annuler) : les etats d'AVANT chaque reglage change
   // depuis l'ouverture de la boite, ou depuis le dernier changement de
@@ -121,6 +124,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     elements.modeSimple.checked = !actuel.board.show_shadows;
     elements.coordonneesBilles.checked = actuel.board.show_ball_coords;
     elements.selectionBille.checked = actuel.kaah.show_selectable_balls;
+    baseCoups.afficher(actuel.nextmove.bdd_file);
   }
 
   function remplirProfils() {
@@ -163,10 +167,20 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     // juste au-dessus, jamais de reconstruction (interface/saisie.js pose
     // et retire ces ronds, ce fichier-ci ne fait que les cacher ou non).
     svg.classList.toggle('selection-bille-masquee', !reglages.kaah.show_selectable_balls);
+    // Sans effet si c'est deja la base chargee (appele a chaque retouche).
+    baseCoups.charger(reglages.nextmove.bdd_file);
   }
 
+  // Chaque categorie modifiable est COPIEE : sans ca, une retouche ecrirait
+  // dans l'objet de l'etat precedent (celui qu'Annuler doit retrouver).
   function modifierReglages(retouche) {
-    return retouche({ ...actuel, board: { ...actuel.board }, colors: { ...actuel.colors }, kaah: { ...actuel.kaah } });
+    return retouche({
+      ...actuel,
+      board: { ...actuel.board },
+      colors: { ...actuel.colors },
+      kaah: { ...actuel.kaah },
+      nextmove: { ...actuel.nextmove },
+    });
   }
 
   // Premier `input` d'un geste (glisser un curseur de couleur) : previsualise
@@ -262,6 +276,13 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
   // coordonneesBilles juste au-dessus.
   elements.selectionBille.addEventListener('change', () => {
     actualiserBrouillon((r) => ((r.kaah.show_selectable_balls = elements.selectionBille.checked), r));
+    terminerGeste();
+  });
+
+  // Le choix de la base (a la main, ou apres un import/une suppression, voir
+  // interface/bases-coups.js) : un reglage comme les autres.
+  elements.baseCoups.addEventListener('change', () => {
+    actualiserBrouillon((r) => ((r.nextmove.bdd_file = elements.baseCoups.value), r));
     terminerGeste();
   });
 

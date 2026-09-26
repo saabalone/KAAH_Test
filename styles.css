@@ -502,14 +502,22 @@ button,
 }
 
 /* Choix du profil (phase 22, interface/reglages.js) : la liste a gauche,
-   Supprimer a droite (grise sur "Défaut", jamais supprimable). */
+   Supprimer a droite (alerte sur "Défaut", jamais supprimable). La liste des
+   bases de coups (interface/bases-coups.js) a le meme aspect, sur toute la
+   largeur : ses noms de fichier sont longs. */
 .ligne-profil {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-#select-profil-reglages {
+.select-base-coups {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+#select-profil-reglages,
+.select-base-coups {
   flex: 1 1 auto;
   min-width: 0;
   min-height: var(--hauteur-commande);

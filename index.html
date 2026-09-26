@@ -651,13 +651,14 @@
         <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.<br>Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).<br>Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles.<br>Le ▶ devient orange tant qu'un filtre cache des parties.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).<br>Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.<br>En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.<br>Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
-        <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
+        <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de coups pour la position affichée.<br>Par défaut, la base de KAAWA où, dans une position vraiment symétrique (ex. Marguerite Belge), deux coups symétriques ont la même stat, la somme des deux (a1d4 et i9f6).</li>
         <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
         <li><b>Réglages</b> (⚙) : couleurs des billes, du plateau, des pistes d'éjection (Fond eject), du cadre du compteur Occ (Fond Occ), de la sélection et de la case d'arrivée, et des coordonnées (bordure a-i/1-9, chiffres sur les billes).<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.</li>
         <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
+        <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
         <li><b>NP</b> : un bloc-notes personnel (bug, idées, à retester...), enregistré tout seul à chaque frappe — jamais lié à une partie précise.</li>
@@ -852,8 +853,16 @@
         <button id="bouton-ordre-origine-colonne" class="bouton-dialogue" type="button">Ordre d'origine</button>
       </div>
 
+      <!-- Base de coups (interface/bases-coups.js) : le choix est le reglage
+           nextmove.bdd_file de KAAWA ; les bases importees restent sur cet
+           appareil (IndexedDB). -->
       <h3>Base de coups (BDD moves)</h3>
-      <p class="note-reglages">KAA_NEXT_MOVE_REF_Best_Stat.csv — le seul fichier fourni avec KAAH pour l'instant, rien à choisir.</p>
+      <select id="select-base-coups" class="select-base-coups"></select>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-importer-base-coups" class="bouton-dialogue" type="button">Importer une base...</button>
+        <button id="bouton-supprimer-base-coups" class="bouton-dialogue" type="button">Supprimer</button>
+      </div>
+      <p id="etat-base-coups" class="note-reglages"></p>
 
       <h3>Fichier de réglages</h3>
       <div class="barre-reglages-fichier">
@@ -1264,6 +1273,7 @@
   <script src="./moteur/variantes.js"></script>
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
+  <script src="./moteur/bases-coups.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/nulle.js"></script>
@@ -1346,6 +1356,8 @@
   <script src="./interface/jauge-mes-parties.js"></script>
   <script src="./interface/reglages-profils.js"></script>
   <script src="./interface/deplacable.js"></script>
+  <script src="./interface/bases-coups-stockage.js"></script>
+  <script src="./interface/bases-coups.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
@@ -1693,6 +1705,24 @@
     // de rendu/cache-relief.js) lui donnent ce qu'il faut pour recolorer le
     // plateau deja construit sans jamais recharger, sauf pour le mode
     // simple (structurel, voir la fonction).
+    //
+    // La base de coups (Conseils, phase 15) : vide tant que la base choisie
+    // (reglage nextmove.bdd_file, la base integree _Fus par defaut) n'a pas fini
+    // d'etre analysee en arriere-plan — voir interface/bases-coups.js. Declaree
+    // ici, avant les Reglages qui peuvent en changer.
+    let baseNextMove = new Map();
+    const basesCoups = demarrerBasesCoups(
+      {
+        select: document.getElementById('select-base-coups'),
+        importer: document.getElementById('bouton-importer-base-coups'),
+        supprimer: document.getElementById('bouton-supprimer-base-coups'),
+        etat: document.getElementById('etat-base-coups'),
+      },
+      (base) => {
+        baseNextMove = base;
+        conseils?.actualiser();
+      }
+    );
     demarrerReglages(
       {
         bouton: document.getElementById('bouton-reglages'),
@@ -1712,6 +1742,7 @@
         modeSimple: document.getElementById('case-mode-simple'),
         coordonneesBilles: document.getElementById('case-coordonnees-billes'),
         selectionBille: document.getElementById('case-selection-bille'),
+        baseCoups: document.getElementById('select-base-coups'),
         selectProfil: document.getElementById('select-profil-reglages'),
         supprimerProfil: document.getElementById('bouton-supprimer-profil-reglages'),
         exporter: document.getElementById('bouton-exporter-reglages'),
@@ -1723,7 +1754,8 @@
       },
       svg,
       decorFige,
-      demarrerRechargement
+      demarrerRechargement,
+      basesCoups
     );
 
     // Mode de pendule (phase 22bis) : une seule boite, deux appelants (voir
@@ -2775,14 +2807,12 @@
       }
     );
 
-    // Conseils (phase 15) : la base Next Move de KAAWA. Analysee en
-    // ARRIERE-PLAN (setTimeout, jamais au fil du chargement de la page) :
+    // Conseils (phase 15) : la base Next Move choisie dans les Reglages (la
+    // base integree _Fus par defaut). Analysee en ARRIERE-PLAN (setTimeout,
+    // jamais au fil du chargement de la page, voir interface/bases-coups.js) :
     // mesure reelle sur cette machine, voir JOURNAL.md — les pendules
     // demarrent donc sans attendre une seule milliseconde de plus.
-    let baseNextMove = new Map(); // vide tant que l'analyse n'est pas terminee
-    setTimeout(() => {
-      baseNextMove = analyserBaseNextMove(KAA_NEXT_MOVE_CSV);
-    }, 0);
+    basesCoups.charger(reglages.nextmove.bdd_file);
 
     conseils = demarrerConseils(
       svg,

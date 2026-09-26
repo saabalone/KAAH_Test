@@ -1,11 +1,4 @@
-// Copie mecanique de donnees/KAA_NEXT_MOVE_REF_Best_Stat_Fus.csv (la base
-// integree a KAAH, stats des coups symetriques additionnees), verifiee
-// identique octet pour octet (voir tests/next-move.test.js) -- voir
-// moteur/next-move.js pour le pourquoi : file:// ne peut pas faire
-// fetch(), meme restriction que pour les variantes en phase 13. Ne
-// jamais modifier ce fichier a la main : il est ecrit par
-// generer-next-move-fus.js.
-const KAA_NEXT_MOVE_CSV = `full_posRef,next_move_Ref,nb_W,nb_L,nb_D
+full_posRef,next_move_Ref,nb_W,nb_L,nb_D
 0a12b123c23g78h789i89_0a45b456c56g45h456i56,a1d4,179,161,6
 0a12b123c23f6g78h789i8_0a45b456c56g45h456i56,a5d5,87,108,5
 0a12b123c23f6g78h789i8_0a4b456c56d5g45h456i56,i8g6,70,51,3
@@ -30478,4 +30471,4 @@ const KAA_NEXT_MOVE_CSV = `full_posRef,next_move_Ref,nb_W,nb_L,nb_D
 0a12b123c23f6g78h789i8_0a45b456c56g45h456i56,h6f5,0,5,0
 0a12b123c23f67g78h78i8_0d1278e234789f2389,e9c7,0,5,0
 0a12b123c23f67g78h78i8_0c7d2378e23478f2389,h8e5,0,7,0
-0a12b123c23f67g78h78i8_0d2378e234789f2389,a1a3,0,11,0`;
+0a12b123c23f67g78h78i8_0d2378e234789f2389,a1a3,0,11,0
