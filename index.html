@@ -646,6 +646,7 @@
       <summary>Les boutons de la colonne de gauche</summary>
       <ul>
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
+        <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir. L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition. Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir. Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas). Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles. Le ▶ devient orange tant qu'un filtre cache des parties.</li>
@@ -825,6 +826,15 @@
         <input id="case-coordonnees-billes" type="checkbox" />
         Coordonnées sur les billes
       </label>
+
+      <!-- Ordre des groupes d'icones (interface/ordre-colonne.js) : a part des
+           reglages de KAAWA (settings_N.json n'en sait rien), retenu sur cet
+           appareil seulement ; ni Défaut ni un profil n'y touchent. -->
+      <h3>Colonne d'icônes</h3>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-reorganiser-colonne" class="bouton-dialogue" type="button">Réorganiser les groupes</button>
+        <button id="bouton-ordre-origine-colonne" class="bouton-dialogue" type="button">Ordre d'origine</button>
+      </div>
 
       <h3>Base de coups (BDD moves)</h3>
       <p class="note-reglages">KAA_NEXT_MOVE_REF_Best_Stat.csv — le seul fichier fourni avec KAAH pour l'instant, rien à choisir.</p>
@@ -1244,6 +1254,7 @@
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
   <script src="./moteur/corbeille.js"></script>
+  <script src="./moteur/ordre-groupes.js"></script>
   <script src="./moteur/positions-my.js"></script>
   <script src="./moteur/occurrences.js"></script>
   <script src="./moteur/menaces.js"></script>
@@ -1272,6 +1283,7 @@
   <script src="./rendu/pendule.js"></script>
   <script src="./rendu/courroie.js"></script>
   <script src="./rendu/corde.js"></script>
+  <script src="./rendu/vol-ejection.js"></script>
   <script src="./rendu/animation.js"></script>
   <script src="./rendu/arbre-ligne.js"></script>
   <script src="./rendu/arbre-html.js"></script>
@@ -1301,6 +1313,7 @@
   <script src="./interface/editeur-position.js"></script>
   <script src="./interface/formulaire-position-my.js"></script>
   <script src="./interface/fermeture-dialogues.js"></script>
+  <script src="./interface/ordre-colonne.js"></script>
   <script src="./interface/code-correspondance.js"></script>
   <script src="./interface/correspondance-rangement.js"></script>
   <script src="./interface/correspondance.js"></script>
@@ -2193,6 +2206,15 @@
       document.getElementById('bouton-etendre-colonne'),
       document.getElementById('colonne-gauche')
     );
+    // Ordre des groupes d'icones choisi par le joueur (interface/ordre-colonne.js,
+    // lance depuis Reglages).
+    demarrerOrdreColonne({
+      colonne: document.getElementById('colonne-gauche'),
+      conteneur: document.getElementById('boutons-sauvegarde'),
+      reorganiser: document.getElementById('bouton-reorganiser-colonne'),
+      ordreOrigine: document.getElementById('bouton-ordre-origine-colonne'),
+      dialogueReglages: document.getElementById('dialogue-reglages'),
+    });
 
     // Boutons de la colonne de gauche (phase 12) : voir
     // interface/sauvegarde.js pour le detail de chaque fonction.

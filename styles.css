@@ -38,6 +38,9 @@
      (choix d'une branche, confirmation, abandon/nulle) passe en vert, pour
      qu'on voie qu'il faut agir dessus (saab). Un seul vert, partout. */
   --vert-demande: #1f7a3a;
+  /* Une case de piste d'ejection encore vide (.piste-case, et
+     .piste-en-attente tant que sa bille vole vers elle). */
+  --fond-case-piste-vide: #8a8a8a;
 }
 
 html {
@@ -171,6 +174,46 @@ button,
   background: #cc6a00;
   color: #0a0a0a;
   border-color: #cc6a00;
+}
+
+/* Reorganisation des groupes (interface/ordre-colonne.js) : ▲ en haut et ▼ en
+   bas de chaque groupe, un ✓ vert en tete de colonne pour terminer — rien de
+   tout cela hors du mode. Les vrais boutons, eux, ne repondent plus pendant ce
+   temps (on deplace les groupes, on ne s'en sert pas). Selecteurs par
+   #colonne-gauche : l'emportent sur `#boutons-sauvegarde button` (hauteur 36,
+   flex) quel que soit l'ordre du fichier. */
+#colonne-gauche .fleche-groupe {
+  display: none;
+  width: 100%;
+  min-height: var(--hauteur-ligne-liste);
+  padding: 0;
+  background: #2a2a2a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#colonne-gauche.colonne-en-reorganisation .fleche-groupe {
+  display: block;
+}
+
+#colonne-gauche #bouton-fin-reorganisation {
+  min-height: var(--hauteur-commande);
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.colonne-en-reorganisation .groupe-boutons {
+  outline: 1px dashed #cc6a00;
+}
+
+.colonne-en-reorganisation .groupe-boutons > button:not(.fleche-groupe) {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 /* Face-a-face, seul bouton de la colonne a le signaler AINSI (saab,
@@ -2652,9 +2695,21 @@ button,
    bas du plateau : une case vide par ejection possible, remplie de la
    couleur de la bille au fur et a mesure. */
 .piste-case {
-  fill: #8a8a8a;
+  fill: var(--fond-case-piste-vide);
   stroke: #5a5a5a;
   stroke-width: 0.4;
+}
+
+/* Sa bille vole encore vers elle (rendu/vol-ejection.js) : la case reste
+   vide jusqu'a son arrivee, meme une fois le compte mis a jour. 3 classes :
+   l'emporte sur .piste-ejection-noir .piste-remplie (2). */
+.piste-case.piste-remplie.piste-en-attente {
+  fill: var(--fond-case-piste-vide);
+}
+
+/* Une bille en vol n'est plus une bille du jeu : on ne la touche pas. */
+.bille-en-vol {
+  pointer-events: none;
 }
 
 /* Le cercle de chaque case de piste est TOUJOURS de la couleur du camp qui
