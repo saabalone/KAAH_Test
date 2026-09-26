@@ -208,7 +208,14 @@ button,
   display: block;
 }
 
+/* Colle en haut de la colonne pendant tout le defilement (bogue signale par
+   saab, 2026-09-27) : sur telephone en paysage la colonne defile, on y
+   descend pour atteindre Reglages, et le ✓ — seule sortie du mode — restait
+   alors hors de l'ecran, au-dessus. */
 #colonne-gauche #bouton-fin-reorganisation {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   min-height: var(--hauteur-commande);
   background: var(--vert-demande);
   border-color: var(--vert-demande);
