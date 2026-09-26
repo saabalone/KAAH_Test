@@ -39,8 +39,15 @@
      qu'on voie qu'il faut agir dessus (saab). Un seul vert, partout. */
   --vert-demande: #1f7a3a;
   /* Une case de piste d'ejection encore vide (.piste-case, et
-     .piste-en-attente tant que sa bille vole vers elle). */
+     .piste-en-attente tant que sa bille vole vers elle). Reglable (saab,
+     2026-09-26, "Fond eject") : interface/reglages.js pose ces 4 variables en
+     direct depuis moteur/reglages.js, `kaah.*` (sans equivalent KAAWA) ; les
+     valeurs ci-dessous sont leurs defauts, repris ici pour que la PREMIERE
+     image (avant que ce script n'ait tourne) soit deja la bonne. */
   --fond-case-piste-vide: #8a8a8a;
+  --fond-cadre-occurrences: #828282; /* "Fond Occ" */
+  --couleur-coordonnee-bord: #cfcfcf; /* "Couleur coord plateau" */
+  --couleur-coordonnee-bille: #e4e4e4; /* "Couleur coord bille" */
 }
 
 html {
@@ -2762,7 +2769,7 @@ button,
 }
 
 .cadre-occurrences-fond {
-  fill: #828282;
+  fill: var(--fond-cadre-occurrences);
   stroke: #e4e4e4;
   stroke-width: 0.5;
 }
@@ -3057,7 +3064,7 @@ button,
    information de jeu (pas de rouge, de vert ni d'orange a lui reserver). */
 .coordonnee-bord {
   font: 5px sans-serif;
-  fill: #cfcfcf;
+  fill: var(--couleur-coordonnee-bord);
 }
 
 /* Les chiffres, inclines, touchaient un peu les cylindres : plus petits que
@@ -3080,12 +3087,11 @@ button,
   pointer-events: none;
 }
 
-.bille-noir .coordonnee-bille {
-  fill: #e4e4e4;
-}
-
-.bille-blanc .coordonnee-bille {
-  fill: #1f1f1f;
+/* Meme couleur sur les deux camps (saab : un seul bouton "Couleur coord
+   bille", pas un par camp) — a la difference de .coordonnee-destination plus
+   bas (toujours blanc, sans rapport avec ce reglage). */
+.coordonnee-bille {
+  fill: var(--couleur-coordonnee-bille);
 }
 
 /* Reglage "Coordonnées sur les billes" (phase 22, interface/reglages.js) :

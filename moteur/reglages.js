@@ -68,6 +68,20 @@ const REGLAGES_PAR_DEFAUT = {
     save_threshold_sec: 180,
     random_permut_enabled: true,
   },
+  // Quatre couleurs SANS EQUIVALENT KAAWA (comme le volume des sons, phase
+  // 21bis) : demandees par saab, absentes du vrai Settings de KAAWA — rangees
+  // a part, jamais dans `board`/`colors` ci-dessus qui, elles, doivent rester
+  // identiques a KAAWA (voir l'en-tete du fichier). Un fichier exporte par
+  // KAAH garde cette categorie ; un KAAWA qui le relit l'ignore simplement
+  // (kaa_constants_ClO_Co.py, deep_update : une cle inconnue au premier
+  // niveau est ajoutee a ses reglages, jamais lue par la suite — verifie
+  // dans son code source, jamais une erreur).
+  kaah: {
+    eject_bg_color: [0x8a / 255, 0x8a / 255, 0x8a / 255, 1], // case vide d'une piste d'ejection
+    occ_bg_color: [0x82 / 255, 0x82 / 255, 0x82 / 255, 1], // cadre du compteur Occ (rendu/corde.js)
+    coord_board_color: [0xcf / 255, 0xcf / 255, 0xcf / 255, 1], // bordure de coordonnees a-i/1-9
+    coord_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1], // coordonnee ecrite sur chaque bille, meme couleur sur les deux camps
+  },
 };
 
 // Vrai seulement pour un objet simple ({...}), jamais pour un tableau, null,

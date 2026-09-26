@@ -50,6 +50,12 @@
 // (base de coups) : KAAH n'en propose qu'UNE (donnees/kaa-next-move.js),
 // donc une ligne d'info plutot qu'un vrai choix.
 //
+// 4 couleurs de plus (saab, 2026-09-26 : "Fond eject, Fond Occ, Couleur coord
+// plateau et Couleur coord bille") : sans equivalent KAAWA, rangees dans leur
+// propre categorie `kaah` (moteur/reglages.js) plutot que `board`/`colors` —
+// memes mecanique de previsualisation en direct que les autres couleurs,
+// juste 4 proprietes CSS de plus posees dans appliquerEnDirect.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
 // fusionnerReglages (moteur/reglages.js), couleurVersHex, hexVersCouleur,
 // teinterNiveauGris (moteur/couleurs.js), actualiserCouleursPlateau
@@ -61,7 +67,8 @@
 // viennent de fichiers charges avant celui-ci dans index.html.
 
 // `elements` : { bouton, dialogue, poignee, couleurNoir, couleurBlanc,
-// couleurFond, couleurTrou, couleurFenetre, modeSimple, coordonneesBilles,
+// couleurFond, couleurTrou, couleurFenetre, couleurFondEject, couleurFondOcc,
+// couleurCoordPlateau, couleurCoordBille, modeSimple, coordonneesBilles,
 // selectProfil, supprimerProfil, exporter, importer, defaut, annuler,
 // sauverSous, fermer }. `svg` : #plateau, pour appliquer les couleurs en
 // direct et nommer le fichier exporte. `decorFige` (rendu/cache-relief.js,
@@ -88,6 +95,10 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     elements.couleurFond.value = couleurVersHex(actuel.board.bg_color);
     elements.couleurTrou.value = couleurVersHex(actuel.board.hole_color);
     elements.couleurFenetre.value = couleurVersHex(actuel.board.app_bg_color);
+    elements.couleurFondEject.value = couleurVersHex(actuel.kaah.eject_bg_color);
+    elements.couleurFondOcc.value = couleurVersHex(actuel.kaah.occ_bg_color);
+    elements.couleurCoordPlateau.value = couleurVersHex(actuel.kaah.coord_board_color);
+    elements.couleurCoordBille.value = couleurVersHex(actuel.kaah.coord_ball_color);
     elements.modeSimple.checked = !actuel.board.show_shadows;
     elements.coordonneesBilles.checked = actuel.board.show_ball_coords;
   }
@@ -120,10 +131,16 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFond, 0x8a));
     document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
     svg.classList.toggle('coordonnees-billes-masquees', !reglages.board.show_ball_coords);
+    // 4 couleurs sans equivalent KAAWA (moteur/reglages.js, kaah.*) : memes
+    // proprietes CSS que poserait index.html au tout premier affichage.
+    svg.style.setProperty('--fond-case-piste-vide', couleurVersHex(reglages.kaah.eject_bg_color));
+    svg.style.setProperty('--fond-cadre-occurrences', couleurVersHex(reglages.kaah.occ_bg_color));
+    svg.style.setProperty('--couleur-coordonnee-bord', couleurVersHex(reglages.kaah.coord_board_color));
+    svg.style.setProperty('--couleur-coordonnee-bille', couleurVersHex(reglages.kaah.coord_ball_color));
   }
 
   function modifierReglages(retouche) {
-    return retouche({ ...actuel, board: { ...actuel.board }, colors: { ...actuel.colors } });
+    return retouche({ ...actuel, board: { ...actuel.board }, colors: { ...actuel.colors }, kaah: { ...actuel.kaah } });
   }
 
   // Premier `input` d'un geste (glisser un curseur de couleur) : previsualise
@@ -188,6 +205,10 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement) {
     [elements.couleurFond, (r) => ((r.board.bg_color = hexVersCouleur(elements.couleurFond.value)), r)],
     [elements.couleurTrou, (r) => ((r.board.hole_color = hexVersCouleur(elements.couleurTrou.value)), r)],
     [elements.couleurFenetre, (r) => ((r.board.app_bg_color = hexVersCouleur(elements.couleurFenetre.value)), r)],
+    [elements.couleurFondEject, (r) => ((r.kaah.eject_bg_color = hexVersCouleur(elements.couleurFondEject.value)), r)],
+    [elements.couleurFondOcc, (r) => ((r.kaah.occ_bg_color = hexVersCouleur(elements.couleurFondOcc.value)), r)],
+    [elements.couleurCoordPlateau, (r) => ((r.kaah.coord_board_color = hexVersCouleur(elements.couleurCoordPlateau.value)), r)],
+    [elements.couleurCoordBille, (r) => ((r.kaah.coord_ball_color = hexVersCouleur(elements.couleurCoordBille.value)), r)],
   ];
   for (const [champ, retouche] of champsCouleur) {
     champ.addEventListener('input', () => actualiserBrouillon(retouche));

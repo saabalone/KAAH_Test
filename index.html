@@ -656,7 +656,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau. En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA. <b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
-        <li><b>Réglages</b> (⚙) : couleurs des billes et du plateau (s'appliquent tout de suite), mode simple sans relief et coordonnées sur les billes (rechargent la page), export/import d'un fichier de réglages.</li>
+        <li><b>Réglages</b> (⚙) : couleurs des billes, du plateau, des pistes d'éjection (Fond eject), du cadre du compteur Occ (Fond Occ) et des coordonnées (bordure a-i/1-9, chiffres sur les billes) — s'appliquent tout de suite ; mode simple sans relief recharge la page. Export/import d'un fichier de réglages : les 4 dernières couleurs, sans équivalent dans KAAWA, restent dans le fichier mais KAAWA les ignore sans erreur.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA.</li>
         <li><b>NP</b> : un bloc-notes personnel (bug, idées, à retester...), enregistré tout seul à chaque frappe — jamais lié à une partie précise.</li>
       </ul>
@@ -816,6 +816,13 @@
       <label class="ligne-couleur">Fond du plateau <input id="couleur-fond-plateau" type="color" /></label>
       <label class="ligne-couleur">Fond des trous <input id="couleur-fond-trou" type="color" /></label>
       <label class="ligne-couleur">Fond de la fenêtre <input id="couleur-fond-fenetre" type="color" /></label>
+      <!-- Ces 4 couleurs n'ont pas d'equivalent KAAWA (moteur/reglages.js,
+           kaah.*) : demandees par saab, hors du fichier settings_N.json que
+           KAAWA sait lire (il les ignorerait, jamais une erreur). -->
+      <label class="ligne-couleur">Fond eject <input id="couleur-fond-eject" type="color" /></label>
+      <label class="ligne-couleur">Fond Occ <input id="couleur-fond-occ" type="color" /></label>
+      <label class="ligne-couleur">Couleur coord plateau <input id="couleur-coord-plateau" type="color" /></label>
+      <label class="ligne-couleur">Couleur coord bille <input id="couleur-coord-bille" type="color" /></label>
 
       <h3>Affichage</h3>
       <label class="ligne-reglage">
@@ -1529,6 +1536,12 @@
     svg.style.setProperty('--couleur-bille-noire', hexBilleNoire);
     svg.style.setProperty('--couleur-bille-blanche', hexBilleBlanche);
     svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFondPlateau, 0x8a));
+    // 4 couleurs sans equivalent KAAWA (moteur/reglages.js, kaah.*) : memes
+    // principe, mises a jour EN DIRECT par interface/reglages.js.
+    svg.style.setProperty('--fond-case-piste-vide', couleurVersHex(reglages.kaah.eject_bg_color));
+    svg.style.setProperty('--fond-cadre-occurrences', couleurVersHex(reglages.kaah.occ_bg_color));
+    svg.style.setProperty('--couleur-coordonnee-bord', couleurVersHex(reglages.kaah.coord_board_color));
+    svg.style.setProperty('--couleur-coordonnee-bille', couleurVersHex(reglages.kaah.coord_ball_color));
     // Fond de la fenetre (board.app_bg_color, phase 22) : tout l'ecran EN
     // DEHORS du plateau — jamais celui de KAAWA par defaut (un cuivre),
     // voir moteur/reglages.js.
@@ -1675,6 +1688,10 @@
         couleurFond: document.getElementById('couleur-fond-plateau'),
         couleurTrou: document.getElementById('couleur-fond-trou'),
         couleurFenetre: document.getElementById('couleur-fond-fenetre'),
+        couleurFondEject: document.getElementById('couleur-fond-eject'),
+        couleurFondOcc: document.getElementById('couleur-fond-occ'),
+        couleurCoordPlateau: document.getElementById('couleur-coord-plateau'),
+        couleurCoordBille: document.getElementById('couleur-coord-bille'),
         modeSimple: document.getElementById('case-mode-simple'),
         coordonneesBilles: document.getElementById('case-coordonnees-billes'),
         selectProfil: document.getElementById('select-profil-reglages'),
