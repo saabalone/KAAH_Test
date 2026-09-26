@@ -19,7 +19,9 @@
 // obtenirIdPartieActive, formaterDateKAAWA (interface/sauvegarde.js),
 // nomJoueurAutorise (moteur/nom-partie.js), NOMS_PAR_DEFAUT (moteur/revanche.js)
 // viennent de fichiers charges avant celui-ci ; brancherSaisieNomJoueur
-// (interface/noms-joueurs.js), charge apres, n'est appele qu'une fois tout charge.
+// (interface/noms-joueurs.js) et demarrerCorrespondancesEnCours
+// (interface/correspondance-en-cours.js), charges apres, ne sont appeles
+// qu'une fois tout charge. codeDejaDansLaPartie : moteur/correspondance.js.
 
 // Le bouton de la colonne (saab) : le nombre de parties par correspondance en
 // cours ecrit dans son enveloppe ouverte (index.html, .nombre-correspondances),
@@ -31,8 +33,19 @@ function actualiserBoutonCorrespondance(bouton) {
   bouton.classList.toggle('correspondance-en-cours', nombre > 0);
 }
 
+// Un code colle sur l'appareil meme qui l'a envoye (saab, en essayant les deux
+// camps sur un seul telephone) : chaque appareil ne tient qu'UN camp d'une
+// partie — et une appli installee partage la memoire de son navigateur.
+function messageCodeDeCetAppareil(couleurLocale) {
+  return (
+    `Ce code vient de cet appareil, où vous jouez ${NOM_CAMP[couleurLocale]} : il est pour votre adversaire, à coller sur SON appareil. ` +
+    'Pour essayer seul les deux camps, jouez-les dans deux navigateurs différents (Chrome et Firefox par exemple) : ' +
+    "l'appli installée et son navigateur partagent la même mémoire, donc la même partie."
+  );
+}
+
 // `elements` : { bouton, dialogue, nomLocal, nomAdversaire, jouerNoir, jouerBlanc,
-// creer, champCode, recevoir, erreur, renvoyer, fermer }.
+// creer, champCode, recevoir, erreur, renvoyer, enCours, listeEnCours, fermer }.
 // `rappels` : { correspondanceActive(), arbreActif(), positionDeDepart() → { texte,
 // nom }, ouvrirPartie(id), confirmer(message, suite, mot), afficherCode({ titre,
 // message, code }) }.
@@ -61,10 +74,17 @@ function demarrerCorrespondance(elements, rappels) {
     elements.erreur.hidden = !message;
   }
 
+  // La liste « En cours » (interface/correspondance-en-cours.js).
+  const enCours = demarrerCorrespondancesEnCours(
+    { bouton: elements.enCours, liste: elements.listeEnCours, dialogue: elements.dialogue },
+    rappels.ouvrirPartie
+  );
+
   elements.bouton.addEventListener('click', () => {
     elements.champCode.value = '';
     montrerErreur(null);
     afficherChoix();
+    enCours.actualiser();
     elements.renvoyer.hidden = !rappels.correspondanceActive();
     elements.dialogue.showModal();
   });
@@ -115,11 +135,18 @@ function demarrerCorrespondance(elements, rappels) {
     let correspondance;
     if (existante) {
       correspondance = correspondanceDesDonnees(existante.donnees);
+      let arbreExistant;
       try {
-        resultat = recevoirCode(donneesVersArbre(existante.donnees), code);
+        arbreExistant = donneesVersArbre(existante.donnees);
       } catch {
         return montrerErreur('La partie enregistrée est illisible.');
       }
+      // Un code deja dans la partie (moteur/correspondance.js) : dire pourquoi,
+      // plutot que "l'adversaire refuse la nulle" ou "desynchronisation".
+      const deja = codeDejaDansLaPartie(arbreExistant, code, correspondance.couleurLocale);
+      if (deja === 'mien') return montrerErreur(messageCodeDeCetAppareil(correspondance.couleurLocale));
+      if (deja === 'recu') return montrerErreur('Ce code a déjà été reçu : la partie est à jour.');
+      resultat = recevoirCode(arbreExistant, code);
       if (!resultat.erreur && resultat.coupRecu && code.statut === '_') correspondance.couleurLocale = resultat.couleurLocale;
     } else {
       if (!code.depart) {

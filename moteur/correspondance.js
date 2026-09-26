@@ -196,6 +196,26 @@ function recevoirCode(arbrePartie, code) {
   };
 }
 
+// Le code colle est-il DEJA dans cette partie ? 'mien' : c'est celui que cet
+// appareil a lui-meme envoye (colle chez soi au lieu de chez l'adversaire) ;
+// 'recu' : celui de l'adversaire, deja applique ; null : a appliquer. Sans cela,
+// l'appliquer donnait un message trompeur (saab, les deux camps essayes sur le
+// meme appareil : "l'adversaire refuse la nulle", "desynchronisation"). La
+// config (premier envoi) dit qui l'a envoyee ; un code court, lui, se
+// reconnait a son coup, qui est deja le dernier de la partie.
+// `couleurLocale` : la couleur jouee ici ('noir', 'blanc' ou null si inconnue).
+function codeDejaDansLaPartie(arbrePartie, code, couleurLocale) {
+  const arbre = auDernierCoupReel(arbrePartie);
+  if (code.depart) {
+    if (code.depart.expediteur === couleurLocale) return 'mien';
+    return arbre.chemin.length >= code.numeroDeCoup ? 'recu' : null;
+  }
+  if (code.coup === '' || arbre.chemin.length !== code.numeroDeCoup || noeudCourant(arbre).coup !== code.coup) return null;
+  // Le dernier coup a ete joue par le camp qui n'a plus le trait.
+  const auteur = etatCourant(arbre).joueurAuTrait === 'noir' ? 'blanc' : 'noir';
+  return auteur === couleurLocale ? 'mien' : 'recu';
+}
+
 // Le tout premier code recu (celui qui porte la config) : cree la partie chez le
 // receveur, puis y applique le coup eventuel. `correspondance` est ce que le
 // receveur gardera ; sa couleur est l'inverse de celle de l'expediteur.

@@ -622,6 +622,7 @@
       <div>
         <h2>Aide de KAAH</h2>
         <p id="version-kaah" class="aide-version"></p>
+        <p id="hors-ligne-kaah" class="aide-version"></p>
       </div>
       <button id="bouton-fermer-aide-haut" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -646,7 +647,7 @@
       <ul>
         <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
-        <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition. Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une.</li>
+        <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA. Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup. On ne joue qu'à son tour ; le bouton Nulle y devient une proposition. Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir. Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie. Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas). Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles. Le ▶ devient orange tant qu'un filtre cache des parties.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second). Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu. En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties. Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de KAAWA pour la position affichée.</li>
@@ -718,6 +719,7 @@
       <summary>Installer ou ouvrir KAAH</summary>
       <ul>
         <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; Opera : menu, « Écran d'accueil » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »). Il marche ensuite hors ligne.</li>
+        <li>Sous le numéro de version, en haut de cette Aide, <b>Hors ligne</b> dit si KAAH marche sans internet sur cet appareil (« prêt ✓ »), ou pourquoi pas.</li>
         <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes). Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
         <li>Une nouvelle version s'installe toute seule à l'ouverture, avec internet : si vous n'avez encore rien touché, KAAH se recharge aussitôt en nouvelle version ; sinon, elle sera là à la prochaine ouverture.</li>
         <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).</li>
@@ -846,8 +848,13 @@
        de coups collee. Plein ecran sur telephone (styles.css). -->
   <!-- Correspondance (phase 24, interface/correspondance.js). -->
   <dialog id="dialogue-correspondance" class="dialogue dialogue-grand">
-    <h2>Correspondance ✉</h2>
+    <h2>Correspondance</h2>
     <div class="corps-correspondance">
+      <!-- Parties en cours (saab : "pouvoir choisir celle qu'on veut revoir") :
+           la liste se remplit a l'appui (interface/correspondance.js,
+           afficherPartiesEnCours) ; toucher une ligne ouvre cette partie. -->
+      <button id="bouton-en-cours-correspondance" class="bouton-dialogue" type="button">En cours</button>
+      <div id="liste-en-cours-correspondance" class="liste-en-cours-correspondance" hidden></div>
       <h3 class="titre-section-correspondance">Recevoir un coup</h3>
       <label class="ligne-creation">
         Collez le code KAA1 reçu de votre adversaire
@@ -1297,6 +1304,7 @@
   <script src="./interface/code-correspondance.js"></script>
   <script src="./interface/correspondance-rangement.js"></script>
   <script src="./interface/correspondance.js"></script>
+  <script src="./interface/correspondance-en-cours.js"></script>
   <script src="./interface/permutations.js"></script>
   <script src="./interface/nulle.js"></script>
   <script src="./interface/sons.js"></script>
@@ -1730,6 +1738,7 @@
       bouton: document.getElementById('bouton-aide'),
       dialogue: document.getElementById('dialogue-aide'),
       version: document.getElementById('version-kaah'),
+      horsLigne: document.getElementById('hors-ligne-kaah'),
       fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
     });
 
@@ -2077,6 +2086,8 @@
         recevoir: document.getElementById('bouton-recevoir-correspondance'),
         erreur: document.getElementById('erreur-correspondance'),
         renvoyer: document.getElementById('bouton-renvoyer-correspondance'),
+        enCours: document.getElementById('bouton-en-cours-correspondance'),
+        listeEnCours: document.getElementById('liste-en-cours-correspondance'),
         fermer: document.getElementById('bouton-fermer-correspondance'),
       },
       {
@@ -2803,7 +2814,12 @@
         if (dejaInstallee && !joueurAInteragi && !rechargementImminent) demarrerRechargement();
       });
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
+        // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
+        // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
+        // Opera : "rien n'indique que c'est installe").
+        navigator.serviceWorker
+          .register('./service-worker.js', { updateViaCache: 'none' })
+          .catch((erreur) => retenirRefusHorsLigne(erreur));
       });
     }
   </script>

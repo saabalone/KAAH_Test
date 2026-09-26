@@ -61,10 +61,15 @@ function donneesDeCorrespondance(arbre, correspondance) {
 }
 
 // Les parties par correspondance pas encore terminees (statut KAAWA "_",
-// moteur/correspondance.js) parmi celles enregistrees — le nombre affiche dans
-// l'enveloppe du bouton Correspondance (interface/correspondance.js).
+// moteur/correspondance.js) parmi celles enregistrees : la liste « En cours »
+// et le nombre dans l'enveloppe du bouton Correspondance
+// (interface/correspondance.js).
+function partiesCorrespondanceEnCours() {
+  return listerPartiesEnregistrees().filter((entree) => entree.donnees?.corr_mode && entree.donnees.Term === STATUT_EN_COURS);
+}
+
 function compterCorrespondancesEnCours() {
-  return listerPartiesEnregistrees().filter((entree) => entree.donnees?.corr_mode && entree.donnees.Term === STATUT_EN_COURS).length;
+  return partiesCorrespondanceEnCours().length;
 }
 
 function nomDeLAdversaire(correspondance) {

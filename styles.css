@@ -575,6 +575,20 @@ button,
   font-size: 14px;
 }
 
+/* La liste « En cours » (interface/correspondance-en-cours.js) : une ligne par
+   partie, touchee pour l'ouvrir ; elle defile elle-meme si elles sont
+   nombreuses, la boite garde sa taille. */
+.liste-en-cours-correspondance {
+  max-height: 30vh;
+  overflow-y: auto;
+  margin: 4px 0;
+}
+
+.ligne-en-cours-correspondance {
+  min-height: var(--hauteur-ligne-liste);
+  cursor: pointer;
+}
+
 .texte-code-correspondance {
   box-sizing: border-box;
   width: 100%;

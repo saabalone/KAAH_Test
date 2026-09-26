@@ -118,6 +118,7 @@ const FICHIERS_ESSENTIELS = [
   './interface/code-correspondance.js',
   './interface/correspondance-rangement.js',
   './interface/correspondance.js',
+  './interface/correspondance-en-cours.js',
   './interface/permutations.js',
   './interface/nulle.js',
   './interface/sons.js',
