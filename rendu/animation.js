@@ -44,7 +44,7 @@ function animerDeplacements(svg, deplacements) {
 }
 
 // Sortie du plateau (transition CSS), puis vol jusqu'a sa case de piste le long
-// de la corde (rendu/vol-ejection.js, qui la retire a l'arrivee). La case est
+// du bord du plateau (rendu/vol-ejection.js, qui la retire a l'arrivee). La case est
 // reservee TOUT DE SUITE, avant que le compte de la piste ne change.
 function animerEjection(bille, deplacement) {
   const svg = bille.ownerSVGElement;
@@ -53,5 +53,5 @@ function animerEjection(bille, deplacement) {
   const { q, r } = depuisNotation(deplacement.depart);
   const sortie = positionEcran(q + deplacement.direction.q * CASES_HORS_PLATEAU, r + deplacement.direction.r * CASES_HORS_PLATEAU);
   bille.style.transform = `translate(${sortie.x}px, ${sortie.y}px)`;
-  setTimeout(() => faireVolerBille(svg, bille, sortie, caseDePiste), DUREE_ANIMATION_MS);
+  setTimeout(() => faireVolerBille(bille, sortie, caseDePiste), DUREE_ANIMATION_MS);
 }

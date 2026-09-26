@@ -1,11 +1,12 @@
 // Le vol d'une bille ejectee jusqu'a sa case de piste (saab : "par le chemin le
-// plus court a leur place, en longeant la corde et en reduisant leur taille
-// progressivement") : une fois sortie du plateau (rendu/animation.js), elle
-// rejoint la corde (rendu/corde.js), la suit dans le sens le plus court, puis
-// quitte la corde pour sa case, en retrecissant de sa taille de bille a celle de
-// la case. La case, elle, ne se remplit qu'a son arrivee (classe
-// `piste-en-attente`, styles.css) — sinon la bille volerait vers une case deja
-// pleine.
+// plus court a leur place ... en reduisant leur taille progressivement") : une
+// fois sortie du plateau (rendu/animation.js), elle rejoint le BORD du plateau
+// (l'hexagone du cadre, rendu/cadre-plateau.js), le longe dans le sens le plus
+// court, puis le quitte pour sa case, en retrecissant de sa taille de bille a
+// celle de la case. Le bord et non la corde (saab : "contourner les blocs
+// d'ejection est perturbant"). La case, elle, ne se remplit qu'a son arrivee
+// (classe `piste-en-attente`, styles.css) — sinon la bille volerait vers une
+// case deja pleine.
 //
 // Purement visuel, aucune regle du jeu. La bille en vol perd son identifiant et
 // sa classe `.bille` au decollage : pour le reste de KAAH (rendu/plateau-svg.js,
@@ -14,29 +15,30 @@
 // Le vol se joue par l'API d'animation du navigateur (`animate`) sur la meme
 // propriete `transform` que les glissements : aucun element recree.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js).
+// Pas d'import ni d'export (voir moteur/plateau.js) : calculerCadrePlateau
+// (rendu/cadre-plateau.js) vient d'un fichier charge avant celui-ci.
 
-// Un point de corde tous les PAS_ECHANTILLON_CORDE (unites du dessin) : assez
-// fin pour suivre ses arrondis, assez gros pour que le vol reste leger.
-const PAS_ECHANTILLON_CORDE = 2;
+// Un point du bord tous les PAS_ECHANTILLON_BORD (unites du dessin) : assez fin
+// pour un mouvement regulier, assez gros pour que le vol reste leger.
+const PAS_ECHANTILLON_BORD = 2;
 // Vitesse du vol, bornee : un vol court reste visible, un tour de plateau ne
-// s'eternise pas.
-const MS_PAR_UNITE_DE_VOL = 5;
-const DUREE_VOL_MINIMUM_MS = 400;
-const DUREE_VOL_MAXIMUM_MS = 1600;
+// s'eternise pas (ralentie a la demande de saab).
+const MS_PAR_UNITE_DE_VOL = 7;
+const DUREE_VOL_MINIMUM_MS = 500;
+const DUREE_VOL_MAXIMUM_MS = 2200;
 
-// La corde en une boucle fermee de points : la moitie du haut de gauche a
-// droite, puis celle du bas de droite a gauche. null sans corde (elle a pu ne
-// pas se dessiner, voir index.html).
-function boucleDeLaCorde(svg) {
-  const [haut, bas] = svg.querySelectorAll('.cordes .corde');
-  if (!haut || !bas) return null;
-  const echantillonner = (chemin) => {
-    const longueur = chemin.getTotalLength();
-    const nombre = Math.max(1, Math.ceil(longueur / PAS_ECHANTILLON_CORDE));
-    return Array.from({ length: nombre + 1 }, (_, i) => chemin.getPointAtLength((longueur * i) / nombre));
-  };
-  return [...echantillonner(haut), ...echantillonner(bas).reverse()];
+// Le bord du plateau en une boucle fermee de points : les 6 cotes de
+// l'hexagone du cadre, dans l'ordre de ses sommets.
+function boucleDuBord() {
+  const sommets = calculerCadrePlateau().exterieur;
+  return sommets.flatMap((sommet, i) => {
+    const suivant = sommets[(i + 1) % sommets.length];
+    const nombre = Math.max(1, Math.ceil(Math.hypot(suivant.x - sommet.x, suivant.y - sommet.y) / PAS_ECHANTILLON_BORD));
+    return Array.from({ length: nombre }, (_, k) => ({
+      x: sommet.x + ((suivant.x - sommet.x) * k) / nombre,
+      y: sommet.y + ((suivant.y - sommet.y) * k) / nombre,
+    }));
+  });
 }
 
 function indiceLePlusProche(points, cible) {
@@ -47,18 +49,17 @@ function indiceLePlusProche(points, cible) {
   return meilleur;
 }
 
-// Le trajet de `depart` a `arrivee` : jusqu'a la corde, le long de la corde dans
-// le sens le plus court, puis jusqu'a `arrivee`. Tout droit sans corde.
-function trajetParLaCorde(svg, depart, arrivee) {
-  const boucle = boucleDeLaCorde(svg);
-  if (!boucle) return [depart, arrivee];
+// Le trajet de `depart` a `arrivee` : jusqu'au bord du plateau, le long du bord
+// dans le sens le plus court, puis jusqu'a `arrivee`.
+function trajetParLeBord(depart, arrivee) {
+  const boucle = boucleDuBord();
   const debut = indiceLePlusProche(boucle, depart);
   const fin = indiceLePlusProche(boucle, arrivee);
   const avant = (fin - debut + boucle.length) % boucle.length;
   const sens = avant <= boucle.length - avant ? 1 : -1;
   const pas = sens === 1 ? avant : boucle.length - avant;
-  const surLaCorde = Array.from({ length: pas + 1 }, (_, k) => boucle[(debut + sens * k + boucle.length) % boucle.length]);
-  return [depart, ...surLaCorde, arrivee];
+  const surLeBord = Array.from({ length: pas + 1 }, (_, k) => boucle[(debut + sens * k + boucle.length) % boucle.length]);
+  return [depart, ...surLeBord, arrivee];
 }
 
 // La prochaine case de la piste de `couleur` : la premiere ni remplie ni deja
@@ -75,7 +76,7 @@ function prochaineCaseDePiste(svg, couleur) {
 // A appeler au moment ou la bille, deja sortie du plateau en `depart`, prend
 // son vol. `caseDePiste` : reservee par reserverCaseDePiste avant que le compte
 // ne change.
-function faireVolerBille(svg, bille, depart, caseDePiste) {
+function faireVolerBille(bille, depart, caseDePiste) {
   bille.removeAttribute('id');
   bille.classList.remove('bille');
   bille.classList.add('bille-en-vol');
@@ -88,7 +89,7 @@ function faireVolerBille(svg, bille, depart, caseDePiste) {
 
   const arrivee = { x: Number(caseDePiste.getAttribute('cx')), y: Number(caseDePiste.getAttribute('cy')) };
   const echelleFinale = Number(caseDePiste.getAttribute('r')) / Number(bille.querySelector('circle').getAttribute('r'));
-  const points = trajetParLaCorde(svg, depart, arrivee);
+  const points = trajetParLeBord(depart, arrivee);
   const distances = [0];
   for (let i = 1; i < points.length; i++) {
     distances.push(distances[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
