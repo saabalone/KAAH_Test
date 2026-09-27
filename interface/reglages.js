@@ -42,55 +42,46 @@
 // structurel, force un rechargement de page).
 //
 // SIMPLIFIÉ par rapport à KAAWA (comme l'aide, phase 26) : pas de tailles de
-// police/colonne (KAAH s'adapte tout seul a l'ecran), pas de case
-// "Infobulles" (attribut natif `title`, toujours actif), pas de couleurs
-// d'ambiance secondaires (deja fixees dans styles.css). `pzl.
+// police/colonne de l'interface (KAAH s'adapte tout seul a l'ecran), pas de
+// case "Infobulles" (attribut natif `title`, toujours actif). `pzl.
 // random_permut_enabled` voyage dans le fichier mais n'a pas de case ici
 // (rien ne le consomme encore, phase 16 amendee pas codee). "BDD moves"
-// (base de coups, saab 2026-09-27) : un vrai choix desormais,
-// `nextmove.bdd_file` comme KAAWA — ce fichier-ci ne fait que le lire,
-// l'ecrire et le passer a interface/bases-coups.js (`baseCoups`), qui
-// remplit la liste et charge la base.
+// (base de coups, saab 2026-09-27) : `nextmove.bdd_file` comme KAAWA — ce
+// fichier-ci ne fait que le lire, l'ecrire et le passer a
+// interface/bases-coups.js (`baseCoups`), qui remplit la liste et charge la
+// base.
 //
-// 6 couleurs de plus (saab, 2026-09-26 : "Fond eject, Fond Occ, Couleur coord
-// plateau, Couleur coord bille, Couleur bille sélect, Couleur case arrivée") :
-// sans equivalent KAAWA, rangees dans leur propre categorie `kaah`
-// (moteur/reglages.js) plutot que `board`/`colors` — meme mecanique de
-// previsualisation en direct que les autres couleurs, juste 6 proprietes CSS
-// de plus posees dans appliquerEnDirect.
+// Reglages sans equivalent KAAWA (saab, 2026-09-26 et 27 ; categorie `kaah`,
+// moteur/reglages.js) : couleurs de fond, coordonnees, selection, fleches et
+// chevron, tailles, « Sélection sur bille ». Leurs commandes sont decrites
+// dans une table (interface/reglages-champs.js), leur effet sur le plateau
+// dans rendu/apparence-reglages.js — le meme qu'au demarrage. Rubriques
+// repliables : interface/reglages-rubriques.js.
 //
-// Supprimer un profil (saab, 2026-09-26) : demande desormais confirmation
-// (window.confirm), et le bouton reste toujours ACTIF (jamais `disabled`) —
-// sur « Défaut », il affiche une alerte au lieu de rien faire. Un bouton
-// desactive sans explication n'aurait rien dit du POURQUOI sur telephone
-// (CLAUDE.md : "rien d'important au survol seul", un titre HTML ne s'affiche
-// pas au doigt) ; l'alerte, elle, se voit partout.
-//
-// « Sélection sur bille » (saab, 2026-09-27, kaah.show_selectable_balls) :
-// une case a cocher de plus dans Affichage, meme mecanique EN DIRECT que
-// « Coordonnées sur les billes » (une classe CSS qui masque, rien a
-// reconstruire) — bascule le rond vert que rendu/coordonnees-jeu.js pose
-// sur chaque bille selectionnable (interface/saisie.js s'en occupe a
-// chaque changement de trait/selection, ce fichier-ci ne fait que
-// lire/ecrire le reglage et poser la classe CSS).
+// Supprimer un profil (saab, 2026-09-26) : demande confirmation, et le bouton
+// reste toujours ACTIF — sur « Défaut », il affiche une alerte au lieu de
+// rien faire (CLAUDE.md : "rien d'important au survol seul", un bouton grise
+// n'aurait rien dit du POURQUOI au doigt).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
-// fusionnerReglages (moteur/reglages.js), couleurVersHex, hexVersCouleur,
-// teinterNiveauGris (moteur/couleurs.js), actualiserCouleursPlateau
-// (rendu/couleurs-plateau.js), listerNomsProfils, lireNomProfilActif,
-// lireReglagesActifs, sauverProfilActif, creerProfil, definirProfilActif,
-// supprimerProfil, NOM_PROFIL_DEFAUT (interface/reglages-profils.js),
-// rendreDeplacable, reinitialiserPosition (interface/deplacable.js),
-// telechargerReglages, demarrerImportation (interface/fichiers.js)
-// viennent de fichiers charges avant celui-ci dans index.html.
+// fusionnerReglages (moteur/reglages.js), couleurVersHex (moteur/couleurs.js),
+// actualiserCouleursPlateau (rendu/couleurs-plateau.js),
+// appliquerApparenceReglages (rendu/apparence-reglages.js),
+// remplirChampsReglages, brancherChampsReglages (interface/reglages-champs.js),
+// demarrerRubriquesReglages (interface/reglages-rubriques.js),
+// listerNomsProfils, lireNomProfilActif, lireReglagesActifs,
+// sauverProfilActif, creerProfil, definirProfilActif, supprimerProfil,
+// NOM_PROFIL_DEFAUT (interface/reglages-profils.js), rendreDeplacable,
+// reinitialiserPosition (interface/deplacable.js), telechargerReglages,
+// demarrerImportation (interface/fichiers.js) viennent de fichiers charges
+// avant celui-ci dans index.html.
 
-// `elements` : { bouton, dialogue, poignee, couleurNoir, couleurBlanc,
-// couleurFond, couleurTrou, couleurFenetre, couleurFondEject, couleurFondOcc,
-// couleurCoordPlateau, couleurCoordBille, couleurSelectBille, couleurCaseArrivee,
-// modeSimple, coordonneesBilles, selectionBille, baseCoups, selectProfil,
-// supprimerProfil, exporter, importer, defaut, annuler, sauverSous, fermer }.
-// `svg` : #plateau, pour appliquer les couleurs en direct et nommer le
-// fichier exporte. `decorFige` (rendu/cache-relief.js, figerLeDecor) :
+// `elements` : { bouton, dialogue, poignee, modeSimple, baseCoups,
+// selectProfil, supprimerProfil, exporter, importer, defaut, annuler,
+// sauverSous, fermer } — les couleurs, cases et curseurs, eux, sont trouves
+// dans `dialogue` par leur id (interface/reglages-champs.js). `svg` :
+// #plateau, pour appliquer les reglages en direct et nommer le fichier
+// exporte. `decorFige` (rendu/cache-relief.js, figerLeDecor) :
 // `{ forcerRedessin }` ou `undefined` (mode simple, ou navigateur sans
 // ResizeObserver) — voir appliquerEnDirect. `demarrerRechargement`
 // (index.html) : seul le mode simple (structurel) y a encore recours.
@@ -110,20 +101,8 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   let avantGeste = null;
 
   function remplirFormulaire() {
-    elements.couleurNoir.value = couleurVersHex(actuel.colors.black);
-    elements.couleurBlanc.value = couleurVersHex(actuel.colors.white);
-    elements.couleurFond.value = couleurVersHex(actuel.board.bg_color);
-    elements.couleurTrou.value = couleurVersHex(actuel.board.hole_color);
-    elements.couleurFenetre.value = couleurVersHex(actuel.board.app_bg_color);
-    elements.couleurFondEject.value = couleurVersHex(actuel.kaah.eject_bg_color);
-    elements.couleurFondOcc.value = couleurVersHex(actuel.kaah.occ_bg_color);
-    elements.couleurCoordPlateau.value = couleurVersHex(actuel.kaah.coord_board_color);
-    elements.couleurCoordBille.value = couleurVersHex(actuel.kaah.coord_ball_color);
-    elements.couleurSelectBille.value = couleurVersHex(actuel.kaah.select_ring_color);
-    elements.couleurCaseArrivee.value = couleurVersHex(actuel.kaah.dest_fill_color);
+    remplirChampsReglages(elements.dialogue, actuel);
     elements.modeSimple.checked = !actuel.board.show_shadows;
-    elements.coordonneesBilles.checked = actuel.board.show_ball_coords;
-    elements.selectionBille.checked = actuel.kaah.show_selectable_balls;
     baseCoups.afficher(actuel.nextmove.bdd_file);
   }
 
@@ -140,33 +119,15 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     );
   }
 
-  // Recolore le plateau DEJA CONSTRUIT et masque/montre les coordonnees,
-  // sans jamais reconstruire ni recharger — voir l'en-tete du fichier.
+  // Recolore le plateau DEJA CONSTRUIT, sans jamais reconstruire ni
+  // recharger — voir l'en-tete du fichier. Les degrades (billes, relief) se
+  // recolorent ici ; tout le reste de l'aspect passe par le MEME
+  // appliquerApparenceReglages qu'au demarrage (rendu/apparence-reglages.js).
   function appliquerEnDirect(reglages) {
-    const hexNoir = couleurVersHex(reglages.colors.black);
-    const hexBlanc = couleurVersHex(reglages.colors.white);
-    const hexFond = couleurVersHex(reglages.board.bg_color);
-    const hexTrou = couleurVersHex(reglages.board.hole_color);
-    actualiserCouleursPlateau(svg, hexFond, hexTrou, { black: hexNoir, white: hexBlanc });
+    const couleursBilles = { black: couleurVersHex(reglages.colors.black), white: couleurVersHex(reglages.colors.white) };
+    actualiserCouleursPlateau(svg, couleurVersHex(reglages.board.bg_color), couleurVersHex(reglages.board.hole_color), couleursBilles);
     decorFige?.forcerRedessin();
-    svg.style.setProperty('--couleur-bille-noire', hexNoir);
-    svg.style.setProperty('--couleur-bille-blanche', hexBlanc);
-    svg.style.setProperty('--couleur-case-plate', teinterNiveauGris(hexFond, 0x8a));
-    document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
-    svg.classList.toggle('coordonnees-billes-masquees', !reglages.board.show_ball_coords);
-    // 6 couleurs sans equivalent KAAWA (moteur/reglages.js, kaah.*) : memes
-    // proprietes CSS que poserait index.html au tout premier affichage.
-    svg.style.setProperty('--fond-case-piste-vide', couleurVersHex(reglages.kaah.eject_bg_color));
-    svg.style.setProperty('--fond-cadre-occurrences', couleurVersHex(reglages.kaah.occ_bg_color));
-    svg.style.setProperty('--couleur-coordonnee-bord', couleurVersHex(reglages.kaah.coord_board_color));
-    svg.style.setProperty('--couleur-coordonnee-bille', couleurVersHex(reglages.kaah.coord_ball_color));
-    svg.style.setProperty('--couleur-case-selectionnee', couleurVersHex(reglages.kaah.select_ring_color));
-    svg.style.setProperty('--couleur-case-arrivee', couleurVersHex(reglages.kaah.dest_fill_color));
-    // Rond vert des billes selectionnables (saab, "Sélection sur bille") :
-    // meme mecanique de masquage EN DIRECT que coordonnees-billes-masquees
-    // juste au-dessus, jamais de reconstruction (interface/saisie.js pose
-    // et retire ces ronds, ce fichier-ci ne fait que les cacher ou non).
-    svg.classList.toggle('selection-bille-masquee', !reglages.kaah.show_selectable_balls);
+    appliquerApparenceReglages(svg, reglages);
     // Sans effet si c'est deja la base chargee (appele a chaque retouche).
     baseCoups.charger(reglages.nextmove.bdd_file);
   }
@@ -239,23 +200,9 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     remplirProfils();
   }
 
-  const champsCouleur = [
-    [elements.couleurNoir, (r) => ((r.colors.black = hexVersCouleur(elements.couleurNoir.value)), r)],
-    [elements.couleurBlanc, (r) => ((r.colors.white = hexVersCouleur(elements.couleurBlanc.value)), r)],
-    [elements.couleurFond, (r) => ((r.board.bg_color = hexVersCouleur(elements.couleurFond.value)), r)],
-    [elements.couleurTrou, (r) => ((r.board.hole_color = hexVersCouleur(elements.couleurTrou.value)), r)],
-    [elements.couleurFenetre, (r) => ((r.board.app_bg_color = hexVersCouleur(elements.couleurFenetre.value)), r)],
-    [elements.couleurFondEject, (r) => ((r.kaah.eject_bg_color = hexVersCouleur(elements.couleurFondEject.value)), r)],
-    [elements.couleurFondOcc, (r) => ((r.kaah.occ_bg_color = hexVersCouleur(elements.couleurFondOcc.value)), r)],
-    [elements.couleurCoordPlateau, (r) => ((r.kaah.coord_board_color = hexVersCouleur(elements.couleurCoordPlateau.value)), r)],
-    [elements.couleurCoordBille, (r) => ((r.kaah.coord_ball_color = hexVersCouleur(elements.couleurCoordBille.value)), r)],
-    [elements.couleurSelectBille, (r) => ((r.kaah.select_ring_color = hexVersCouleur(elements.couleurSelectBille.value)), r)],
-    [elements.couleurCaseArrivee, (r) => ((r.kaah.dest_fill_color = hexVersCouleur(elements.couleurCaseArrivee.value)), r)],
-  ];
-  for (const [champ, retouche] of champsCouleur) {
-    champ.addEventListener('input', () => actualiserBrouillon(retouche));
-    champ.addEventListener('change', terminerGeste);
-  }
+  // Couleurs, cases a cocher et curseurs : une table (interface/reglages-champs.js).
+  brancherChampsReglages(elements.dialogue, actualiserBrouillon, terminerGeste);
+  demarrerRubriquesReglages(elements.dialogue);
 
   // Structurel (CLAUDE.md, 1 278 elements SVG contre 248) : jamais de
   // previsualisation en direct, un rechargement immediat s'impose.
@@ -263,20 +210,6 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     actuel = modifierReglages((r) => ((r.board.show_shadows = !elements.modeSimple.checked), r));
     sauverProfilActif(actuel);
     demarrerRechargement();
-  });
-
-  // Cosmetique (une classe CSS, voir appliquerEnDirect) : un seul evenement
-  // suffit, previsualisation et fin de geste en meme temps.
-  elements.coordonneesBilles.addEventListener('change', () => {
-    actualiserBrouillon((r) => ((r.board.show_ball_coords = elements.coordonneesBilles.checked), r));
-    terminerGeste();
-  });
-
-  // Cosmetique (une classe CSS, voir appliquerEnDirect), meme mecanique que
-  // coordonneesBilles juste au-dessus.
-  elements.selectionBille.addEventListener('change', () => {
-    actualiserBrouillon((r) => ((r.kaah.show_selectable_balls = elements.selectionBille.checked), r));
-    terminerGeste();
   });
 
   // Le choix de la base (a la main, ou apres un import/une suppression, voir

@@ -497,6 +497,62 @@ button,
   cursor: pointer;
 }
 
+/* Un curseur de Reglages (taille, transparence — saab, 2026-09-27) : meme
+   gabarit que .ligne-couleur, le curseur sur la moitie droite. */
+.ligne-curseur {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--hauteur-commande);
+}
+
+.ligne-curseur input {
+  flex: 0 1 50%;
+  min-width: 90px;
+}
+
+/* Rubriques repliables de Reglages (saab, 2026-09-27,
+   interface/reglages-rubriques.js) : un ▸ fermee, ▾ ouverte, pour voir d'un
+   coup d'oeil ce qui est deplie (le triangle natif ne s'affiche pas partout). */
+.rubrique-reglages {
+  border-top: 1px solid #3a3a3a;
+}
+
+.rubrique-reglages[open] {
+  padding-bottom: 6px;
+}
+
+.rubrique-reglages > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hauteur-commande);
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rubrique-reglages > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rubrique-reglages > summary::before {
+  content: '▸';
+  width: 1em;
+  color: #9a9a9a;
+}
+
+.rubrique-reglages[open] > summary::before {
+  content: '▾';
+}
+
+/* Le profil, hors des rubriques et hors de la zone qui defile : toujours
+   visible (saab, 2026-09-27). */
+.ligne-profil-fixe {
+  margin-bottom: 6px;
+}
+
 .barre-reglages-fichier {
   display: flex;
   gap: 8px;
@@ -1585,6 +1641,7 @@ button,
 .fleche-conseil {
   pointer-events: none;
   stroke-width: 3.2;
+  opacity: var(--opacite-fleches-conseils, 1);
 }
 
 .fleche-conseil-dominante {
@@ -1596,13 +1653,17 @@ button,
    futur affichage des coordonnees) — sauf le coup qu'on vient de choisir,
    dessine SANS cette classe, opaque, par-dessus les autres. */
 .fleche-conseil-translucide {
-  opacity: 0.35;
+  opacity: calc(var(--opacite-fleches-conseils, 1) * 0.35);
 }
 
-.fleche-conseil-victoire, .fleche-conseil-pointe-victoire { stroke: #2ecc55; fill: #2ecc55; }
-.fleche-conseil-defaite, .fleche-conseil-pointe-defaite { stroke: #e04040; fill: #e04040; }
-.fleche-conseil-nulle, .fleche-conseil-pointe-nulle { stroke: #4aa8ff; fill: #4aa8ff; }
-.fleche-conseil-egalite, .fleche-conseil-pointe-egalite { stroke: #9a9a9a; fill: #9a9a9a; }
+/* Couleurs et opacite reglables (saab, 2026-09-27, Reglages > Fleches
+   Conseils ; rendu/apparence-reglages.js) — valeurs de repli = l'aspect
+   d'avant. Les pointes (<marker>) vivent dans le meme #plateau : elles
+   heritent des memes variables. */
+.fleche-conseil-victoire, .fleche-conseil-pointe-victoire { stroke: var(--couleur-fleche-conseil-victoire, #2ecc55); fill: var(--couleur-fleche-conseil-victoire, #2ecc55); }
+.fleche-conseil-defaite, .fleche-conseil-pointe-defaite { stroke: var(--couleur-fleche-conseil-defaite, #e04040); fill: var(--couleur-fleche-conseil-defaite, #e04040); }
+.fleche-conseil-nulle, .fleche-conseil-pointe-nulle { stroke: var(--couleur-fleche-conseil-nulle, #4aa8ff); fill: var(--couleur-fleche-conseil-nulle, #4aa8ff); }
+.fleche-conseil-egalite, .fleche-conseil-pointe-egalite { stroke: var(--couleur-fleche-conseil-egalite, #9a9a9a); fill: var(--couleur-fleche-conseil-egalite, #9a9a9a); }
 
 /* Fleches de menaces (phase 19, rendu/menaces.js) : les "traits fins ...
    pour les sumitos/ejections" deja annonces dans le commentaire de
@@ -1610,32 +1671,37 @@ button,
    fleches de Conseils : elles restent affichees en permanence tant que
    le bouton "!?" est actif, sur potentiellement plusieurs poussees a la
    fois — jamais aussi appuyees qu'une suggestion qu'on regarde seule. */
+/* Opacite de base reglable (saab, 2026-09-27, Reglages > Fleches Menaces) :
+   0.6 par defaut ; les ejections restent un peu plus appuyees qu'elle (+0.15,
+   +0.35 pour celle qui gagne : 0.75 et 0.95 par defaut, comme avant),
+   plafonnees a l'opaque. */
 .fleche-menace {
   pointer-events: none;
   stroke-width: 1.6;
-  opacity: 0.6;
+  opacity: var(--opacite-fleches-menaces, 0.6);
 }
 
 /* Vert = poussee du camp AU TRAIT ("ami"), orange = poussee de l'AUTRE
    camp ("ennemi") — code couleur de PLAN.md, memes verts/orange KAAWA
-   que .fleche-conseil-victoire et .arbre-courant ailleurs dans KAAH. */
-.fleche-menace-ami, .fleche-menace-pointe-ami { stroke: #2ecc55; fill: #2ecc55; }
-.fleche-menace-ennemi, .fleche-menace-pointe-ennemi { stroke: #cc6a00; fill: #cc6a00; }
+   que .fleche-conseil-victoire et .arbre-courant ailleurs dans KAAH.
+   Couleurs reglables (rendu/apparence-reglages.js), repli = l'aspect d'avant. */
+.fleche-menace-ami, .fleche-menace-pointe-ami { stroke: var(--couleur-fleche-menace-ami, #2ecc55); fill: var(--couleur-fleche-menace-ami, #2ecc55); }
+.fleche-menace-ennemi, .fleche-menace-pointe-ennemi { stroke: var(--couleur-fleche-menace-ennemi, #cc6a00); fill: var(--couleur-fleche-menace-ennemi, #cc6a00); }
 
 /* Rouge = cette poussee ejecte une bille, superposee a la fleche
    ami/ennemi ci-dessus (voir rendu/menaces.js) — plus epaisse et plus
    opaque si l'ejection donnerait la victoire immediate ("fin de partie",
    PLAN.md), exactement comme la "grosse pointe" de KAAWA. */
-.fleche-menace-ejection, .fleche-menace-pointe-ejection { stroke: #e04040; fill: #e04040; }
+.fleche-menace-ejection, .fleche-menace-pointe-ejection { stroke: var(--couleur-fleche-menace-ejection, #e04040); fill: var(--couleur-fleche-menace-ejection, #e04040); }
 .fleche-menace-ejection {
   stroke-width: 2.2;
-  opacity: 0.75;
+  opacity: min(1, calc(var(--opacite-fleches-menaces, 0.6) + 0.15));
 }
 
-.fleche-menace-ejection-fin, .fleche-menace-pointe-ejection-fin { stroke: #e04040; fill: #e04040; }
+.fleche-menace-ejection-fin, .fleche-menace-pointe-ejection-fin { stroke: var(--couleur-fleche-menace-ejection-fin, #e04040); fill: var(--couleur-fleche-menace-ejection-fin, #e04040); }
 .fleche-menace-ejection-fin {
   stroke-width: 3.6;
-  opacity: 0.95;
+  opacity: min(1, calc(var(--opacite-fleches-menaces, 0.6) + 0.35));
 }
 
 /* Bandeau d'un puzzle en cours (phase 16, interface/puzzles.js) : l'objectif
@@ -2642,12 +2708,16 @@ button,
   filter: none;
 }
 
-/* Cases plates du mode simple : teintees avec le fond du plateau (index.html
-   pose cette variable a la construction), "un seul bloc de matiere" comme le
-   reste du plateau — sans effet en relief (.case-relief la rend transparente,
-   plus haut), sans effet sur les apercus (jamais #plateau). */
-#plateau.mode-simple .case {
+/* Trous plats du mode simple (rendu/trous-simples.js) : teintes avec le fond
+   du plateau, "un seul bloc de matiere" comme le reste du plateau, meme
+   contour que l'ancienne case pleine (.case). Jamais cliquables : la case,
+   transparente et pleine taille par-dessus (.case-relief), recoit les
+   touchers, quelle que soit la taille choisie pour le trou. */
+.trou-simple {
   fill: var(--couleur-case-plate, #8a8a8a);
+  stroke: #5a5a5a;
+  stroke-width: 0.5;
+  pointer-events: none;
 }
 
 /* Trou perfore au centre de chaque case (phase 19ter, rendu/relief-plateau.js) :
@@ -3106,6 +3176,17 @@ button,
   pointer-events: none;
 }
 
+/* Tailles reglables separement (saab, 2026-09-27, Reglages > Affichage ;
+   jamais plus grandes que la bille, moteur/reglages.js BORNES_REGLAGES_KAAH).
+   Apres le raccourci `font` ci-dessus, pour l'emporter sur sa taille. */
+.coordonnee-bille {
+  font-size: var(--taille-coordonnee-bille, 5px);
+}
+
+.coordonnee-destination {
+  font-size: var(--taille-coordonnee-arrivee, 5px);
+}
+
 /* Meme couleur sur les deux camps (saab : un seul bouton "Couleur coord
    bille", pas un par camp) — a la difference de .coordonnee-destination plus
    bas (toujours blanc, sans rapport avec ce reglage). */
@@ -3174,12 +3255,14 @@ button,
   pointer-events: none;
 }
 
+/* Couleurs du chevron reglables (saab, 2026-09-27, Reglages > Chevron ;
+   rendu/apparence-reglages.js), repli = l'aspect d'avant. */
 .bille-noir .fleche-dernier-coup {
-  stroke: #e4e4e4;
+  stroke: var(--couleur-chevron-bille-noire, #e4e4e4);
 }
 
 .bille-blanc .fleche-dernier-coup {
-  stroke: #1f1f1f;
+  stroke: var(--couleur-chevron-bille-blanche, #1f1f1f);
 }
 
 /* Poussee qui ejecte : rouge, TOUJOURS (voir rendu/fleche-dernier-coup.js) —
@@ -3189,7 +3272,7 @@ button,
    que .nom-joueur-noir.au-trait.nom-en-danger, deja rencontre). */
 .bille-noir .fleche-dernier-coup.fleche-dernier-coup-ejection,
 .bille-blanc .fleche-dernier-coup.fleche-dernier-coup-ejection {
-  stroke: #e04040;
+  stroke: var(--couleur-chevron-ejection, #e04040);
 }
 
 /* Seuil de nulle atteint sur CE segment (Occ, Ref, Br_Occ ou Br_Ref

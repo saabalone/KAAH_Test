@@ -35,6 +35,18 @@
 // (rendu/plateau-svg.js) et RAYON_TROU_CENTRAL (rendu/relief-plateau.js)
 // viennent de fichiers charges avant celui-ci dans index.html.
 
+// Rayon des ronds verts (selectionnable ET arrivee, un seul reglage — saab,
+// 2026-09-27) : la taille du trou par defaut, changee par fixerRayonRondsVerts
+// (rendu/apparence-reglages.js, reglage kaah.green_marker_scale).
+let rayonRondsVerts = RAYON_TROU_CENTRAL;
+
+// Change le rayon des prochains ronds verts ET de ceux deja affiches, sans rien
+// recreer.
+function fixerRayonRondsVerts(svg, rayon) {
+  rayonRondsVerts = rayon;
+  for (const rond of svg.querySelectorAll('.voile-destination, .voile-selectionnable')) rond.setAttribute('r', rayon);
+}
+
 // Remplace l'etiquette de coordonnee posee sur les billes : enleve d'abord
 // toute etiquette existante (l'ancien camp au trait n'en a plus besoin),
 // puis en pose une neuve, comme enfant de chaque bille de `joueurAuTrait`
@@ -79,7 +91,7 @@ function actualiserCoordonneesDestinations(svg, notations, camp) {
       creerElementSVG('circle', {
         cx: caseElement.getAttribute('cx'),
         cy: caseElement.getAttribute('cy'),
-        r: RAYON_TROU_CENTRAL,
+        r: rayonRondsVerts,
         class: 'voile-destination',
       })
     );
@@ -103,7 +115,7 @@ function actualiserBillesSelectionnables(svg, joueurAuTrait) {
   for (const voile of svg.querySelectorAll('.voile-selectionnable')) voile.remove();
   if (!joueurAuTrait) return;
   for (const bille of svg.querySelectorAll(`.bille-${joueurAuTrait}`)) {
-    const voile = creerElementSVG('circle', { r: RAYON_TROU_CENTRAL, class: 'voile-selectionnable' });
+    const voile = creerElementSVG('circle', { r: rayonRondsVerts, class: 'voile-selectionnable' });
     // Juste apres .bille-cercle, jamais en bout de liste (voir l'en-tete) :
     // une coordonnee deja posee (actualiserCoordonneesBilles) reste ainsi
     // toujours au-dessus, quel que soit l'ordre d'appel des deux fonctions.

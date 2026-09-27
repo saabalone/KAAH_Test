@@ -178,9 +178,8 @@ function dessinerTrousCentraux(hexTrou) {
 // mais ni les cylindres de relief, ni les trous perfores, ni les degrades/
 // filtres ne sont crees. Le gain reel demande par saab (telephone lent) : sur
 // 1 278 elements SVG dont 91 avec un filtre, ce mode-la n'en pose plus qu'une
-// poignee, sans filtre du tout. Les cases gardent alors leur remplissage
-// PLAT (styles.css, `.case`) au lieu de devenir transparentes sur des trous
-// qui n'existent plus.
+// poignee, sans filtre du tout. Les cases y deviennent aussi transparentes,
+// posees sur des trous PLATS a part, a taille reglable (rendu/trous-simples.js).
 // `hexFond` (board.bg_color) teinte le fond, le relief et le dessous des
 // cases plates (mode simple) — "un seul bloc de matiere" (saab). `hexTrou`
 // (board.hole_color) teinte la paroi et le fond des trous, deliberement
@@ -206,6 +205,8 @@ function dessinerReliefPlateau(svg, avecRelief = true, hexFond = couleurVersHex(
     for (const caseElement of groupeCases.querySelectorAll('.case')) {
       caseElement.classList.add('case-relief');
     }
+  } else {
+    dessinerTrousSimples(svg); // rendu/trous-simples.js : trou plat a taille reglable
   }
   // `.mode-simple` (styles.css) : sans elle, le fond garderait un filtre
   // d'ombre qui reference des <defs> qui n'existent plus en mode simple.

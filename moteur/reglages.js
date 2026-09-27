@@ -96,8 +96,60 @@ const REGLAGES_PAR_DEFAUT = {
     // bille" dans Affichage (interface/reglages.js). true par defaut : nouveaute
     // KAAH, jamais dans un vrai fichier KAAWA.
     show_selectable_balls: true,
+    // Tailles (saab, 2026-09-27), en unites du dessin du plateau ; bornes dans
+    // BORNES_REGLAGES_KAAH plus bas. Defauts = l'aspect d'avant, au pixel pres.
+    simple_hole_scale: 1, // trou du mode simple, fraction de sa taille actuelle (le maximum)
+    ball_coord_size: 5, // police des coordonnees sur les billes
+    dest_coord_size: 5, // police des coordonnees des cases d'arrivee
+    green_marker_scale: 0.66, // rond vert (selectionnable ET arrivee), fraction du rayon d'une bille
+    // Fleches de Conseils (rendu/conseils.js) : une couleur par resultat, une
+    // opacite pour toutes (1 = opaque).
+    hint_win_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],
+    hint_loss_color: [0xe0 / 255, 0x40 / 255, 0x40 / 255, 1],
+    hint_draw_color: [0x4a / 255, 0xa8 / 255, 0xff / 255, 1],
+    hint_tie_color: [0x9a / 255, 0x9a / 255, 0x9a / 255, 1],
+    hint_opacity: 1,
+    // Fleches de Menaces (rendu/menaces.js) : une couleur par sorte, une
+    // opacite de base (les ejections restent un peu plus appuyees, styles.css).
+    threat_friend_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],
+    threat_enemy_color: [0xcc / 255, 0x6a / 255, 0x00 / 255, 1],
+    threat_eject_color: [0xe0 / 255, 0x40 / 255, 0x40 / 255, 1],
+    threat_win_eject_color: [0xe0 / 255, 0x40 / 255, 0x40 / 255, 1],
+    threat_opacity: 0.6,
+    // Chevron du dernier coup (rendu/fleche-dernier-coup.js).
+    chevron_black_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1],
+    chevron_white_ball_color: [0x1f / 255, 0x1f / 255, 0x1f / 255, 1],
+    chevron_eject_color: [0xe0 / 255, 0x40 / 255, 0x40 / 255, 1],
   },
 };
+
+// Bornes des reglages kaah numeriques (min, max, pas du curseur). Mesure
+// faite dans le navigateur (2026-09-27) : la coordonnee la plus large ("b4")
+// fait 5,9 unites en police 5, une bille 14 de diametre (rayon 7) — elle
+// deborderait donc au-dela d'une police 11,8 ; 11 laisse la marge des polices
+// qui different d'un appareil a l'autre ("jamais plus grande que la bille",
+// saab). Rond vert : 1 = le rayon de la bille. Trou : 1 = sa taille actuelle.
+// Opacite : jamais 0, une fleche invisible passerait pour un bogue.
+const BORNES_REGLAGES_KAAH = {
+  simple_hole_scale: { min: 0.3, max: 1, pas: 0.05 },
+  ball_coord_size: { min: 2, max: 11, pas: 0.5 },
+  dest_coord_size: { min: 2, max: 11, pas: 0.5 },
+  green_marker_scale: { min: 0.2, max: 1, pas: 0.02 },
+  hint_opacity: { min: 0.1, max: 1, pas: 0.05 },
+  threat_opacity: { min: 0.1, max: 1, pas: 0.05 },
+};
+
+// Ramene chaque reglage borne dans ses bornes, et remplace un non-nombre par
+// son defaut : un fichier importe (ou abime) ne doit jamais donner une
+// coordonnee plus grande que la bille. Renvoie de nouveaux reglages.
+function bornerReglages(reglages) {
+  const kaah = { ...reglages.kaah };
+  for (const [cle, { min, max }] of Object.entries(BORNES_REGLAGES_KAAH)) {
+    const valeur = kaah[cle];
+    kaah[cle] = Number.isFinite(valeur) ? Math.min(max, Math.max(min, valeur)) : REGLAGES_PAR_DEFAUT.kaah[cle];
+  }
+  return { ...reglages, kaah };
+}
 
 // Vrai seulement pour un objet simple ({...}), jamais pour un tableau, null,
 // ou une primitive — un tableau (une couleur [r,g,b,a]) est une VALEUR pour
