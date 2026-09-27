@@ -87,7 +87,11 @@ const REGLAGES_PAR_DEFAUT = {
     eject_bg_color: [0x8a / 255, 0x8a / 255, 0x8a / 255, 1], // case vide d'une piste d'ejection
     occ_bg_color: [0x82 / 255, 0x82 / 255, 0x82 / 255, 1], // cadre du compteur Occ (rendu/corde.js)
     coord_board_color: [0xcf / 255, 0xcf / 255, 0xcf / 255, 1], // bordure de coordonnees a-i/1-9
-    coord_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1], // coordonnee ecrite sur chaque bille, meme couleur sur les deux camps
+    // Coordonnee ecrite sur chaque bille : claire sur bille NOIRE (cette cle),
+    // foncee sur bille BLANCHE (la suivante). Une seule couleur pour les deux
+    // camps (2026-09-26) la rendait invisible sur les billes blanches (saab).
+    coord_ball_color: [0xe4 / 255, 0xe4 / 255, 0xe4 / 255, 1],
+    coord_white_ball_color: [0x1f / 255, 0x1f / 255, 0x1f / 255, 1],
     select_ring_color: [0xc8 / 255, 0x7f / 255, 0x32 / 255, 1], // anneau autour de la case de la bille selectionnee (rendu/selection.js)
     dest_fill_color: [0x00 / 255, 0xaa / 255, 0x3e / 255, 1], // rond translucide d'une case d'arrivee possible (rendu/coordonnees-jeu.js)
     // Rond vert translucide sur chaque bille SELECTIONNABLE (camp au trait), la

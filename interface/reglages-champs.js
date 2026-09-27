@@ -59,6 +59,7 @@ const CHAMPS_REGLAGES = [
   ['couleur-fond-occ', 'couleur', 'kaah', 'occ_bg_color'],
   ['couleur-coord-plateau', 'couleur', 'kaah', 'coord_board_color'],
   ['couleur-coord-bille', 'couleur', 'kaah', 'coord_ball_color'],
+  ['couleur-coord-bille-blanche', 'couleur', 'kaah', 'coord_white_ball_color'],
   ['couleur-select-bille', 'couleur', 'kaah', 'select_ring_color'],
   ['couleur-case-arrivee', 'couleur', 'kaah', 'dest_fill_color'],
   ['couleur-conseil-victoire', 'couleur', 'kaah', 'hint_win_color'],

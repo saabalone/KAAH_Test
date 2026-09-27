@@ -28,12 +28,9 @@ const COULEURS_KAAH_EN_CSS = [
   ['--fond-cadre-occurrences', 'occ_bg_color'],
   ['--couleur-coordonnee-bord', 'coord_board_color'],
   ['--couleur-coordonnee-bille', 'coord_ball_color'],
+  ['--couleur-coordonnee-bille-blanche', 'coord_white_ball_color'],
   ['--couleur-case-selectionnee', 'select_ring_color'],
   ['--couleur-case-arrivee', 'dest_fill_color'],
-  ['--couleur-fleche-conseil-victoire', 'hint_win_color'],
-  ['--couleur-fleche-conseil-defaite', 'hint_loss_color'],
-  ['--couleur-fleche-conseil-nulle', 'hint_draw_color'],
-  ['--couleur-fleche-conseil-egalite', 'hint_tie_color'],
   ['--couleur-fleche-menace-ami', 'threat_friend_color'],
   ['--couleur-fleche-menace-ennemi', 'threat_enemy_color'],
   ['--couleur-fleche-menace-ejection', 'threat_eject_color'],
@@ -41,6 +38,16 @@ const COULEURS_KAAH_EN_CSS = [
   ['--couleur-chevron-bille-noire', 'chevron_black_ball_color'],
   ['--couleur-chevron-bille-blanche', 'chevron_white_ball_color'],
   ['--couleur-chevron-ejection', 'chevron_eject_color'],
+];
+
+// Les couleurs des fleches de Conseils sont AUSSI celles du tableau Conseils
+// (Gagne, Nul, Perdu — saab : "sinon on ne saura pas qui fait quoi") : posees
+// sur toute la page, car le tableau n'est pas dans #plateau (qui en herite).
+const COULEURS_CONSEILS_EN_CSS = [
+  ['--couleur-fleche-conseil-victoire', 'hint_win_color'],
+  ['--couleur-fleche-conseil-defaite', 'hint_loss_color'],
+  ['--couleur-fleche-conseil-nulle', 'hint_draw_color'],
+  ['--couleur-fleche-conseil-egalite', 'hint_tie_color'],
 ];
 
 // `reglages` : tels que lus (lireReglagesActifs) ; bornes ici avant d'etre
@@ -61,6 +68,7 @@ function appliquerApparenceReglages(svg, reglagesLus) {
   ];
   for (const [propriete, valeur] of proprietes) svg.style.setProperty(propriete, valeur);
   document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));
+  for (const [propriete, cle] of COULEURS_CONSEILS_EN_CSS) document.body.style.setProperty(propriete, couleurVersHex(kaah[cle]));
 
   // Masques en CSS, jamais retires : un clic sur la case a cocher les fait
   // disparaitre ou revenir EN DIRECT (interface/saisie.js les construit toujours).

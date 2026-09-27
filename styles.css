@@ -47,7 +47,8 @@
   --fond-case-piste-vide: #8a8a8a;
   --fond-cadre-occurrences: #828282; /* "Fond Occ" */
   --couleur-coordonnee-bord: #cfcfcf; /* "Couleur coord plateau" */
-  --couleur-coordonnee-bille: #e4e4e4; /* "Couleur coord bille" */
+  --couleur-coordonnee-bille: #e4e4e4; /* "Couleur coord bille noire" */
+  --couleur-coordonnee-bille-blanche: #1f1f1f; /* "Couleur coord bille blanche" */
   --couleur-case-selectionnee: #c87f32; /* "Couleur bille sélect" */
   --couleur-case-arrivee: #00aa3e; /* "Couleur case arrivée" */
 }
@@ -1626,9 +1627,11 @@ button,
 .texte-conseil-nulle { color: #4aa8ff; }
 .texte-conseil-egalite { color: #9a9a9a; }
 
-.valeur-gagne { color: #2ecc55; font-variant-numeric: tabular-nums; }
-.valeur-nul { color: #4aa8ff; font-variant-numeric: tabular-nums; }
-.valeur-perdu { color: #e04040; font-variant-numeric: tabular-nums; }
+/* Memes couleurs que les fleches de Conseils, reglables avec elles
+   (saab, 2026-09-27 : le tableau et les fleches doivent dire la meme chose). */
+.valeur-gagne { color: var(--couleur-fleche-conseil-victoire, #2ecc55); font-variant-numeric: tabular-nums; }
+.valeur-nul { color: var(--couleur-fleche-conseil-nulle, #4aa8ff); font-variant-numeric: tabular-nums; }
+.valeur-perdu { color: var(--couleur-fleche-conseil-defaite, #e04040); font-variant-numeric: tabular-nums; }
 
 /* Fleches sur le plateau principal (rendu/conseils.js). `pointer-events:
    none` : une fleche ne doit jamais voler un clic destine a la case ou a
@@ -3187,11 +3190,16 @@ button,
   font-size: var(--taille-coordonnee-arrivee, 5px);
 }
 
-/* Meme couleur sur les deux camps (saab : un seul bouton "Couleur coord
-   bille", pas un par camp) — a la difference de .coordonnee-destination plus
-   bas (toujours blanc, sans rapport avec ce reglage). */
-.coordonnee-bille {
-  fill: var(--couleur-coordonnee-bille);
+/* Contraste inverse de la bille qui la porte : claire sur bille noire,
+   foncee sur bille blanche — chacune reglable (Reglages > Coordonnees). Une
+   seule couleur pour les deux camps (2026-09-26) rendait la coordonnee
+   invisible sur les billes blanches (saab, 2026-09-27). */
+.bille-noir .coordonnee-bille {
+  fill: var(--couleur-coordonnee-bille, #e4e4e4);
+}
+
+.bille-blanc .coordonnee-bille {
+  fill: var(--couleur-coordonnee-bille-blanche, #1f1f1f);
 }
 
 /* Reglage "Coordonnées sur les billes" (phase 22, interface/reglages.js) :
