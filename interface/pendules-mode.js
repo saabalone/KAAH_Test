@@ -48,10 +48,17 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 // annuler : il revient seulement aux reglages d'AVANT cette ouverture, sans
 // fermer (comme .Annuler de la boite Reglages) — Fermer, lui, ferme sans
 // rien changer de plus.
-function demarrerChoixModePendules(elements) {
+//
+// `choixAdversaire` (phase 29, interface/choix-adversaire.js) : la rubrique
+// « Adversaire » de la meme boite, montree seulement au DEBUT d'une partie
+// (`ouvrir(valeurs, { avecAdversaire: true })`) — jamais pour un changement de
+// mode en cours de partie. Les reglages rendus portent alors aussi
+// `adversaire` (null entre humains).
+function demarrerChoixModePendules(elements, choixAdversaire) {
   let modeChoisi = null;
   let resoudre = null;
   let valeursOuverture = null;
+  let avecAdversaire = false;
 
   // Affiche/masque les sections numeriques selon le mode : Chrono n'en a
   // aucune (rien a regler, il ne fait jamais perdre), Bonus et Delai
@@ -99,7 +106,8 @@ function demarrerChoixModePendules(elements) {
   // `null`, jamais laisser l'appelant en attente indefiniment d'une Promise
   // qui ne se resoudrait plus.
   elements.dialogue.addEventListener('close', () => {
-    resoudre?.(construireReglages());
+    const reglages = construireReglages();
+    resoudre?.(avecAdversaire ? { ...reglages, adversaire: choixAdversaire.lire() } : reglages);
     resoudre = null;
   });
 
@@ -141,8 +149,10 @@ function demarrerChoixModePendules(elements) {
   // DIRECT de la partie en cours pour un changement de mode, voir l'en-tete
   // du fichier). Renvoie une Promise : les reglages affiches au moment de la
   // fermeture (jamais `null`, voir plus haut).
-  function ouvrir(valeurs) {
+  function ouvrir(valeurs, options = {}) {
     valeursOuverture = valeurs;
+    avecAdversaire = Boolean(options.avecAdversaire);
+    choixAdversaire.preparer(avecAdversaire);
     appliquerValeurs(valeurs);
     elements.dialogue.showModal();
     return new Promise((r) => {

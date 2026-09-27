@@ -525,10 +525,21 @@ function demarrerPartie(
       ouvrirChoixBranche(cheminNoeud, surChoixConfirme);
     });
   }
+  // Contre la machine (phase 29), Annuler retire AUSSI le coup du joueur
+  // quand le dernier coup etait celui de la machine : sinon, la main revenant a
+  // la machine, elle rejouerait aussitot — et le joueur ne pourrait jamais
+  // reprendre son propre coup. `annulationEnDouble(arbre)` (voir
+  // definirAnnulationEnDouble plus bas) dit, APRES la premiere suppression, s'il
+  // faut en faire une seconde ; toujours faux entre humains.
+  let annulationEnDouble = () => false;
   elementsNavigation.annuler.addEventListener('click', () => {
     if (suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin)) return;
     demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () =>
-      naviguer((a) => supprimerBranche(a, a.chemin))
+      naviguer((a) => {
+        const apres = supprimerBranche(a, a.chemin);
+        const encore = annulationEnDouble(apres) && peutSupprimerNoeud(apres, apres.chemin);
+        return encore ? supprimerBranche(apres, apres.chemin) : apres;
+      })
     );
   });
 
@@ -875,6 +886,15 @@ function demarrerPartie(
       return applique;
     },
     jouerCoupTexte,
+    // Adversaire artificiel (phase 29, interface/ia.js) : un coup peut-il etre
+    // joue LA, maintenant ? Point vivant de la partie (jamais en parcourant
+    // l'historique), ni en pause, ni sans suite, ni termine — les memes gardes
+    // que jouerCoupTexte, pour que la machine ne reflechisse pas pour rien.
+    peutJouerUnCoup: () =>
+      estPointVivant() && !jeuSuspendu() && !sansSuite() && !etatCourant(arbre).vainqueur,
+    definirAnnulationEnDouble: (predicat) => {
+      annulationEnDouble = predicat;
+    },
     // Correspondance (phase 24, index.html) : voir jeuSuspendu, finDemandee et
     // terminerPartie plus haut.
     ignorerLaPause: () => {

@@ -175,6 +175,10 @@ function arbreVersDonnees(arbre, metadonnees) {
           corr_white_name: metadonnees.correspondance.nomBlanc,
         }
       : {}),
+    // Partie contre la machine (phase 29, moteur/ia.js) : champ propre a KAAH
+    // (KAAWA l'ignore), ecrit seulement dans ce cas — une partie entre humains
+    // garde exactement le fichier d'avant.
+    ...(metadonnees.adversaire ? { Adversaire: metadonnees.adversaire } : {}),
   };
 }
 

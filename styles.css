@@ -3067,6 +3067,26 @@ button,
   fill: #e4e4e4;
 }
 
+/* La machine reflechit (phase 29, interface/ia.js) : sa pendule respire
+   doucement, pour qu'on sache qu'elle cherche (plusieurs secondes au niveau 3)
+   et pas que l'appli est figee. */
+.bouton-pendule.machine-reflechit .cadre-pendule {
+  animation: machine-reflechit 1s ease-in-out infinite alternate;
+}
+
+@keyframes machine-reflechit {
+  to {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bouton-pendule.machine-reflechit .cadre-pendule {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
 .pendule-bande {
   display: none;
   fill: var(--vert-demande);
@@ -3828,4 +3848,24 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     margin: 0;
     border-radius: 0;
   }
+}
+
+/* Rubrique « Adversaire » de la boite du debut de partie (phase 29,
+   interface/choix-adversaire.js) : une ligne par choix (niveau, style, camp),
+   le libelle a gauche, les boutons a la suite. */
+.section-adversaire {
+  margin-top: 8px;
+}
+
+.ligne-choix-machine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hauteur-commande);
+  margin-top: 4px;
+}
+
+.ligne-choix-machine > span {
+  min-width: 5.5em;
 }

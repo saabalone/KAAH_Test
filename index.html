@@ -666,6 +666,19 @@
     </details>
 
     <details>
+      <summary>Jouer contre la machine</summary>
+      <ul>
+        <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Adversaire</b> : choisissez <b>Machine</b>.<br>Puis son <b>niveau</b>, son <b>style</b>, le <b>camp</b> qu'elle joue et son <b>temps de réflexion maximum</b>. La boîte retient votre dernier choix.</li>
+        <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
+        <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
+        <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
+        <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.</li>
+        <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt).<br><b>Revanche</b> : elle prend l'autre camp.</li>
+        <li>Une proposition de <b>nulle</b> : pour l'instant c'est vous qui répondez à sa place.</li>
+      </ul>
+    </details>
+
+    <details>
       <summary>Corbeille</summary>
       <ul>
         <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b> de sa boîte.<br>Un bouton <b>Corbeille</b> en bas de Mes parties, de Variantes et de Puzzles, chacune ne montrant que ce que cette boîte a supprimé.</li>
@@ -756,7 +769,7 @@
     <details>
       <summary>Ce qui n'est pas encore dans KAAH</summary>
       <ul>
-        <li>Pas encore là : l'<b>adversaire artificiel</b> (jouer seul contre la machine).</li>
+        <li>Toutes les phases prévues sont faites : ce qui reste, ce sont les améliorations que vos retours feront apparaître.</li>
         <li>La liste à jour, avec le détail, est dans la page <a href="https://saabalone.github.io/KAAH_Test/docs/CE_QUI_MANQUE.html" target="_blank" rel="noopener">« Ce qui n'est pas encore dans KAAH »</a> (avec internet — sinon, le dossier <b>docs</b> reçu avec KAAH contient le même fichier).</li>
         <li><b>Il vous manque autre chose ?</b> Dites-le dans votre rapport : une fonction de KAAWA que vous utilisez et qui n'est ni dans le jeu ni dans cette liste.</li>
       </ul>
@@ -1084,6 +1097,38 @@
         </label>
       </div>
     </div>
+    <!-- Adversaire (phase 29, interface/choix-adversaire.js) : seulement au
+         debut d'une partie, jamais pour un changement de pendule en cours. -->
+    <div id="section-adversaire" class="section-adversaire" hidden>
+      <h3>Adversaire</h3>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-adversaire-humain" class="bouton-filtre" type="button">Humain</button>
+        <button id="bouton-adversaire-machine" class="bouton-filtre" type="button">Machine</button>
+      </div>
+      <div id="reglages-machine" class="reglages-machine" hidden>
+        <div class="ligne-choix-machine">
+          <span>Niveau</span>
+          <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
+          <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et votre réponse)">2</button>
+          <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
+        </div>
+        <div class="ligne-choix-machine">
+          <span>Style</span>
+          <button class="bouton-filtre" type="button" data-style="agressif">Agressif</button>
+          <button class="bouton-filtre" type="button" data-style="normal">Normal</button>
+          <button class="bouton-filtre" type="button" data-style="defensif">Défensif</button>
+        </div>
+        <div class="ligne-choix-machine">
+          <span>Elle joue</span>
+          <button class="bouton-filtre" type="button" data-camp="noir">Noir (commence)</button>
+          <button class="bouton-filtre" type="button" data-camp="blanc">Blanc</button>
+        </div>
+        <label class="ligne-nombre-pendule">
+          Réflexion max (s)
+          <input id="machine-reflexion-max" type="number" min="1" max="60" step="1" />
+        </label>
+      </div>
+    </div>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-annuler-mode-pendules" class="bouton-dialogue" type="button" title="Revient aux réglages d'avant l'ouverture, sans fermer">Annuler</button>
       <button id="bouton-valider-mode-pendules" class="bouton-dialogue" type="button">Valider</button>
@@ -1328,6 +1373,9 @@
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
   <script src="./moteur/bases-coups.js"></script>
+  <script src="./moteur/ia-evaluation.js"></script>
+  <script src="./moteur/ia-recherche.js"></script>
+  <script src="./moteur/ia.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/nulle.js"></script>
@@ -1373,7 +1421,9 @@
   <script src="./rendu/conseils.js"></script>
   <script src="./rendu/menaces.js"></script>
   <script src="./interface/pendules.js"></script>
+  <script src="./interface/choix-adversaire.js"></script>
   <script src="./interface/pendules-mode.js"></script>
+  <script src="./interface/ia.js"></script>
   <script src="./interface/creation-partie.js"></script>
   <script src="./interface/sequence.js"></script>
   <script src="./interface/disposition.js"></script>
@@ -1502,7 +1552,13 @@
       const arbreDepart = donneesReprises ? donneesVersArbre(donneesReprises) : undefined;
       // Plateau retourne de 180 degres (Revanche en face-a-face, phase 20bis, moteur/revanche.js).
       const plateauRetourne = donneesReprises ? Boolean(donneesReprises.PlateauRetourne) : Boolean(positionChoisie?.plateauRetourne);
-      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne };
+      // Contre la machine (phase 29, moteur/ia.js) : champ Adversaire du fichier,
+      // ou celui choisi au debut de la partie ; null entre humains. Une partie
+      // neuve donne a son camp le nom de la machine (niveau et style lisibles dans
+      // le titre).
+      const adversaire = lireAdversaire(donneesReprises ? donneesReprises.Adversaire : positionChoisie?.adversaire);
+      if (adversaire && !donneesReprises) joueurs[adversaire.camp] = nomDeLaMachine(adversaire);
+      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, adversaire };
     }
 
     let donneesReprises = chargerPartieActive();
@@ -1518,7 +1574,7 @@
       donneesReprises = null;
       etatDepart = construireDonneesDepart(null);
     }
-    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne } =
+    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, adversaire } =
       etatDepart;
     // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
     const correspondanceActive = correspondanceDesDonnees(donneesReprises);
@@ -1796,7 +1852,13 @@
       annuler: document.getElementById('bouton-annuler-mode-pendules'),
       valider: document.getElementById('bouton-valider-mode-pendules'),
       fermer: document.getElementById('bouton-fermer-mode-pendules'),
-    });
+    }, demarrerChoixAdversaire({
+      section: document.getElementById('section-adversaire'),
+      humain: document.getElementById('bouton-adversaire-humain'),
+      machine: document.getElementById('bouton-adversaire-machine'),
+      reglagesMachine: document.getElementById('reglages-machine'),
+      reflexion: document.getElementById('machine-reflexion-max'),
+    }));
     document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
       // `ouvrir` renvoie toujours des reglages (jamais `null`, voir
       // interface/pendules-mode.js) : les reappliquer ici est un non-evenement
@@ -1820,11 +1882,12 @@
       {
         optionsDisponibles: () => optionsDeFinDisponibles(partie.obtenirArbre()),
         suivante: (choix) => {
-          const suite = partieSuivante(choix, { joueurs, plateauRetourne });
+          const suite = partieSuivante(choix, { joueurs, plateauRetourne, adversaire });
           definirPositionDepartSuivante(ecrirePosition(partie.obtenirArbre().racine.etat), variantName, {
             joueurs: suite.joueurs,
             reglagesPendules,
             plateauRetourne: suite.plateauRetourne,
+            adversaire: suite.adversaire,
           });
           oublierPartieActive();
         },
@@ -2259,6 +2322,8 @@
         pendulesActuelles: partie.obtenirPendulesActuelles(),
         // Les champs corr_* de KAAWA doivent survivre a chaque sauvegarde.
         correspondance: correspondanceActive,
+        // Contre la machine (phase 29) : son reglage survit a chaque sauvegarde.
+        adversaire,
       };
     }
 
@@ -2324,13 +2389,13 @@
       // precedente). Fermer la boite sans rien changer demarre quand meme,
       // avec les reglages affiches (interface/pendules-mode.js) : plus
       // besoin de Valider a l'aveugle pour garder les reglages proposes.
-      const reglagesChoisis = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
+      const { adversaire: adversaireChoisi, ...reglagesChoisis } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
       const demarrer = () => {
         // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
         // definirPositionDepartSuivante) : les reglages choisis survivent
         // au rechargement qui suit, `construireDonneesDepart` plus haut
         // les relit via `positionChoisie.reglagesPendules`.
-        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis });
+        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis, adversaire: adversaireChoisi });
         oublierPartieActive();
         demarrerRechargement();
       };
@@ -2691,9 +2756,9 @@
         // apres la confirmation de remplacement s'il y en a une : inutile
         // de la demander pour rien si elle est ensuite refusee.
         const charger = async () => {
-          const reglagesPendules = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
+          const { adversaire, ...reglagesPendules } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
           oublierPartieActive();
-          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules });
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules, adversaire });
           demarrerRechargement();
         };
         // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
@@ -2851,6 +2916,10 @@
       },
       (coupTexte) => partie.jouerCoupTexte(coupTexte)
     );
+
+    // Contre la machine (phase 29, interface/ia.js) : elle joue des que c'est a
+    // son camp, avec pour livre d'ouvertures la base de coups des Conseils.
+    if (adversaire) demarrerMachine({ partie, adversaire, obtenirBase: () => baseNextMove, svg });
 
     // Menaces (phase 19) : les poussées possibles des deux camps sur la
     // position REGARDEE, jamais seulement les coups du joueur au trait —

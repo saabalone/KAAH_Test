@@ -134,3 +134,20 @@ function coupsDepuis(plateau, joueurAuTrait, depart) {
 
   return coups;
 }
+
+// Tous les coups legaux de `camp`, CHACUN UNE SEULE FOIS (phase 29,
+// l'adversaire artificiel doit peser chaque coup une fois) : coupsDepuis
+// ancre un groupe sur la bille cliquee, et un groupe deplace lateralement
+// s'atteint par ses deux extremites — 60 coups depuis la Marguerite Belge
+// pour 52 distincts. Un coup est le meme s'il deplace les memes billes dans
+// la meme direction (meme critere que notation.designentLeMemeCoup).
+function tousLesCoupsLegaux(plateau, camp) {
+  const coups = new Map();
+  for (const depart of Object.keys(plateau)) {
+    for (const coup of coupsDepuis(plateau, camp, depart)) {
+      const cle = `${[...coup.billes].sort().join()}|${coup.direction.q},${coup.direction.r}`;
+      if (!coups.has(cle)) coups.set(cle, coup);
+    }
+  }
+  return [...coups.values()];
+}
