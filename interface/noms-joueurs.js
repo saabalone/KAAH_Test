@@ -41,11 +41,33 @@ function brancherSaisieNomJoueur(champ) {
   champ.addEventListener('compositionend', appliquer);
 }
 
-// `elements` : { dialogue, champ, valider, fermer }. `nomsParDefaut` :
-// { noir, blanc }.
+// `elements` : { dialogue, champ, valider, fermer, marcheMachine }.
+// `nomsParDefaut` : { noir, blanc }. Renvoie { definirCommandeMachines } : une
+// partie contre la machine (phase 32, interface/ia.js) y branche
+// { estMachine(camp), estEnMarche(camp), basculer(camp) } — le bouton Marche/Arret
+// de la boite n'apparait que pour le camp d'une machine (saab : « se servir du
+// btn Nom pour la relancer ... ou l'arreter »).
 function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement) {
   let campEnCours = null;
+  let commandeMachines = null;
   brancherSaisieNomJoueur(elements.champ);
+
+  function afficherMarcheMachine() {
+    const machine = commandeMachines?.estMachine(campEnCours) ?? false;
+    elements.marcheMachine.hidden = !machine;
+    if (!machine) return;
+    const enMarche = commandeMachines.estEnMarche(campEnCours);
+    elements.marcheMachine.textContent = enMarche ? 'Arrêt de la machine' : 'Marche de la machine';
+    elements.marcheMachine.title = enMarche
+      ? "Elle joue tout de suite son meilleur coup si c'est son tour, puis ne joue plus"
+      : "Elle rejoue quand c'est son tour";
+    elements.marcheMachine.classList.toggle('machine-arretee', !enMarche);
+  }
+
+  elements.marcheMachine.addEventListener('click', () => {
+    commandeMachines?.basculer(campEnCours);
+    elements.dialogue.close();
+  });
 
   svg.addEventListener('click', (evenement) => {
     const cadre = evenement.target.closest('.nom-fond');
@@ -54,6 +76,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.champ.value = joueurs[campEnCours];
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
     elements.dialogue.classList.toggle('dialogue-retourne', campEnCours === 'blanc' && document.body.classList.contains('face-a-face'));
+    afficherMarcheMachine();
     elements.dialogue.showModal();
     elements.champ.select();
   });
@@ -74,4 +97,10 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   elements.champ.addEventListener('keydown', (evenement) => {
     if (evenement.key === 'Enter') valider();
   });
+
+  return {
+    definirCommandeMachines: (commande) => {
+      commandeMachines = commande;
+    },
+  };
 }

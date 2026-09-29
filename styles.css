@@ -3901,3 +3901,103 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
 .ligne-choix-machine > span {
   min-width: 5.5em;
 }
+
+/* Rubrique « Joueurs » (phase 32, interface/choix-joueurs.js) : un bloc par
+   camp, les reglages de la machine en retrait sous sa ligne. */
+.choix-joueur + .choix-joueur {
+  border-top: 1px solid #3a3a3a;
+  margin-top: 6px;
+}
+
+.choix-joueur .reglages-machine {
+  padding-left: 1em;
+}
+
+/* Le nom d'une machine (phase 32, rendu/ligne-joueur.js) : son evaluation en
+   premiere ligne, son nom en seconde sur un fond vert (gris a l'arret), en plus
+   petit pour tenir dans la meme hauteur de cadre. Le fond vert laisse passer le
+   toucher vers le cadre du nom (boite du nom, Marche/Arret). */
+.nom-machine-fond,
+.nom-evaluation {
+  display: none;
+  pointer-events: none;
+}
+
+.nom-joueur.nom-machine .nom-machine-fond,
+.nom-joueur.nom-machine .nom-evaluation {
+  display: inline;
+}
+
+.nom-machine-fond {
+  fill: var(--vert-demande);
+}
+
+.nom-joueur.machine-arretee .nom-machine-fond {
+  fill: #6a6a6a;
+}
+
+.nom-joueur.nom-machine .nom-texte,
+.nom-joueur.nom-machine .nom-evaluation {
+  font-size: 3.2px;
+}
+
+.nom-joueur.nom-machine .nom-texte {
+  fill: #e4e4e4;
+}
+
+.nom-evaluation {
+  fill: #9a9a9a;
+}
+
+/* Bouton Marche/Arret de la boite du nom : vert tant que la machine joue (un
+   geste possible), gris a l'arret. */
+.bouton-marche-machine {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  background: var(--vert-demande);
+  color: #ffffff;
+}
+
+.bouton-marche-machine.machine-arretee {
+  background: #3a3a3a;
+}
+
+/* Tableau de reflexion de la machine (phase 32, interface/reflexion-ia.js),
+   replie par defaut sous le titre de la partie ; la ligne en cours en italique. */
+.reflexion-ia {
+  font: 11px sans-serif;
+  color: #cfcfcf;
+}
+
+.reflexion-ia > summary {
+  cursor: pointer;
+  min-height: var(--hauteur-ligne-liste);
+}
+
+.reflexion-ia-defilement {
+  max-height: 9em;
+  overflow: auto;
+}
+
+.reflexion-ia table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.reflexion-ia th,
+.reflexion-ia td {
+  padding: 1px 4px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.reflexion-ia th {
+  color: #9a9a9a;
+  font-weight: normal;
+}
+
+.reflexion-ia .reflexion-en-cours {
+  font-style: italic;
+  color: #7fd48f;
+}

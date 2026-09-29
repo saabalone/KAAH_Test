@@ -46,7 +46,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition,
 // ecrirePosition, creerArbre, remplacerNoeud, jouerDansArbre,
-// marquerStatutFin, marquerPendulesSnapshot, marquerCommentaire,
+// marquerStatutFin, marquerPendulesSnapshot, marquerCommentaire, marquerReflexionIA,
 // couleurAdverse (moteur/regles.js),
 // marquerFlecheDernierCoup, noeudA, cheminsEgaux,
 // lireCoupNacre, ecrireCoupNacreSansAmbiguite, coupsDesignesPar
@@ -128,6 +128,9 @@ function noeudVersDonnees(noeud, chemin, metadonnees) {
     if (typeof noeud.pendulesSnapshot.dureeDernierCoup === 'number') donnees.time = dureeArrondie(noeud.pendulesSnapshot.dureeDernierCoup);
   }
 
+  // Phase 32 : ce que la machine a pense de ce coup (champ propre a KAAH).
+  if (noeud.reflexionIA) donnees.ia = noeud.reflexionIA;
+
   if (noeud.statutFin) {
     donnees.term_status = noeud.statutFin;
     donnees.winner = ecrireVainqueur(noeud, chemin, metadonnees.finDePartie, metadonnees.joueurs);
@@ -195,10 +198,12 @@ function arbreVersDonnees(arbre, metadonnees) {
           corr_white_name: metadonnees.correspondance.nomBlanc,
         }
       : {}),
-    // Partie contre la machine (phase 29, moteur/ia.js) : champ propre a KAAH
-    // (KAAWA l'ignore), ecrit seulement dans ce cas — une partie entre humains
-    // garde exactement le fichier d'avant.
-    ...(metadonnees.adversaire ? { Adversaire: metadonnees.adversaire } : {}),
+    // Partie contre la machine (phases 29 et 32, moteur/ia.js) : champ propre a
+    // KAAH (KAAWA l'ignore), tous les reglages de chaque machine { noir, blanc }
+    // (saab : pour comparer ensuite), ecrit seulement dans ce cas — une partie
+    // entre humains garde exactement le fichier d'avant. L'ancien champ
+    // Adversaire (phase 29) se relit toujours (moteur/ia.js, lireMachines).
+    ...(metadonnees.machines ? { Machines: metadonnees.machines } : {}),
   };
 }
 
@@ -299,6 +304,9 @@ function rejouerEnfants(arbre, chemin, enfantsDonnees) {
     // absence (meme discipline que term_status juste en dessous).
     if (enfantDonnees.comment) {
       arbre = marquerCommentaire(arbre, cheminEnfant, enfantDonnees.comment);
+    }
+    if (enfantDonnees.ia && typeof enfantDonnees.ia === 'object') {
+      arbre = marquerReflexionIA(arbre, cheminEnfant, enfantDonnees.ia);
     }
 
     if (enfantDonnees.term_status) {

@@ -48,13 +48,16 @@ function nomsDeRevanche(joueurs) {
 }
 
 // La partie qui suit, selon le choix ('revanche' ou 'same') : `{ joueurs,
-// plateauRetourne, adversaire }` en entree comme en sortie. `adversaire` (phase
-// 29, moteur/ia.js) : la machine, ou null entre humains ; a la Revanche les
-// joueurs echangent leurs couleurs, la machine prend donc l'AUTRE camp.
-function partieSuivante(choix, { joueurs, plateauRetourne, adversaire = null }) {
+// plateauRetourne, machines }` en entree comme en sortie. `machines` (phases 29
+// et 32, moteur/ia.js) : { noir, blanc }, ou null entre humains ; a la Revanche
+// les joueurs echangent leurs couleurs, chaque machine prend donc l'AUTRE camp.
+function partieSuivante(choix, { joueurs, plateauRetourne, machines = null }) {
   if (choix === 'revanche') {
-    const camp = adversaire?.camp === 'noir' ? 'blanc' : 'noir';
-    return { joueurs: nomsDeRevanche(joueurs), plateauRetourne: !plateauRetourne, adversaire: adversaire && { ...adversaire, camp } };
+    return {
+      joueurs: nomsDeRevanche(joueurs),
+      plateauRetourne: !plateauRetourne,
+      machines: machines && { noir: machines.blanc, blanc: machines.noir },
+    };
   }
-  return { joueurs, plateauRetourne, adversaire };
+  return { joueurs, plateauRetourne, machines };
 }

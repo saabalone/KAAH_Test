@@ -49,12 +49,12 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 // fermer (comme .Annuler de la boite Reglages) — Fermer, lui, ferme sans
 // rien changer de plus.
 //
-// `choixAdversaire` (phase 29, interface/choix-adversaire.js) : la rubrique
-// « Adversaire » de la meme boite, montree seulement au DEBUT d'une partie
+// `choixJoueurs` (phases 29 et 32, interface/choix-joueurs.js) : la rubrique
+// « Joueurs » de la meme boite, montree seulement au DEBUT d'une partie
 // (`ouvrir(valeurs, { avecAdversaire: true })`) — jamais pour un changement de
 // mode en cours de partie. Les reglages rendus portent alors aussi
-// `adversaire` (null entre humains).
-function demarrerChoixModePendules(elements, choixAdversaire) {
+// `machines` ({ noir, blanc }, null entre humains).
+function demarrerChoixModePendules(elements, choixJoueurs) {
   let modeChoisi = null;
   let resoudre = null;
   let valeursOuverture = null;
@@ -107,7 +107,7 @@ function demarrerChoixModePendules(elements, choixAdversaire) {
   // qui ne se resoudrait plus.
   elements.dialogue.addEventListener('close', () => {
     const reglages = construireReglages();
-    resoudre?.(avecAdversaire ? { ...reglages, adversaire: choixAdversaire.lire() } : reglages);
+    resoudre?.(avecAdversaire ? { ...reglages, machines: choixJoueurs.lire() } : reglages);
     resoudre = null;
   });
 
@@ -152,7 +152,7 @@ function demarrerChoixModePendules(elements, choixAdversaire) {
   function ouvrir(valeurs, options = {}) {
     valeursOuverture = valeurs;
     avecAdversaire = Boolean(options.avecAdversaire);
-    choixAdversaire.preparer(avecAdversaire);
+    choixJoueurs.preparer(avecAdversaire);
     appliquerValeurs(valeurs);
     elements.dialogue.showModal();
     return new Promise((r) => {

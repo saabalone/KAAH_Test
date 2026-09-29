@@ -670,12 +670,16 @@
     <details>
       <summary>Jouer contre la machine</summary>
       <ul>
-        <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Adversaire</b> : choisissez <b>Machine</b>.<br>Puis son <b>niveau</b>, son <b>style</b>, le <b>camp</b> qu'elle joue et son <b>temps de réflexion maximum</b>. La boîte retient votre dernier choix.</li>
+        <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>Machine</b> — deux machines peuvent jouer l'une contre l'autre.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2). La boîte retient votre dernier choix.</li>
+        <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s). Le fichier de la partie garde tous ses réglages, pour comparer.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>, avec au-dessus son <b>évaluation</b> de la position (positive : bon pour elle ; « Gagne en 3 » quand elle voit la fin ; « Livre » quand elle joue la base de coups).<br>Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
+        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.</li>
+        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord). Agressif, Normal et Défensif ne changent jamais : en retoucher un crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.</li>
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
         <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.<br>Elle continue à jouer après une fin au temps, et sur une branche (en Chrono).</li>
-        <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt).<br><b>Revanche</b> : elle prend l'autre camp.</li>
+        <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt) — un seul coup entre deux machines, ou si elle est arrêtée.<br><b>Revanche</b> : chaque machine prend l'autre camp.</li>
         <li>Une proposition de <b>nulle</b> : pour l'instant c'est vous qui répondez à sa place.</li>
       </ul>
     </details>
@@ -932,6 +936,34 @@
         <p id="etat-base-coups" class="note-reglages"></p>
       </details>
 
+      <!-- Profils IA (phase 32, interface/reglages-ia.js) : les poids de
+           l'evaluation de la machine ; les trois profils integres ne changent
+           jamais (les retoucher cree un profil IA_<date>). -->
+      <details class="rubrique-reglages" data-rubrique="machine">
+        <summary>Machine (profils IA)</summary>
+        <label class="ligne-couleur">Profil IA <select id="select-profil-ia" aria-label="Profil IA"></select></label>
+        <div class="boutons-dialogue-cote-a-cote">
+          <button id="bouton-nouveau-profil-ia" class="bouton-dialogue" type="button">Nouveau</button>
+          <button id="bouton-supprimer-profil-ia" class="bouton-dialogue" type="button">Supprimer</button>
+          <button id="bouton-exporter-profil-ia" class="bouton-dialogue" type="button">Exporter</button>
+          <button id="bouton-importer-profil-ia" class="bouton-dialogue" type="button">Importer</button>
+        </div>
+        <label class="ligne-couleur">Style de base
+          <select id="select-style-profil-ia">
+            <option value="agressif">Agressif</option>
+            <option value="normal">Normal</option>
+            <option value="defensif">Défensif</option>
+          </select>
+        </label>
+        <label class="ligne-couleur" title="Par bille adverse éjectée">Gain (éjection) <input id="poids-ia-gain" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Par bille à soi perdue">Perte (éjection) <input id="poids-ia-perte" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Par pas de ses billes vers le centre">Centre <input id="poids-ia-centre" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <input id="poids-ia-cohesion" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les siennes) <input id="poids-ia-bordSoi" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <input id="poids-ia-bordAdverse" type="number" step="1" /></label>
+        <p id="note-profil-ia" class="note-reglages"></p>
+      </details>
+
       <details class="rubrique-reglages" data-rubrique="fichier">
         <summary>Fichier de réglages</summary>
         <div class="barre-reglages-fichier">
@@ -1100,36 +1132,52 @@
         </label>
       </div>
     </div>
-    <!-- Adversaire (phase 29, interface/choix-adversaire.js) : seulement au
-         debut d'une partie, jamais pour un changement de pendule en cours. -->
+    <!-- Joueurs (phases 29 et 32, interface/choix-joueurs.js) : seulement au
+         debut d'une partie, jamais pour un changement de pendule en cours.
+         Noir et Blanc sont chacun Humain ou Machine (machine contre machine
+         possible, saab), chaque machine avec son niveau, son profil IA
+         (Reglages) et son temps de reflexion. -->
     <div id="section-adversaire" class="section-adversaire" hidden>
-      <h3>Adversaire</h3>
-      <div class="boutons-dialogue-cote-a-cote">
-        <button id="bouton-adversaire-humain" class="bouton-filtre" type="button">Humain</button>
-        <button id="bouton-adversaire-machine" class="bouton-filtre" type="button">Machine</button>
+      <h3>Joueurs</h3>
+      <div class="choix-joueur" data-camp="noir">
+        <div class="ligne-choix-machine">
+          <span>Noir (commence)</span>
+          <button class="bouton-filtre" type="button" data-role="humain">Humain</button>
+          <button class="bouton-filtre" type="button" data-role="machine">Machine</button>
+        </div>
+        <div class="reglages-machine" hidden>
+          <div class="ligne-choix-machine">
+            <span>Niveau</span>
+            <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
+            <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et la réponse)">2</button>
+            <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
+          </div>
+          <label class="ligne-choix-machine">Profil IA <select class="choix-profil-ia"></select></label>
+          <label class="ligne-nombre-pendule">
+            Réflexion max (s)
+            <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
+          </label>
+        </div>
       </div>
-      <div id="reglages-machine" class="reglages-machine" hidden>
+      <div class="choix-joueur" data-camp="blanc">
         <div class="ligne-choix-machine">
-          <span>Niveau</span>
-          <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
-          <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et votre réponse)">2</button>
-          <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
+          <span>Blanc</span>
+          <button class="bouton-filtre" type="button" data-role="humain">Humain</button>
+          <button class="bouton-filtre" type="button" data-role="machine">Machine</button>
         </div>
-        <div class="ligne-choix-machine">
-          <span>Style</span>
-          <button class="bouton-filtre" type="button" data-style="agressif">Agressif</button>
-          <button class="bouton-filtre" type="button" data-style="normal">Normal</button>
-          <button class="bouton-filtre" type="button" data-style="defensif">Défensif</button>
+        <div class="reglages-machine" hidden>
+          <div class="ligne-choix-machine">
+            <span>Niveau</span>
+            <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
+            <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et la réponse)">2</button>
+            <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
+          </div>
+          <label class="ligne-choix-machine">Profil IA <select class="choix-profil-ia"></select></label>
+          <label class="ligne-nombre-pendule">
+            Réflexion max (s)
+            <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
+          </label>
         </div>
-        <div class="ligne-choix-machine">
-          <span>Elle joue</span>
-          <button class="bouton-filtre" type="button" data-camp="noir">Noir (commence)</button>
-          <button class="bouton-filtre" type="button" data-camp="blanc">Blanc</button>
-        </div>
-        <label class="ligne-nombre-pendule">
-          Réflexion max (s)
-          <input id="machine-reflexion-max" type="number" min="1" max="60" step="1" />
-        </label>
       </div>
     </div>
     <div class="boutons-dialogue-cote-a-cote">
@@ -1144,6 +1192,9 @@
        pose par le script ("Nom du Joueur (Noir)" / "(Blanc)"). -->
   <dialog id="dialogue-nom-joueur" class="dialogue">
     <input id="champ-nom-joueur" type="text" maxlength="30" autocomplete="off" />
+    <!-- Phase 32 (saab) : pour une machine, Arret (elle joue tout de suite son
+         meilleur coup si c'est son tour, puis s'arrete) ou Marche. -->
+    <button id="bouton-marche-machine" class="bouton-dialogue bouton-marche-machine" type="button" hidden></button>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-valider-nom-joueur" class="bouton-dialogue" type="button">Valider</button>
       <button id="bouton-fermer-nom-joueur" class="bouton-dialogue" type="button">Fermer</button>
@@ -1184,6 +1235,20 @@
            bien enregistree ; mis a jour a chaque coup/navigation par
            index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
       <div id="etat-sauvegarde"></div>
+      <!-- Tableau de reflexion de la machine (phase 32, saab : « depliable,
+           place sous le titre de la partie, ne s'affichant que sur une partie
+           utilisant l'IA ») : interface/reflexion-ia.js. -->
+      <details id="reflexion-ia" class="reflexion-ia" hidden>
+        <summary>Réflexion de la machine</summary>
+        <div class="reflexion-ia-defilement">
+          <table>
+            <thead>
+              <tr><th>Coup</th><th>Temps</th><th>Prof.</th><th>Positions</th><th>Éval.</th><th>Séquence prévue</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </details>
     </div>
     <!-- Rappel (phase 27) : visible tant qu'aucune pendule n'a ete touchee
          (au demarrage) ou pendant une pause volontaire — masque par
@@ -1387,6 +1452,7 @@
   <script src="./moteur/ia-evaluation.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
+  <script src="./moteur/profils-ia.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/nulle.js"></script>
@@ -1433,7 +1499,8 @@
   <script src="./rendu/conseils.js"></script>
   <script src="./rendu/menaces.js"></script>
   <script src="./interface/pendules.js"></script>
-  <script src="./interface/choix-adversaire.js"></script>
+  <script src="./interface/profils-ia.js"></script>
+  <script src="./interface/choix-joueurs.js"></script>
   <script src="./interface/pendules-mode.js"></script>
   <script src="./interface/ia.js"></script>
   <script src="./interface/creation-partie.js"></script>
@@ -1479,6 +1546,7 @@
   <script src="./interface/bases-coups.js"></script>
   <script src="./interface/reglages-champs.js"></script>
   <script src="./interface/reglages-rubriques.js"></script>
+  <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
   <script src="./interface/commentaires.js"></script>
@@ -1486,6 +1554,7 @@
   <script src="./interface/menaces.js"></script>
   <script src="./interface/confirmation.js"></script>
   <script src="./interface/embranchement.js"></script>
+  <script src="./interface/reflexion-ia.js"></script>
   <script src="./interface/lecture-sequence.js"></script>
   <script src="./interface/saisie.js"></script>
 
@@ -1566,13 +1635,15 @@
       const arbreDepart = donneesReprises ? donneesVersArbre(donneesReprises) : undefined;
       // Plateau retourne de 180 degres (Revanche en face-a-face, phase 20bis, moteur/revanche.js).
       const plateauRetourne = donneesReprises ? Boolean(donneesReprises.PlateauRetourne) : Boolean(positionChoisie?.plateauRetourne);
-      // Contre la machine (phase 29, moteur/ia.js) : champ Adversaire du fichier,
-      // ou celui choisi au debut de la partie ; null entre humains. Une partie
-      // neuve donne a son camp le nom de la machine (niveau et style lisibles dans
-      // le titre).
-      const adversaire = lireAdversaire(donneesReprises ? donneesReprises.Adversaire : positionChoisie?.adversaire);
-      if (adversaire && !donneesReprises) joueurs[adversaire.camp] = nomDeLaMachine(adversaire);
-      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, adversaire };
+      // Contre la machine (phases 29 et 32, moteur/ia.js) : champ Machines du
+      // fichier (ou l'ancien Adversaire), ou celles choisies au debut de la
+      // partie ; null entre humains. Une partie neuve donne a chaque camp tenu
+      // par une machine son nom (KAI2_Nor_5s : niveau, style, temps).
+      const machines = donneesReprises ? lireMachines(donneesReprises.Machines, donneesReprises.Adversaire) : lireMachines(positionChoisie?.machines);
+      for (const camp of ['noir', 'blanc']) {
+        if (machines?.[camp] && !donneesReprises) joueurs[camp] = nomDeLaMachine(machines[camp]);
+      }
+      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines };
     }
 
     let donneesReprises = chargerPartieActive();
@@ -1588,7 +1659,7 @@
       donneesReprises = null;
       etatDepart = construireDonneesDepart(null);
     }
-    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, adversaire } =
+    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines } =
       etatDepart;
     // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
     const correspondanceActive = correspondanceDesDonnees(donneesReprises);
@@ -1826,6 +1897,18 @@
         conseils?.actualiser();
       }
     );
+    // Profils IA (phase 32, interface/reglages-ia.js) : relus a chaque ouverture
+    // de Reglages (un profil a pu etre cree depuis).
+    const reglagesIA = demarrerReglagesIA({
+      select: document.getElementById('select-profil-ia'),
+      nouveau: document.getElementById('bouton-nouveau-profil-ia'),
+      supprimer: document.getElementById('bouton-supprimer-profil-ia'),
+      exporter: document.getElementById('bouton-exporter-profil-ia'),
+      importer: document.getElementById('bouton-importer-profil-ia'),
+      style: document.getElementById('select-style-profil-ia'),
+      note: document.getElementById('note-profil-ia'),
+    });
+    document.getElementById('bouton-reglages').addEventListener('click', () => reglagesIA.remplir());
     demarrerReglages(
       {
         bouton: document.getElementById('bouton-reglages'),
@@ -1866,13 +1949,7 @@
       annuler: document.getElementById('bouton-annuler-mode-pendules'),
       valider: document.getElementById('bouton-valider-mode-pendules'),
       fermer: document.getElementById('bouton-fermer-mode-pendules'),
-    }, demarrerChoixAdversaire({
-      section: document.getElementById('section-adversaire'),
-      humain: document.getElementById('bouton-adversaire-humain'),
-      machine: document.getElementById('bouton-adversaire-machine'),
-      reglagesMachine: document.getElementById('reglages-machine'),
-      reflexion: document.getElementById('machine-reflexion-max'),
-    }));
+    }, demarrerChoixJoueurs(document.getElementById('section-adversaire')));
     document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
       // `ouvrir` renvoie toujours des reglages (jamais `null`, voir
       // interface/pendules-mode.js) : les reappliquer ici est un non-evenement
@@ -1896,12 +1973,12 @@
       {
         optionsDisponibles: () => optionsDeFinDisponibles(partie.obtenirArbre()),
         suivante: (choix) => {
-          const suite = partieSuivante(choix, { joueurs, plateauRetourne, adversaire });
+          const suite = partieSuivante(choix, { joueurs, plateauRetourne, machines });
           definirPositionDepartSuivante(ecrirePosition(partie.obtenirArbre().racine.etat), variantName, {
             joueurs: suite.joueurs,
             reglagesPendules,
             plateauRetourne: suite.plateauRetourne,
-            adversaire: suite.adversaire,
+            machines: suite.machines,
           });
           oublierPartieActive();
         },
@@ -2337,8 +2414,8 @@
         pendulesActuelles: partie.obtenirPendulesActuelles(),
         // Les champs corr_* de KAAWA doivent survivre a chaque sauvegarde.
         correspondance: correspondanceActive,
-        // Contre la machine (phase 29) : son reglage survit a chaque sauvegarde.
-        adversaire,
+        // Contre la machine (phases 29 et 32) : leurs reglages survivent a chaque sauvegarde.
+        machines,
       };
     }
 
@@ -2405,13 +2482,13 @@
       // precedente). Fermer la boite sans rien changer demarre quand meme,
       // avec les reglages affiches (interface/pendules-mode.js) : plus
       // besoin de Valider a l'aveugle pour garder les reglages proposes.
-      const { adversaire: adversaireChoisi, ...reglagesChoisis } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
+      const { machines: machinesChoisies, ...reglagesChoisis } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
       const demarrer = () => {
         // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
         // definirPositionDepartSuivante) : les reglages choisis survivent
         // au rechargement qui suit, `construireDonneesDepart` plus haut
         // les relit via `positionChoisie.reglagesPendules`.
-        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis, adversaire: adversaireChoisi });
+        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis, machines: machinesChoisies });
         oublierPartieActive();
         demarrerRechargement();
       };
@@ -2524,13 +2601,14 @@
     // Nom d'un joueur : un clic sur son cadre, sur le plateau (interface/
     // noms-joueurs.js). Changer un nom change la sauvegarde (Players) et le
     // nom de la partie affiche : on sauvegarde donc tout de suite.
-    demarrerNomsJoueurs(
+    const nomsJoueurs = demarrerNomsJoueurs(
       svg,
       {
         dialogue: document.getElementById('dialogue-nom-joueur'),
         champ: document.getElementById('champ-nom-joueur'),
         valider: document.getElementById('bouton-valider-nom-joueur'),
         fermer: document.getElementById('bouton-fermer-nom-joueur'),
+        marcheMachine: document.getElementById('bouton-marche-machine'),
       },
       joueurs,
       NOMS_PAR_DEFAUT,
@@ -2772,9 +2850,9 @@
         // apres la confirmation de remplacement s'il y en a une : inutile
         // de la demander pour rien si elle est ensuite refusee.
         const charger = async () => {
-          const { adversaire, ...reglagesPendules } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
+          const { machines: machinesChoisies, ...reglagesPendules } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
           oublierPartieActive();
-          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules, adversaire });
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules, machines: machinesChoisies });
           demarrerRechargement();
         };
         // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
@@ -2933,9 +3011,20 @@
       (coupTexte) => partie.jouerCoupTexte(coupTexte)
     );
 
-    // Contre la machine (phase 29, interface/ia.js) : elle joue des que c'est a
-    // son camp, avec pour livre d'ouvertures la base de coups des Conseils.
-    if (adversaire) demarrerMachine({ partie, adversaire, obtenirBase: () => baseNextMove, svg });
+    // Contre la machine (phases 29 et 32, interface/ia.js) : chacune joue des que
+    // c'est a son camp, avec pour livre d'ouvertures la base de coups des
+    // Conseils ; son nom montre son evaluation et ouvre Marche/Arret (boite du
+    // nom), le tableau sous le titre montre sa reflexion.
+    if (machines) {
+      const commandeMachines = demarrerMachines({
+        partie,
+        machines,
+        obtenirBase: () => baseNextMove,
+        svg,
+        reflexion: demarrerReflexionIA(document.getElementById('reflexion-ia'), svg, machines),
+      });
+      nomsJoueurs.definirCommandeMachines(commandeMachines);
+    }
 
     // Menaces (phase 19) : les poussées possibles des deux camps sur la
     // position REGARDEE, jamais seulement les coups du joueur au trait —

@@ -13,6 +13,14 @@
 // horloge a elle : `maintenant()` et `echeance` lui sont donnes, ce qui la
 // rend testable avec une horloge simulee.
 //
+// Phase 32 (saab : « un tableau de reflexion ... et forcer l'IA a jouer avant
+// son temps ») : `suivi`, un objet que la recherche tient a jour — profondeur
+// finie, meilleur coup, evaluation, sequence prevue (la variante principale),
+// positions examinees — et ou l'on peut poser `arreter` : elle s'arrete alors
+// comme a l'echeance. La sequence se retient par distance a la racine
+// (`variantes`) : a chaque noeud, le meilleur coup suivi de la meilleure suite
+// de son enfant ; aucune incidence sur le coup choisi.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : caseDansLaDirection
 // (plateau.js), tousLesCoupsLegaux (regles.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
@@ -64,21 +72,27 @@ function melanger(coups, hasard) {
 function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   contexte.noeuds++;
   if (contexte.noeuds % NOEUDS_PAR_TRANCHE === 0) {
+    contexte.suivi.noeuds = contexte.noeuds;
     yield;
-    if (contexte.arretPossible && contexte.maintenant() >= contexte.echeance) throw ARRET_A_L_ECHEANCE;
+    const arret = contexte.maintenant() >= contexte.echeance || contexte.suivi.arreter;
+    if (contexte.arretPossible && arret) throw ARRET_A_L_ECHEANCE;
   }
   const signe = etat.joueurAuTrait === contexte.camp ? 1 : -1;
+  contexte.variantes[distance] = [];
   if (etat.vainqueur || profondeur === 0) {
-    const valeur = evaluerPosition(etat, contexte.camp, contexte.style);
+    const valeur = evaluerPosition(etat, contexte.camp, contexte.poids);
     const ajustee = etat.vainqueur ? valeur - Math.sign(valeur) * distance : valeur;
     return signe * ajustee;
   }
   const coups = ordonnerCoups(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait));
-  if (coups.length === 0) return signe * evaluerPosition(etat, contexte.camp, contexte.style);
+  if (coups.length === 0) return signe * evaluerPosition(etat, contexte.camp, contexte.poids);
   let meilleure = -Infinity;
   for (const coup of coups) {
     const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -beta, -alpha, contexte, distance + 1));
-    if (valeur > meilleure) meilleure = valeur;
+    if (valeur > meilleure) {
+      meilleure = valeur;
+      contexte.variantes[distance] = [coup, ...contexte.variantes[distance + 1]];
+    }
     if (valeur > alpha) alpha = valeur;
     if (alpha >= beta) break;
   }
@@ -86,11 +100,13 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
 }
 
 // Le meilleur coup pour le camp au trait de `etat`. `options` : { niveau,
-// style, hasard, maintenant, echeance }. Renvoie { coup, profondeur } — la
-// profondeur ENTIEREMENT examinee. La profondeur 1 va toujours au bout, meme
-// echeance depassee : il faut bien un coup a jouer.
-function* rechercherCoup(etat, { niveau, style, hasard, maintenant, echeance }) {
-  const contexte = { camp: etat.joueurAuTrait, style, noeuds: 0, maintenant, echeance, arretPossible: false };
+// poids, hasard, maintenant, echeance, suivi (facultatif, voir l'en-tete) }.
+// Renvoie { coup, profondeur, evaluation, sequence (des coups), noeuds } — la
+// profondeur ENTIEREMENT examinee, et son evaluation pour la machine. La
+// profondeur 1 va toujours au bout, meme echeance depassee ou arret demande :
+// il faut bien un coup a jouer.
+function* rechercherCoup(etat, { niveau, poids, hasard, maintenant, echeance, suivi = {} }) {
+  const contexte = { camp: etat.joueurAuTrait, poids, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
   const racine = ordonnerCoups(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard));
   let meilleurCoup = racine[0];
   let profondeurAtteinte = 0;
@@ -101,20 +117,24 @@ function* rechercherCoup(etat, { niveau, style, hasard, maintenant, echeance }) 
       const ordre = [meilleurCoup, ...racine.filter((coup) => coup !== meilleurCoup)];
       let alpha = -Infinity;
       let meilleurIci = null;
+      let sequenceIci = [];
       for (const coup of ordre) {
         const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -Infinity, -alpha, contexte, 1));
         if (meilleurIci === null || valeur > alpha) {
           alpha = valeur;
           meilleurIci = coup;
+          sequenceIci = [coup, ...contexte.variantes[1]];
         }
       }
       meilleurCoup = meilleurIci;
       profondeurAtteinte = profondeur;
+      Object.assign(suivi, { profondeur, coup: meilleurCoup, evaluation: alpha, sequence: sequenceIci });
       if (alpha >= VALEUR_VICTOIRE_IA - profondeur) break; // victoire forcee trouvee : inutile de chercher plus loin
     } catch (arret) {
       if (arret !== ARRET_A_L_ECHEANCE) throw arret;
       break;
     }
   }
-  return { coup: meilleurCoup, profondeur: profondeurAtteinte };
+  suivi.noeuds = contexte.noeuds;
+  return { coup: meilleurCoup, profondeur: profondeurAtteinte, evaluation: suivi.evaluation, sequence: suivi.sequence, noeuds: contexte.noeuds };
 }

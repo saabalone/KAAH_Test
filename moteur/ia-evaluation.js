@@ -13,7 +13,8 @@
 //   - le bord : une bille sur l'anneau exterieur est la seule qu'on puisse
 //     ejecter.
 // Les STYLES (saab) ne changent que les POIDS de ces termes, jamais leur
-// calcul.
+// calcul ; depuis la phase 32, un profil IA (moteur/profils-ia.js) peut
+// regler chaque poids a la main.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : casesDuPlateau,
 // versNotation, voisins, RAYON_PLATEAU (plateau.js), couleurAdverse (partie.js)
@@ -29,6 +30,9 @@ const VALEUR_VICTOIRE_IA = 1000000;
 // ordre une fois le centre compte AVEC le bord (une bille qui part au bord
 // quitte aussi le centre) : bille adverse du centre au bord, +62 / +55 / +52 ;
 // bille a soi, -40 / -55 / -78 (agressif / normal / defensif — test 5).
+// Les poids d'un profil, dans l'ordre ou Reglages les montre.
+const CLES_POIDS_IA = ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse'];
+
 const STYLES_IA = {
   agressif: { gain: 1200, perte: 800, centre: 8, cohesion: 3, bordSoi: 8, bordAdverse: 30 },
   normal: { gain: 1000, perte: 1000, centre: 10, cohesion: 5, bordSoi: 15, bordAdverse: 15 },
@@ -68,8 +72,8 @@ function ejectionsDe(etat, camp) {
   return camp === 'noir' ? etat.billesEjecteesNoires : etat.billesEjecteesBlanches;
 }
 
-// La valeur de `etat` pour `camp` — le camp DE L'IA — selon SON `style`
-// ('agressif', 'normal', 'defensif'). Une partie gagnee ou perdue vaut
+// La valeur de `etat` pour `camp` — le camp DE L'IA — selon SES `poids`
+// (STYLES_IA, ou ceux d'un profil). Une partie gagnee ou perdue vaut
 // ±VALEUR_VICTOIRE_IA.
 //
 // Le style s'applique toujours au camp de l'IA, quelle que soit sa couleur
@@ -78,9 +82,8 @@ function ejectionsDe(etat, camp) {
 // partie reste a somme nulle DE SON POINT DE VUE. Avec un style symetrique
 // (normal : gain = perte, bordSoi = bordAdverse), la valeur pour l'autre camp
 // en est exactement l'oppose.
-function evaluerPosition(etat, camp, style) {
+function evaluerPosition(etat, camp, poids) {
   if (etat.vainqueur) return etat.vainqueur === camp ? VALEUR_VICTOIRE_IA : -VALEUR_VICTOIRE_IA;
-  const poids = STYLES_IA[style];
   const lui = couleurAdverse(camp);
   const miens = mesuresDuCamp(etat, camp);
   const siens = mesuresDuCamp(etat, lui);

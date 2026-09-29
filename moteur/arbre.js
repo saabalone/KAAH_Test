@@ -380,6 +380,16 @@ function marquerFlecheDernierCoup(arbre, chemin, info) {
   return { ...arbre, racine };
 }
 
+// Attache au noeud d'un coup de la machine ce qu'elle en a pense (phase 32,
+// saab : le tableau de reflexion) — { source, profondeur, evaluation, noeuds,
+// duree, sequence }, venu de moteur/ia.js ; purement informatif, comme un
+// commentaire, et garde dans le fichier (moteur/sauvegarde.js, champ `ia`)
+// pour se relire en rejouant la partie.
+function marquerReflexionIA(arbre, chemin, reflexion) {
+  const racine = remplacerNoeud(arbre.racine, chemin, (noeud) => ({ ...noeud, reflexionIA: reflexion }));
+  return { ...arbre, racine };
+}
+
 // Attache un commentaire au noeud designe par `chemin` (phase 18) — le
 // champ `comment` de KAAWA, un texte libre par coup, ecrase a chaque appel
 // (jamais fusionne ni complete). Meme moule que `marquerStatutFin` : ne

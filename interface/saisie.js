@@ -91,7 +91,7 @@
 // reculerDansArbre, avancerDansArbre, avancerVersEnfant,
 // avancerJusquauProchainChoix, allerALaRacine, allerAuNoeud, supprimerBranche,
 // peutSupprimerNoeud, peutRemonterNoeud, remonterNoeud, marquerStatutFin, marquerPendulesSnapshot,
-// marquerCommentaire, etatCourant, noeudCourant, poserBille,
+// marquerCommentaire, marquerReflexionIA, etatCourant, noeudCourant, poserBille,
 // mettreEnEvidence, synchroniserBilles, animerDeplacements,
 // actualiserPistesEjection, actualiserTrait, actualiserCoordonneesBilles,
 // actualiserCoordonneesDestinations, actualiserBillesSelectionnables
@@ -639,7 +639,9 @@ function demarrerPartie(
     actualiserBillesSelectionnables(svg, etatCourant(arbre).joueurAuTrait);
   }
 
-  function jouerCoup(coup) {
+  // `reflexionIA` (facultatif, phase 32) : ce que la machine a pense de ce
+  // coup, pose sur son noeud (moteur/arbre.js, marquerReflexionIA).
+  function jouerCoup(coup, reflexionIA) {
     const etatAvant = etatCourant(arbre);
     const joueurQuiJoue = etatAvant.joueurAuTrait;
     const resultat = appliquerCoup(etatAvant, coup);
@@ -675,6 +677,7 @@ function demarrerPartie(
     // fichier). Meme garde que pour la date juste au-dessus : rejouer un
     // coup deja explore ne doit pas ecraser son instantane d'origine.
     if (arbre.racine !== arbreAvant.racine) arbre = marquerPendulesSnapshot(arbre, arbre.chemin, pendules.etatActuel());
+    if (reflexionIA && arbre.racine !== arbreAvant.racine) arbre = marquerReflexionIA(arbre, arbre.chemin, reflexionIA);
     // Nulle par repetition (phase 17) : APRES un coup REEL seulement, jamais en
     // navigant (voir interface/nulle.js). La position est retenue comme refusee
     // tout de suite ; la question n'est posee qu'une fois l'affichage a jour.
@@ -885,7 +888,7 @@ function demarrerPartie(
   // billes reel, a partir du plateau ACTUEL (jamais de la position
   // canonique de la base — voir moteur/next-move.js, qui a deja fait ce
   // travail de retraduction).
-  function jouerCoupTexte(texteNacre) {
+  function jouerCoupTexte(texteNacre, reflexionIA) {
     const etat = etatCourant(arbre);
     if (etat.vainqueur || estStatutDefinitif(noeudCourant(arbre).statutFin)) return; // meme garde que gererClic : position definitive
     // Meme garde de pause que le clic sur le plateau, plus haut : trouve en
@@ -897,7 +900,7 @@ function demarrerPartie(
     if (jeuSuspendu()) return;
     if (sansSuite()) return; // meme garde que gererClic, voir plus bas
     const coup = lireCoupNacre(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, texteNacre);
-    if (coup) jouerCoup(coup);
+    if (coup) jouerCoup(coup, reflexionIA);
   }
 
   return {
