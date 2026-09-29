@@ -637,7 +637,8 @@
         <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ ».<br>(un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs)</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
         <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
-        <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).</li>
+        <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).<br>En fin de partie, les billes du perdant prennent la taille d'un trou (celles des deux camps pour une nulle) ; elles la gardent quand on navigue dans cette partie, et la reprennent sur une branche.</li>
+        <li><b>Pendule ou Chrono</b> : seule la partie réellement jouée est à la pendule choisie (Bonus, Délai), jusqu'à sa fin.<br>Tout le reste — une branche, ou la suite jouée après une fin au temps — est en <b>Chrono</b> : le temps de chaque coup, qui part de 0 s, sans jamais faire perdre.<br>Perdue au temps, la partie reste perdue (titre en <b>T</b>) même si on continue à jouer après.<br>Le temps de chaque coup est enregistré : en naviguant, chaque pendule montre le temps d'alors.<br>Le petit cadre collé contre chaque pendule (côté plateau) est le <b>temps total</b> pris par ce camp jusqu'au coup regardé.</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> : vos billes jouables (un léger voile vert dessus, désactivable dans Réglages, « Sélection sur bille »), les cases de destination une fois une bille choisie, un choix de branche, des confirmations, une nulle, Annuler, une pendule qui attend.<br>Sélectionner une bille remplace son propre voile vert par un anneau orange, sans toucher aux autres.</li>
       </ul>
     </details>
@@ -649,6 +650,7 @@
         <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.</li>
         <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
+        <li>Le titre de Mes parties, Variantes, Puzzles et Corbeille donne le <b>nombre</b> de lignes affichées et leur <b>volume</b>, ex. « Mes parties (11, 10k) » (k = mille octets, M = million).</li>
         <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.<br>Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).<br>Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles.<br>Le ▶ devient orange tant qu'un filtre cache des parties.</li>
         <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).<br>Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.<br>En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.<br>Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
         <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de coups pour la position affichée.<br>Par défaut, la base de KAAWA où, dans une position vraiment symétrique (ex. Marguerite Belge), deux coups symétriques ont la même stat, la somme des deux (a1d4 et i9f6).</li>
@@ -656,7 +658,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
-        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, des curseurs pour la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, et des ronds verts — jamais plus grands que la bille.<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.</li>
+        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, des curseurs pour la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, et des ronds verts — jamais plus grands que la bille.<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
         <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
@@ -672,7 +674,7 @@
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
-        <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.</li>
+        <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.<br>Elle continue à jouer après une fin au temps, et sur une branche (en Chrono).</li>
         <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt).<br><b>Revanche</b> : elle prend l'autre camp.</li>
         <li>Une proposition de <b>nulle</b> : pour l'instant c'est vous qui répondez à sa place.</li>
       </ul>
@@ -681,7 +683,7 @@
     <details>
       <summary>Corbeille</summary>
       <ul>
-        <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b> de sa boîte.<br>Un bouton <b>Corbeille</b> en bas de Mes parties, de Variantes et de Puzzles, chacune ne montrant que ce que cette boîte a supprimé.</li>
+        <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b> de sa boîte.<br>Un bouton <b>Corbeille</b> en bas de Mes parties, de Variantes et de Puzzles, chacune ne montrant que ce que cette boîte a supprimé ; le bouton dit combien elle en contient, ex. « Corbeille (3) ».</li>
         <li>Seules vos positions « My » se suppriment : les variantes et puzzles de KAAWA ne s'effacent jamais.</li>
         <li>Cochez une ou plusieurs lignes (ou la case du haut pour tout sélectionner), puis <b>Restaurer la sélection</b> : elles reviennent exactement comme elles étaient.<br>La boîte reste ouverte ; la page se recharge une seule fois, en la fermant.</li>
         <li><b>Vider la corbeille</b> est la seule action définitive (seulement pour la boîte ouverte) — une confirmation le rappelle.</li>
@@ -709,9 +711,10 @@
     <details>
       <summary>Revenir en arrière, Annuler, branches</summary>
       <ul>
-        <li><b>|&lt;&lt;</b> début, <b>&lt;&lt;</b> coup précédent, <b>&gt;&gt;</b> coup suivant, <b>&gt;&gt;|</b> dernier coup. On peut naviguer sans rien perdre.</li>
+        <li>La barre <b>|&lt;&lt;</b> début, <b>&lt;&lt;</b> coup précédent, <b>▶&#xFE0E;</b> Lecture, <b>&gt;&gt;</b> coup suivant, <b>&gt;&gt;|</b> dernier coup n'apparaît qu'avec la Séquence ou les Commentaires, entre Annuler et le tableau. On peut naviguer sans rien perdre.</li>
+        <li><b>Lecture</b> (▶&#xFE0E;) rejoue la séquence toute seule, un coup par seconde ; à une branche, elle demande laquelle suivre puis continue. <b>❚❚</b> l'arrête ; toucher n'importe quel coup l'arrête aussi.</li>
         <li>Jouer un autre coup depuis une position passée crée une <b>branche</b> : les anciens coups restent dans la Séquence.</li>
-        <li><b>Annuler</b> (vert) <b>supprime</b> le dernier coup, après confirmation. Il est grisé quand il n'y a rien à annuler.</li>
+        <li>Le grand bouton <b>Annuler</b> (vert), toujours visible sous le plateau (au milieu en face-à-face), <b>supprime</b> le dernier coup, après confirmation. Il est grisé quand il n'y a rien à annuler.</li>
       </ul>
     </details>
 
@@ -1188,7 +1191,7 @@
          pendule, et pendant une navigation dans l'historique ou une partie
          terminee (cliquer n'y ferait rien). Demande par saab : les testeurs
          ne savaient pas qu'il fallait toucher une pendule pour demarrer.
-         Place ici par defaut, mais TOUJOURS deplace juste apres #navigation
+         Place ici par defaut, mais TOUJOURS deplace juste apres #barre-annuler
          par interface/disposition.js (correctif, saab : apparaitre au-dessus
          du plateau lui faisait changer de taille) — sa place definitive ne
          depend donc jamais de son emplacement dans ce fichier. -->
@@ -1212,10 +1215,17 @@
        place finale, au bas du plateau) mais interface/disposition.js les
        deplace au bas d'#arbre-panneau des qu'on passe sur ordinateur —
        voir ce fichier pour pourquoi. -->
+  <!-- Phase 31 (saab, 2026-09-30) : un grand Annuler a part, toujours visible,
+       facile a atteindre pour les deux joueurs ; la barre de navigation, elle,
+       vit avec les tableaux (Sequence/Commentaires), entre Annuler et eux —
+       voir interface/disposition.js. -->
+  <div id="barre-annuler">
+    <button id="nav-annuler" title="Annuler le dernier coup">Annuler</button>
+  </div>
   <div id="navigation">
     <button id="nav-debut" title="Revenir au début">|&lt;&lt;</button>
     <button id="nav-precedent" title="Coup précédent">&lt;&lt;</button>
-    <button id="nav-annuler" title="Annuler le dernier coup">Annuler</button>
+    <button id="nav-lecture" title="Lecture : jouer la séquence coup après coup">▶&#xFE0E;</button>
     <button id="nav-suivant" title="Coup suivant">&gt;&gt;</button>
     <button id="nav-fin" title="Aller au dernier coup">&gt;&gt;|</button>
   </div>
@@ -1360,6 +1370,7 @@
   <script src="./moteur/fleche-dernier-coup.js"></script>
   <script src="./moteur/partie.js"></script>
   <script src="./moteur/arbre.js"></script>
+  <script src="./moteur/bilan-sequence.js"></script>
   <script src="./moteur/historique-navigation.js"></script>
   <script src="./moteur/notation.js"></script>
   <script src="./moteur/pendules.js"></script>
@@ -1382,6 +1393,7 @@
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
   <script src="./moteur/corbeille.js"></script>
+  <script src="./moteur/compte-volume.js"></script>
   <script src="./moteur/ordre-groupes.js"></script>
   <script src="./moteur/positions-my.js"></script>
   <script src="./moteur/occurrences.js"></script>
@@ -1430,6 +1442,7 @@
   <script src="./interface/face-a-face.js"></script>
   <script src="./interface/sauvegarde.js"></script>
   <script src="./interface/fichiers.js"></script>
+  <script src="./interface/compte-titre.js"></script>
   <script src="./interface/filtre-parties.js"></script>
   <script src="./interface/mes-parties.js"></script>
   <script src="./interface/filtres-classement.js"></script>
@@ -1473,6 +1486,7 @@
   <script src="./interface/menaces.js"></script>
   <script src="./interface/confirmation.js"></script>
   <script src="./interface/embranchement.js"></script>
+  <script src="./interface/lecture-sequence.js"></script>
   <script src="./interface/saisie.js"></script>
 
   <script>
@@ -1925,6 +1939,7 @@
         suivant: document.getElementById('nav-suivant'),
         fin: document.getElementById('nav-fin'),
         annuler: document.getElementById('nav-annuler'),
+        lecture: document.getElementById('nav-lecture'),
       },
       confirmation.demander,
       embranchement.demander,
@@ -2348,6 +2363,7 @@
 
     demarrerDispositionNavigation(
       document.getElementById('navigation'),
+      document.getElementById('barre-annuler'),
       document.getElementById('colonne-principale'),
       document.getElementById('arbre-panneau'),
       document.getElementById('entete-partie'),

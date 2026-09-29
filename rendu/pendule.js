@@ -174,6 +174,46 @@ function masquerPause(svg) {
 // Dans le groupe de la pendule : il tourne avec elle, et le toucher la touche.
 const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE / 2 + BANDE_LIBELLE_PENDULE / 2;
 
+// Le temps CUMULE du camp dans la partie (phase 30, saab) : un petit cadre
+// vertical colle sous la bande du libelle (cote plateau), aux couleurs de la
+// pendule mais independant d'elle (pas dans son groupe : le toucher ne met pas
+// en pause). Court : il commence au bout exterieur de la pendule — en haut pour
+// celle du haut, en bas pour celle du bas — pour ne pas avancer sur le plateau.
+const LONGUEUR_CUMUL_PENDULE = RAYON_PISTE * 5;
+
+function dessinerCumulPendule(svg, camp, { x, y }, enHaut) {
+  // Avant la rotation de 90 degres, +x descend a l'ecran : le bout exterieur
+  // est le debut du cadre en haut, sa fin en bas.
+  const debut = enHaut ? x - LARGEUR_BOUTON_PENDULE / 2 : x + LARGEUR_BOUTON_PENDULE / 2 - LONGUEUR_CUMUL_PENDULE;
+  const yCadre = y + HAUTEUR_BOUTON_PENDULE / 2 + BANDE_LIBELLE_PENDULE;
+  const groupe = creerElementSVG('g', {
+    id: `cumul-pendule-${camp}`,
+    class: 'cumul-pendule',
+    transform: `rotate(${ROTATION_PENDULE} ${x} ${y})`,
+  });
+  groupe.appendChild(
+    creerElementSVG('rect', {
+      x: debut,
+      y: yCadre,
+      width: LONGUEUR_CUMUL_PENDULE,
+      height: BANDE_LIBELLE_PENDULE,
+      rx: RAYON_PISTE * 0.4,
+      class: `cadre-pendule cadre-pendule-${camp}`,
+    })
+  );
+  groupe.appendChild(
+    creerElementSVG('text', {
+      id: `texte-cumul-pendule-${camp}`,
+      class: 'libelle-pendule',
+      x: debut + LONGUEUR_CUMUL_PENDULE / 2,
+      y: yCadre + BANDE_LIBELLE_PENDULE / 2,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+    })
+  );
+  svg.appendChild(groupe);
+}
+
 function dessinerLibellePendule(svg, camp, { x, y }) {
   svg.querySelector(`#bouton-pendule-${camp}`).appendChild(
     creerElementSVG('text', {

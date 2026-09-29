@@ -10,7 +10,14 @@
 //   - "pendule" : chaque camp a un temps qui decompte ; seul le joueur au
 //     trait voit le sien decroitre, et un temps a zero fait perdre.
 //   - "chrono" : pas de decompte qui fait perdre, on mesure juste le temps
-//     pris sur le coup en cours (remis a zero a chaque coup joue).
+//     pris sur le coup en cours ; le temps du coup joue reste affiche pendant
+//     le coup de l'adversaire, dont le chrono part de zero (KAAWA).
+// Phase 30 (saab, 2026-09-30) : seule la ligne reellement jouee est a la
+// pendule, jusqu'a sa fin ; les branches et la suite jouee apres la fin sont en
+// chrono (interface/pendules.js tient les deux). Dans les deux modes,
+// `dureeCoupEnCours` mesure le coup en cours (delai compris) et
+// `dureeDernierCoup` garde celle du coup qui vient d'etre joue : elle
+// s'enregistre sur son noeud (moteur/sauvegarde.js, champ `time`).
 //
 // La sirene d'alerte sonore (fin de la phase 10 dans PLAN.md) est laissee
 // a la phase 21 ("Les sons") : ce fichier n'a besoin de rien de plus qu'un
@@ -42,6 +49,8 @@ function creerPendules(reglages) {
     bonusParCoup: reglages.bonusParCoup ?? 0,
     bonusParEjection: reglages.bonusParEjection ?? 0,
     perdantParTemps: null,
+    dureeCoupEnCours: 0,
+    dureeDernierCoup: 0,
   };
 }
 
@@ -52,9 +61,10 @@ function ecoulerTemps(pendules, joueurAuTrait, secondes) {
   if (pendules.perdantParTemps) return pendules; // partie deja perdue au temps, plus rien ne bouge
 
   const cle = joueurAuTrait === 'noir' ? 'tempsNoir' : 'tempsBlanc';
+  const dureeCoupEnCours = pendules.dureeCoupEnCours + secondes;
 
   if (pendules.mode === 'chrono') {
-    return { ...pendules, [cle]: pendules[cle] + secondes };
+    return { ...pendules, [cle]: pendules[cle] + secondes, dureeCoupEnCours };
   }
 
   const delaiRestant = Math.max(0, pendules.delaiRestant - secondes);
@@ -66,38 +76,35 @@ function ecoulerTemps(pendules, joueurAuTrait, secondes) {
     delaiRestant,
     [cle]: nouveauTemps,
     perdantParTemps: nouveauTemps === 0 ? joueurAuTrait : null,
+    dureeCoupEnCours,
   };
 }
 
-// Bascule vers le mode chrono, sans toucher au temps deja ecoule ni aux
-// compteurs — utilise quand la partie continue en analyse apres sa fin
-// (voir interface/saisie.js) : le decompte qui fait perdre n'a alors plus
-// de sens. KAAWA fait la meme bascule pour toute branche qui n'est plus
-// la ligne reellement jouee (son `clock_mode`).
-function passerEnChrono(pendules) {
-  if (pendules.mode === 'chrono') return pendules;
-  return { ...pendules, mode: 'chrono', perdantParTemps: null };
-}
-
 // A appeler juste apres qu'un coup soit joue par `joueurQuiAJoue` : ajoute
-// les bonus a son temps (mode pendule), ou remet son chrono a zero pour le
-// prochain coup (mode chrono). Le delai reparts toujours complet pour le
-// tour suivant : il ne s'accumule pas d'un tour a l'autre.
+// les bonus a son temps (mode pendule), ou, en mode chrono, laisse affiche le
+// temps de son coup et fait partir de zero celui de l'adversaire (KAAWA). Le
+// delai repart toujours complet pour le tour suivant : il ne s'accumule pas
+// d'un tour a l'autre.
 function appliquerBonusDeCoup(pendules, joueurQuiAJoue, ejection) {
   const cle = joueurQuiAJoue === 'noir' ? 'tempsNoir' : 'tempsBlanc';
-  const delaiRestant = pendules.delai;
+  const cleAdverse = joueurQuiAJoue === 'noir' ? 'tempsBlanc' : 'tempsNoir';
+  const fin = { delaiRestant: pendules.delai, dureeDernierCoup: pendules.dureeCoupEnCours, dureeCoupEnCours: 0 };
 
   if (pendules.mode === 'chrono') {
-    return { ...pendules, [cle]: 0, delaiRestant };
+    return { ...pendules, [cleAdverse]: 0, ...fin };
   }
 
   const bonus = pendules.bonusParCoup + (ejection ? pendules.bonusParEjection : 0);
-  return { ...pendules, [cle]: pendules[cle] + bonus, delaiRestant };
+  return { ...pendules, [cle]: pendules[cle] + bonus, ...fin };
 }
 
 // Change de mode EN COURS DE PARTIE (phase 22bis, bouton dedie de la
-// colonne de gauche) : `tempsNoir`/`tempsBlanc` (le temps deja ecoule)
-// survivent tels quels, jamais remis a `tempsInitial` — tout le reste vient
+// colonne de gauche) : entre deux pendules (Bonus, Delai),
+// `tempsNoir`/`tempsBlanc` (le temps restant) survivent tels quels, jamais
+// remis a `tempsInitial`. Un chrono, lui, repart de zero (phase 30, saab :
+// « Mode Chrono est a 300 s, il faut le mettre a 0 s ») ; en sortir repart du
+// `tempsInitial` choisi — un temps de coup n'est pas un temps restant. Tout le
+// reste vient
 // ENTIEREMENT de `nouveauxReglages`, jamais un melange avec les anciens
 // (passer de Bonus a Délai ne doit garder aucune trace de bonusParCoup).
 // `delaiRestant` redemarre plein : un délai a moitie ecoule n'a plus de
@@ -106,8 +113,15 @@ function appliquerBonusDeCoup(pendules, joueurQuiAJoue, ejection) {
 // de mode est une decision de saab, jamais cense rejouer un verdict deja
 // rendu.
 function changerModePendules(pendules, nouveauxReglages) {
+  const temps =
+    nouveauxReglages.mode === 'chrono'
+      ? { tempsNoir: 0, tempsBlanc: 0 }
+      : pendules.mode === 'chrono'
+        ? { tempsNoir: nouveauxReglages.tempsInitial, tempsBlanc: nouveauxReglages.tempsInitial }
+        : {};
   return {
     ...pendules,
+    ...temps,
     mode: nouveauxReglages.mode,
     modeChoisi: nouveauxReglages.modeChoisi,
     delai: nouveauxReglages.delai ?? 0,

@@ -7,7 +7,7 @@
 // copie telle quelle de game_my/Br_2609120343...json), pas devine.
 //
 // Champs de KAAWA volontairement OMIS DU FICHIER ici, decision documentee :
-// `move_Arrows`, `expanded`, `clock_mode`. Ce sont des details d'affichage
+// `move_Arrows`, `expanded`. Ce sont des details d'affichage
 // internes a KAAWA (replis de l'arbre pre-ouverts...) — verifie dans son
 // code source que CHAQUE lecture de ces champs passe par
 // `.get(cle, valeur_par_defaut)`, jamais un acces direct qui ferait
@@ -23,14 +23,18 @@
 // disponible a cet endroit) — jamais dupliquer une regle de jeu (CLAUDE.md).
 // Un fichier ecrit par KAAH n'ecrit donc pas non plus ce champ.
 //
-// Simplification assumee, a noter honnetement : le champ `mode` d'un
-// instantane de pendules reconstruit a l'import (marquerPendulesSnapshot)
-// est deduit de `is_origin` ('pendule' pour l'origine, 'chrono' sinon).
-// C'est inexact dans un cas rare : une branche jouee AVANT la fin de la
-// partie reelle tournait alors encore en mode pendule. Consequence unique
-// et mineure : l'alerte visuelle "temps bas" (fond rouge) peut manquer en
-// consultant l'historique d'une telle branche apres import — jamais le
-// temps affiche lui-meme, ni aucune regle de jeu.
+// Le temps de chaque coup (phase 30, saab) : `clock_mode` (le mode de la
+// pendule a ce coup, ecrit par KAAWA lui-meme), `time` (la duree du coup,
+// arrondie au dixieme — KAAWA relit ce champ, sync_tree_to_legacy_lists, sans
+// jamais l'ecrire) et `Timer.durations` (celles de la ligne reellement jouee,
+// comme KAAWA). Sur un vrai fichier KAAWA, un noeud sans `clock_mode` a le mode
+// que KAAWA lui donne (pendule sur l'origine, chrono sinon), et un noeud chrono
+// sans `time` a pour duree le temps de celui qui a joue (KAAWA y ecrit la duree
+// du coup).
+//
+// La fin de la partie (Term, Winner, Eject, titre) est la PREMIERE fin de la
+// ligne reellement jouee (moteur/arbre.js, finDeLaPartie) : apres un temps
+// ecoule, la suite prolonge cette ligne en chrono sans changer le resultat.
 //
 // Champ AJOUTE par KAAH, absent des vrais fichiers KAAWA : `NullesRefusees`
 // (phase 17, les positions refusees par repetition — voir moteur/arbre.js,
@@ -76,14 +80,20 @@ function nomDuJoueur(camp, joueurs) {
 function ecrireVainqueur(noeud, chemin, finDePartie, joueurs) {
   if (noeud.vainqueurConnu !== undefined) return noeud.vainqueurConnu;
   if (noeud.etat.vainqueur) return nomDuJoueur(noeud.etat.vainqueur, joueurs);
-  // Abandon (statut "R") fait dans KAAH : celui qui abandonne est celui qui a
-  // le trait sur ce noeud (KAAWA, action_resign), l'autre camp gagne.
-  if (noeud.statutFin === 'R') return nomDuJoueur(couleurAdverse(noeud.etat.joueurAuTrait), joueurs);
+  // Abandon (statut "R") ou temps ecoule ("T") : perd celui qui a le trait sur
+  // ce noeud (KAAWA, action_resign ; sa pendule tournait), l'autre camp gagne.
+  if (noeud.statutFin === 'R' || noeud.statutFin === 'T') return nomDuJoueur(couleurAdverse(noeud.etat.joueurAuTrait), joueurs);
   if (finDePartie && cheminsEgaux(finDePartie.chemin, chemin)) {
     const gagnant = finDePartie.camp === 'noir' ? 'blanc' : 'noir';
     return nomDuJoueur(gagnant, joueurs);
   }
   return 'None';
+}
+
+// La duree d'un coup telle que KAAWA l'ecrit : arrondie au dixieme de seconde.
+const DIXIEMES_PAR_SECONDE = 10;
+function dureeArrondie(secondes) {
+  return Math.round(secondes * DIXIEMES_PAR_SECONDE) / DIXIEMES_PAR_SECONDE;
 }
 
 function noeudVersDonnees(noeud, chemin, metadonnees) {
@@ -114,6 +124,8 @@ function noeudVersDonnees(noeud, chemin, metadonnees) {
   } else if (noeud.pendulesSnapshot) {
     donnees.p1_time = noeud.pendulesSnapshot.tempsNoir;
     donnees.p2_time = noeud.pendulesSnapshot.tempsBlanc;
+    if (noeud.pendulesSnapshot.mode) donnees.clock_mode = noeud.pendulesSnapshot.mode;
+    if (typeof noeud.pendulesSnapshot.dureeDernierCoup === 'number') donnees.time = dureeArrondie(noeud.pendulesSnapshot.dureeDernierCoup);
   }
 
   if (noeud.statutFin) {
@@ -132,8 +144,15 @@ function noeudVersDonnees(noeud, chemin, metadonnees) {
 // { chemin, camp } (le camp qui a perdu au temps, voir l'en-tete du
 // fichier), pendulesActuelles (l'instantane en direct, pour Chrono) }.
 function arbreVersDonnees(arbre, metadonnees) {
-  const origine = noeudA(arbre, arbre.cheminOrigine);
+  const cheminResultat = finDeLaPartie(arbre) ?? arbre.cheminOrigine;
+  const origine = noeudA(arbre, cheminResultat);
   const statutOrigine = origine.statutFin ?? '_';
+  const durees = [];
+  let noeudOrigine = arbre.racine;
+  for (const index of arbre.cheminOrigine) {
+    noeudOrigine = noeudOrigine.enfants[index];
+    durees.push(dureeArrondie(noeudOrigine.pendulesSnapshot?.dureeDernierCoup ?? 0));
+  }
   const pendulesActuelles = metadonnees.pendulesActuelles ?? { tempsNoir: 0, tempsBlanc: 0 };
 
   return {
@@ -143,14 +162,15 @@ function arbreVersDonnees(arbre, metadonnees) {
     Players: { P1_black: metadonnees.joueurs.noir, P2_white: metadonnees.joueurs.blanc },
     History: [ecrirePosition(arbre.racine.etat)],
     Tree: noeudVersDonnees(arbre.racine, [], metadonnees),
-    Winner: statutOrigine === '_' ? 'None' : ecrireVainqueur(origine, arbre.cheminOrigine, metadonnees.finDePartie, metadonnees.joueurs),
+    Winner: statutOrigine === '_' ? 'None' : ecrireVainqueur(origine, cheminResultat, metadonnees.finDePartie, metadonnees.joueurs),
     Eject: { P1: origine.etat.billesEjecteesNoires, P2: origine.etat.billesEjecteesBlanches },
     Term: statutOrigine,
     Timer: {
       mode: metadonnees.reglagesPendules.mode,
-      // Jamais relu par le chargeur de KAAWA (verifie : seul
-      // Timer.settings l'est) — vide plutot qu'invente.
-      durations: [],
+      // Jamais relu par le chargeur de KAAWA (verifie : seul Timer.settings
+      // l'est) ; la duree de chaque coup de la ligne reellement jouee, comme
+      // KAAWA l'ecrit (phase 30).
+      durations: durees,
       settings: {
         p1_initial: metadonnees.reglagesPendules.tempsInitial,
         p2_initial: metadonnees.reglagesPendules.tempsInitial,
@@ -193,6 +213,21 @@ function arbreVersDonnees(arbre, metadonnees) {
 function fixerOrigine(arbre, chemin, estOrigine) {
   const racine = remplacerNoeud(arbre.racine, chemin, (noeud) => ({ ...noeud, estOrigine }));
   return { ...arbre, racine };
+}
+
+// La ligne reellement jouee du fichier jusqu'a la FIN DE LA PARTIE (premier
+// `term_status`), jamais au-dela : c'est elle que compte le titre (tours,
+// moteur/nom-partie.js), meme quand la suite a ete jouee apres un temps ecoule.
+function cheminPartieDuFichier(donneesRacine) {
+  const chemin = [];
+  let noeud = donneesRacine;
+  for (;;) {
+    if (noeud.term_status && noeud.term_status !== '_') return chemin;
+    const index = (noeud.children ?? []).findIndex((enfant) => enfant.is_origin);
+    if (index === -1) return chemin;
+    chemin.push(index);
+    noeud = noeud.children[index];
+  }
 }
 
 // Le chemin qui suit `is_origin` a chaque etage, depuis la racine —
@@ -248,11 +283,14 @@ function rejouerEnfants(arbre, chemin, enfantsDonnees) {
     arbre = marquerFlecheDernierCoup(arbre, cheminEnfant, informationFlecheDernierCoup(coup));
 
     if (typeof enfantDonnees.p1_time === 'number') {
+      // Voir l'en-tete du fichier pour un vrai fichier KAAWA (sans clock_mode ni time).
+      const mode = enfantDonnees.clock_mode ?? (enfantDonnees.is_origin ? 'pendule' : 'chrono');
+      const tempsDuJoueur = etatParent.joueurAuTrait === 'noir' ? enfantDonnees.p1_time : enfantDonnees.p2_time;
       arbre = marquerPendulesSnapshot(arbre, cheminEnfant, {
         tempsNoir: enfantDonnees.p1_time,
         tempsBlanc: enfantDonnees.p2_time,
-        // Voir l'en-tete du fichier : approximation assumee et documentee.
-        mode: enfantDonnees.is_origin ? 'pendule' : 'chrono',
+        mode,
+        dureeDernierCoup: typeof enfantDonnees.time === 'number' ? enfantDonnees.time : mode === 'chrono' ? tempsDuJoueur : 0,
       });
     }
 

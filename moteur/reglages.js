@@ -201,6 +201,17 @@ function memeValeur(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+// Un reglage differe-t-il de Défaut ? (phase 31, saab : sa rubrique passe en
+// orange). Une couleur ([r, g, b, a], les seuls tableaux des reglages) se
+// compare en hex, ce que montre le selecteur : un aller-retour par lui arrondit
+// les composantes sans changer la couleur.
+function reglageDifferentDuDefaut(reglages, categorie, cle) {
+  const valeur = reglages[categorie]?.[cle];
+  const defaut = REGLAGES_PAR_DEFAUT[categorie]?.[cle];
+  if (Array.isArray(valeur) && Array.isArray(defaut)) return couleurVersHex(valeur) !== couleurVersHex(defaut);
+  return !memeValeur(valeur, defaut);
+}
+
 // L'inverse de fusionnerReglages : ne garde QUE ce qui differe du defaut —
 // un fichier sparse, exactement comme les vrais settings_N.json de KAAWA
 // (verifie sur un exemplaire reel : 6 categories partielles seulement,

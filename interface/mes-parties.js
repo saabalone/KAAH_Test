@@ -78,7 +78,8 @@
 // (moteur/arbre.js), dessinerPlateau, poserBille (rendu/plateau-svg.js),
 // dessinerEjectionsApercu (rendu/ejections-apercu.js), depuisNotation
 // (moteur/plateau.js), envoyerALaCorbeille (interface/corbeille.js,
-// phase 26), elementsDuTitre (moteur/nom-partie.js), partieCorrespond
+// phase 26), afficherCompteDansTitre (interface/compte-titre.js),
+// elementsDuTitre (moteur/nom-partie.js), partieCorrespond
 // (moteur/filtre-parties.js) et demarrerFiltreParties (interface/
 // filtre-parties.js) viennent tous des fichiers charges avant celui-ci dans
 // index.html.
@@ -239,6 +240,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   function rafraichir() {
     elements.liste.innerHTML = '';
     const parties = partiesFiltrees();
+    afficherCompteDansTitre(elements.dialogue.querySelector('h2'), parties);
     // Une partie supprimee ailleurs, ou cachee par le filtre, ne doit pas
     // rester "cochee" a notre insu : "Supprimer la selection" ne touche
     // jamais une partie qu'on ne voit pas.

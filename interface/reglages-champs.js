@@ -9,7 +9,7 @@
 // interface/bases-coups.js).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurVersHex,
-// hexVersCouleur (moteur/couleurs.js), BORNES_REGLAGES_KAAH (moteur/reglages.js)
+// hexVersCouleur (moteur/couleurs.js), BORNES_REGLAGES_KAAH, reglageDifferentDuDefaut (moteur/reglages.js)
 // viennent de fichiers charges avant celui-ci.
 
 const POURCENT = 100;
@@ -92,6 +92,23 @@ function chaqueChampReglage(dialogue, action) {
 // Met chaque commande a la valeur de `reglages`.
 function remplirChampsReglages(dialogue, reglages) {
   chaqueChampReglage(dialogue, (champ, type, categorie, cle) => type.lire(champ, reglages[categorie][cle]));
+}
+
+// Orange (phase 31, saab : « si je modifie dans Billes/Billes noires, Billes et
+// Billes noires passent en orange, Billes blanches ne change pas ») : la ligne
+// d'un reglage qui differe de Défaut, et sa rubrique. `autres` : les commandes
+// hors de la table ([commande, categorie, cle] : mode simple, base de coups).
+function marquerReglagesModifies(dialogue, reglages, autres) {
+  const lignes = [
+    ...CHAMPS_REGLAGES.map(([id, , categorie, cle]) => [dialogue.querySelector(`#${id}`), categorie, cle]),
+    ...autres,
+  ];
+  for (const [commande, categorie, cle] of lignes) {
+    (commande.closest('label') ?? commande).classList.toggle('reglage-modifie', reglageDifferentDuDefaut(reglages, categorie, cle));
+  }
+  for (const rubrique of dialogue.querySelectorAll('details.rubrique-reglages')) {
+    rubrique.classList.toggle('rubrique-modifiee', rubrique.querySelector('.reglage-modifie') !== null);
+  }
 }
 
 // Branche chaque commande une fois pour toutes. `surApercu(retouche)` :

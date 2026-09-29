@@ -67,7 +67,7 @@
 // fusionnerReglages (moteur/reglages.js), couleurVersHex (moteur/couleurs.js),
 // actualiserCouleursPlateau (rendu/couleurs-plateau.js),
 // appliquerApparenceReglages (rendu/apparence-reglages.js),
-// remplirChampsReglages, brancherChampsReglages (interface/reglages-champs.js),
+// remplirChampsReglages, brancherChampsReglages, marquerReglagesModifies (interface/reglages-champs.js),
 // demarrerRubriquesReglages (interface/reglages-rubriques.js),
 // listerNomsProfils, lireNomProfilActif, lireReglagesActifs,
 // sauverProfilActif, creerProfil, definirProfilActif, supprimerProfil,
@@ -104,6 +104,15 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     remplirChampsReglages(elements.dialogue, actuel);
     elements.modeSimple.checked = !actuel.board.show_shadows;
     baseCoups.afficher(actuel.nextmove.bdd_file);
+    marquerModifies();
+  }
+
+  // En orange, ce qui differe de Défaut (interface/reglages-champs.js).
+  function marquerModifies() {
+    marquerReglagesModifies(elements.dialogue, actuel, [
+      [elements.modeSimple, 'board', 'show_shadows'],
+      [elements.baseCoups, 'nextmove', 'bdd_file'],
+    ]);
   }
 
   function remplirProfils() {
@@ -130,6 +139,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     appliquerApparenceReglages(svg, reglages);
     // Sans effet si c'est deja la base chargee (appele a chaque retouche).
     baseCoups.charger(reglages.nextmove.bdd_file);
+    marquerModifies();
   }
 
   // Chaque categorie modifiable est COPIEE : sans ca, une retouche ecrirait

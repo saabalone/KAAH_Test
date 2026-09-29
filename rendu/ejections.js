@@ -106,6 +106,8 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
 
   dessinerLibellePendule(svg, campDuHaut, positionPenduleHaut);
   dessinerLibellePendule(svg, campDuBas, positionPenduleBas);
+  dessinerCumulPendule(svg, campDuHaut, positionPenduleHaut, true);
+  dessinerCumulPendule(svg, campDuBas, positionPenduleBas, false);
 }
 
 // La ligne de chaque joueur (nom, cadre "Tour N", abandon/nulle) vit dans

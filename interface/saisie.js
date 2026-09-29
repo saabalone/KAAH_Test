@@ -58,11 +58,9 @@
 // billes ejectees, etat.vainqueur) ou le temps (perteAuTemps).
 //
 // Comme dans KAAWA, une DEFAITE AU TEMPS n'empeche pas de continuer a
-// jouer : les coups suivants deviennent une analyse (une branche du meme
-// arbre, comme n'importe quelle autre — voir moteur/arbre.js), sans jamais
-// modifier le resultat REEL deja enregistre sur la ligne d'origine. La
-// pendule bascule alors en chrono (moteur.passerEnChrono) : un decompte
-// qui continuerait a zero n'aurait plus de sens. `perteAuTemps` retient
+// jouer : les coups suivants prolongent la ligne reellement jouee, en
+// chrono, sans jamais changer le resultat de la partie, qui reste ce T
+// (moteur/arbre.js, finDeLaPartie — saab, 2026-09-30). `perteAuTemps` retient
 // aussi A QUEL NOEUD la defaite a eu lieu (`{ camp, chemin }`) : le
 // message "temps ecoule" ne s'affiche qu'en revenant exactement sur ce
 // noeud, pas pour toujours des qu'on a joue plus loin en analyse.
@@ -80,13 +78,12 @@
 //
 // Comme KAAWA, naviguer dans l'historique fige les pendules a la valeur
 // QU'ELLES AVAIENT a ce moment-la (moteur.marquerPendulesSnapshot pose cet
-// instantane sur chaque noeud au moment ou il est cree). Le VRAI decompte
-// en direct continue d'exister sans bouger pendant ce temps ; il ne
-// reprend, exactement d'ou il en etait reste, qu'en revenant sur le point
-// vivant de la partie (une feuille ni gagnee ni perdue au temps) —
-// `synchroniserPendulesAvecEtat` bascule entre les deux a chaque
-// navigation ET a chaque coup joue. Une victoire par ejections gele donc
-// les pendules par ce meme mecanisme (ce noeud n'est jamais "vivant").
+// instantane sur chaque noeud au moment ou il est cree). La pendule de la
+// partie ne tourne qu'au bout de la ligne reellement jouee, tant que la
+// partie n'est pas finie ; toute autre position jouable (branche, suite
+// jouee apres un T) est en chrono (phase 30, interface/pendules.js) —
+// `synchroniserPendulesAvecEtat` choisit a chaque navigation ET a chaque
+// coup joue.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : coupsDepuis,
 // appliquerCoup, couleursDuPlateau, caseDansLaDirection, depuisNotation,
@@ -107,10 +104,13 @@
 // demarrerAffichageCommentaires, demarrerAffichageOccurrences,
 // optionsDeFinDisponibles (moteur/arbre.js), repetitionAProposer (interface/nulle.js), refuserNulle (moteur/arbre.js),
 // demarrerAbandonNulle (interface/abandon-nulle.js),
-// estStatutDefinitif (moteur/arbre.js), couleurAdverse (moteur/regles.js),
+// estStatutDefinitif, finDeLaPartie (moteur/arbre.js), couleurAdverse (moteur/regles.js),
+// perdantsDeLaSequence, tempsCumules (moteur/bilan-sequence.js),
+// actualiserBillesDesPerdants (rendu/plateau-svg.js),
 // creerHistoriqueNavigation, enregistrerSaut, reculerHistorique, avancerHistorique,
 // origineHistorique, cheminActuelHistorique (moteur/historique-navigation.js),
 // signalerCampAuTrait (interface/face-a-face.js), sonOccurrence (moteur/nulle.js),
+// demarrerLectureSequence (interface/lecture-sequence.js),
 // afficherPause et masquerPause viennent tous des
 // fichiers charges avant celui-ci dans index.html (demarrerAffichageOccurrences
 // utilise lui-meme actualiserCompteurOccurrences, rendu/ejections.js, pour
@@ -129,8 +129,10 @@ function cheminEgal(a, b) {
 // (Blanc) Joueur 2"...) — KAAWA montre deja tout ca dans sa propre fenetre
 // de plateau, jamais dans un bandeau a part qui lui volerait de la
 // hauteur (signale par saab, phases 11 et 12).
-// `elementsNavigation` sont les 5 boutons de navigation dans l'arbre :
-// { debut, precedent, suivant, fin, annuler }.
+// `elementsNavigation` sont les boutons de navigation dans l'arbre :
+// { debut, precedent, suivant, fin, annuler, lecture } — Annuler a part, en
+// grand, depuis la phase 31 (interface/disposition.js), et Lecture/Pause
+// (interface/lecture-sequence.js).
 // `demanderConfirmation(message, surConfirmation)` (interface/confirmation.js) :
 // remplace window.confirm avant Annuler ou supprimer une branche —
 // `surConfirmation` n'est appele que si l'utilisateur confirme vraiment.
@@ -256,7 +258,7 @@ function demarrerPartie(
   // partie reprise en a deja un (voir moteur.donneesVersArbre) : ne pas
   // l'ecraser par un instantane a plein temps.
   if (!arbre.racine.pendulesSnapshot) {
-    arbre = marquerPendulesSnapshot(arbre, [], pendules.etatActuel());
+    arbre = marquerPendulesSnapshot(arbre, [], pendules.penduleDeLaPartie());
   }
 
   // Calcule une seule fois : la position de depart ne change jamais en
@@ -460,7 +462,7 @@ function demarrerPartie(
   // c'est de l'analyse, le vrai decompte reste fige de son cote et ne
   // reprendra qu'au retour sur le point vivant.
   function jeuSuspendu() {
-    return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle() && !pendules.estEnApercu());
+    return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle() && pendules.horlogeSuivie() === 'partie');
   }
 
   // Pauses prises depuis l'ouverture de la partie, affichees sur le grand
@@ -502,6 +504,24 @@ function demarrerPartie(
       });
     }
   }
+
+  // Lecture de la sequence (phase 31, saab) : « Coup suivant » repete, qui
+  // s'arrete a un embranchement pour demander la branche, puis reprend.
+  const lecture = demarrerLectureSequence(elementsNavigation.lecture, {
+    peutAvancer: () => noeudCourant(arbre).enfants.length > 0,
+    avancer: () => {
+      if (noeudCourant(arbre).enfants.length > 1) {
+        ouvrirChoixBranche(arbre.chemin, (index) => {
+          naviguer((a) => avancerVersEnfant(a, index));
+          lecture.lancer(false);
+        });
+        return 'choix';
+      }
+      naviguer(avancerDansArbre);
+      return 'avance';
+    },
+    cheminActuel: () => arbre.chemin.join('.'),
+  });
 
   // Construit et affiche la liste des enfants du noeud designe par
   // `cheminNoeud` (celui qui a plusieurs enfants), avec pour chacun son
@@ -645,11 +665,9 @@ function demarrerPartie(
     pendules.surCoupJoue(joueurQuiJoue, ejection);
     if (resultat.etat.vainqueur) {
       // 6 billes ejectees : position definitive (voir l'en-tete du
-      // fichier). Meme bascule chrono qu'une defaite au temps (sans effet
-      // si deja en chrono) ; le gel proprement dit vient de
-      // synchroniserPendulesAvecEtat plus bas, comme pour toute navigation.
+      // fichier) ; le gel des pendules vient de synchroniserPendulesAvecEtat
+      // plus bas, comme pour toute navigation.
       arbre = marquerStatutFin(arbre, arbre.chemin, 'N');
-      pendules.passerEnChrono();
       jouerSon?.('game_over');
     }
     // L'instantane du coup qu'on vient de jouer, pour qu'y revenir plus
@@ -765,10 +783,28 @@ function demarrerPartie(
     return noeud.enfants.length === 0 && !noeud.etat.vainqueur && !noeud.statutFin;
   }
 
+  // Une position ou l'on peut encore jouer : une feuille, ni gagnee, ni
+  // close par une nulle ou un abandon — un temps ecoule (T) laisse jouer la
+  // suite, en chrono.
+  function estFeuilleJouable() {
+    const noeud = noeudCourant(arbre);
+    return noeud.enfants.length === 0 && !noeud.etat.vainqueur && !estStatutDefinitif(noeud.statutFin);
+  }
+
+  // Quelle horloge suivre ici (interface/pendules.js) : la pendule de la
+  // partie au bout de la ligne reellement jouee tant que la partie n'est pas
+  // finie, le chrono d'analyse sur toute autre position jouable, sinon
+  // l'instantane du noeud.
   function synchroniserPendulesAvecEtat() {
     const noeud = noeudCourant(arbre);
-    if (estPointVivant()) pendules.quitterApercu();
-    else pendules.afficherApercu(noeud.pendulesSnapshot ?? pendules.etatActuel());
+    const auBoutDeLaPartie = cheminEgal(arbre.chemin, arbre.cheminOrigine) && finDeLaPartie(arbre) === null;
+    const horloge = !estFeuilleJouable() ? null : auBoutDeLaPartie ? 'partie' : 'analyse';
+    pendules.suivre(horloge, {
+      instantane: noeud.pendulesSnapshot,
+      cle: arbre.chemin.join('.'),
+      joueurAuTrait: noeud.etat.joueurAuTrait,
+      cumul: tempsCumules(arbre),
+    });
   }
 
   // Met a jour le nom de chaque camp (tour/trait/resultat, voir
@@ -819,6 +855,9 @@ function demarrerPartie(
     // suit donc fidelement toute navigation dans l'historique. `undefined`
     // sur la racine (aucun coup n'y a mene) : rien n'est alors dessine.
     actualiserFlecheDernierCoup(svg, noeudCourant(arbre).flecheDernierCoup);
+    // Phase 30 (saab) : les billes des perdants de la sequence regardee prennent
+    // la taille d'un trou (moteur/bilan-sequence.js, rendu/plateau-svg.js).
+    actualiserBillesDesPerdants(svg, perdantsDeLaSequence(arbre));
   }
 
   // Grise les boutons qui ne peuvent rien faire (deja au tout debut ou a
@@ -835,6 +874,7 @@ function demarrerPartie(
     elementsNavigation.annuler.disabled = suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin);
     elementsNavigation.suivant.disabled = alaFin;
     elementsNavigation.fin.disabled = alaFin;
+    elementsNavigation.lecture.disabled = alaFin;
   }
 
   // Joue un coup ecrit en notation Nacre (ex. "a1d4") plutot que par des
@@ -874,7 +914,7 @@ function demarrerPartie(
     // sauvegarder a chaque coup (et juste avant que la page se cache,
     // voir index.html) — c'est ce que `pendulesReprises` ci-dessus relit
     // au prochain demarrage.
-    obtenirPendulesActuelles: () => pendules.etatActuel(),
+    obtenirPendulesActuelles: () => pendules.penduleDeLaPartie(),
     // Change de mode de pendule EN COURS DE PARTIE (phase 22bis, bouton
     // dedie de la colonne de gauche) : voir interface/pendules.js,
     // changerMode. Renvoie si le changement A EU LIEU (refuse pendant un
@@ -887,11 +927,11 @@ function demarrerPartie(
     },
     jouerCoupTexte,
     // Adversaire artificiel (phase 29, interface/ia.js) : un coup peut-il etre
-    // joue LA, maintenant ? Point vivant de la partie (jamais en parcourant
-    // l'historique), ni en pause, ni sans suite, ni termine — les memes gardes
-    // que jouerCoupTexte, pour que la machine ne reflechisse pas pour rien.
-    peutJouerUnCoup: () =>
-      estPointVivant() && !jeuSuspendu() && !sansSuite() && !etatCourant(arbre).vainqueur,
+    // joue LA, maintenant ? Une feuille jouable (jamais en parcourant
+    // l'historique) — y compris une branche, ou la suite d'une partie perdue
+    // au temps (phase 30, saab) —, ni en pause, ni sans suite : les memes
+    // gardes que jouerCoupTexte, pour que la machine ne reflechisse pas pour rien.
+    peutJouerUnCoup: () => estFeuilleJouable() && !jeuSuspendu() && !sansSuite(),
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
     },

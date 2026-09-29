@@ -296,7 +296,22 @@ function estStatutDefinitif(statut) {
 function optionsDeFinDisponibles(arbre) {
   const noeud = noeudCourant(arbre);
   const finie = Boolean(noeud.etat.vainqueur) || ['N', 'T', 'D', 'R'].includes(noeud.statutFin);
-  return finie && cheminsEgaux(arbre.chemin, arbre.cheminOrigine);
+  const fin = finDeLaPartie(arbre);
+  return finie && fin !== null && cheminsEgaux(arbre.chemin, fin);
+}
+
+// Le chemin du noeud ou la partie REELLE s'est terminee, ou null si elle est en
+// cours : la PREMIERE fin de la ligne reellement jouee. Apres un temps ecoule
+// (T, qui laisse jouer), la suite prolonge cette ligne en chrono, mais la
+// partie reste finie a ce T — titre, Term et Winner du fichier (saab,
+// 2026-09-30). Une fin sur une branche n'est jamais celle de la partie.
+function finDeLaPartie(arbre) {
+  let noeud = arbre.racine;
+  for (let profondeur = 0; profondeur < arbre.cheminOrigine.length; profondeur++) {
+    noeud = noeud.enfants[arbre.cheminOrigine[profondeur]];
+    if (noeud.statutFin || noeud.etat?.vainqueur) return arbre.cheminOrigine.slice(0, profondeur + 1);
+  }
+  return null;
 }
 
 // Associe un instantane des pendules (voir interface/pendules.js) au

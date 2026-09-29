@@ -127,6 +127,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
     for (const puzzle of triees) {
       elements.liste.appendChild(creerLigne(puzzle, favoris.includes(puzzle.nom)));
     }
+    afficherCompteDansTitre(elements.dialogue.querySelector('h2'), triees);
     garderLaLigneChoisieEnVue();
   }
 

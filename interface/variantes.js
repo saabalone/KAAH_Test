@@ -119,6 +119,7 @@ function demarrerSelectionVariantes(elements, variantes, surChargement, surPrevi
     for (const variante of triees) {
       elements.liste.appendChild(creerLigne(variante, favoris.includes(variante.nom)));
     }
+    afficherCompteDansTitre(elements.dialogue.querySelector('h2'), triees);
     garderLaLigneChoisieEnVue();
   }
 

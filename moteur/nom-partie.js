@@ -16,7 +16,7 @@
 // partir de donnees deja construites, jamais l'inverse.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) :
-// cheminOrigineDuFichier vient de moteur/sauvegarde.js, charge avant
+// cheminPartieDuFichier vient de moteur/sauvegarde.js, charge avant
 // celui-ci dans index.html.
 
 // Vrai si l'arbre contient la moindre branche (un noeud ailleurs que sur
@@ -56,14 +56,15 @@ function nomJoueurAutorise(saisie) {
 // (un nom de puzzle contient lui-meme des virgules). Toutes les informations
 // sont deja dans `donnees` (les champs de haut niveau ecrits par
 // moteur.arbreVersDonnees) : pas besoin de rejouer la partie, seulement de
-// suivre `is_origin` jusqu'au bout (moteur.cheminOrigineDuFichier) pour
-// connaitre sa profondeur — le numero de tour de KAAWA
+// suivre `is_origin` jusqu'a la fin de la partie (moteur.cheminPartieDuFichier,
+// phase 30 : jamais la suite jouee apres un temps ecoule) pour connaitre sa
+// profondeur — le numero de tour de KAAWA
 // (`display_turn = (history_index+1)//2`). Vainqueur : KAAWA ecrit
 // "(en cours)" tant que ce n'est pas un vrai nom (litteralement "None"
 // sinon) — meme si un statut de fin existe deja (une nulle sans vainqueur
 // designe, par exemple).
 function elementsDuTitre(donnees) {
-  const profondeurOrigine = cheminOrigineDuFichier(donnees.Tree).length;
+  const profondeurOrigine = cheminPartieDuFichier(donnees.Tree).length;
   const joueurNoir = nomJoueurNettoye(donnees.Players.P1_black);
   const joueurBlanc = nomJoueurNettoye(donnees.Players.P2_white);
   return {

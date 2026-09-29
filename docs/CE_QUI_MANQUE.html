@@ -26,7 +26,7 @@
 <h1>Ce qui n'est pas encore dans KAAH</h1>
 
 <p>KAAH est le portage sur téléphone de <b>KAAWA</b> (le jeu d'Abalone multivariant sur ordinateur). Le travail se fait par
-<b>phases</b>. La version que vous testez, <b id="version-manque">(version)</b>, est arrivée à la <b>phase <span id="phase-manque">(phase)</span></b> sur 29 : tout ce qui est
+<b>phases</b>. La version que vous testez, <b id="version-manque">(version)</b>, est arrivée à la <b>phase <span id="phase-manque">(phase)</span></b> sur 34 : tout ce qui est
 listé dans « Déjà là » fonctionne, tout ce qui est listé dans « Pas encore là » <b>n'existe pas encore</b> — inutile de le
 chercher, ce n'est pas un bogue.</p>
 
@@ -34,7 +34,7 @@ chercher, ce n'est pas un bogue.</p>
 (une fonction, un bouton, un réglage, un détail) et qui ne figure <b>ni</b> dans « Déjà là » <b>ni</b> dans « Pas encore là ».
 Je n'y ai peut-être pas pensé.</div>
 
-<h2>Déjà là (les 29 phases, et 16bis)</h2>
+<h2>Déjà là (phases 1 à 31, et 16bis)</h2>
 <ul>
 <li>Le plateau de 61 cases, les coups (1 à 3 billes, latéral, en ligne, poussée, éjection), la victoire à 6 billes éjectées.</li>
 <li>Les billes qui glissent, l'installation sur téléphone et le mode hors ligne.</li>
@@ -70,12 +70,16 @@ fichiers <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> de KAA
 <li><b>Vérification des puzzles par le solveur de KAAWA</b> : un puzzle gagné au bon tour est vérifié par le calcul (« Bravo! C'est la solution! » ou « Ce n'est pas la solution! »), en arrière-plan, en commençant dès qu'on sort d'un chemin déjà connu. Le programme de KAAWA est réutilisé tel quel, compilé pour le navigateur.</li>
 <li><b>Copie séquence Nacre / AP</b> (onglet Séquence), une <b>Corbeille</b> dans chaque boîte (Mes parties, Variantes, Puzzles) avec sélection multiple, et un <b>filtre</b> dans Mes parties (un champ par élément du titre des parties). Textes de fin de puzzle de KAAWA, en couleur et clignotants ; préfixe <b>Br_</b> en violet dans le titre de la partie.</li>
 <li><b>Jouer contre la machine</b> (au début d'une partie, rubrique « Adversaire ») : 3 niveaux, 3 styles (Agressif, Normal, Défensif), le camp de la machine, son temps de réflexion maximum. En début de partie elle joue les meilleurs coups de la base de coups.</li>
+<li><b>Pendule sur la partie, Chrono ailleurs</b> : seule la partie réellement jouée est à la pendule, les branches et la suite après une fin au temps sont en Chrono ; le temps de chaque coup est enregistré, le temps total de chaque camp est affiché, les billes du perdant rétrécissent en fin de partie.</li>
+<li><b>Grand bouton Annuler</b> et barre de navigation avec <b>Lecture</b> automatique de la séquence ; nombre et volume dans le titre des boîtes ; réglages modifiés en orange.</li>
 </ul>
 
 <h2>Pas encore là</h2>
-<p>Toutes les phases prévues sont faites. Ce qui reste, ce sont les améliorations que vos retours feront apparaître —
-par exemple : la machine ne sait pas encore répondre seule à une proposition de nulle, et entre deux machines de même force
-une partie peut tourner en rond.</p>
+<ul>
+<li><b>Phase 32 — La machine : profils, deux machines, suivi</b> : profils IA dans Réglages, Noir et Blanc chacun Humain ou Machine (machine contre machine), nom KAI (niveau, style, temps), Marche/Arrêt et évaluation sur le nom, tableau de réflexion.</li>
+<li><b>Phase 33 — La machine plus forte</b> : sumitos et menaces dans l'évaluation, modes Ouverture / Milieu / Fin, mini-solveur de fin de partie, gestion du temps, anti-répétition, réponse à une nulle.</li>
+<li><b>Phase 34 — La machine qui apprend</b> (à discuter).</li>
+</ul>
 
 <h2>Petits points connus, pas encore réglés</h2>
 <ul>

@@ -548,6 +548,14 @@ button,
   content: '▾';
 }
 
+/* Ce qui differe de Défaut, en orange (phase 31, saab) : la ligne du reglage
+   et le titre de sa rubrique (interface/reglages-champs.js,
+   marquerReglagesModifies) — le meme orange que .bouton-actif. */
+.reglage-modifie,
+.rubrique-reglages.rubrique-modifiee > summary {
+  color: #cc6a00;
+}
+
 /* Le profil, hors des rubriques et hors de la zone qui defile : toujours
    visible (saab, 2026-09-27). */
 .ligne-profil-fixe {
@@ -2289,7 +2297,8 @@ button,
    element, memes ecouteurs de clic, juste un autre parent — voir ce
    fichier. Aucune regle CSS specifique a l'un ou l'autre parent : les
    deux sont des colonnes flex, elle s'y comporte pareil. */
-#navigation {
+#navigation,
+#barre-annuler {
   flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap; /* 5 boutons peuvent depasser la largeur d'un telephone etroit */
@@ -2303,7 +2312,8 @@ button,
    propre media query plus bas, jamais ici — meme discipline que partout
    ailleurs dans ce fichier) : le reste est identique quel que soit le
    parent d'#navigation (voir interface/disposition.js). */
-#navigation button {
+#navigation button,
+#barre-annuler button {
   padding: 0 4px;
   background: #3a3a3a;
   color: #e4e4e4;
@@ -2311,7 +2321,8 @@ button,
   border-radius: 6px;
 }
 
-#navigation button:disabled {
+#navigation button:disabled,
+#barre-annuler button:disabled {
   opacity: 0.35; /* deja au debut ou a la fin : visible sans avoir a cliquer pour le savoir */
 }
 
@@ -2788,6 +2799,20 @@ button,
 
 #plateau:not(.mode-simple) .bille-blanc .bille-cercle {
   fill: url(#degrade-bille-blanc);
+}
+
+/* Fin de partie (phase 30, saab) : les billes du perdant — des deux camps pour
+   une nulle — a la taille du trou (RAYON_TROU_CENTRAL / RAYON_BILLE,
+   rendu/relief-plateau.js), autour de leur propre centre. */
+.bille-cercle {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 300ms ease-out;
+}
+
+#plateau.perdant-noir .bille-noir .bille-cercle,
+#plateau.perdant-blanc .bille-blanc .bille-cercle {
+  transform: scale(0.66);
 }
 
 /* Pistes des billes ejectees (phase 11, rendu/ejections.js), en haut et en
@@ -3378,6 +3403,14 @@ button,
   height: 32px;
 }
 
+/* Le grand Annuler (phase 31, saab : « un large btn Annuler independant ...
+   plus facile d'acces pour les 2 joueurs ») : toute la largeur de sa barre. */
+#nav-annuler {
+  flex: 1 1 auto;
+  min-height: var(--hauteur-commande);
+  font-weight: bold;
+}
+
 /* Le bouton Annuler de la navigation est TOUJOURS vert (saab) — sauf quand il
    n'y a rien a annuler (au depart, ou sur un coup d'origine deja depasse) : il
    est alors grise comme les autres (#navigation button:disabled). Le cadre
@@ -3806,17 +3839,16 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     height: 18px;
   }
 
-  /* Barre de navigation (interface/disposition.js, replacerNavigation) : au
-     milieu du plateau — Annuler, le bouton du milieu, pile sur son centre, a
-     egale distance des deux joueurs — contre la colonne des fenetres, lue de
-     haut en bas comme elle. `writing-mode: vertical-rl` la met a la verticale
-     sans calcul : les boutons se suivent de haut en bas et chaque libelle se
-     lit de haut en bas. Elle a sa PROPRE bande (--largeur-navigation-fa, deja
+  /* Le grand Annuler (phase 31 ; la barre de navigation avant elle,
+     interface/disposition.js, replacerNavigation) : au milieu du plateau, a
+     egale distance des deux joueurs, contre la colonne des fenetres, lu de
+     haut en bas comme elle. `writing-mode: vertical-rl` le met a la verticale
+     sans calcul. Il a sa PROPRE bande (--largeur-navigation-fa, deja
      reservee par le padding de <body>) : posee sur le dessin, elle recouvrait
      les pendules des coins de droite. Epaisseur des pendules (saab) : DEROGATION
      ASSUMEE a la regle des 44 px de CLAUDE.md, demandee par saab ("comme celle
      des pendules"), comme celle deja faite sur la hauteur de ces boutons. */
-  body.face-a-face > #navigation {
+  body.face-a-face > #barre-annuler {
     position: fixed;
     top: 50%;
     right: var(--epaisseur-fenetres-fa);
@@ -3829,9 +3861,9 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     z-index: 5;
   }
 
-  body.face-a-face > #navigation button {
+  body.face-a-face > #barre-annuler button {
     min-width: var(--epaisseur-bouton-navigation-fa);
-    min-height: var(--epaisseur-bouton-navigation-fa);
+    min-height: 40vh;
     padding: 0;
     font-size: 11px;
   }
@@ -3839,7 +3871,7 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
   /* Le rappel "Touchez une pendule..." (voir .message-demarrage et
      interface/disposition.js) : DERNIERE ligne de la colonne des fenetres,
      donc tournee avec elle — a la verticale, lue de haut en bas, juste a
-     droite de #navigation ("au-dessus" d'elle dans le sens de lecture,
+     droite de #barre-annuler ("au-dessus" de lui dans le sens de lecture,
      saab). En haut de l'ecran, horizontal, il chevauchait le plateau et le
      nom du joueur du haut. `order` : toujours apres les fenetres, quel que
      soit l'ordre dans lequel elles ont ete ajoutees. */

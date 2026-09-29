@@ -18,7 +18,8 @@
 // corbeille.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : mettreALaCorbeille,
-// restaurerPlusieurs, viderLeGenre (moteur/corbeille.js),
+// restaurerPlusieurs, viderLeGenre (moteur/corbeille.js), libelleNombreEtVolume,
+// volumeEnOctets (moteur/compte-volume.js),
 // ajouterEntreeMy (interface/positions-my.js), listerPartiesEnregistrees,
 // ecrirePartiesEnregistrees (interface/sauvegarde.js), nomDeFichierKAAWA
 // (moteur/nom-partie.js) viennent de fichiers charges avant celui-ci.
@@ -43,10 +44,20 @@ function ecrireCorbeille(corbeille) {
   }
 }
 
+// Les boutons Corbeille comptent ce qu'ils contiennent (phase 31, saab) :
+// demarrerCorbeille les branche, chaque ecriture de la corbeille les remet a jour.
+let actualiserBoutonsCorbeille = () => {};
+
 // Envoie `donnees` (une entree My intacte, ou { id, donnees } pour une
 // partie) a la corbeille. `genre` : 'variantes', 'puzzles' ou 'parties'.
 function envoyerALaCorbeille(genre, donnees) {
-  return ecrireCorbeille(mettreALaCorbeille(listerCorbeille(), genre, donnees));
+  const reussi = ecrireCorbeille(mettreALaCorbeille(listerCorbeille(), genre, donnees));
+  actualiserBoutonsCorbeille();
+  return reussi;
+}
+
+function entreesDuGenre(genre) {
+  return listerCorbeille().filter((entree) => entree.genre === genre);
 }
 
 // Remet une entree restauree dans SA liste d'origine, selon son genre.
@@ -111,11 +122,19 @@ function demarrerCorbeille(elements, rappels) {
     bouton.addEventListener('click', () => {
       genre = genreDeLaBoite;
       rangsCoches = new Set();
-      elements.titre.textContent = TITRE_CORBEILLE[genre];
       rafraichir();
       elements.dialogue.showModal();
     });
   }
+
+  // « Corbeille (3) » : le nombre d'entrees du genre de chaque bouton.
+  actualiserBoutonsCorbeille = () => {
+    for (const { bouton, genre: genreDuBouton } of elements.ouvertures) {
+      const nombre = entreesDuGenre(genreDuBouton).length;
+      bouton.textContent = nombre === 0 ? 'Corbeille' : `Corbeille (${nombre})`;
+    }
+  };
+  actualiserBoutonsCorbeille();
 
   // Rangs (dans la corbeille entiere) des entrees de CE genre.
   function rangsDuGenre() {
@@ -175,6 +194,9 @@ function demarrerCorbeille(elements, rappels) {
   function rafraichir() {
     const corbeille = listerCorbeille();
     const rangs = rangsDuGenre();
+    const entrees = entreesDuGenre(genre);
+    elements.titre.textContent = `${TITRE_CORBEILLE[genre]} ${libelleNombreEtVolume(entrees.length, volumeEnOctets(entrees))}`;
+    actualiserBoutonsCorbeille();
     rangsCoches = new Set([...rangsCoches].filter((rang) => rangs.includes(rang)));
     elements.liste.innerHTML = '';
     actualiserBarre(rangs.length);

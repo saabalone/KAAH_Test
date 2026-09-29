@@ -1,7 +1,12 @@
-// Deplace la barre de navigation entre le bas du plateau (telephone, la ou
-// le pouce arrive — regle CLAUDE.md) et le bas du panneau Sequence
-// (ordinateur, ou elle liberait sinon une bande de hauteur au plateau
-// pour rien — signale par saab). Un seul jeu de boutons et d'ecouteurs de
+// Place le grand bouton Annuler et la barre de navigation (phase 31, saab,
+// 2026-09-30 : « un large btn Annuler independant ... les nouveaux btn de
+// navigation n'apparaitront qu'avec les tableaux, entre Annuler et Tableau »).
+// Annuler est toujours visible : sous le plateau sur telephone (la ou le
+// pouce arrive — regle CLAUDE.md), sous le panneau Sequence sur ordinateur,
+// au milieu du plateau en face-a-face. La barre vit DANS le panneau Sequence/
+// Commentaires, du cote d'Annuler : en haut sur telephone (Annuler est
+// au-dessus du panneau), en bas sur ordinateur (Annuler est en dessous) —
+// fermer le panneau la cache avec lui. Un seul jeu de boutons et d'ecouteurs de
 // clic (voir interface/saisie.js, elementsNavigation) : `appendChild` sur
 // un element existant le DEPLACE (il ne le duplique pas) et garde ses
 // ecouteurs de clic intacts, contrairement a une reconstruction par
@@ -36,14 +41,11 @@ function replacerNavigation() {
 // A appeler une seule fois, apres que `navigation`, `colonnePrincipale` et
 // `arbrePanneau` existent tous dans le DOM.
 //
-// Le bouton Sequence n'est PLUS un des 6 boutons de `navigation` (correctif
+// Le bouton Sequence n'est PLUS un des boutons de `navigation` (correctif
 // de disposition, phase 18) : saab a demande de regrouper Sequence,
 // Commentaires et Occurrences au MEME endroit, la colonne d'icones — il y
 // vit desormais en permanence (index.html, `#bouton-sequence`), dans les
-// DEUX mises en page, sans plus jamais voyager. Seuls les 5 boutons de
-// DEPLACEMENT (debut/precedent/annuler/suivant/fin) continuent de
-// rejoindre le bas du panneau Sequence/Commentaires sur ordinateur, la ou
-// ils occupaient sinon une bande de hauteur prise au plateau en portrait.
+// DEUX mises en page, sans plus jamais voyager.
 //
 // Second voyageur, meme mecanique : `enteteJeu` (index.html,
 // #entete-partie — la position copiable, phase 12bis, et le bandeau qui
@@ -61,25 +63,26 @@ function replacerNavigation() {
 // y changeait la hauteur disponible pour `#plateau` (`height: 100%` d'un
 // FLEX ITEM, styles.css), donc la taille du plateau elle-meme — signale par
 // saab, "le bandeau fait baisser le plateau, en paysage on est oblige de le
-// remonter [pour] mettre le nom de J1". Il suit desormais `navigation`,
+// remonter [pour] mettre le nom de J1". Il suit desormais `barreAnnuler`,
 // juste apres elle (portrait, paysage) ; en face-a-face, la derniere ligne de
 // la colonne des fenetres, tournee a la verticale, a cote de la barre. Jamais
 // plus au-dessus du plateau, qui ne bouge plus quand il apparait ou disparait.
-function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite, messageDemarrage) {
+function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite, messageDemarrage) {
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
-      // Face-a-face (phase 20, saab) : la barre quitte la colonne des fenetres
-      // pour se poser au milieu du plateau, contre lui — Annuler pile a son
-      // centre, les deux joueurs a egale distance. Voir styles.css.
+      arbrePanneau.appendChild(navigation);
+      // Face-a-face (phase 20, saab) : Annuler quitte la colonne des fenetres
+      // pour se poser au milieu du plateau, contre lui — les deux joueurs a
+      // egale distance. Voir styles.css.
       // Le rappel, lui, y rejoint la colonne des fenetres, tournee a la
-      // verticale : dans l'etroite bande de la barre, une phrase entiere ne
+      // verticale : dans l'etroite bande d'Annuler, une phrase entiere ne
       // tiendrait pas (styles.css, body.face-a-face #colonne-droite).
       if (document.body.classList.contains('face-a-face')) {
-        document.body.appendChild(navigation);
+        document.body.appendChild(barreAnnuler);
         colonneDroite.append(messageDemarrage);
       } else {
-        arbrePanneau.appendChild(navigation);
-        navigation.after(messageDemarrage);
+        arbrePanneau.after(barreAnnuler);
+        barreAnnuler.after(messageDemarrage);
       }
       colonneDroite.prepend(enteteJeu);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
@@ -105,8 +108,9 @@ function demarrerDispositionNavigation(navigation, colonnePrincipale, arbrePanne
       reinitialiserHauteurOccurrencesPortrait(arbrePanneau);
     } else {
       colonnePrincipale.prepend(enteteJeu); // au-dessus du plateau, sa place d'origine
-      colonnePrincipale.appendChild(navigation);
-      navigation.after(messageDemarrage);
+      colonnePrincipale.appendChild(barreAnnuler);
+      barreAnnuler.after(messageDemarrage);
+      arbrePanneau.prepend(navigation);
       // Symetrique du nettoyage ci-dessus : une hauteur choisie a la main
       // sur ORDINATEUR (interface/sequence.js, activerRedimensionnementHauteur)
       // n'a pas plus de sens en portrait, ou c'est le flex-grow

@@ -177,6 +177,15 @@ function poserBille(svg, { id, q, r, couleur }) {
   return groupe;
 }
 
+// Fin de partie (phase 30, saab) : les billes des camps de `perdants` ('noir',
+// 'blanc', les deux pour une nulle) prennent la taille d'un trou. Une classe
+// sur le plateau, comme le mode simple : couvre aussi les billes qui
+// reapparaissent en naviguant (synchroniserBilles), sans y repenser.
+function actualiserBillesDesPerdants(svg, perdants) {
+  svg.classList.toggle('perdant-noir', perdants.includes('noir'));
+  svg.classList.toggle('perdant-blanc', perdants.includes('blanc'));
+}
+
 // Met en evidence les cases passees en argument (les destinations d'un
 // coup possible), et efface toute mise en evidence precedente. Appeler
 // avec un tableau vide efface simplement tout.
