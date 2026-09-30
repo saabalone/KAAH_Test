@@ -676,8 +676,8 @@
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
-        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.</li>
-        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord). Agressif, Normal et Défensif ne changent jamais : en retoucher un crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.</li>
+        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.</li>
+        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.</li>
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
@@ -965,16 +965,29 @@
             <option value="defensif">Défensif</option>
           </select>
         </label>
-        <label class="ligne-couleur" title="Par bille adverse éjectée">Gain (éjection) <input id="poids-ia-gain" type="number" step="1" /></label>
-        <label class="ligne-couleur" title="Par bille à soi perdue">Perte (éjection) <input id="poids-ia-perte" type="number" step="1" /></label>
-        <label class="ligne-couleur" title="Par pas de ses billes vers le centre">Centre <input id="poids-ia-centre" type="number" step="1" /></label>
-        <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <input id="poids-ia-cohesion" type="number" step="1" /></label>
-        <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les siennes) <input id="poids-ia-bordSoi" type="number" step="1" /></label>
-        <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <input id="poids-ia-bordAdverse" type="number" step="1" /></label>
-        <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <input id="poids-ia-sumito" type="number" step="1" /></label>
-        <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <input id="poids-ia-menaceEjection" type="number" step="1" /></label>
-        <label class="ligne-couleur poids-version-2" title="Par sumito au-delà du premier : l'adversaire ne peut en parer qu'un">Fourchette <input id="poids-ia-fourchette" type="number" step="1" /></label>
+        <label class="ligne-couleur" title="Par bille adverse éjectée">Gain (éjection) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-gain" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Par bille à soi perdue">Perte (éjection) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-perte" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Par pas de ses billes vers le centre (e5 : 4 pas, d4 : 3, c3/c4 : 2, b2/b3 : 1, bord : 0)">Centre <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les siennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-sumito" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-menaceEjection" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-2" title="Par sumito au-delà du premier : l'adversaire ne peut en parer qu'un">Fourchette <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-fourchette" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-09-30 : une retouche reste en orange jusqu'a Valider
+             (vert : derniere validation, jaune : plus ancienne) ; l'historique
+             des versions, comme les branches de la Sequence
+             (interface/reglages-ia.js, interface/historique-ia.js). -->
+        <div class="boutons-dialogue-cote-a-cote">
+          <button id="bouton-valider-profil-ia" class="bouton-dialogue" type="button" title="Enregistre les retouches en orange : une nouvelle version du profil">Valider</button>
+          <button id="bouton-abandonner-profil-ia" class="bouton-dialogue" type="button" title="Oublie les retouches en orange">Abandonner</button>
+        </div>
         <p id="note-profil-ia" class="note-reglages"></p>
+        <p class="note-reglages legende-couleurs-ia"><span class="legende-modifie">orange</span> : pas encore validé · <span class="legende-dernier">vert</span> : dernière validation · <span class="legende-ancien">jaune</span> : plus ancienne</p>
+        <details class="boite-historique-ia" open>
+          <summary>Historique IA</summary>
+          <div id="historique-profil-ia" class="historique-profil-ia"></div>
+        </details>
       </details>
 
       <details class="rubrique-reglages" data-rubrique="fichier">
@@ -1152,7 +1165,7 @@
          chaque machine avec son niveau, son profil IA (Reglages) et son temps
          de reflexion. -->
     <div id="section-adversaire" class="section-adversaire" hidden>
-      <h3>Joueurs (Noir commence)</h3>
+      <h3>Joueurs <span class="noir-commence">(Noir commence)</span></h3>
       <div class="choix-joueur" data-camp="noir">
         <div class="ligne-choix-machine">
           <span>Noir</span>
@@ -1217,6 +1230,22 @@
     </div>
   </dialog>
 
+  <!-- La sequence prevue par la machine sur un petit plateau (saab,
+       2026-09-30), ouverte d'un clic dans le tableau de reflexion :
+       interface/sequence-prevue.js. -->
+  <dialog id="dialogue-sequence-prevue" class="dialogue dialogue-sequence-prevue">
+    <h2 id="titre-sequence-prevue"></h2>
+    <svg id="apercu-sequence-prevue"></svg>
+    <div id="coups-sequence-prevue" class="coups-sequence-prevue"></div>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-debut-sequence-prevue" class="bouton-dialogue" type="button" aria-label="Début">|&lt;&lt;</button>
+      <button id="bouton-precedent-sequence-prevue" class="bouton-dialogue" type="button" aria-label="Coup précédent">&lt;&lt;</button>
+      <button id="bouton-suivant-sequence-prevue" class="bouton-dialogue" type="button" aria-label="Coup suivant">&gt;&gt;</button>
+      <button id="bouton-fin-sequence-prevue" class="bouton-dialogue" type="button" aria-label="Fin">&gt;&gt;|</button>
+      <button id="bouton-fermer-sequence-prevue" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
   <dialog id="dialogue-confirmation" class="dialogue">
     <p id="message-confirmation"></p>
     <div class="boutons-dialogue-cote-a-cote">
@@ -1258,7 +1287,9 @@
          la colonne des tableaux, sous le titre sur ordinateur — jamais au-dessus
          du plateau, qu'il retrecissait en paysage (saab, 2026-09-30). -->
     <details id="reflexion-ia" class="reflexion-ia" open hidden>
-        <summary>Réflexion de la machine</summary>
+        <!-- La case (saab, 2026-09-30) : chaque ligne aussi en commentaire du
+             coup (interface/reflexion-ia.js). -->
+        <summary>Réflexion de la machine <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" checked /> en commentaire</label></summary>
         <div class="reflexion-ia-defilement">
           <table>
             <thead>
@@ -1472,7 +1503,9 @@
   <script src="./moteur/ia-evaluation-v2.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
+  <script src="./moteur/historique-profil-ia.js"></script>
   <script src="./moteur/profils-ia.js"></script>
+  <script src="./moteur/sequence-prevue.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/revanche.js"></script>
@@ -1568,6 +1601,7 @@
   <script src="./interface/bases-coups.js"></script>
   <script src="./interface/reglages-champs.js"></script>
   <script src="./interface/reglages-rubriques.js"></script>
+  <script src="./interface/historique-ia.js"></script>
   <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
@@ -1576,6 +1610,7 @@
   <script src="./interface/menaces.js"></script>
   <script src="./interface/confirmation.js"></script>
   <script src="./interface/embranchement.js"></script>
+  <script src="./interface/sequence-prevue.js"></script>
   <script src="./interface/reflexion-ia.js"></script>
   <script src="./interface/evaluations.js"></script>
   <script src="./interface/lecture-sequence.js"></script>
@@ -1923,6 +1958,10 @@
     // Profils IA (phase 32, interface/reglages-ia.js) : relus a chaque ouverture
     // de Reglages (un profil a pu etre cree depuis).
     const reglagesIA = demarrerReglagesIA({
+      rubrique: document.querySelector('details[data-rubrique="machine"]'),
+      valider: document.getElementById('bouton-valider-profil-ia'),
+      abandonner: document.getElementById('bouton-abandonner-profil-ia'),
+      historique: document.getElementById('historique-profil-ia'),
       select: document.getElementById('select-profil-ia'),
       nouveau: document.getElementById('bouton-nouveau-profil-ia'),
       supprimer: document.getElementById('bouton-supprimer-profil-ia'),
@@ -3052,7 +3091,20 @@
         machines,
         obtenirBase: () => baseNextMove,
         svg,
-        reflexion: demarrerReflexionIA(document.getElementById('reflexion-ia')),
+        reflexion: demarrerReflexionIA(
+          document.getElementById('reflexion-ia'),
+          demarrerSequencePrevue({
+            dialogue: document.getElementById('dialogue-sequence-prevue'),
+            titre: document.getElementById('titre-sequence-prevue'),
+            apercu: document.getElementById('apercu-sequence-prevue'),
+            coups: document.getElementById('coups-sequence-prevue'),
+            debut: document.getElementById('bouton-debut-sequence-prevue'),
+            precedent: document.getElementById('bouton-precedent-sequence-prevue'),
+            suivant: document.getElementById('bouton-suivant-sequence-prevue'),
+            fin: document.getElementById('bouton-fin-sequence-prevue'),
+            fermer: document.getElementById('bouton-fermer-sequence-prevue'),
+          })
+        ),
         evaluations,
       });
       nomsJoueurs.definirCommandeMachines(commandeMachines);

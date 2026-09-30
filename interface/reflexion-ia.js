@@ -7,25 +7,54 @@
 // garde sa reflexion, fichier compris) : naviguer ou rejouer une partie montre
 // la reflexion d'alors. Plus une ligne « en cours » pendant qu'elle cherche.
 //
+// Saab, 2026-09-30 : la sequence prevue tient sur 2 lignes (la boite ne
+// s'elargit jamais, le plateau ne bouge pas) et un clic dessus la montre sur un
+// petit plateau (interface/sequence-prevue.js) ; la case « en commentaire »
+// (cochee par defaut, retenue sur cet appareil) fait ecrire chaque ligne dans
+// le commentaire du coup (interface/ia.js).
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour (moteur/
 // arbre.js), libelleEvaluation (moteur/ia.js), ABREVIATIONS_PHASES
 // (moteur/ia-evaluation.js) viennent de fichiers charges avant celui-ci.
 
 const DECIMALES_DUREE_REFLEXION = 1;
+const CLE_REFLEXION_EN_COMMENTAIRE = 'kaah-reflexion-en-commentaire';
 
 function texteEvaluation(reflexion) {
   if (reflexion.source === 'livre') return 'Livre';
   return Number.isFinite(reflexion.evaluation) ? libelleEvaluation(reflexion.evaluation) : '';
 }
 
-// `details` : #reflexion-ia (montre seulement contre la machine). Renvoie
-// { actualiser(arbre), afficherEnCours(enCours | null) } — `enCours` : { camp,
+// Les coups de la sequence en deux lignes, la premiere un peu plus longue.
+function sequenceSurDeuxLignes(sequence) {
+  const moitie = Math.ceil(sequence.length / 2);
+  const lignes = [sequence.slice(0, moitie), sequence.slice(moitie)].filter((ligne) => ligne.length > 0);
+  return lignes.flatMap((ligne, rang) => (rang === 0 ? [ligne.join(' ')] : [document.createElement('br'), ligne.join(' ')]));
+}
+
+// `details` : #reflexion-ia (montre seulement contre la machine) ;
+// `sequencePrevue` : interface/sequence-prevue.js. Renvoie { actualiser(arbre),
+// afficherEnCours(enCours | null), enCommentaire() } — `enCours` : { etat, camp,
 // coupsJoues, duree, profondeur, noeuds, evaluation, sequence (textes) }.
-function demarrerReflexionIA(details) {
+function demarrerReflexionIA(details, sequencePrevue) {
   details.hidden = false;
   const corps = details.querySelector('tbody');
+  const caseCommentaire = details.querySelector('.case-reflexion-commentaire');
   let lignesDuChemin = [];
   let enCours = null;
+
+  try {
+    caseCommentaire.checked = window.localStorage.getItem(CLE_REFLEXION_EN_COMMENTAIRE) !== 'non';
+  } catch {
+    caseCommentaire.checked = true;
+  }
+  caseCommentaire.addEventListener('change', () => {
+    try {
+      window.localStorage.setItem(CLE_REFLEXION_EN_COMMENTAIRE, caseCommentaire.checked ? 'oui' : 'non');
+    } catch {
+      // Stockage indisponible : le choix vaut pour cette page seulement.
+    }
+  });
 
   function cellule(texte) {
     const td = document.createElement('td');
@@ -33,17 +62,30 @@ function demarrerReflexionIA(details) {
     return td;
   }
 
-  function ligne({ camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase }, classe) {
+  function celluleSequence(etat, sequence, titre) {
+    const td = document.createElement('td');
+    td.className = 'sequence-prevue';
+    td.append(...sequenceSurDeuxLignes(sequence ?? []));
+    if (etat && sequence?.length) {
+      td.classList.add('sequence-prevue-cliquable');
+      td.title = 'Voir la séquence sur un plateau';
+      td.addEventListener('click', () => sequencePrevue.montrer(etat, sequence, titre));
+    }
+    return td;
+  }
+
+  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase }, classe) {
     const tr = document.createElement('tr');
     if (classe) tr.className = classe;
     const marque = camp === 'noir' ? '●' : '○';
+    const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${coup ?? '…'}`;
     tr.append(
-      cellule(`${numeroDeTour(coupsJoues)} ${marque} ${coup ?? '…'}`),
+      cellule(texteCoup),
       cellule(`${duree.toFixed(DECIMALES_DUREE_REFLEXION)} s`),
       cellule(source === 'livre' ? 'livre' : String(profondeur ?? '')),
       cellule(String(noeuds ?? '')),
       cellule(`${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${texteEvaluation({ source, evaluation })}`),
-      cellule((sequence ?? []).join(' '))
+      celluleSequence(etat, sequence, `Séquence prévue — ${texteCoup}`)
     );
     return tr;
   }
@@ -61,7 +103,7 @@ function demarrerReflexionIA(details) {
     let parent = arbre.racine;
     arbre.chemin.forEach((index, rang) => {
       const noeud = parent.enfants[index];
-      if (noeud.reflexionIA) lignesDuChemin.push({ camp: parent.etat.joueurAuTrait, coupsJoues: rang + 1, coup: noeud.coup, ...noeud.reflexionIA });
+      if (noeud.reflexionIA) lignesDuChemin.push({ etat: parent.etat, camp: parent.etat.joueurAuTrait, coupsJoues: rang + 1, coup: noeud.coup, ...noeud.reflexionIA });
       parent = noeud;
     });
     afficherTableau();
@@ -72,5 +114,5 @@ function demarrerReflexionIA(details) {
     afficherTableau();
   }
 
-  return { actualiser, afficherEnCours };
+  return { actualiser, afficherEnCours, enCommentaire: () => caseCommentaire.checked };
 }

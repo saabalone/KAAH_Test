@@ -27,6 +27,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : choisirCoupIA,
 // textesDeLaSequence, coupDuLivre, poidsEnTexte, lireReponseKaiPlus,
 // coupsDesPositions (moteur/ia.js), NIVEAUX_IA (moteur/ia-recherche.js),
+// nomDeLaMachine (moteur/ia.js), commentaireDeReflexion (moteur/sequence-prevue.js),
 // ecrirePosition (moteur/notation.js), creerKaiPlus (interface/kai-plus.js), phaseDeLaPartie (moteur/ia-evaluation.js),
 // etatCourant (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
 // marquerNomMachine (rendu/ligne-joueur.js) viennent de fichiers charges avant
@@ -84,6 +85,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const { etat, camp, suivi, debut } = reflexionEnCours;
     evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation });
     reflexion.afficherEnCours({
+      etat,
       camp,
       coupsJoues: partie.obtenirArbre().chemin.length + 1,
       duree: (performance.now() - debut) / MILLISECONDES_PAR_SECONDE,
@@ -121,7 +123,12 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       setTimeout(() => {
         const encoreValable = positionInchangee(etat);
         finir();
-        if (encoreValable && texte) partie.jouerCoupTexte(texte, { source, profondeur, evaluation, noeuds, duree, sequence, phase });
+        if (!encoreValable || !texte) return;
+        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase };
+        // Saab, 2026-09-30 (« comme on est en test ») : la ligne du tableau aussi
+        // en commentaire du coup, si la case du tableau est cochee.
+        const commentaire = reflexion.enCommentaire() ? commentaireDeReflexion(nomDeLaMachine(machine), reflexionIA) : null;
+        partie.jouerCoupTexte(texte, reflexionIA, commentaire);
       }, attente);
     }
 

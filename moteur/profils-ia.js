@@ -7,8 +7,8 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, CLES_POIDS_IA
 // (ia-evaluation.js), VERSIONS_IA, POIDS_DES_VERSIONS_IA, nomDuProfilIntegre,
-// NOMS_STYLES_IA, lireMachine (ia.js) viennent
-// de fichiers charges avant celui-ci.
+// NOMS_STYLES_IA, lireMachine (ia.js), lireHistoriqueIA, valeursReglagesIA
+// (historique-profil-ia.js) viennent de fichiers charges avant celui-ci.
 
 // Trois par version : Agressif, Normal, Défensif (version 1), puis « … v2 ».
 const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) =>
@@ -22,11 +22,16 @@ const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) =>
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
 // memes valeurs sures qu'une machine (lireMachine) : style inconnu -> normal,
-// poids faux -> celui du style.
+// poids faux -> celui du style. Son historique (moteur/historique-profil-ia.js)
+// le suit s'il est intact : le profil prend alors les valeurs de sa version
+// courante.
 function lireProfilIA(brut) {
   if (!brut || typeof brut !== 'object' || typeof brut.nom !== 'string' || brut.nom.trim() === '') return null;
-  const { version, style, poids } = lireMachine(brut);
-  return { nom: brut.nom.trim(), version, style, poids };
+  const nom = brut.nom.trim();
+  const lu = lireHistoriqueIA(brut);
+  if (!lu) return { nom, ...valeursReglagesIA(brut) };
+  const courante = lu.historique.find((version) => version.numero === lu.courante);
+  return { nom, ...valeursReglagesIA(courante), historique: lu.historique, courante: lu.courante };
 }
 
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,

@@ -563,8 +563,21 @@ button,
    et le titre de sa rubrique (interface/reglages-champs.js,
    marquerReglagesModifies) — le meme orange que .bouton-actif. */
 .reglage-modifie,
+.legende-modifie,
 .rubrique-reglages.rubrique-modifiee > summary {
   color: #cc6a00;
+}
+
+/* Profils IA (saab, 2026-09-30, interface/reglages-ia.js) : apres Valider,
+   vert pour la derniere validation, jaune pour les plus anciennes. */
+.reglage-valide-dernier,
+.legende-dernier {
+  color: #45b862;
+}
+
+.reglage-valide-ancien,
+.legende-ancien {
+  color: #d9b62b;
 }
 
 /* Le profil, hors des rubriques et hors de la zone qui defile : toujours
@@ -4038,6 +4051,18 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   border-top: 1px solid #3a3a3a;
   border-left: 1px solid #3a3a3a;
   padding: 0 4px;
+  /* Sa largeur ne compte jamais dans celle de la colonne (saab, 2026-09-30 :
+     « le plateau ne doit pas bouger pendant une partie, les boites autour
+     s'adaptent ») : il prend celle que les autres panneaux lui laissent, et
+     son tableau defile s'il le faut. */
+  contain: inline-size;
+  min-width: 176px;
+}
+
+.reflexion-commentaire {
+  margin-left: 8px;
+  font-weight: normal;
+  color: #9a9a9a;
 }
 
 .reflexion-ia > summary {
@@ -4046,7 +4071,7 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 }
 
 .reflexion-ia-defilement {
-  max-height: 9em;
+  max-height: 12em;
   overflow: auto;
 }
 
@@ -4070,4 +4095,94 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .reflexion-ia .reflexion-en-cours {
   font-style: italic;
   color: #7fd48f;
+}
+
+/* La sequence prevue sur 2 lignes (interface/reflexion-ia.js) ; un clic la
+   montre sur un petit plateau (interface/sequence-prevue.js). */
+.reflexion-ia td {
+  vertical-align: top;
+}
+
+.reflexion-ia .sequence-prevue-cliquable {
+  cursor: pointer;
+  text-decoration: underline dotted #6a6a6a;
+}
+
+.noir-commence {
+  color: #e6c300;
+}
+
+#apercu-sequence-prevue {
+  display: block;
+  width: var(--taille-apercu);
+  height: var(--taille-apercu);
+  margin: 0 auto 6px;
+  background: #2b2b2b;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.coups-sequence-prevue {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 6px;
+  max-width: 260px;
+  margin: 0 auto 6px;
+}
+
+/* Un bouton sans effet (rien a valider, deja au bout de la sequence) le dit. */
+#bouton-valider-profil-ia:disabled,
+#bouton-abandonner-profil-ia:disabled,
+.dialogue-sequence-prevue .bouton-dialogue:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.coup-sequence-prevue {
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: #cfcfcf;
+  font: 13px monospace;
+  cursor: pointer;
+}
+
+.coup-sequence-prevue-actuel {
+  background: var(--vert-demande);
+  color: #ffffff;
+  border-radius: 3px;
+}
+
+/* Historique IA (interface/historique-ia.js) : les versions du profil, comme
+   les branches de la Sequence. */
+.boite-historique-ia > summary {
+  cursor: pointer;
+  min-height: var(--hauteur-ligne-liste);
+}
+
+.historique-profil-ia {
+  display: flex;
+  flex-direction: column;
+  max-height: 10em;
+  overflow-y: auto;
+}
+
+.ligne-historique-ia {
+  min-height: var(--hauteur-ligne-liste);
+  border: none;
+  background: none;
+  color: #cfcfcf;
+  font: 12px sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ligne-historique-ia.hors-du-chemin {
+  color: #8a8a8a;
+}
+
+.ligne-historique-ia.version-courante {
+  background: var(--vert-demande);
+  color: #ffffff;
 }
