@@ -30,15 +30,18 @@
 // (plateau.js), tousLesCoupsLegaux (regles.js), ecrirePosition (notation.js),
 // compterOccurrences, SEUIL_NULLE_PAR_DEFAUT (nulle.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
-// (ia-evaluation.js) viennent de fichiers charges avant celui-ci.
+// (ia-evaluation.js), evaluerPositionV2 (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
 
 // Profondeur (en coups, les siens et ceux de l'adversaire) par niveau. Le
 // niveau 3 est borne par le temps de reflexion bien avant d'atteindre la
 // sienne sur une position chargee.
+// KAI++ (phase 33bis, 40 a 80 fois plus rapide) va au niveau 3 aussi loin que
+// son temps de reflexion le permet, jusqu'a `profondeurKaiPlus` ; aux niveaux 1
+// et 2, la meme profondeur que KAI, pour les comparer a egalite.
 const NIVEAUX_IA = {
   1: { profondeur: 1 },
   2: { profondeur: 2 },
-  3: { profondeur: 4 },
+  3: { profondeur: 4, profondeurKaiPlus: 8 },
 };
 
 // Assez petit pour qu'une tranche dure quelques millisecondes meme sur un
@@ -87,12 +90,12 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   const signe = etat.joueurAuTrait === contexte.camp ? 1 : -1;
   contexte.variantes[distance] = [];
   if (etat.vainqueur || profondeur === 0) {
-    const valeur = evaluerPosition(etat, contexte.camp, contexte.poids);
+    const valeur = contexte.evaluer(etat, contexte.camp, contexte.poids);
     const ajustee = etat.vainqueur ? valeur - Math.sign(valeur) * distance : valeur;
     return signe * ajustee;
   }
   const coups = ordonnerCoups(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait));
-  if (coups.length === 0) return signe * evaluerPosition(etat, contexte.camp, contexte.poids);
+  if (coups.length === 0) return signe * contexte.evaluer(etat, contexte.camp, contexte.poids);
   let meilleure = -Infinity;
   for (const coup of coups) {
     const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -beta, -alpha, contexte, distance + 1));
@@ -107,13 +110,16 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
 }
 
 // Le meilleur coup pour le camp au trait de `etat`. `options` : { niveau,
-// poids, hasard, maintenant, echeance, suivi (facultatif, voir l'en-tete) }.
+// poids, version (1 ou 2 : moteur/ia-evaluation.js ou ia-evaluation-v2.js),
+// hasard, maintenant, echeance, suivi (facultatif, voir l'en-tete),
+// historique }.
 // Renvoie { coup, profondeur, evaluation, sequence (des coups), noeuds } — la
 // profondeur ENTIEREMENT examinee, et son evaluation pour la machine. La
 // profondeur 1 va toujours au bout, meme echeance depassee ou arret demande :
 // il faut bien un coup a jouer.
-function* rechercherCoup(etat, { niveau, poids, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
-  const contexte = { camp: etat.joueurAuTrait, poids, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
+function* rechercherCoup(etat, { niveau, poids, version = 1, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
+  const evaluer = version === 2 ? evaluerPositionV2 : evaluerPosition;
+  const contexte = { camp: etat.joueurAuTrait, poids, evaluer, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
   const racine = ordonnerCoups(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard));
   let meilleurCoup = racine[0];
   let profondeurAtteinte = 0;

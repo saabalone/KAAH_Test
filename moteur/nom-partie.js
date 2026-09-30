@@ -39,14 +39,16 @@ function nomJoueurNettoye(nom) {
 // chiffres 0-9 et "_", rien d'autre) : le nom finit dans le titre de la
 // partie, ou "-" separe les deux joueurs et "," les elements (voir plus bas).
 // Plutot que refuser, on corrige : un espace (ou plusieurs) devient un seul
-// "_", une lettre accentuee perd son accent, tout autre signe disparait.
+// "_", une lettre accentuee perd son accent, tout autre signe disparait — sauf
+// « + » (saab, 2026-09-30 : la machine en C++ s'appelle KAI++), qui ne decoupe
+// pas le titre.
 function nomJoueurAutorise(saisie) {
   return String(saisie)
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .trim()
     .replace(/\s+/g, '_')
-    .replace(/[^A-Za-z0-9_]/g, '');
+    .replace(/[^A-Za-z0-9_+]/g, '');
 }
 
 // Les elements du titre "Br_2608172039, Amical, Marguerite Belge,

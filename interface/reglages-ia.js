@@ -8,15 +8,16 @@
 // debut de la partie (interface/choix-joueurs.js).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
-// (moteur/ia-evaluation.js), NOMS_STYLES_IA (moteur/ia.js), lireProfilIA
+// (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js), NOMS_STYLES_IA (moteur/ia.js), lireProfilIA
 // (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA, estProfilIAIntegre,
 // enregistrerProfilIA, supprimerProfilIA, nomNouveauProfilIA
 // (interface/profils-ia.js), nomDisponible (moteur/corbeille.js),
 // telechargerPartie, demarrerImportation (interface/fichiers.js) viennent de
 // fichiers charges avant celui-ci.
 
-// `elements` : { select, nouveau, supprimer, exporter, importer, style, note }
-// ; les champs des poids sont trouves par leur id, `poids-ia-<cle>`.
+// `elements` : { select, nouveau, supprimer, exporter, importer, style, version,
+// note } ; les champs des poids sont trouves par leur id, `poids-ia-<cle>` ;
+// ceux de la version 2 (sumitos, phase 33) ne se montrent qu'avec elle.
 function demarrerReglagesIA(elements) {
   let nomActuel = NOMS_STYLES_IA.normal;
   const champPoids = (cle) => document.getElementById(`poids-ia-${cle}`);
@@ -35,7 +36,12 @@ function demarrerReglagesIA(elements) {
     elements.select.value = nomActuel;
     const profil = trouverProfilIA(nomActuel);
     elements.style.value = profil.style;
-    for (const cle of CLES_POIDS_IA) champPoids(cle).value = profil.poids[cle];
+    elements.version.value = String(profil.version);
+    for (const cle of [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2]) {
+      const champ = champPoids(cle);
+      champ.closest('label').hidden = !(cle in profil.poids);
+      if (cle in profil.poids) champ.value = profil.poids[cle];
+    }
     elements.note.textContent = estProfilIAIntegre(nomActuel)
       ? `Profil intégré (IA version ${profil.version}) : le retoucher crée un nouveau profil.`
       : `IA version ${profil.version}.`;
@@ -50,18 +56,24 @@ function demarrerReglagesIA(elements) {
 
   // Une retouche (style ou poids) : enregistree tout de suite, dans un nouveau
   // profil si l'on partait d'un integre.
+  // Changer de version garde les poids communs ; ceux qui manquent prennent
+  // la valeur du style (moteur/ia.js, lireMachine).
   function retoucher() {
     const profil = lireProfilIA({
       ...trouverProfilIA(nomActuel),
       style: elements.style.value,
-      poids: Object.fromEntries(CLES_POIDS_IA.map((cle) => [cle, Number(champPoids(cle).value)])),
+      version: Number(elements.version.value),
+      poids: Object.fromEntries(
+        [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2].filter((cle) => !champPoids(cle).closest('label').hidden).map((cle) => [cle, Number(champPoids(cle).value)])
+      ),
     });
     if (estProfilIAIntegre(profil.nom)) profil.nom = nomNouveauProfilIA();
     enregistrerProfilIA(profil);
     choisir(profil.nom);
   }
   elements.style.addEventListener('change', retoucher);
-  for (const cle of CLES_POIDS_IA) champPoids(cle).addEventListener('change', retoucher);
+  elements.version.addEventListener('change', retoucher);
+  for (const cle of [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2]) champPoids(cle).addEventListener('change', retoucher);
 
   elements.nouveau.addEventListener('click', () => {
     const profil = { ...trouverProfilIA(nomActuel), nom: nomNouveauProfilIA() };
@@ -71,7 +83,7 @@ function demarrerReglagesIA(elements) {
 
   elements.supprimer.addEventListener('click', () => {
     if (estProfilIAIntegre(nomActuel)) {
-      window.alert('Les profils Agressif, Normal et Défensif ne sont pas supprimables.');
+      window.alert('Les profils intégrés (Agressif, Normal, Défensif, et leurs « v2 ») ne sont pas supprimables.');
       return;
     }
     if (!window.confirm(`Supprimer le profil IA « ${nomActuel} » ?`)) return;

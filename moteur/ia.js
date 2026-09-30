@@ -8,7 +8,8 @@
 // (next-move.js), ecrirePosition, lireCoupNacre, ecrireCoupNacreSansAmbiguite
 // (notation.js), couleursDuPlateau, appliquerCoup (partie.js), rechercherCoup,
 // NIVEAUX_IA (ia-recherche.js), STYLES_IA, CLES_POIDS_IA, VALEUR_VICTOIRE_IA
-// (ia-evaluation.js) viennent de fichiers charges avant celui-ci.
+// (ia-evaluation.js), CLES_POIDS_IA_V2, STYLES_IA_V2 (ia-evaluation-v2.js)
+// viennent de fichiers charges avant celui-ci.
 
 // Parmi les coups de la base, sont "parmi les meilleurs" ceux qui ont au
 // moins cette fraction des victoires du premier (tri des Conseils) : un peu de
@@ -65,11 +66,27 @@ function* choisirCoupIA(etat, options) {
 // style de base (nom de la machine) ; `profil` : le nom du profil IA
 // (moteur/profils-ia.js) ; `poids` : ceux de l'evaluation ; `reflexionMax` : en
 // secondes, SA pendule tourne pendant ce temps.
+// Les versions jouables (la 1 gardee pour comparer, saab) ; la 1 par defaut.
 const VERSION_IA = 1;
+const VERSIONS_IA = [1, 2];
+// Les poids de chaque version, et ceux par defaut de chaque style.
+const POIDS_DES_VERSIONS_IA = {
+  1: { cles: CLES_POIDS_IA, styles: STYLES_IA },
+  2: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2], styles: STYLES_IA_V2 },
+};
 const NOMS_STYLES_IA = { agressif: 'Agressif', normal: 'Normal', defensif: 'Défensif' };
 const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def' };
-const MACHINE_PAR_DEFAUT = { version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5 };
+// `moteur` (saab, 2026-09-30) : 'kai', la recherche en JavaScript de ce fichier,
+// ou 'kai++', la meme en C++ (solveur/kai-plus.cpp), pour les comparer.
+const MOTEURS_IA = ['kai', 'kai++'];
+const PREFIXES_MOTEURS_IA = { kai: 'KAI', 'kai++': 'KAI++' };
+const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5 };
 const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
+
+// Le nom du profil integre d'un style et d'une version : « Normal », « Normal v2 ».
+function nomDuProfilIntegre(style, version) {
+  return version === VERSION_IA ? NOMS_STYLES_IA[style] : `${NOMS_STYLES_IA[style]} v${version}`;
+}
 
 // Un reglage relu (fichier, stockage) : null pour un joueur humain, sinon
 // chaque valeur valide gardee, les autres ramenees a leur defaut — un poids
@@ -78,15 +95,16 @@ const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
 function lireMachine(brut) {
   if (!brut || typeof brut !== 'object') return null;
   const style = brut.style in STYLES_IA ? brut.style : MACHINE_PAR_DEFAUT.style;
-  const poids = Object.fromEntries(
-    CLES_POIDS_IA.map((cle) => [cle, Number.isFinite(brut.poids?.[cle]) ? brut.poids[cle] : STYLES_IA[style][cle]])
-  );
+  const version = VERSIONS_IA.includes(brut.version) ? brut.version : VERSION_IA;
+  const { cles, styles } = POIDS_DES_VERSIONS_IA[version];
+  const poids = Object.fromEntries(cles.map((cle) => [cle, Number.isFinite(brut.poids?.[cle]) ? brut.poids[cle] : styles[style][cle]]));
   const reflexion = Number(brut.reflexionMax);
   return {
-    version: brut.version === VERSION_IA ? brut.version : VERSION_IA,
+    moteur: MOTEURS_IA.includes(brut.moteur) ? brut.moteur : MACHINE_PAR_DEFAUT.moteur,
+    version,
     niveau: brut.niveau in NIVEAUX_IA ? Number(brut.niveau) : MACHINE_PAR_DEFAUT.niveau,
     style,
-    profil: typeof brut.profil === 'string' && brut.profil !== '' ? brut.profil : NOMS_STYLES_IA[style],
+    profil: typeof brut.profil === 'string' && brut.profil !== '' ? brut.profil : nomDuProfilIntegre(style, version),
     poids,
     reflexionMax:
       Number.isFinite(reflexion) && reflexion > 0
@@ -120,10 +138,11 @@ function formaterTempsReflexion(secondes) {
 }
 
 // Le nom que prend le camp d'une machine (saab) : KAI, son niveau, son style en
-// trois lettres, son temps de reflexion — ex. KAI2_Nor_5s, KAI3_Agr_1s2.
+// trois lettres, son temps de reflexion — ex. KAI2_Nor_5s, KAI3_Agr_1s2 ; la
+// version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
-  return `KAI${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}`;
+  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${machine.version > VERSION_IA ? `_v${machine.version}` : ''}`;
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la
@@ -137,4 +156,41 @@ function libelleEvaluation(valeur) {
   }
   const arrondi = Math.round(valeur);
   return arrondi > 0 ? `+${arrondi}` : `${arrondi === 0 ? 0 : arrondi}`;
+}
+
+// KAI++ (phase 33bis, solveur/kai-plus.cpp) : ses poids en texte (CSV, dans
+// l'ordre des cles ; 0 pour ceux de la version 2 absents)...
+function poidsEnTexte(poids) {
+  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2].map((cle) => poids[cle] ?? 0).join(',');
+}
+
+// ... sa reponse relue — « profondeur, evaluation, positions examinees, puis la
+// sequence prevue en positions » —, ou null si elle n'en est pas une...
+function lireReponseKaiPlus(texte) {
+  const [profondeur, evaluation, noeuds, sequence = ''] = String(texte).split('\n');
+  if (!Number.isFinite(Number(profondeur)) || noeuds === undefined) return null;
+  return {
+    profondeur: Number(profondeur),
+    evaluation: Number(evaluation),
+    noeuds: Number(noeuds),
+    positions: sequence.split(' ').filter(Boolean),
+  };
+}
+
+// ... et les coups de KAI qui menent, position apres position, de `etat` a
+// chacune de ses `positions` : KAI++ n'ecrit jamais de coup, seulement les
+// positions, que les regles de moteur/regles.js retraduisent. S'arrete a la
+// premiere position qu'aucun coup legal ne donne.
+function coupsDesPositions(etat, positions) {
+  const coups = [];
+  let courant = etat;
+  for (const position of positions) {
+    const coup = tousLesCoupsLegaux(couleursDuPlateau(courant.plateau), courant.joueurAuTrait).find(
+      (candidat) => ecrirePosition(appliquerCoup(courant, candidat).etat) === position
+    );
+    if (!coup) break;
+    coups.push(coup);
+    courant = appliquerCoup(courant, coup).etat;
+  }
+  return coups;
 }

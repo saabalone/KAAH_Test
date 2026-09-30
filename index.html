@@ -659,7 +659,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
-        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
+        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
         <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
@@ -671,8 +671,10 @@
     <details>
       <summary>Jouer contre la machine</summary>
       <ul>
-        <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>Machine</b> — deux machines peuvent jouer l'une contre l'autre.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2). La boîte retient votre dernier choix.</li>
-        <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s). Le fichier de la partie garde tous ses réglages, pour comparer.</li>
+        <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b>, <b>KAI</b> (la machine en JavaScript) ou <b>KAI++</b> (la même machine en C++, 40 à 80 fois plus rapide) — deux machines peuvent jouer l'une contre l'autre, par exemple KAI contre KAI++.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2). La boîte retient votre dernier choix.</li>
+        <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
+        <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
+        <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
         <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.</li>
         <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord). Agressif, Normal et Défensif ne changent jamais : en retoucher un crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.</li>
@@ -907,11 +909,11 @@
           <input id="case-selection-bille" type="checkbox" />
           Sélection sur bille
         </label>
-        <label class="ligne-couleur">Taille des trous (mode simple) <input id="curseur-taille-trous" class="nombre-reglage" type="number" /></label>
-        <label class="ligne-couleur">Taille coord sur bille <input id="curseur-taille-coord-bille" class="nombre-reglage" type="number" /></label>
-        <label class="ligne-couleur">Taille coord arrivée <input id="curseur-taille-coord-arrivee" class="nombre-reglage" type="number" /></label>
-        <label class="ligne-couleur">Taille des ronds verts <input id="curseur-taille-ronds-verts" class="nombre-reglage" type="number" /></label>
-        <label class="ligne-couleur" title="Fin de partie : de la taille d'un trou (0,66) à presque une bille">Taille des billes du perdant <input id="nombre-taille-billes-perdantes" class="nombre-reglage" type="number" /></label>
+        <label class="ligne-couleur">Taille des trous (mode simple) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-trous" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur">Taille coord sur bille <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-coord-bille" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur">Taille coord arrivée <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-coord-arrivee" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur">Taille des ronds verts <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-ronds-verts" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Fin de partie : de la taille d'un trou (0,66) à presque une bille">Taille des billes du perdant <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="nombre-taille-billes-perdantes" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
       </details>
 
       <!-- Ordre des groupes d'icones (interface/ordre-colonne.js) : a part des
@@ -950,6 +952,12 @@
           <button id="bouton-exporter-profil-ia" class="bouton-dialogue" type="button">Exporter</button>
           <button id="bouton-importer-profil-ia" class="bouton-dialogue" type="button">Importer</button>
         </div>
+        <label class="ligne-couleur" title="1 : celle de la phase 29, gardée pour comparer ; 2 : compte aussi les sumitos et les fourchettes">Version de l'IA
+          <select id="select-version-profil-ia">
+            <option value="1">1</option>
+            <option value="2">2 (sumitos)</option>
+          </select>
+        </label>
         <label class="ligne-couleur">Style de base
           <select id="select-style-profil-ia">
             <option value="agressif">Agressif</option>
@@ -963,6 +971,9 @@
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <input id="poids-ia-cohesion" type="number" step="1" /></label>
         <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les siennes) <input id="poids-ia-bordSoi" type="number" step="1" /></label>
         <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <input id="poids-ia-bordAdverse" type="number" step="1" /></label>
+        <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <input id="poids-ia-sumito" type="number" step="1" /></label>
+        <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <input id="poids-ia-menaceEjection" type="number" step="1" /></label>
+        <label class="ligne-couleur poids-version-2" title="Par sumito au-delà du premier : l'adversaire ne peut en parer qu'un">Fourchette <input id="poids-ia-fourchette" type="number" step="1" /></label>
         <p id="note-profil-ia" class="note-reglages"></p>
       </details>
 
@@ -1136,16 +1147,18 @@
     </div>
     <!-- Joueurs (phases 29 et 32, interface/choix-joueurs.js) : seulement au
          debut d'une partie, jamais pour un changement de pendule en cours.
-         Noir et Blanc sont chacun Humain ou Machine (machine contre machine
-         possible, saab), chaque machine avec son niveau, son profil IA
-         (Reglages) et son temps de reflexion. -->
+         Noir et Blanc sont chacun Humain, KAI (la machine en JavaScript) ou
+         KAI++ (la meme en C++) — machine contre machine possible, saab —,
+         chaque machine avec son niveau, son profil IA (Reglages) et son temps
+         de reflexion. -->
     <div id="section-adversaire" class="section-adversaire" hidden>
-      <h3>Joueurs</h3>
+      <h3>Joueurs (Noir commence)</h3>
       <div class="choix-joueur" data-camp="noir">
         <div class="ligne-choix-machine">
-          <span>Noir (commence)</span>
+          <span>Noir</span>
           <button class="bouton-filtre" type="button" data-role="humain">Humain</button>
-          <button class="bouton-filtre" type="button" data-role="machine">Machine</button>
+          <button class="bouton-filtre" type="button" data-role="kai" title="La machine en JavaScript">KAI</button>
+          <button class="bouton-filtre" type="button" data-role="kai++" title="La même machine en C++, plus rapide : pour comparer">KAI++</button>
         </div>
         <div class="reglages-machine" hidden>
           <div class="ligne-choix-machine">
@@ -1165,7 +1178,8 @@
         <div class="ligne-choix-machine">
           <span>Blanc</span>
           <button class="bouton-filtre" type="button" data-role="humain">Humain</button>
-          <button class="bouton-filtre" type="button" data-role="machine">Machine</button>
+          <button class="bouton-filtre" type="button" data-role="kai" title="La machine en JavaScript">KAI</button>
+          <button class="bouton-filtre" type="button" data-role="kai++" title="La même machine en C++, plus rapide : pour comparer">KAI++</button>
         </div>
         <div class="reglages-machine" hidden>
           <div class="ligne-choix-machine">
@@ -1455,6 +1469,7 @@
   <script src="./moteur/bases-coups.js"></script>
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/ia-evaluation.js"></script>
+  <script src="./moteur/ia-evaluation-v2.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
   <script src="./moteur/profils-ia.js"></script>
@@ -1524,6 +1539,8 @@
   <script src="./interface/puzzles.js"></script>
   <script src="./solveur/kaa-solveur.js"></script>
   <script src="./interface/solveur.js"></script>
+  <script src="./solveur/kai-plus.js"></script>
+  <script src="./interface/kai-plus.js"></script>
   <script src="./interface/verification-puzzle.js"></script>
   <script src="./interface/positions-my.js"></script>
   <script src="./interface/corbeille.js"></script>
@@ -1912,6 +1929,7 @@
       exporter: document.getElementById('bouton-exporter-profil-ia'),
       importer: document.getElementById('bouton-importer-profil-ia'),
       style: document.getElementById('select-style-profil-ia'),
+      version: document.getElementById('select-version-profil-ia'),
       note: document.getElementById('note-profil-ia'),
     });
     document.getElementById('bouton-reglages').addEventListener('click', () => reglagesIA.remplir());

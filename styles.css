@@ -480,6 +480,17 @@ button,
 
 /* Une ligne de couleur (phase 22) : le nom a gauche, le selecteur natif a
    droite — meme gabarit de 44px que .ligne-reglage. */
+/* `display: flex` l'emporterait sinon sur l'attribut hidden (poids de la
+   version 2 de l'IA, Reglages). */
+.ligne-couleur[hidden] {
+  display: none;
+}
+
+.ligne-couleur input[type='number'] {
+  width: 64px;
+  text-align: right;
+}
+
 .ligne-couleur {
   display: flex;
   align-items: center;
@@ -3988,6 +3999,18 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .nombre-reglage {
   width: 70px;
   text-align: right;
+}
+
+.nombre-avec-boutons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bouton-pas {
+  min-width: var(--hauteur-commande);
+  min-height: var(--hauteur-commande);
+  font-weight: bold;
 }
 
 /* Bouton Marche/Arret de la boite du nom : vert tant que la machine joue (un

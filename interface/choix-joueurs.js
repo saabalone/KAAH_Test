@@ -1,7 +1,8 @@
 // La rubrique « Joueurs » de la boite du debut de partie (phases 29 et 32,
 // choix de saab : dans la boite du mode de pendule, qui s'ouvre deja a chaque
-// nouvelle partie) : Noir et Blanc sont chacun Humain ou Machine — machine
-// contre machine possible, pour comparer deux reglages (saab) —, et chaque
+// nouvelle partie) : Noir et Blanc sont chacun Humain, KAI (la machine en
+// JavaScript) ou KAI++ (la meme en C++, saab 2026-09-30) — machine contre
+// machine possible, pour comparer deux reglages ou deux moteurs —, et chaque
 // machine a son niveau, son profil IA (Reglages, interface/profils-ia.js) et
 // son temps de reflexion maximum (decimales permises : 1,2 s).
 //
@@ -16,9 +17,11 @@
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
 const CAMPS_JOUEURS = ['noir', 'blanc'];
 
-// Le choix d'un camp : { machine: vrai|faux, niveau, profil (son nom), reflexionMax }.
+// Le choix d'un camp : { role ('humain', 'kai' ou 'kai++'), niveau, profil (son
+// nom), reflexionMax }.
+const ROLE_HUMAIN = 'humain';
 const CHOIX_JOUEUR_PAR_DEFAUT = {
-  machine: false,
+  role: ROLE_HUMAIN,
   niveau: MACHINE_PAR_DEFAUT.niveau,
   profil: MACHINE_PAR_DEFAUT.profil,
   reflexionMax: MACHINE_PAR_DEFAUT.reflexionMax,
@@ -27,7 +30,9 @@ const CHOIX_JOUEUR_PAR_DEFAUT = {
 function lireDerniersJoueurs() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_DERNIERS_JOUEURS) ?? 'null');
-    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp] }]));
+    // Un choix retenu avant KAI++ disait seulement { machine: vrai|faux }.
+    const role = (retenu) => retenu?.role ?? (retenu?.machine ? 'kai' : ROLE_HUMAIN);
+    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]) }]));
   } catch {
     return { noir: { ...CHOIX_JOUEUR_PAR_DEFAUT }, blanc: { ...CHOIX_JOUEUR_PAR_DEFAUT } };
   }
@@ -68,10 +73,9 @@ function demarrerChoixJoueurs(section) {
 
   function afficher(camp) {
     const element = bloc(camp);
-    const { machine, niveau, reflexionMax } = choix[camp];
-    element.querySelector('[data-role="humain"]').classList.toggle('bouton-actif', !machine);
-    element.querySelector('[data-role="machine"]').classList.toggle('bouton-actif', machine);
-    element.querySelector('.reglages-machine').hidden = !machine;
+    const { role, niveau, reflexionMax } = choix[camp];
+    for (const bouton of element.querySelectorAll('[data-role]')) bouton.classList.toggle('bouton-actif', bouton.dataset.role === role);
+    element.querySelector('.reglages-machine').hidden = role === ROLE_HUMAIN;
     for (const bouton of element.querySelectorAll('[data-niveau]')) {
       bouton.classList.toggle('bouton-actif', Number(bouton.dataset.niveau) === niveau);
     }
@@ -84,8 +88,7 @@ function demarrerChoixJoueurs(section) {
       choix[camp] = { ...choix[camp], ...retouche };
       afficher(camp);
     };
-    element.querySelector('[data-role="humain"]').addEventListener('click', () => changer({ machine: false }));
-    element.querySelector('[data-role="machine"]').addEventListener('click', () => changer({ machine: true }));
+    for (const bouton of element.querySelectorAll('[data-role]')) bouton.addEventListener('click', () => changer({ role: bouton.dataset.role }));
     for (const bouton of element.querySelectorAll('[data-niveau]')) {
       bouton.addEventListener('click', () => changer({ niveau: Number(bouton.dataset.niveau) }));
     }
@@ -106,9 +109,9 @@ function demarrerChoixJoueurs(section) {
   function machineDuCamp(camp) {
     const reflexionMax = Number(bloc(camp).querySelector('.choix-reflexion-max').value);
     choix[camp] = { ...choix[camp], reflexionMax };
-    if (!choix[camp].machine) return null;
+    if (choix[camp].role === ROLE_HUMAIN) return null;
     const profil = trouverProfilIA(choix[camp].profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
-    const machine = machineDuProfil(profil, { niveau: choix[camp].niveau, reflexionMax });
+    const machine = machineDuProfil(profil, { niveau: choix[camp].niveau, reflexionMax, moteur: choix[camp].role });
     choix[camp].reflexionMax = machine.reflexionMax; // ramene dans ses bornes
     return machine;
   }

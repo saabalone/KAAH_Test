@@ -6,15 +6,19 @@
 // l'utilisateur (interface/profils-ia.js les range sur l'appareil). Pur.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, CLES_POIDS_IA
-// (ia-evaluation.js), VERSION_IA, NOMS_STYLES_IA, lireMachine (ia.js) viennent
+// (ia-evaluation.js), VERSIONS_IA, POIDS_DES_VERSIONS_IA, nomDuProfilIntegre,
+// NOMS_STYLES_IA, lireMachine (ia.js) viennent
 // de fichiers charges avant celui-ci.
 
-const PROFILS_IA_INTEGRES = Object.keys(STYLES_IA).map((style) => ({
-  nom: NOMS_STYLES_IA[style],
-  version: VERSION_IA,
-  style,
-  poids: STYLES_IA[style],
-}));
+// Trois par version : Agressif, Normal, Défensif (version 1), puis « … v2 ».
+const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) =>
+  Object.keys(STYLES_IA).map((style) => ({
+    nom: nomDuProfilIntegre(style, version),
+    version,
+    style,
+    poids: POIDS_DES_VERSIONS_IA[version].styles[style],
+  }))
+);
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
 // memes valeurs sures qu'une machine (lireMachine) : style inconnu -> normal,
@@ -27,6 +31,7 @@ function lireProfilIA(brut) {
 
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,
 // lireMachine) : tout le profil, pour que le fichier de la partie le garde.
-function machineDuProfil(profil, { niveau, reflexionMax }) {
-  return lireMachine({ version: profil.version, niveau, style: profil.style, profil: profil.nom, poids: profil.poids, reflexionMax });
+// `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
+function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai' }) {
+  return lireMachine({ moteur, version: profil.version, niveau, style: profil.style, profil: profil.nom, poids: profil.poids, reflexionMax });
 }

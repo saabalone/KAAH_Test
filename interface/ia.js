@@ -25,7 +25,9 @@
 // une autre position) : la surveillance relance une reflexion neuve.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : choisirCoupIA,
-// textesDeLaSequence (moteur/ia.js), phaseDeLaPartie (moteur/ia-evaluation.js),
+// textesDeLaSequence, coupDuLivre, poidsEnTexte, lireReponseKaiPlus,
+// coupsDesPositions (moteur/ia.js), NIVEAUX_IA (moteur/ia-recherche.js),
+// ecrirePosition (moteur/notation.js), creerKaiPlus (interface/kai-plus.js), phaseDeLaPartie (moteur/ia-evaluation.js),
 // etatCourant (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
 // marquerNomMachine (rendu/ligne-joueur.js) viennent de fichiers charges avant
 // celui-ci.
@@ -39,6 +41,8 @@ const DUREE_TRANCHE_MS = 12;
 // reponse, meme quand elle a ete trouvee en 3 ms.
 const DELAI_MINIMUM_REPONSE_MS = 600;
 const MILLISECONDES_PAR_SECONDE = 1000;
+// Le hasard des coups egaux de KAI++ : une graine entiere positive (32 bits signes).
+const GRAINE_MAXIMUM = 2 ** 31;
 
 // `partie` : ce que renvoie demarrerPartie (interface/saisie.js).
 // `machines` : { noir, blanc }, chacune un reglage (moteur/ia.js, lireMachine)
@@ -54,7 +58,8 @@ const MILLISECONDES_PAR_SECONDE = 1000;
 // historique) et ne le choisit que si tout le reste est pire pour elle.
 function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations }) {
   const enMarche = { noir: true, blanc: true };
-  let reflexionEnCours = null; // { etat, camp, suivi, debut }, ou null
+  let reflexionEnCours = null; // { etat, camp, suivi, debut, arreterTout?, abandonner? }, ou null
+  let kaiPlus = null; // le worker de KAI++, cree a sa premiere reflexion
   let arbreAffiche = null;
 
   const pendule = (camp) => svg.querySelector(`#bouton-pendule-${camp}`);
@@ -95,19 +100,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const debut = performance.now();
     const arbre = partie.obtenirArbre();
     const phase = phaseDeLaPartie(etat, arbre.chemin.length);
+    const historique = positionsDepuisLaRacine(arbre, arbre.chemin);
+    const base = obtenirBase();
+    const livre = base.size > 0 ? base : null;
     reflexionEnCours = { etat, camp, suivi, debut };
     pendule(camp)?.classList.add('machine-reflechit');
-    const base = obtenirBase();
-    const recherche = choisirCoupIA(etat, {
-      niveau: machine.niveau,
-      poids: machine.poids,
-      base: base.size > 0 ? base : null,
-      hasard: Math.random,
-      maintenant: () => performance.now(),
-      echeance: debut + machine.reflexionMax * MILLISECONDES_PAR_SECONDE,
-      suivi,
-      historique: positionsDepuisLaRacine(arbre, arbre.chemin),
-    });
 
     function finir() {
       reflexionEnCours = null;
@@ -115,24 +112,92 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       montrerReflexion();
     }
 
+    // Joue le coup trouve, par KAI comme par KAI++. Un arret demande (boite du
+    // nom) joue tout de suite ; sinon, jamais avant la fin de l'animation du
+    // coup precedent.
+    function jouer({ texte, source, profondeur, evaluation, noeuds, sequence }) {
+      const duree = (performance.now() - debut) / MILLISECONDES_PAR_SECONDE;
+      const attente = suivi.arreter ? 0 : Math.max(0, debut + DELAI_MINIMUM_REPONSE_MS - performance.now());
+      setTimeout(() => {
+        const encoreValable = positionInchangee(etat);
+        finir();
+        if (encoreValable && texte) partie.jouerCoupTexte(texte, { source, profondeur, evaluation, noeuds, duree, sequence, phase });
+      }, attente);
+    }
+
+    if (machine.moteur === 'kai++') reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, jouer, finir });
+    else reflechirAvecKai({ etat, machine, suivi, debut, historique, livre, jouer, finir });
+  }
+
+  // KAI : la recherche en JavaScript, deroulee par tranches sur ce fil (voir
+  // l'en-tete du fichier).
+  function reflechirAvecKai({ etat, machine, suivi, debut, historique, livre, jouer, finir }) {
+    const recherche = choisirCoupIA(etat, {
+      niveau: machine.niveau,
+      poids: machine.poids,
+      version: machine.version,
+      base: livre,
+      hasard: Math.random,
+      maintenant: () => performance.now(),
+      echeance: debut + machine.reflexionMax * MILLISECONDES_PAR_SECONDE,
+      suivi,
+      historique,
+    });
     function tranche() {
       if (!positionInchangee(etat)) return finir();
       const finDeTranche = performance.now() + DUREE_TRANCHE_MS;
       let pas = recherche.next();
       while (!pas.done && performance.now() < finDeTranche) pas = recherche.next();
       if (!pas.done) return setTimeout(tranche, 0);
-      const { texte, source, profondeur, evaluation, noeuds, sequence } = pas.value;
-      const duree = (performance.now() - debut) / MILLISECONDES_PAR_SECONDE;
-      // Un arret demande (boite du nom) joue tout de suite ; sinon, jamais avant
-      // la fin de l'animation du coup precedent.
-      const attente = suivi.arreter ? 0 : Math.max(0, debut + DELAI_MINIMUM_REPONSE_MS - performance.now());
-      setTimeout(() => {
-        const encoreValable = positionInchangee(etat);
-        finir();
-        if (encoreValable) partie.jouerCoupTexte(texte, { source, profondeur, evaluation, noeuds, duree, sequence, phase });
-      }, attente);
+      jouer(pas.value);
     }
     setTimeout(tranche, 0);
+  }
+
+  // KAI++ (phase 33bis) : le meme livre d'ouvertures, puis la recherche en C++
+  // dans son worker (interface/kai-plus.js). Elle rend des positions ; les coups
+  // en sont retrouves par les regles (moteur/ia.js, coupsDesPositions). Au
+  // niveau 3 elle va aussi loin que son temps le permet (NIVEAUX_IA).
+  function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, jouer, finir }) {
+    const duLivre = coupDuLivre(livre, etat, Math.random);
+    if (duLivre) return jouer({ texte: duLivre.texte, source: 'livre', profondeur: 0, evaluation: null, noeuds: 0, sequence: [duLivre.texte] });
+    kaiPlus ??= creerKaiPlus();
+    let derniere = null; // la derniere profondeur annoncee
+    let abandonnee = false;
+    reflexionEnCours.arreterTout = () => {
+      if (derniere) kaiPlus.interrompre(); // sinon : a la premiere annonce, voir plus bas
+    };
+    reflexionEnCours.abandonner = () => {
+      abandonnee = true;
+      kaiPlus.interrompre();
+    };
+    const niveau = NIVEAUX_IA[machine.niveau];
+    kaiPlus
+      .chercher(
+        {
+          position: ecrirePosition(etat),
+          joueurNoir: etat.joueurAuTrait === 'noir',
+          profondeur: niveau.profondeurKaiPlus ?? niveau.profondeur,
+          poids: poidsEnTexte(machine.poids),
+          version: machine.version,
+          graine: Math.floor(Math.random() * GRAINE_MAXIMUM),
+          dureeMs: machine.reflexionMax * MILLISECONDES_PAR_SECONDE,
+          historique: historique.join('\n'),
+        },
+        (texte) => {
+          const reponse = lireReponseKaiPlus(texte);
+          if (!reponse) return;
+          derniere = reponse;
+          Object.assign(suivi, { profondeur: reponse.profondeur, evaluation: reponse.evaluation, noeuds: reponse.noeuds, sequence: coupsDesPositions(etat, reponse.positions) });
+          if (suivi.arreter) kaiPlus.interrompre();
+        }
+      )
+      .then((texte) => {
+        const reponse = lireReponseKaiPlus(texte) ?? derniere;
+        if (abandonnee || !reponse) return finir();
+        const textes = textesDeLaSequence(etat, coupsDesPositions(etat, reponse.positions));
+        jouer({ texte: textes[0], source: 'recherche', profondeur: reponse.profondeur, evaluation: reponse.evaluation, noeuds: reponse.noeuds, sequence: textes });
+      });
   }
 
   setInterval(() => {
@@ -141,7 +206,12 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       arbreAffiche = arbre;
       reflexion.actualiser(arbre);
     }
-    if (reflexionEnCours) return montrerReflexion();
+    if (reflexionEnCours) {
+      // KAI++ cherche sur un autre fil : si la position a change, on l'arrete
+      // (KAI, lui, le voit a sa prochaine tranche).
+      if (!positionInchangee(reflexionEnCours.etat)) reflexionEnCours.abandonner?.();
+      return montrerReflexion();
+    }
     if (!partie.peutJouerUnCoup()) return;
     const etat = etatCourant(arbre);
     const camp = etat.joueurAuTrait;
@@ -165,7 +235,10 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     estEnMarche: (camp) => enMarche[camp],
     basculer: (camp) => {
       enMarche[camp] = !enMarche[camp];
-      if (!enMarche[camp] && reflexionEnCours?.camp === camp) reflexionEnCours.suivi.arreter = true;
+      if (!enMarche[camp] && reflexionEnCours?.camp === camp) {
+        reflexionEnCours.suivi.arreter = true;
+        reflexionEnCours.arreterTout?.();
+      }
       marquerNoms();
     },
   };
