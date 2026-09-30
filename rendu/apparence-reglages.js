@@ -65,6 +65,8 @@ function appliquerApparenceReglages(svg, reglagesLus) {
     ['--taille-coordonnee-arrivee', `${kaah.dest_coord_size}px`],
     ['--opacite-fleches-conseils', kaah.hint_opacity],
     ['--opacite-fleches-menaces', kaah.threat_opacity],
+    // Billes du perdant en fin de partie (saab, 2026-09-30), styles.css.
+    ['--echelle-bille-perdante', kaah.loser_ball_scale],
   ];
   for (const [propriete, valeur] of proprietes) svg.style.setProperty(propriete, valeur);
   document.body.style.setProperty('--couleur-fond-fenetre', couleurVersHex(reglages.board.app_bg_color));

@@ -93,6 +93,7 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
   const dispositionHaut = disposerPisteTriangle(cadre, limites, true);
   dessinerPisteTriangle(svg, campDuBas, dispositionHaut);
   dessinerBoutonsFinPiste(svg, campDuHaut, dispositionHaut.compte, true);
+  dessinerCadreEvaluation(svg, campDuHaut, dispositionHaut.compte, true, limites);
   const positionPenduleHaut = positionPendule(limites, true);
   dessinerPendule(svg, campDuHaut, positionPenduleHaut);
   dessinerNomJoueur(svg, campDuHaut, yNomHaut, noms[campDuHaut], true);
@@ -100,6 +101,7 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
   const dispositionBas = disposerPisteTriangle(cadre, limites, false);
   dessinerPisteTriangle(svg, campDuHaut, dispositionBas);
   dessinerBoutonsFinPiste(svg, campDuBas, dispositionBas.compte, false);
+  dessinerCadreEvaluation(svg, campDuBas, dispositionBas.compte, false, limites);
   const positionPenduleBas = positionPendule(limites, false);
   dessinerPendule(svg, campDuBas, positionPenduleBas);
   dessinerNomJoueur(svg, campDuBas, yNomBas, noms[campDuBas], false);

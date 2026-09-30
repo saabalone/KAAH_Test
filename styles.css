@@ -2812,7 +2812,7 @@ button,
 
 #plateau.perdant-noir .bille-noir .bille-cercle,
 #plateau.perdant-blanc .bille-blanc .bille-cercle {
-  transform: scale(0.66);
+  transform: scale(var(--echelle-bille-perdante, 0.8));
 }
 
 /* Pistes des billes ejectees (phase 11, rendu/ejections.js), en haut et en
@@ -2866,7 +2866,7 @@ button,
    plateau en attribut (reglable), comme .fond-plateau. */
 .corde {
   fill: none;
-  stroke-width: 0.7;
+  stroke-width: 1.0;
   stroke-linejoin: round;
   stroke-linecap: round;
   pointer-events: none;
@@ -3409,6 +3409,7 @@ button,
   flex: 1 1 auto;
   min-height: var(--hauteur-commande);
   font-weight: bold;
+  font-size: 18px;
 }
 
 /* Le bouton Annuler de la navigation est TOUJOURS vert (saab) — sauf quand il
@@ -3594,6 +3595,13 @@ button,
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Sans cette regle, le `display: flex` ci-dessus l'emporte sur l'attribut
+   `hidden` : en Chrono, « Temps initial 300 » restait affiche (saab : « le
+   Chrono est tjs a 300 »). */
+.section-mode-pendule[hidden] {
+  display: none;
 }
 
 .ligne-nombre-pendule {
@@ -3917,14 +3925,12 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
    premiere ligne, son nom en seconde sur un fond vert (gris a l'arret), en plus
    petit pour tenir dans la meme hauteur de cadre. Le fond vert laisse passer le
    toucher vers le cadre du nom (boite du nom, Marche/Arret). */
-.nom-machine-fond,
-.nom-evaluation {
+.nom-machine-fond {
   display: none;
   pointer-events: none;
 }
 
-.nom-joueur.nom-machine .nom-machine-fond,
-.nom-joueur.nom-machine .nom-evaluation {
+.nom-joueur.nom-machine .nom-machine-fond {
   display: inline;
 }
 
@@ -3936,17 +3942,52 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
   fill: #6a6a6a;
 }
 
-.nom-joueur.nom-machine .nom-texte,
-.nom-joueur.nom-machine .nom-evaluation {
-  font-size: 3.2px;
-}
-
 .nom-joueur.nom-machine .nom-texte {
   fill: #e4e4e4;
 }
 
-.nom-evaluation {
-  fill: #9a9a9a;
+/* L'evaluation de chaque camp, collee a son compte d'ejections (rendu/
+   evaluation.js) : cadre de la couleur du camp comme le nom, texte gris ;
+   « Évaluation » en italique tant qu'un humain ne l'a pas demandee. */
+.cadre-evaluation {
+  cursor: pointer;
+  font: bold 4.5px sans-serif;
+}
+
+.cadre-evaluation-noir .cadre-evaluation-fond {
+  fill: #1f1f1f;
+}
+
+.cadre-evaluation-blanc .cadre-evaluation-fond {
+  fill: #e4e4e4;
+}
+
+.cadre-evaluation-texte {
+  fill: #828282;
+  pointer-events: none;
+}
+
+.cadre-evaluation.evaluation-vide .cadre-evaluation-texte {
+  font-weight: normal;
+  font-style: italic;
+}
+
+body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
+  transform: rotate(180deg);
+  transform-box: view-box;
+}
+
+/* Le temps cumule (rendu/pendule.js) : plus gros que le libelle, plus petit
+   que les chiffres de la pendule (10px). */
+.texte-cumul-pendule {
+  font: bold 6px sans-serif;
+  fill: #828282;
+}
+
+/* Les tailles de Reglages, en chiffres (saab) plutot qu'en curseurs. */
+.nombre-reglage {
+  width: 70px;
+  text-align: right;
 }
 
 /* Bouton Marche/Arret de la boite du nom : vert tant que la machine joue (un
@@ -3965,9 +4006,15 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
 
 /* Tableau de reflexion de la machine (phase 32, interface/reflexion-ia.js),
    replie par defaut sous le titre de la partie ; la ligne en cours en italique. */
+/* Fond propre, jamais celui de la fenetre (reglable) : le texte reste lisible
+   quelle que soit la couleur choisie (saab). */
 .reflexion-ia {
   font: 11px sans-serif;
   color: #cfcfcf;
+  background: #1e1e1e;
+  border-top: 1px solid #3a3a3a;
+  border-left: 1px solid #3a3a3a;
+  padding: 0 4px;
 }
 
 .reflexion-ia > summary {

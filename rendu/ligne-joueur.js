@@ -13,10 +13,10 @@
 // ligne.
 //
 // Le nom d'une MACHINE (phase 32, saab : « encadrer juste le Nom dans un fond
-// vert, pas le btn entier qui reste Noir/Blanc ... et ajouter son evaluation,
-// dans le Nom en 2 lignes, en reduisant les polices pour ne pas agrandir les
-// btn ») : son evaluation en premiere ligne, son nom en seconde, sur un fond
-// vert (gris quand elle est a l'arret) — dans le meme cadre, de la meme hauteur.
+// vert, pas le btn entier qui reste Noir/Blanc ») : un fond vert (gris quand elle
+// est a l'arret) derriere le nom seul, cadre et police inchanges. Son evaluation
+// est a cote du compte d'ejections (rendu/evaluation.js) — pas dans le nom sur 2
+// lignes, essaye puis abandonne (saab : « mauvaise idee »).
 //
 // La ligne du joueur du HAUT est retournee de 180 degres en face-a-face : autour
 // du point (0, y) de SA ligne et non de son propre centre, sinon l'apparition du
@@ -43,7 +43,6 @@ function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
   groupe.style.transformOrigin = `0px ${y}px`;
   groupe.appendChild(creerElementSVG('rect', { class: 'nom-fond', rx: RAYON_COIN_NOM }));
   groupe.appendChild(creerElementSVG('rect', { class: 'nom-machine-fond', rx: RAYON_COIN_NOM / 2 }));
-  groupe.appendChild(creerElementSVG('text', { class: 'nom-evaluation' }));
   const texte = creerElementSVG('text', { class: 'nom-texte' });
   texte.textContent = nom;
   groupe.appendChild(texte);
@@ -56,14 +55,12 @@ function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
   disposerLigneNom(groupe);
 }
 
-// Le camp d'une machine (phase 32, interface/reflexion-ia.js) : `evaluation`,
-// le texte de sa derniere evaluation ('' avant son premier coup) ; `enMarche` :
-// faux quand on l'a arretee (boite du nom). `machine` faux : un humain.
-function afficherMachineSurNom(svg, camp, { machine, evaluation = '', enMarche = true }) {
+// Le camp d'une machine (phase 32, interface/ia.js) : `enMarche` faux quand
+// on l'a arretee (boite du nom). `machine` faux : un humain.
+function marquerNomMachine(svg, camp, { machine, enMarche = true }) {
   const groupe = svg.querySelector(`#nom-${camp}`);
   groupe.classList.toggle('nom-machine', machine);
   groupe.classList.toggle('machine-arretee', machine && !enMarche);
-  ecrireSiChange(groupe.querySelector('.nom-evaluation'), machine ? evaluation || '—' : '');
   disposerLigneNom(groupe);
 }
 
@@ -88,36 +85,29 @@ function disposerLigneNom(groupe) {
   const aTour = tour.textContent !== '';
   // Rien n'a change depuis la derniere disposition ? On ne touche a rien : cette
   // fonction est appelee plusieurs fois par coup, et chaque setAttribute redessine.
-  const evaluation = groupe.querySelector('.nom-evaluation');
   const fondMachine = groupe.querySelector('.nom-machine-fond');
   const machine = groupe.classList.contains('nom-machine');
-  const cle = `${texte.textContent}|${tour.textContent}|${groupe.classList.contains('nom-en-danger')}|${machine}|${evaluation.textContent}`;
+  const cle = `${texte.textContent}|${tour.textContent}|${groupe.classList.contains('nom-en-danger')}|${machine}`;
   if (groupe.dataset.cle === cle) return;
   groupe.dataset.cle = cle;
   const haut = y - HAUTEUR_BANDE / 2;
 
   // Un <text> masque (display: none) se mesure a 0 : visible avant de mesurer.
   tour.style.display = '';
-  const largeurTexte = Math.max(texte.getComputedTextLength(), machine ? evaluation.getComputedTextLength() : 0);
-  const largeurFond = largeurTexte + MARGE_X_NOM * 2;
+  const largeurFond = texte.getComputedTextLength() + MARGE_X_NOM * 2;
   const xFond = -largeurFond / 2;
   fond.setAttribute('x', xFond);
   fond.setAttribute('y', haut);
   fond.setAttribute('width', largeurFond);
   fond.setAttribute('height', HAUTEUR_BANDE);
-  // Une machine : deux lignes dans la meme hauteur (voir l'en-tete).
-  const yNom = machine ? y + HAUTEUR_BANDE / 4 : y;
   texte.setAttribute('x', xFond + MARGE_X_NOM);
-  texte.setAttribute('y', yNom - centreDeLEncre(texte, texte.textContent).y);
+  texte.setAttribute('y', y - centreDeLEncre(texte, texte.textContent).y);
   if (machine) {
-    const yEvaluation = y - HAUTEUR_BANDE / 4;
-    evaluation.setAttribute('x', xFond + MARGE_X_NOM);
-    evaluation.setAttribute('y', yEvaluation - centreDeLEncre(evaluation, '0').y);
-    const hauteurFondMachine = HAUTEUR_BANDE / 2 - MARGE_X_NOM / 2;
+    // Le fond vert : autour du nom seul, dans le cadre (voir l'en-tete).
     fondMachine.setAttribute('x', xFond + MARGE_X_NOM / 2);
-    fondMachine.setAttribute('y', yNom - hauteurFondMachine / 2);
-    fondMachine.setAttribute('width', texte.getComputedTextLength() + MARGE_X_NOM);
-    fondMachine.setAttribute('height', hauteurFondMachine);
+    fondMachine.setAttribute('y', haut + MARGE_X_NOM / 2);
+    fondMachine.setAttribute('width', largeurFond - MARGE_X_NOM);
+    fondMachine.setAttribute('height', HAUTEUR_BANDE - MARGE_X_NOM);
   }
 
   cadreTour.style.display = aTour ? '' : 'none';

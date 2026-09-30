@@ -637,7 +637,8 @@
         <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ ».<br>(un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs)</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
         <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
-        <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).<br>En fin de partie, les billes du perdant prennent la taille d'un trou (celles des deux camps pour une nulle) ; elles la gardent quand on navigue dans cette partie, et la reprennent sur une branche.</li>
+        <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).<br>En fin de partie, les billes du perdant rétrécissent (celles des deux camps pour une nulle ; taille réglable dans Réglages, Affichage) ; elles la gardent quand on navigue dans cette partie, et la reprennent sur une branche.</li>
+        <li><b>Évaluation</b> : le petit cadre collé au compteur d'éjections de chaque camp donne la phase de la partie (<b>Ouv.</b>, <b>Mil.</b>, <b>Fin</b>) et la valeur de la position pour ce camp (positive : bonne pour lui ; « Gagne en 3 » quand une machine voit la fin ; « Livre » quand elle joue la base de coups).<br>Pour une machine, c'est la sienne ; pour un humain, « Évaluation » en grisé : touchez-le pour la voir (le jugement du profil Normal), encore pour la cacher.</li>
         <li><b>Pendule ou Chrono</b> : seule la partie réellement jouée est à la pendule choisie (Bonus, Délai), jusqu'à sa fin.<br>Tout le reste — une branche, ou la suite jouée après une fin au temps — est en <b>Chrono</b> : le temps de chaque coup, qui part de 0 s, sans jamais faire perdre.<br>Perdue au temps, la partie reste perdue (titre en <b>T</b>) même si on continue à jouer après.<br>Le temps de chaque coup est enregistré : en naviguant, chaque pendule montre le temps d'alors.<br>Le petit cadre collé contre chaque pendule (côté plateau) est le <b>temps total</b> pris par ce camp jusqu'au coup regardé.</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> : vos billes jouables (un léger voile vert dessus, désactivable dans Réglages, « Sélection sur bille »), les cases de destination une fois une bille choisie, un choix de branche, des confirmations, une nulle, Annuler, une pendule qui attend.<br>Sélectionner une bille remplace son propre voile vert par un anneau orange, sans toucher aux autres.</li>
       </ul>
@@ -658,7 +659,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
-        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, des curseurs pour la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, et des ronds verts — jamais plus grands que la bille.<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
+        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
         <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
@@ -672,14 +673,14 @@
       <ul>
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>Machine</b> — deux machines peuvent jouer l'une contre l'autre.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2). La boîte retient votre dernier choix.</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s). Le fichier de la partie garde tous ses réglages, pour comparer.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>, avec au-dessus son <b>évaluation</b> de la position (positive : bon pour elle ; « Gagne en 3 » quand elle voit la fin ; « Livre » quand elle joue la base de coups).<br>Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
         <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.</li>
         <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord). Agressif, Normal et Défensif ne changent jamais : en retoucher un crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.</li>
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
         <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.<br>Elle continue à jouer après une fin au temps, et sur une branche (en Chrono).</li>
-        <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt) — un seul coup entre deux machines, ou si elle est arrêtée.<br><b>Revanche</b> : chaque machine prend l'autre camp.</li>
+        <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt) — un seul coup entre deux machines, ou si elle est arrêtée.<br>Une position répétée : la machine ne la fait revenir une 3e fois (nulle) que si tout autre coup est pire pour elle ; entre deux machines, la nulle est alors acceptée toute seule.<br><b>Revanche</b> : chaque machine prend l'autre camp.</li>
         <li>Une proposition de <b>nulle</b> : pour l'instant c'est vous qui répondez à sa place.</li>
       </ul>
     </details>
@@ -906,10 +907,11 @@
           <input id="case-selection-bille" type="checkbox" />
           Sélection sur bille
         </label>
-        <label class="ligne-curseur">Taille des trous (mode simple) <input id="curseur-taille-trous" type="range" /></label>
-        <label class="ligne-curseur">Taille coord sur bille <input id="curseur-taille-coord-bille" type="range" /></label>
-        <label class="ligne-curseur">Taille coord arrivée <input id="curseur-taille-coord-arrivee" type="range" /></label>
-        <label class="ligne-curseur">Taille des ronds verts <input id="curseur-taille-ronds-verts" type="range" /></label>
+        <label class="ligne-couleur">Taille des trous (mode simple) <input id="curseur-taille-trous" class="nombre-reglage" type="number" /></label>
+        <label class="ligne-couleur">Taille coord sur bille <input id="curseur-taille-coord-bille" class="nombre-reglage" type="number" /></label>
+        <label class="ligne-couleur">Taille coord arrivée <input id="curseur-taille-coord-arrivee" class="nombre-reglage" type="number" /></label>
+        <label class="ligne-couleur">Taille des ronds verts <input id="curseur-taille-ronds-verts" class="nombre-reglage" type="number" /></label>
+        <label class="ligne-couleur" title="Fin de partie : de la taille d'un trou (0,66) à presque une bille">Taille des billes du perdant <input id="nombre-taille-billes-perdantes" class="nombre-reglage" type="number" /></label>
       </details>
 
       <!-- Ordre des groupes d'icones (interface/ordre-colonne.js) : a part des
@@ -1235,10 +1237,13 @@
            bien enregistree ; mis a jour a chaque coup/navigation par
            index.html, voir plus bas (`actualiserEtatSauvegarde`). -->
       <div id="etat-sauvegarde"></div>
-      <!-- Tableau de reflexion de la machine (phase 32, saab : « depliable,
-           place sous le titre de la partie, ne s'affichant que sur une partie
-           utilisant l'IA ») : interface/reflexion-ia.js. -->
-      <details id="reflexion-ia" class="reflexion-ia" hidden>
+    </div>
+    <!-- Tableau de reflexion de la machine (phase 32, saab : « depliable,
+         ne s'affichant que sur une partie utilisant l'IA », deplie par defaut) :
+         interface/reflexion-ia.js. Place par interface/disposition.js en tete de
+         la colonne des tableaux, sous le titre sur ordinateur — jamais au-dessus
+         du plateau, qu'il retrecissait en paysage (saab, 2026-09-30). -->
+    <details id="reflexion-ia" class="reflexion-ia" open hidden>
         <summary>Réflexion de la machine</summary>
         <div class="reflexion-ia-defilement">
           <table>
@@ -1248,8 +1253,7 @@
             <tbody></tbody>
           </table>
         </div>
-      </details>
-    </div>
+    </details>
     <!-- Rappel (phase 27) : visible tant qu'aucune pendule n'a ete touchee
          (au demarrage) ou pendant une pause volontaire — masque par
          interface/pendules.js (signalerEtatPause) des qu'on touche une
@@ -1449,13 +1453,13 @@
   <script src="./moteur/permutations.js"></script>
   <script src="./moteur/next-move.js"></script>
   <script src="./moteur/bases-coups.js"></script>
+  <script src="./moteur/nulle.js"></script>
   <script src="./moteur/ia-evaluation.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
   <script src="./moteur/profils-ia.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
-  <script src="./moteur/nulle.js"></script>
   <script src="./moteur/revanche.js"></script>
   <script src="./moteur/classement.js"></script>
   <script src="./moteur/corbeille.js"></script>
@@ -1486,6 +1490,7 @@
   <script src="./rendu/ligne-joueur.js"></script>
   <script src="./rendu/abandon-nulle.js"></script>
   <script src="./rendu/boutons-fin-piste.js"></script>
+  <script src="./rendu/evaluation.js"></script>
   <script src="./rendu/pistes-triangle.js"></script>
   <script src="./rendu/ejections-apercu.js"></script>
   <script src="./rendu/pendule.js"></script>
@@ -1555,6 +1560,7 @@
   <script src="./interface/confirmation.js"></script>
   <script src="./interface/embranchement.js"></script>
   <script src="./interface/reflexion-ia.js"></script>
+  <script src="./interface/evaluations.js"></script>
   <script src="./interface/lecture-sequence.js"></script>
   <script src="./interface/saisie.js"></script>
 
@@ -2007,6 +2013,9 @@
       ],
     });
 
+    // L'evaluation de chaque camp, a cote de son compte d'ejections (saab,
+    // 2026-09-30) : interface/evaluations.js.
+    const evaluations = demarrerEvaluations(svg);
     const partie = demarrerPartie(
       svg,
       lirePosition(positionChoisie?.texteBrut ?? MARGUERITE_BELGE),
@@ -2066,6 +2075,7 @@
       arbreDepart,
       (arbre, perteAuTemps) => {
         sauvegarderMaintenant(arbre, perteAuTemps);
+        evaluations.actualiser(arbre);
         positionCopiable.actualiser(ecrirePosition(etatCourant(arbre)));
         // `conseils` n'existe pas encore au tout premier appel (voir plus
         // bas, cree apres `partie`) : ce rappel ne peut de toute facon
@@ -2444,6 +2454,7 @@
       document.getElementById('colonne-principale'),
       document.getElementById('arbre-panneau'),
       document.getElementById('entete-partie'),
+      document.getElementById('reflexion-ia'),
       document.getElementById('colonne-droite'),
       document.getElementById('message-demarrage-pendules')
     );
@@ -3015,13 +3026,16 @@
     // c'est a son camp, avec pour livre d'ouvertures la base de coups des
     // Conseils ; son nom montre son evaluation et ouvre Marche/Arret (boite du
     // nom), le tableau sous le titre montre sa reflexion.
+    // Premier affichage des evaluations (ensuite a chaque coup ou navigation).
+    evaluations.actualiser(partie.obtenirArbre());
     if (machines) {
       const commandeMachines = demarrerMachines({
         partie,
         machines,
         obtenirBase: () => baseNextMove,
         svg,
-        reflexion: demarrerReflexionIA(document.getElementById('reflexion-ia'), svg, machines),
+        reflexion: demarrerReflexionIA(document.getElementById('reflexion-ia')),
+        evaluations,
       });
       nomsJoueurs.definirCommandeMachines(commandeMachines);
     }

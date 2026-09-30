@@ -106,6 +106,7 @@ const REGLAGES_PAR_DEFAUT = {
     ball_coord_size: 5, // police des coordonnees sur les billes
     dest_coord_size: 5, // police des coordonnees des cases d'arrivee
     green_marker_scale: 0.66, // rond vert (selectionnable ET arrivee), fraction du rayon d'une bille
+    loser_ball_scale: 0.8, // bille du perdant en fin de partie, fraction du rayon d'une bille (saab, 2026-09-30)
     // Fleches de Conseils (rendu/conseils.js) : une couleur par resultat, une
     // opacite pour toutes (1 = opaque).
     hint_win_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],
@@ -139,6 +140,9 @@ const BORNES_REGLAGES_KAAH = {
   ball_coord_size: { min: 2, max: 11, pas: 0.5 },
   dest_coord_size: { min: 2, max: 11, pas: 0.5 },
   green_marker_scale: { min: 0.2, max: 1, pas: 0.02 },
+  // Jamais plus petite qu'un trou (RAYON_TROU_CENTRAL = 0,66 bille), toujours
+  // plus petite qu'une bille (saab).
+  loser_ball_scale: { min: 0.66, max: 0.95, pas: 0.01 },
   hint_opacity: { min: 0.1, max: 1, pas: 0.05 },
   threat_opacity: { min: 0.1, max: 1, pas: 0.05 },
 };

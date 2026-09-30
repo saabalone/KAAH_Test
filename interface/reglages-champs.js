@@ -81,6 +81,7 @@ const CHAMPS_REGLAGES = [
   ['curseur-taille-coord-bille', 'taille', 'kaah', 'ball_coord_size'],
   ['curseur-taille-coord-arrivee', 'taille', 'kaah', 'dest_coord_size'],
   ['curseur-taille-ronds-verts', 'taille', 'kaah', 'green_marker_scale'],
+  ['nombre-taille-billes-perdantes', 'taille', 'kaah', 'loser_ball_scale'],
 ];
 
 function chaqueChampReglage(dialogue, action) {

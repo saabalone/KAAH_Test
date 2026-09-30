@@ -25,8 +25,10 @@
 // une autre position) : la surveillance relance une reflexion neuve.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : choisirCoupIA,
-// textesDeLaSequence (moteur/ia.js), etatCourant (moteur/arbre.js) viennent de
-// fichiers charges avant celui-ci.
+// textesDeLaSequence (moteur/ia.js), phaseDeLaPartie (moteur/ia-evaluation.js),
+// etatCourant (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
+// marquerNomMachine (rendu/ligne-joueur.js) viennent de fichiers charges avant
+// celui-ci.
 
 const VERIFICATION_MS = 250;
 // Une tranche de recherche : court devant les 16 ms d'une image, pour que
@@ -42,14 +44,27 @@ const MILLISECONDES_PAR_SECONDE = 1000;
 // `machines` : { noir, blanc }, chacune un reglage (moteur/ia.js, lireMachine)
 // ou null. `obtenirBase()` : la base de coups chargee (le livre d'ouvertures),
 // Map vide tant qu'elle se charge. `svg` : #plateau (pendule qui clignote).
-// `reflexion` : interface/reflexion-ia.js. Renvoie { estMachine, estEnMarche,
-// basculer } pour la boite du nom (interface/noms-joueurs.js).
-function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
+// `reflexion` : interface/reflexion-ia.js ; `evaluations` :
+// interface/evaluations.js. Renvoie { estMachine, estEnMarche, basculer } pour
+// la boite du nom (interface/noms-joueurs.js).
+//
+// Entre deux machines, une nulle par repetition est acceptee toute seule (saab :
+// « 3 Occ et Nulle automatique validee ») ; chacune sait qu'un coup qui fait
+// revenir une position une troisieme fois mene a la nulle (moteur/ia-recherche.js,
+// historique) et ne le choisit que si tout le reste est pire pour elle.
+function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations }) {
   const enMarche = { noir: true, blanc: true };
   let reflexionEnCours = null; // { etat, camp, suivi, debut }, ou null
   let arbreAffiche = null;
 
   const pendule = (camp) => svg.querySelector(`#bouton-pendule-${camp}`);
+  evaluations.definirMachines(machines);
+  partie.definirNulleAutomatique(() => Boolean(machines.noir && machines.blanc));
+
+  function marquerNoms() {
+    for (const camp of ['noir', 'blanc']) marquerNomMachine(svg, camp, { machine: Boolean(machines[camp]), enMarche: enMarche[camp] });
+  }
+  marquerNoms();
 
   function positionInchangee(etat) {
     return etatCourant(partie.obtenirArbre()) === etat && partie.peutJouerUnCoup();
@@ -57,8 +72,12 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
 
   // La ligne « en cours » du tableau, et l'evaluation provisoire sur le nom.
   function montrerReflexion() {
-    if (!reflexionEnCours) return reflexion.afficherEnCours(null);
+    if (!reflexionEnCours) {
+      evaluations.definirEnCours(null);
+      return reflexion.afficherEnCours(null);
+    }
     const { etat, camp, suivi, debut } = reflexionEnCours;
+    evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation });
     reflexion.afficherEnCours({
       camp,
       coupsJoues: partie.obtenirArbre().chemin.length + 1,
@@ -74,6 +93,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
     const machine = machines[camp];
     const suivi = {};
     const debut = performance.now();
+    const arbre = partie.obtenirArbre();
+    const phase = phaseDeLaPartie(etat, arbre.chemin.length);
     reflexionEnCours = { etat, camp, suivi, debut };
     pendule(camp)?.classList.add('machine-reflechit');
     const base = obtenirBase();
@@ -85,6 +106,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
       maintenant: () => performance.now(),
       echeance: debut + machine.reflexionMax * MILLISECONDES_PAR_SECONDE,
       suivi,
+      historique: positionsDepuisLaRacine(arbre, arbre.chemin),
     });
 
     function finir() {
@@ -107,7 +129,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
       setTimeout(() => {
         const encoreValable = positionInchangee(etat);
         finir();
-        if (encoreValable) partie.jouerCoupTexte(texte, { source, profondeur, evaluation, noeuds, duree, sequence });
+        if (encoreValable) partie.jouerCoupTexte(texte, { source, profondeur, evaluation, noeuds, duree, sequence, phase });
       }, attente);
     }
     setTimeout(tranche, 0);
@@ -117,7 +139,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
     const arbre = partie.obtenirArbre();
     if (arbre !== arbreAffiche) {
       arbreAffiche = arbre;
-      reflexion.actualiser(arbre, enMarche);
+      reflexion.actualiser(arbre);
     }
     if (reflexionEnCours) return montrerReflexion();
     if (!partie.peutJouerUnCoup()) return;
@@ -144,7 +166,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion }) {
     basculer: (camp) => {
       enMarche[camp] = !enMarche[camp];
       if (!enMarche[camp] && reflexionEnCours?.camp === camp) reflexionEnCours.suivi.arreter = true;
-      reflexion.actualiser(partie.obtenirArbre(), enMarche);
+      marquerNoms();
     },
   };
 }

@@ -552,6 +552,9 @@ function demarrerPartie(
   // definirAnnulationEnDouble plus bas) dit, APRES la premiere suppression, s'il
   // faut en faire une seconde ; toujours faux entre humains.
   let annulationEnDouble = () => false;
+  // Entre deux machines (phase 32, interface/ia.js), la nulle par repetition
+  // est acceptee sans poser la question (saab) ; entre humains, jamais.
+  let nulleAutomatique = () => false;
   elementsNavigation.annuler.addEventListener('click', () => {
     if (suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin)) return;
     demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () =>
@@ -691,7 +694,9 @@ function demarrerPartie(
     commentaires.actualiser(arbre);
     occurrences.actualiser(arbre);
     notifierChangement();
-    if (repetition) {
+    if (repetition && nulleAutomatique()) {
+      terminerPartie('D');
+    } else if (repetition) {
       demanderConfirmation(
         `Position répétée ${repetition.occurrences} fois : déclarer la partie nulle ?`,
         () => terminerPartie('D'),
@@ -937,6 +942,9 @@ function demarrerPartie(
     peutJouerUnCoup: () => estFeuilleJouable() && !jeuSuspendu() && !sansSuite(),
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
+    },
+    definirNulleAutomatique: (predicat) => {
+      nulleAutomatique = predicat;
     },
     // Correspondance (phase 24, index.html) : voir jeuSuspendu, finDemandee et
     // terminerPartie plus haut.

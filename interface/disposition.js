@@ -67,7 +67,11 @@ function replacerNavigation() {
 // juste apres elle (portrait, paysage) ; en face-a-face, la derniere ligne de
 // la colonne des fenetres, tournee a la verticale, a cote de la barre. Jamais
 // plus au-dessus du plateau, qui ne bouge plus quand il apparait ou disparait.
-function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipale, arbrePanneau, enteteJeu, colonneDroite, messageDemarrage) {
+// Quatrieme voyageur (saab, 2026-09-30) : `reflexionIA`, le tableau de reflexion
+// de la machine — toujours en tete de la colonne des tableaux (sous le titre sur
+// ordinateur, sous le plateau sur telephone), jamais au-dessus du plateau : en
+// paysage etroit, il lui volait de la hauteur.
+function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipale, arbrePanneau, enteteJeu, reflexionIA, colonneDroite, messageDemarrage) {
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
       arbrePanneau.appendChild(navigation);
@@ -85,6 +89,7 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
         barreAnnuler.after(messageDemarrage);
       }
       colonneDroite.prepend(enteteJeu);
+      enteteJeu.after(reflexionIA);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
       // DEFAUT sur telephone (laisser toute la place au plateau) — sur
       // ordinateur, la sequence a toujours ete visible d'entree (voir
@@ -108,6 +113,7 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
       reinitialiserHauteurOccurrencesPortrait(arbrePanneau);
     } else {
       colonnePrincipale.prepend(enteteJeu); // au-dessus du plateau, sa place d'origine
+      colonneDroite.prepend(reflexionIA);
       colonnePrincipale.appendChild(barreAnnuler);
       barreAnnuler.after(messageDemarrage);
       arbrePanneau.prepend(navigation);

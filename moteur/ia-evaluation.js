@@ -39,6 +39,21 @@ const STYLES_IA = {
   defensif: { gain: 800, perte: 1300, centre: 12, cohesion: 9, bordSoi: 30, bordAdverse: 4 },
 };
 
+// La phase de la partie (saab, 2026-09-30 : « Ouv./Mil./Fin », affichee a cote
+// de l'evaluation et gardee avec chaque coup de la machine). Fin : un camp n'est
+// plus qu'a 2 ejections de perdre ; Ouverture : les 15 premiers tours, tant que
+// personne n'a perdu de bille ; Milieu entre les deux.
+const EJECTIONS_FIN_DE_PARTIE = EJECTIONS_POUR_GAGNER - 2;
+const COUPS_D_OUVERTURE = 30;
+const ABREVIATIONS_PHASES = { ouverture: 'Ouv.', milieu: 'Mil.', fin: 'Fin' };
+
+function phaseDeLaPartie(etat, coupsJoues) {
+  const plusEjectees = Math.max(etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
+  if (plusEjectees >= EJECTIONS_FIN_DE_PARTIE) return 'fin';
+  if (plusEjectees === 0 && coupsJoues < COUPS_D_OUVERTURE) return 'ouverture';
+  return 'milieu';
+}
+
 // Distance de chaque case au centre (0 au centre, RAYON_PLATEAU sur le bord),
 // calculee une fois : l'evaluation est appelee des milliers de fois par coup.
 const DISTANCE_AU_CENTRE = Object.fromEntries(

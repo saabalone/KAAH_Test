@@ -21,8 +21,14 @@
 // (`variantes`) : a chaque noeud, le meilleur coup suivi de la meilleure suite
 // de son enfant ; aucune incidence sur le coup choisi.
 //
+// Repetition (saab, 2026-09-30) : `historique`, les positions deja vues de la
+// partie ; un coup qui fait revenir une position pour la SEUIL_NULLE_PAR_DEFAUT-ieme
+// fois (moteur/nulle.js) mene a la nulle et vaut 0 — la machine le choisit
+// quand tout le reste est pire pour elle, l'evite sinon.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : caseDansLaDirection
-// (plateau.js), tousLesCoupsLegaux (regles.js), appliquerCoup,
+// (plateau.js), tousLesCoupsLegaux (regles.js), ecrirePosition (notation.js),
+// compterOccurrences, SEUIL_NULLE_PAR_DEFAUT (nulle.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
 // (ia-evaluation.js) viennent de fichiers charges avant celui-ci.
 
@@ -40,6 +46,7 @@ const NIVEAUX_IA = {
 const NOEUDS_PAR_TRANCHE = 200;
 
 const ARRET_A_L_ECHEANCE = Symbol('echeance');
+const VALEUR_NULLE_IA = 0;
 
 function ejecte(coup) {
   const derniere = coup.billesPoussees[coup.billesPoussees.length - 1];
@@ -105,7 +112,7 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
 // profondeur ENTIEREMENT examinee, et son evaluation pour la machine. La
 // profondeur 1 va toujours au bout, meme echeance depassee ou arret demande :
 // il faut bien un coup a jouer.
-function* rechercherCoup(etat, { niveau, poids, hasard, maintenant, echeance, suivi = {} }) {
+function* rechercherCoup(etat, { niveau, poids, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
   const contexte = { camp: etat.joueurAuTrait, poids, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
   const racine = ordonnerCoups(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard));
   let meilleurCoup = racine[0];
@@ -119,7 +126,13 @@ function* rechercherCoup(etat, { niveau, poids, hasard, maintenant, echeance, su
       let meilleurIci = null;
       let sequenceIci = [];
       for (const coup of ordre) {
-        const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -Infinity, -alpha, contexte, 1));
+        const apres = appliquerCoup(etat, coup).etat;
+        const repetitions = compterOccurrences(historique, ecrirePosition(apres)) + 1;
+        contexte.variantes[1] = [];
+        const valeur =
+          repetitions >= SEUIL_NULLE_PAR_DEFAUT && !apres.vainqueur
+            ? VALEUR_NULLE_IA
+            : -(yield* negamax(apres, profondeur - 1, -Infinity, -alpha, contexte, 1));
         if (meilleurIci === null || valeur > alpha) {
           alpha = valeur;
           meilleurIci = coup;

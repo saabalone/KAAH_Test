@@ -179,7 +179,10 @@ const DECALAGE_LIBELLE_PENDULE = HAUTEUR_BOUTON_PENDULE / 2 + BANDE_LIBELLE_PEND
 // pendule mais independant d'elle (pas dans son groupe : le toucher ne met pas
 // en pause). Court : il commence au bout exterieur de la pendule — en haut pour
 // celle du haut, en bas pour celle du bas — pour ne pas avancer sur le plateau.
-const LONGUEUR_CUMUL_PENDULE = RAYON_PISTE * 5;
+// Elargi (saab, 2026-09-30), police plus grande, mais toujours plus petite que
+// celle de la pendule (styles.css, .texte-cumul-pendule).
+const LONGUEUR_CUMUL_PENDULE = RAYON_PISTE * 6.5;
+const EPAISSEUR_CUMUL_PENDULE = RAYON_PISTE * 2.1;
 
 function dessinerCumulPendule(svg, camp, { x, y }, enHaut) {
   // Avant la rotation de 90 degres, +x descend a l'ecran : le bout exterieur
@@ -196,7 +199,7 @@ function dessinerCumulPendule(svg, camp, { x, y }, enHaut) {
       x: debut,
       y: yCadre,
       width: LONGUEUR_CUMUL_PENDULE,
-      height: BANDE_LIBELLE_PENDULE,
+      height: EPAISSEUR_CUMUL_PENDULE,
       rx: RAYON_PISTE * 0.4,
       class: `cadre-pendule cadre-pendule-${camp}`,
     })
@@ -204,9 +207,9 @@ function dessinerCumulPendule(svg, camp, { x, y }, enHaut) {
   groupe.appendChild(
     creerElementSVG('text', {
       id: `texte-cumul-pendule-${camp}`,
-      class: 'libelle-pendule',
+      class: 'texte-cumul-pendule',
       x: debut + LONGUEUR_CUMUL_PENDULE / 2,
-      y: yCadre + BANDE_LIBELLE_PENDULE / 2,
+      y: yCadre + EPAISSEUR_CUMUL_PENDULE / 2,
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
     })
