@@ -101,6 +101,7 @@ const FICHIERS_ESSENTIELS = [
   './rendu/pistes-triangle.js',
   './rendu/ejections-apercu.js',
   './rendu/pendule.js',
+  './rendu/pendule-horizontale.js',
   './rendu/courroie.js',
   './rendu/corde.js',
   './rendu/vol-ejection.js',

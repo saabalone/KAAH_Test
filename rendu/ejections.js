@@ -85,7 +85,9 @@ function agrandirViewBoxPourNoms(svg) {
 // changent de place.
 // Trophees d'un joueur = les billes de la couleur ADVERSE qu'il a ejectees : la
 // piste du haut est donc celle des billes du camp du bas, et inversement.
-function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc') {
+// `pendulesHorizontales` (reglage, saab 2026-10-01) : couchees en haut et en
+// bas a droite (rendu/pendule-horizontale.js) plutot que debout dans les coins.
+function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc', pendulesHorizontales = false) {
   const { limites, yNomHaut, yNomBas } = agrandirViewBoxPourNoms(svg);
   const cadre = calculerCadrePlateau();
   const campDuBas = campDuHaut === 'blanc' ? 'noir' : 'blanc';
@@ -94,18 +96,24 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
   dessinerPisteTriangle(svg, campDuBas, dispositionHaut);
   dessinerBoutonsFinPiste(svg, campDuHaut, dispositionHaut.compte, true);
   dessinerCadreEvaluation(svg, campDuHaut, dispositionHaut.compte, true, limites);
-  const positionPenduleHaut = positionPendule(limites, true);
-  dessinerPendule(svg, campDuHaut, positionPenduleHaut);
   dessinerNomJoueur(svg, campDuHaut, yNomHaut, noms[campDuHaut], true);
 
   const dispositionBas = disposerPisteTriangle(cadre, limites, false);
   dessinerPisteTriangle(svg, campDuHaut, dispositionBas);
   dessinerBoutonsFinPiste(svg, campDuBas, dispositionBas.compte, false);
   dessinerCadreEvaluation(svg, campDuBas, dispositionBas.compte, false, limites);
-  const positionPenduleBas = positionPendule(limites, false);
-  dessinerPendule(svg, campDuBas, positionPenduleBas);
   dessinerNomJoueur(svg, campDuBas, yNomBas, noms[campDuBas], false);
 
+  if (pendulesHorizontales) {
+    const places = disposerPendulesHorizontales(svg, cadre, limites);
+    dessinerPenduleHorizontale(svg, campDuHaut, places.haut);
+    dessinerPenduleHorizontale(svg, campDuBas, places.bas);
+    return;
+  }
+  const positionPenduleHaut = positionPendule(limites, true);
+  dessinerPendule(svg, campDuHaut, positionPenduleHaut);
+  const positionPenduleBas = positionPendule(limites, false);
+  dessinerPendule(svg, campDuBas, positionPenduleBas);
   dessinerLibellePendule(svg, campDuHaut, positionPenduleHaut);
   dessinerLibellePendule(svg, campDuBas, positionPenduleBas);
   dessinerCumulPendule(svg, campDuHaut, positionPenduleHaut, true);

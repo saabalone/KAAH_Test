@@ -107,6 +107,9 @@ const REGLAGES_PAR_DEFAUT = {
     dest_coord_size: 5, // police des coordonnees des cases d'arrivee
     green_marker_scale: 0.66, // rond vert (selectionnable ET arrivee), fraction du rayon d'une bille
     loser_ball_scale: 0.8, // bille du perdant en fin de partie, fraction du rayon d'une bille (saab, 2026-09-30)
+    // Pendules couchees en haut et en bas a droite, Occ sous le titre (saab,
+    // 2026-10-01, rendu/pendule-horizontale.js) ; debout par defaut.
+    horizontal_clocks: false,
     // Fleches de Conseils (rendu/conseils.js) : une couleur par resultat, une
     // opacite pour toutes (1 = opaque).
     hint_win_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],

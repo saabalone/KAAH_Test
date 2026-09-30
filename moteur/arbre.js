@@ -307,6 +307,8 @@ function optionsDeFinDisponibles(arbre) {
 // 2026-09-30). Une fin sur une branche n'est jamais celle de la partie.
 function finDeLaPartie(arbre) {
   let noeud = arbre.racine;
+  // Le temps peut s'ecouler avant le premier coup : le T est alors sur la racine.
+  if (noeud.statutFin) return [];
   for (let profondeur = 0; profondeur < arbre.cheminOrigine.length; profondeur++) {
     noeud = noeud.enfants[arbre.cheminOrigine[profondeur]];
     if (noeud.statutFin || noeud.etat?.vainqueur) return arbre.cheminOrigine.slice(0, profondeur + 1);

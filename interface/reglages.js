@@ -103,6 +103,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   function remplirFormulaire() {
     remplirChampsReglages(elements.dialogue, actuel);
     elements.modeSimple.checked = !actuel.board.show_shadows;
+    elements.pendulesHorizontales.checked = actuel.kaah.horizontal_clocks;
     baseCoups.afficher(actuel.nextmove.bdd_file);
     marquerModifies();
   }
@@ -111,6 +112,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   function marquerModifies() {
     marquerReglagesModifies(elements.dialogue, actuel, [
       [elements.modeSimple, 'board', 'show_shadows'],
+      [elements.pendulesHorizontales, 'kaah', 'horizontal_clocks'],
       [elements.baseCoups, 'nextmove', 'bdd_file'],
     ]);
   }
@@ -181,7 +183,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // rafraichit le formulaire ENTIER (plusieurs champs a la fois, contrairement
   // a un seul geste de couleur). Enregistre toujours dans le profil actif.
   function remplacerReglages(nouveaux) {
-    const structurel = nouveaux.board.show_shadows !== actuel.board.show_shadows;
+    const structurel = nouveaux.board.show_shadows !== actuel.board.show_shadows || nouveaux.kaah.horizontal_clocks !== actuel.kaah.horizontal_clocks;
     actuel = nouveaux;
     sauverProfilActif(actuel);
     if (structurel) {
@@ -199,7 +201,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // annuler n'a aucun sens d'un profil a l'autre.
   function chargerReglages(nouveaux) {
     pile = [];
-    const structurel = nouveaux.board.show_shadows !== actuel.board.show_shadows;
+    const structurel = nouveaux.board.show_shadows !== actuel.board.show_shadows || nouveaux.kaah.horizontal_clocks !== actuel.kaah.horizontal_clocks;
     actuel = nouveaux;
     if (structurel) {
       demarrerRechargement();
@@ -216,6 +218,14 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
 
   // Structurel (CLAUDE.md, 1 278 elements SVG contre 248) : jamais de
   // previsualisation en direct, un rechargement immediat s'impose.
+  // Pendules et Occ a l'horizontale (saab, 2026-10-01) : structurel aussi, le
+  // plateau se dessine une seule fois.
+  elements.pendulesHorizontales.addEventListener('change', () => {
+    actuel = modifierReglages((r) => ((r.kaah.horizontal_clocks = elements.pendulesHorizontales.checked), r));
+    sauverProfilActif(actuel);
+    demarrerRechargement();
+  });
+
   elements.modeSimple.addEventListener('change', () => {
     actuel = modifierReglages((r) => ((r.board.show_shadows = !elements.modeSimple.checked), r));
     sauverProfilActif(actuel);
@@ -281,13 +291,20 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
 
   rendreDeplacable(elements.dialogue, elements.poignee);
 
-  elements.bouton.addEventListener('click', () => {
+  // `modale` : faux pour l'essai des poids IA (saab, 2026-10-01, case « Essai
+  // sur position » du tableau Reflexion IA) — la boite reste ouverte pendant
+  // qu'on navigue sur le plateau.
+  function ouvrir(modale = true) {
     actuel = lireReglagesActifs();
     pile = [];
     avantGeste = null;
     remplirFormulaire();
     remplirProfils();
     reinitialiserPosition(elements.dialogue);
-    elements.dialogue.showModal();
-  });
+    if (modale) elements.dialogue.showModal();
+    else elements.dialogue.show();
+  }
+
+  elements.bouton.addEventListener('click', () => ouvrir());
+  return { ouvrir };
 }

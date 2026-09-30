@@ -2131,6 +2131,22 @@ button,
     min-width: 100%;
   }
 
+  /* Le tableau Reflexion IA a la largeur des tableaux (celle de la Sequence,
+     reglable a sa poignee), Sequence ouverte ou non (saab, 2026-10-01 : sans
+     tableau, il retombait a 176px et le plateau restait entoure de vide). Et
+     le rappel « Touchez une pendule... », une phrase sur une seule ligne, ne
+     compte plus dans la largeur de la colonne : avant le depart, il
+     l'elargissait et retrecissait le plateau, puis la colonne se resserrait en
+     disparaissant. */
+  .reflexion-ia {
+    box-sizing: border-box;
+    width: var(--largeur-sequence, 330px);
+  }
+
+  #colonne-droite > .message-demarrage {
+    contain: inline-size;
+  }
+
   #etat-sauvegarde,
   #position-copiable {
     white-space: nowrap;
@@ -3362,6 +3378,20 @@ button,
   fill: #4aa8ff;
 }
 
+/* Le meme compteur sous le titre, pendules a l'horizontale (saab, 2026-10-01). */
+.compteur-occurrences-entete {
+  padding: 1px 6px;
+  font: 12px sans-serif;
+  color: #ffd700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compteur-occurrences-entete .compteur-occurrences-plateau-seuil {
+  color: #4aa8ff;
+}
+
 /* Grand bouton rond de pause (rendu/pendule.js, afficherPause) : masque
    tout le plateau, vert avec deux barres blanches ("||") — signale par
    saab. `pointer-events` sur le groupe entier via le clic delegue de
@@ -4221,6 +4251,34 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .essai-position-actuelle td {
   color: #9a9a9a;
   font-style: italic;
+}
+
+/* Reglages ouvert SANS bloquer le plateau (case « Essai sur position ») : hors
+   de la couche du dessus des boites modales, il doit quand meme passer
+   devant tout le reste de la page. */
+#dialogue-reglages[open]:not(:modal) {
+  position: fixed;
+  z-index: 100;
+}
+
+/* Le coup touche (interface/essai-ia.js), a comparer au choisi. */
+.essai-coup-touche td {
+  background: #cc6a00;
+  color: #ffffff;
+}
+
+/* Le coup du niveau 3, encadre. */
+.essai-coup-niveau-3 td {
+  border-top: 1px solid #e6c300;
+  border-bottom: 1px solid #e6c300;
+}
+
+.tableau-essai-ia tr[data-coup] {
+  cursor: pointer;
+}
+
+.niveau3-essai-ia {
+  color: #e6c300;
 }
 
 .essai-coup-choisi td {

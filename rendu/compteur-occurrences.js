@@ -73,6 +73,17 @@ function dessinerCompteurOccurrences(svg) {
   );
 }
 
+// Pendules a l'horizontale (saab, 2026-10-01) : le compteur quitte le plateau
+// pour une ligne de texte a la fin de `conteneur` (#entete-partie, sous le
+// titre), avec le MEME identifiant — actualiserCompteurOccurrences ecrit dans
+// l'un ou l'autre.
+function creerCompteurOccurrencesHorizontal(conteneur) {
+  const ligne = document.createElement('div');
+  ligne.id = 'compteur-occurrences-plateau';
+  ligne.className = 'compteur-occurrences-entete';
+  conteneur.appendChild(ligne);
+}
+
 // `valeurs` : { occ, ref, brOcc, brRef }. `seuil` : le seuil de nulle
 // (moteur.SEUIL_NULLE_PAR_DEFAUT) au-dela duquel un chiffre passe en bleu
 // plutot que jaune — meme convention que KAAWA et que
@@ -81,13 +92,15 @@ function dessinerCompteurOccurrences(svg) {
 // .compteur-occurrences-plateau-seuil) : Occ peut avoir atteint son seuil
 // sans que Ref (ou Br_Occ, ou Br_Ref) ait atteint le sien.
 function actualiserCompteurOccurrences(svg, valeurs, seuil) {
+  const cible = svg.ownerDocument.getElementById('compteur-occurrences-plateau');
+  const enSVG = cible instanceof SVGElement;
   const segment = (etiquette, valeur) => {
-    const tspan = creerElementSVG('tspan', {});
+    const tspan = enSVG ? creerElementSVG('tspan', {}) : document.createElement('span');
     if (valeur >= seuil) tspan.setAttribute('class', 'compteur-occurrences-plateau-seuil');
     tspan.textContent = `${etiquette}.: ${valeur}`;
     return tspan;
   };
-  svg.querySelector('#compteur-occurrences-plateau').replaceChildren(
+  cible.replaceChildren(
     segment('Occ', valeurs.occ),
     document.createTextNode('  ('),
     segment('Ref', valeurs.ref),

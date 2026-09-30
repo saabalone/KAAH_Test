@@ -187,5 +187,12 @@ function demarrerReglagesIA(elements) {
   });
 
   remplir();
-  return { remplir };
+  // `choisirProfil` : la case « Essai sur position » (index.html) montre le
+  // profil de la machine au trait — sans jamais perdre un brouillon en silence.
+  return {
+    remplir,
+    choisirProfil: (nom) => {
+      if (nom !== nomActuel && trouverProfilIA(nom) && brouillonAbandonne()) choisir(nom);
+    },
+  };
 }

@@ -24,7 +24,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : afficherNomJoueur
 // (rendu/ligne-joueur.js), NOM_CAMP (rendu/ejections.js), nomJoueurAutorise
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA (moteur/ia.js),
-// memesReglagesIA (moteur/historique-profil-ia.js), listerProfilsIA,
+// memesReglagesIA, LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), listerProfilsIA,
 // trouverProfilIA (interface/profils-ia.js) viennent de fichiers charges
 // avant celui-ci dans index.html.
 
@@ -49,7 +49,8 @@ function brancherSaisieNomJoueur(champ) {
 }
 
 // `elements` : { dialogue, champ, valider, fermer, marcheMachine, machine
-// (la zone de la machine), descriptionMachine, profilMachine (<select>) }.
+// (la zone de la machine), descriptionMachine, poidsMachine, profilMachine
+// (<select>) }.
 // `nomsParDefaut` : { noir, blanc }. Renvoie { definirCommandeMachines } : une
 // partie contre la machine (phase 32, interface/ia.js) y branche sa commande
 // (estMachine, estEnMarche, machineDe, basculer, suspendre, changerProfil) — le
@@ -79,7 +80,10 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   function afficherProfilMachine(machine) {
     const profil = trouverProfilIA(machine.profil);
     const retouche = profil && !memesReglagesIA(profil, machine) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
+    // Ses poids (saab, 2026-10-01), ceux avec lesquels elle joue.
+    const poids = Object.entries(machine.poids).map(([cle, valeur]) => `${LIBELLES_REGLAGES_IA[cle]} ${valeur}`).join(' · ');
     elements.descriptionMachine.textContent = `${PREFIXES_MOTEURS_IA[machine.moteur]}, niveau ${machine.niveau}, réflexion ${machine.reflexionMax} s, IA version ${machine.version}.${retouche}`;
+    elements.poidsMachine.textContent = `Poids : ${poids}`;
     const noms = listerProfilsIA().map((existant) => existant.nom);
     if (!noms.includes(machine.profil)) noms.unshift(machine.profil);
     elements.profilMachine.replaceChildren(

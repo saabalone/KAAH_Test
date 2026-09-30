@@ -659,7 +659,7 @@
         <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
         <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume.</li>
-        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br>Tout s'applique tout de suite ; seul le mode simple (sans relief) recharge la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
+        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le mode simple (sans relief) et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage et le titre de sa rubrique.</li>
         <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
@@ -675,9 +675,9 @@
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte dit aussi quelle machine c'est (KAI ou KAI++, niveau, réflexion, version) et sur quel <b>profil IA</b> elle joue — le changer vaut pour la suite de la partie (son nom suit).</li>
-        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
-        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte dit aussi quelle machine c'est (KAI ou KAI++, niveau, réflexion, version), avec quels <b>poids</b>, et sur quel <b>profil IA</b> elle joue — le changer vaut pour la suite de la partie (son nom suit).</li>
+        <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
+        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, et encadré dans la liste. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
@@ -901,6 +901,13 @@
           <input id="case-mode-simple" type="checkbox" />
           Mode simple (sans relief, pour un téléphone lent)
         </label>
+        <!-- Saab, 2026-10-01 : couchees en haut et en bas a droite, Occ au-dessus
+             du tableau Reflexion IA (rendu/pendule-horizontale.js). Recharge la
+             page, comme le mode simple : le plateau se dessine une fois. -->
+        <label class="ligne-reglage">
+          <input id="case-pendules-horizontales" type="checkbox" />
+          Pendules et Occ à l'horizontale
+        </label>
         <label class="ligne-reglage">
           <input id="case-coordonnees-billes" type="checkbox" />
           Coordonnées sur les billes
@@ -969,7 +976,7 @@
         <label class="ligne-couleur" title="Par bille à soi perdue">Perte (éjection) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-perte" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par pas de ses billes vers le centre (e5 : 4 pas, d4 : 3, c3/c4 : 2, b2/b3 : 1, bord : 0)">Centre <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
-        <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les siennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les miennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-sumito" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-menaceEjection" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -995,6 +1002,7 @@
           <summary>Essai sur la position du plateau</summary>
           <div class="defilement-essai-ia"><table id="cases-essai-ia" class="tableau-essai-ia"></table></div>
           <p id="position-essai-ia" class="note-reglages"></p>
+          <p id="niveau3-essai-ia" class="note-reglages niveau3-essai-ia"></p>
           <div class="defilement-essai-ia defilement-coups-essai-ia"><table id="coups-essai-ia" class="tableau-essai-ia"></table></div>
         </details>
       </details>
@@ -1236,6 +1244,7 @@
          pour la suite de la partie). -->
     <div id="machine-nom-joueur" class="machine-nom-joueur" hidden>
       <p id="description-machine-nom" class="note-reglages"></p>
+      <p id="poids-machine-nom" class="note-reglages"></p>
       <label class="ligne-choix-machine">Profil IA <select id="profil-machine-nom"></select></label>
     </div>
     <button id="bouton-marche-machine" class="bouton-dialogue bouton-marche-machine" type="button" hidden></button>
@@ -1304,7 +1313,10 @@
     <details id="reflexion-ia" class="reflexion-ia" open hidden>
         <!-- La case (saab, 2026-09-30) : chaque ligne aussi en commentaire du
              coup (interface/reflexion-ia.js). -->
-        <summary>Réflexion de la machine <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" checked /> en commentaire</label></summary>
+        <!-- « Essai sur position » (saab, 2026-10-01) : ouvre Reglages, rubrique
+             Machine, sur l'essai, sans bloquer le plateau ; la decocher (ou
+             fermer Reglages) le referme. Branche dans index.html, plus bas. -->
+        <summary>Réflexion IA <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" checked /> en commentaire</label> <label class="reflexion-commentaire"><input id="case-essai-position" type="checkbox" /> Essai sur position</label></summary>
         <div class="reflexion-ia-defilement">
           <table>
             <thead>
@@ -1558,6 +1570,7 @@
   <script src="./rendu/pistes-triangle.js"></script>
   <script src="./rendu/ejections-apercu.js"></script>
   <script src="./rendu/pendule.js"></script>
+  <script src="./rendu/pendule-horizontale.js"></script>
   <script src="./rendu/courroie.js"></script>
   <script src="./rendu/corde.js"></script>
   <script src="./rendu/vol-ejection.js"></script>
@@ -1834,12 +1847,16 @@
     // rendu/coordonnees-bord.js), avant les pistes/pendules et le compteur
     // d'occurrences, pour rester la plus proche du plateau.
     dessinerCoordonneesBord(svg);
-    dessinerPistesEjection(svg, joueurs, plateauAfficheRetourne ? 'noir' : 'blanc');
+    const pendulesHorizontales = reglages.kaah.horizontal_clocks;
+    dessinerPistesEjection(svg, joueurs, plateauAfficheRetourne ? 'noir' : 'blanc', pendulesHorizontales);
     // Compteur Occ/Ref/Br_Occ/Br_Ref a la verticale, tout a gauche du
     // plateau (phase 18, correctif) — comme dessinerPistesEjection,
     // agrandit le viewBox : doit donc aussi passer AVANT
-    // fixerProportionsPlateau. Voir rendu/compteur-occurrences.js.
-    dessinerCompteurOccurrences(svg);
+    // fixerProportionsPlateau. Voir rendu/compteur-occurrences.js. Pendules
+    // a l'horizontale (saab, 2026-10-01) : il quitte le plateau pour une ligne
+    // sous le titre de la partie, qui voyage avec lui (#entete-partie).
+    if (pendulesHorizontales) creerCompteurOccurrencesHorizontal(document.getElementById('entete-partie'));
+    else dessinerCompteurOccurrences(svg);
     // En dernier : la proportion definitive du plateau n'est connue qu'une
     // fois les bandes d'ejection ET le compteur d'occurrences loges dans
     // le viewBox (voir rendu/plateau-svg.js, fixerProportionsPlateau).
@@ -1985,6 +2002,7 @@
           position: document.getElementById('position-essai-ia'),
           cases: document.getElementById('cases-essai-ia'),
           coups: document.getElementById('coups-essai-ia'),
+          niveau3: document.getElementById('niveau3-essai-ia'),
         },
         () => positionDuPlateau()
       ),
@@ -2002,12 +2020,13 @@
       note: document.getElementById('note-profil-ia'),
     });
     document.getElementById('bouton-reglages').addEventListener('click', () => reglagesIA.remplir());
-    demarrerReglages(
+    const boiteReglages = demarrerReglages(
       {
         bouton: document.getElementById('bouton-reglages'),
         dialogue: document.getElementById('dialogue-reglages'),
         poignee: document.getElementById('poignee-reglages'),
         modeSimple: document.getElementById('case-mode-simple'),
+        pendulesHorizontales: document.getElementById('case-pendules-horizontales'),
         baseCoups: document.getElementById('select-base-coups'),
         selectProfil: document.getElementById('select-profil-reglages'),
         supprimerProfil: document.getElementById('bouton-supprimer-profil-reglages'),
@@ -2709,6 +2728,7 @@
         marcheMachine: document.getElementById('bouton-marche-machine'),
         machine: document.getElementById('machine-nom-joueur'),
         descriptionMachine: document.getElementById('description-machine-nom'),
+        poidsMachine: document.getElementById('poids-machine-nom'),
         profilMachine: document.getElementById('profil-machine-nom'),
       },
       joueurs,
@@ -3122,6 +3142,29 @@
       const arbre = partie.obtenirArbre();
       return { etat: etatCourant(arbre), coupsJoues: arbre.chemin.length };
     };
+
+    // Case « Essai sur position » du tableau Reflexion IA (saab, 2026-10-01) :
+    // Reglages s'ouvre sur l'essai des poids (interface/essai-ia.js), avec le
+    // profil de la machine au trait, SANS bloquer le plateau — on peut
+    // naviguer, l'essai suit la position. Decocher ou fermer Reglages referme.
+    const caseEssaiPosition = document.getElementById('case-essai-position');
+    const dialogueReglages = document.getElementById('dialogue-reglages');
+    caseEssaiPosition.addEventListener('change', () => {
+      if (!caseEssaiPosition.checked) return dialogueReglages.close();
+      if (dialogueReglages.open) dialogueReglages.close();
+      const machine = machines?.[etatCourant(partie.obtenirArbre()).joueurAuTrait];
+      reglagesIA.remplir();
+      if (machine) reglagesIA.choisirProfil(machine.profil);
+      boiteReglages.ouvrir(false);
+      const rubrique = dialogueReglages.querySelector('details[data-rubrique="machine"]');
+      const essai = document.getElementById('boite-essai-ia');
+      rubrique.open = true;
+      essai.open = true;
+      essai.scrollIntoView({ block: 'start' });
+    });
+    dialogueReglages.addEventListener('close', () => {
+      caseEssaiPosition.checked = false;
+    });
     if (machines) {
       const commandeMachines = demarrerMachines({
         partie,

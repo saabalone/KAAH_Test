@@ -24,7 +24,7 @@ const LIBELLES_REGLAGES_IA = {
   perte: 'Perte',
   centre: 'Centre',
   cohesion: 'Cohésion',
-  bordSoi: 'Bord (siennes)',
+  bordSoi: 'Bord (miennes)',
   bordAdverse: 'Bord (adverses)',
   sumito: 'Sumito',
   menaceEjection: "Menace d'éjection",
