@@ -11,7 +11,9 @@
 // s'elargit jamais, le plateau ne bouge pas) et un clic dessus la montre sur un
 // petit plateau (interface/sequence-prevue.js) ; la case « en commentaire »
 // (cochee par defaut, retenue sur cet appareil) fait ecrire chaque ligne dans
-// le commentaire du coup (interface/ia.js).
+// le commentaire du coup (interface/ia.js). Sur une position deja jouee, la
+// ligne du haut dit ce que la machine AURAIT joue (« → a1b2 ») : la toucher
+// joue ce coup.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour (moteur/
 // arbre.js), libelleEvaluation (moteur/ia.js), ABREVIATIONS_PHASES
@@ -35,7 +37,8 @@ function sequenceSurDeuxLignes(sequence) {
 // `details` : #reflexion-ia (montre seulement contre la machine) ;
 // `sequencePrevue` : interface/sequence-prevue.js. Renvoie { actualiser(arbre),
 // afficherEnCours(enCours | null), enCommentaire() } — `enCours` : { etat, camp,
-// coupsJoues, duree, profondeur, noeuds, evaluation, sequence (textes) }.
+// coupsJoues, duree, profondeur, noeuds, evaluation, sequence (textes) }, plus,
+// pour ce qu'elle aurait joue, { hypothese: true, coup, jouer() }.
 function demarrerReflexionIA(details, sequencePrevue) {
   details.hidden = false;
   const corps = details.querySelector('tbody');
@@ -74,13 +77,23 @@ function demarrerReflexionIA(details, sequencePrevue) {
     return td;
   }
 
-  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase }, classe) {
+  function celluleCoup(texteCoup, jouer) {
+    const td = cellule(texteCoup);
+    if (jouer) {
+      td.classList.add('coup-hypothese');
+      td.title = "Ce qu'elle aurait joué ici : touchez pour le jouer (une nouvelle branche)";
+      td.addEventListener('click', jouer);
+    }
+    return td;
+  }
+
+  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, hypothese, jouer }, classe) {
     const tr = document.createElement('tr');
     if (classe) tr.className = classe;
     const marque = camp === 'noir' ? '●' : '○';
-    const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${coup ?? '…'}`;
+    const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${hypothese && coup ? '→ ' : ''}${coup ?? '…'}`;
     tr.append(
-      cellule(texteCoup),
+      celluleCoup(texteCoup, hypothese ? jouer : null),
       cellule(`${duree.toFixed(DECIMALES_DUREE_REFLEXION)} s`),
       cellule(source === 'livre' ? 'livre' : String(profondeur ?? '')),
       cellule(String(noeuds ?? '')),
@@ -93,7 +106,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
   // La plus recente en haut : on la voit sans faire defiler.
   function afficherTableau() {
     const lignes = lignesDuChemin.map((l) => ligne(l)).reverse();
-    if (enCours) lignes.unshift(ligne(enCours, 'reflexion-en-cours'));
+    if (enCours) lignes.unshift(ligne(enCours, enCours.hypothese && enCours.coup ? 'reflexion-hypothese' : 'reflexion-en-cours'));
     corps.replaceChildren(...lignes);
   }
 

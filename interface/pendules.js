@@ -107,6 +107,10 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // signale alors qu'un clic est attendu.
   let pauseManuelle = true;
   let alerteTempsDonnee = false;
+  // Le temps arrete sans pause affichee (saab, 2026-09-30 : pendant que la
+  // boite du nom est ouverte contre la machine, interface/ia.js) : aucune
+  // horloge ne tourne, ni celle de la partie ni le chrono d'analyse.
+  let suspendu = false;
 
   afficherPendules();
   const identifiantMinuteur = setInterval(verifier, INTERVALLE_DE_VERIFICATION_MS);
@@ -117,7 +121,15 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   }
 
   function horlogeQuiTourne() {
+    if (suspendu) return null;
     return horloge === 'partie' && pauseManuelle ? null : horlogeDuCoup();
+  }
+
+  function suspendre(oui) {
+    if (oui === suspendu) return;
+    if (oui) ecouler(); // le temps pris jusqu'ici compte
+    suspendu = oui;
+    if (!oui) dernierInstant = Date.now(); // le temps suspendu ne compte pour personne
   }
 
   // Le temps du joueur au trait vient de passer sous le seuil : une seule fois
@@ -309,6 +321,7 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     estEnPauseManuelle,
     horlogeSuivie,
     changerMode,
+    suspendre,
   };
 }
 

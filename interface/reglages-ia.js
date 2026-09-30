@@ -12,6 +12,8 @@
 // montre toutes les versions et permet d'y revenir. Les profils integres ne
 // changent jamais : valider une retouche de l'un d'eux cree un profil
 // IA_<date>, dont l'historique part de lui. Abandonner oublie le brouillon.
+// L'essai (interface/essai-ia.js) montre, sans rien enregistrer, ce que les
+// poids affiches font jouer sur la position du plateau.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
 // (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
@@ -28,9 +30,10 @@
 const CLASSES_COULEURS_REGLAGES_IA = { modifie: 'reglage-modifie', dernier: 'reglage-valide-dernier', ancien: 'reglage-valide-ancien' };
 
 // `elements` : { rubrique, select, nouveau, supprimer, exporter, importer,
-// style, version, valider, abandonner, historique, note } ; les champs des
-// poids sont trouves par leur id, `poids-ia-<cle>` ; ceux de la version 2
-// (sumitos, phase 33) ne se montrent qu'avec elle.
+// style, version, valider, abandonner, historique, note, essai } — `essai` :
+// interface/essai-ia.js. Les champs des poids sont trouves par leur id,
+// `poids-ia-<cle>` ; ceux de la version 2 (sumitos, phase 33) ne se montrent
+// qu'avec elle.
 function demarrerReglagesIA(elements) {
   const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2];
   let nomActuel = NOMS_STYLES_IA.normal;
@@ -74,6 +77,7 @@ function demarrerReglagesIA(elements) {
     afficherValeurs(brouillon ?? profil);
     marquerCouleurs();
     afficherHistoriqueIA(elements.historique, profil, revenirALaVersion);
+    elements.essai.actualiser(brouillon ?? profil);
     elements.note.textContent = estProfilIAIntegre(nomActuel)
       ? `Profil intégré (IA version ${profil.version}) : valider une retouche crée un nouveau profil.`
       : `IA version ${profil.version}.`;
@@ -111,6 +115,7 @@ function demarrerReglagesIA(elements) {
     brouillon = memesReglagesIA(valeurs, profilActuel()) ? null : valeurs;
     afficherValeurs(brouillon ?? profilActuel());
     marquerCouleurs();
+    elements.essai.actualiser(brouillon ?? profilActuel());
   }
   elements.style.addEventListener('change', retoucher);
   elements.version.addEventListener('change', retoucher);

@@ -4182,6 +4182,71 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   color: #8a8a8a;
 }
 
+/* L'essai des poids (interface/essai-ia.js) : des tableaux de chiffres serres,
+   qui defilent dans leur boite plutot que d'elargir Reglages. */
+.defilement-essai-ia {
+  overflow: auto;
+  max-width: 100%;
+}
+
+.defilement-coups-essai-ia {
+  max-height: 16em;
+}
+
+.tableau-essai-ia {
+  border-collapse: collapse;
+  font: 11px sans-serif;
+}
+
+.tableau-essai-ia th,
+.tableau-essai-ia td {
+  padding: 1px 4px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tableau-essai-ia th {
+  position: sticky;
+  top: 0;
+  background: #262626;
+  color: #9a9a9a;
+  font-weight: normal;
+}
+
+.tableau-essai-ia td:first-child,
+.tableau-essai-ia th:first-child {
+  text-align: left;
+}
+
+.essai-position-actuelle td {
+  color: #9a9a9a;
+  font-style: italic;
+}
+
+.essai-coup-choisi td {
+  background: var(--vert-demande);
+  color: #ffffff;
+}
+
+.boite-essai-ia > summary {
+  cursor: pointer;
+  min-height: var(--hauteur-ligne-liste);
+}
+
+/* Ce que la machine aurait joue (interface/reflexion-ia.js) : a toucher. */
+.reflexion-ia .reflexion-hypothese {
+  color: #e6c300;
+}
+
+.reflexion-ia .coup-hypothese {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.machine-nom-joueur {
+  margin-top: 6px;
+}
+
 .ligne-historique-ia.version-courante {
   background: var(--vert-demande);
   color: #ffffff;

@@ -30,7 +30,7 @@
 // (plateau.js), tousLesCoupsLegaux (regles.js), ecrirePosition (notation.js),
 // compterOccurrences, SEUIL_NULLE_PAR_DEFAUT (nulle.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
-// (ia-evaluation.js), evaluerPositionV2 (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
+// (ia-evaluation.js), evaluationDeLaVersion (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
 
 // Profondeur (en coups, les siens et ceux de l'adversaire) par niveau. Le
 // niveau 3 est borne par le temps de reflexion bien avant d'atteindre la
@@ -118,7 +118,7 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
 // profondeur 1 va toujours au bout, meme echeance depassee ou arret demande :
 // il faut bien un coup a jouer.
 function* rechercherCoup(etat, { niveau, poids, version = 1, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
-  const evaluer = version === 2 ? evaluerPositionV2 : evaluerPosition;
+  const evaluer = evaluationDeLaVersion(version);
   const contexte = { camp: etat.joueurAuTrait, poids, evaluer, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
   const racine = ordonnerCoups(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard));
   let meilleurCoup = racine[0];

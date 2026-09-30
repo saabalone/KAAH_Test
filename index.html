@@ -675,9 +675,9 @@
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.</li>
-        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.</li>
-        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte dit aussi quelle machine c'est (KAI ou KAI++, niveau, réflexion, version) et sur quel <b>profil IA</b> elle joue — le changer vaut pour la suite de la partie (son nom suit).</li>
+        <li><b>Réflexion de la machine</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
+        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
         <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
@@ -988,6 +988,15 @@
           <summary>Historique IA</summary>
           <div id="historique-profil-ia" class="historique-profil-ia"></div>
         </details>
+        <!-- Saab, 2026-09-30 : ce que les poids affiches (retouches comprises,
+             rien n'est enregistre) font jouer sur la position du plateau
+             (interface/essai-ia.js). -->
+        <details id="boite-essai-ia" class="boite-essai-ia">
+          <summary>Essai sur la position du plateau</summary>
+          <div class="defilement-essai-ia"><table id="cases-essai-ia" class="tableau-essai-ia"></table></div>
+          <p id="position-essai-ia" class="note-reglages"></p>
+          <div class="defilement-essai-ia defilement-coups-essai-ia"><table id="coups-essai-ia" class="tableau-essai-ia"></table></div>
+        </details>
       </details>
 
       <details class="rubrique-reglages" data-rubrique="fichier">
@@ -1223,6 +1232,12 @@
     <input id="champ-nom-joueur" type="text" maxlength="30" autocomplete="off" />
     <!-- Phase 32 (saab) : pour une machine, Arret (elle joue tout de suite son
          meilleur coup si c'est son tour, puis s'arrete) ou Marche. -->
+    <!-- Saab, 2026-09-30 : quelle machine, sur quel profil IA (a changer
+         pour la suite de la partie). -->
+    <div id="machine-nom-joueur" class="machine-nom-joueur" hidden>
+      <p id="description-machine-nom" class="note-reglages"></p>
+      <label class="ligne-choix-machine">Profil IA <select id="profil-machine-nom"></select></label>
+    </div>
     <button id="bouton-marche-machine" class="bouton-dialogue bouton-marche-machine" type="button" hidden></button>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-valider-nom-joueur" class="bouton-dialogue" type="button">Valider</button>
@@ -1506,6 +1521,7 @@
   <script src="./moteur/historique-profil-ia.js"></script>
   <script src="./moteur/profils-ia.js"></script>
   <script src="./moteur/sequence-prevue.js"></script>
+  <script src="./moteur/essai-ia.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/revanche.js"></script>
@@ -1602,6 +1618,7 @@
   <script src="./interface/reglages-champs.js"></script>
   <script src="./interface/reglages-rubriques.js"></script>
   <script src="./interface/historique-ia.js"></script>
+  <script src="./interface/essai-ia.js"></script>
   <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
@@ -1612,6 +1629,7 @@
   <script src="./interface/embranchement.js"></script>
   <script src="./interface/sequence-prevue.js"></script>
   <script src="./interface/reflexion-ia.js"></script>
+  <script src="./interface/ia-reflexion.js"></script>
   <script src="./interface/evaluations.js"></script>
   <script src="./interface/lecture-sequence.js"></script>
   <script src="./interface/saisie.js"></script>
@@ -1957,7 +1975,19 @@
     );
     // Profils IA (phase 32, interface/reglages-ia.js) : relus a chaque ouverture
     // de Reglages (un profil a pu etre cree depuis).
+    // L'essai des poids (interface/essai-ia.js) regarde la position du plateau :
+    // la partie n'existe pas encore ici, elle se branche plus bas.
+    let positionDuPlateau = () => null;
     const reglagesIA = demarrerReglagesIA({
+      essai: demarrerEssaiIA(
+        {
+          boite: document.getElementById('boite-essai-ia'),
+          position: document.getElementById('position-essai-ia'),
+          cases: document.getElementById('cases-essai-ia'),
+          coups: document.getElementById('coups-essai-ia'),
+        },
+        () => positionDuPlateau()
+      ),
       rubrique: document.querySelector('details[data-rubrique="machine"]'),
       valider: document.getElementById('bouton-valider-profil-ia'),
       abandonner: document.getElementById('bouton-abandonner-profil-ia'),
@@ -2677,6 +2707,9 @@
         valider: document.getElementById('bouton-valider-nom-joueur'),
         fermer: document.getElementById('bouton-fermer-nom-joueur'),
         marcheMachine: document.getElementById('bouton-marche-machine'),
+        machine: document.getElementById('machine-nom-joueur'),
+        descriptionMachine: document.getElementById('description-machine-nom'),
+        profilMachine: document.getElementById('profil-machine-nom'),
       },
       joueurs,
       NOMS_PAR_DEFAUT,
@@ -3085,6 +3118,10 @@
     // nom), le tableau sous le titre montre sa reflexion.
     // Premier affichage des evaluations (ensuite a chaque coup ou navigation).
     evaluations.actualiser(partie.obtenirArbre());
+    positionDuPlateau = () => {
+      const arbre = partie.obtenirArbre();
+      return { etat: etatCourant(arbre), coupsJoues: arbre.chemin.length };
+    };
     if (machines) {
       const commandeMachines = demarrerMachines({
         partie,

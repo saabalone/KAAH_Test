@@ -943,6 +943,15 @@ function demarrerPartie(
     // au temps (phase 30, saab) —, ni en pause, ni sans suite : les memes
     // gardes que jouerCoupTexte, pour que la machine ne reflechisse pas pour rien.
     peutJouerUnCoup: () => estFeuilleJouable() && !jeuSuspendu() && !sansSuite(),
+    // Une position deja jouee (des coups en partent), pas finie : la machine
+    // peut y dire ce qu'elle aurait joue (interface/ia.js, saab 2026-09-30).
+    peutEnvisagerUnCoup: () => {
+      const noeud = noeudCourant(arbre);
+      return noeud.enfants.length > 0 && !noeud.etat.vainqueur && !estStatutDefinitif(noeud.statutFin) && !jeuSuspendu() && !sansSuite();
+    },
+    // Le temps arrete sans afficher de pause (boite du nom ouverte contre la
+    // machine, interface/ia.js).
+    suspendreLeTemps: (oui) => pendules.suspendre(oui),
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
     },
