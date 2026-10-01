@@ -4138,6 +4138,26 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 /* `hidden` doit gagner sur le display des .bouton-dialogue (meme piege que
    .section-mode-pendule[hidden]) : sinon une barre verte vide restait pour un
    humain. */
+/* Chargement d'une nouvelle version (interface/mise-a-jour.js) : par-dessus
+   tout, en haut, le temps de recharger. */
+.bandeau-mise-a-jour {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  margin: 0;
+  padding: 6px 12px;
+  background: var(--vert-demande);
+  color: #ffffff;
+  font: bold 14px sans-serif;
+  text-align: center;
+}
+
+.bandeau-mise-a-jour[hidden] {
+  display: none;
+}
+
 /* Aide (saab, 2026-10-01) : Fermer en vert (le geste attendu), et les noms de
    couleur dans leur couleur (interface/aide.js). */
 .bouton-fermer-aide {

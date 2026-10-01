@@ -34,8 +34,11 @@ async function etatHorsLigne() {
       ? `refusé par ce navigateur (${refusHorsLigne}). Utilisez Chrome.`
       : 'pas encore installé : rouvrez KAAH avec internet.';
   }
-  if (enregistrement.installing || enregistrement.waiting) return 'installation en cours, gardez internet quelques secondes.';
-  const cachePret = await window.caches.has(`kaah-${NOM_VERSION_KAAH_TEST}`);
+  if (enregistrement.installing) return 'installation en cours, gardez internet quelques secondes.';
+  if (enregistrement.waiting) return 'prêt ✓ — une nouvelle version attend votre accord (proposée au lancement).';
+  // Le cache de la version affichee, ou celui qui la sert encore pendant qu'une
+  // nouvelle version attend d'etre chargee (interface/mise-a-jour.js).
+  const cachePret = (await window.caches.keys()).some((nom) => nom.startsWith('kaah-'));
   if (navigator.serviceWorker.controller && cachePret) return 'prêt ✓ (KAAH marche sans internet sur cet appareil).';
   return 'installé, actif à la prochaine ouverture de KAAH.';
 }
@@ -143,7 +146,7 @@ function demarrerAide(elements) {
       .then((noms) => {
         const nomCache = noms.find((n) => n.startsWith('kaah-'));
         if (nomCache && nomCache !== `kaah-${NOM_VERSION_KAAH_TEST}`) {
-          elements.version.textContent = `Version : ${versionAffichee} (cache installé : ${nomCache} — fermez KAAH, rouvrez-le avec internet)`;
+          elements.version.textContent = `Version : ${versionAffichee} (autre version en cache : ${nomCache.replace('kaah-', '')})`;
         }
       })
       .catch(() => {});

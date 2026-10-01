@@ -751,7 +751,7 @@
         <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; Opera : menu, « Écran d'accueil » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »).<br>Il marche ensuite hors ligne.</li>
         <li>Sous le numéro de version, en haut de cette Aide, <b>Hors ligne</b> dit si KAAH marche sans internet sur cet appareil (« prêt ✓ »), ou pourquoi pas.</li>
         <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes).<br>Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
-        <li>Une nouvelle version s'installe toute seule à l'ouverture, avec internet : si vous n'avez encore rien touché, KAAH se recharge aussitôt en nouvelle version ; sinon, elle sera là à la prochaine ouverture.</li>
+        <li><b>Nouvelle version</b> : à chaque ouverture avec internet, KAAH vérifie seulement s'il y en a une (quelques Ko) — sans rien recharger s'il n'y en a pas. S'il y en a une, il vous demande s'il faut la <b>charger</b> (quelques Mo) ; « Refuser » garde la version actuelle, hors ligne comme avant, et la question reviendra à la prochaine ouverture. (La toute première mise à jour vers ce fonctionnement se fait encore seule, une fois.)</li>
         <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_PC.html" target="_blank" rel="noopener">INSTALLATION_PC</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b> reçu avec KAAH).</li>
         <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_ANDROID.html" target="_blank" rel="noopener">INSTALLATION_ANDROID</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
         <li><b>iPhone</b> : pas de méthode simple sans adresse internet — voir <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_IOS.html" target="_blank" rel="noopener">INSTALLATION_IOS</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
@@ -1370,6 +1370,8 @@
          par interface/disposition.js (correctif, saab : apparaitre au-dessus
          du plateau lui faisait changer de taille) — sa place definitive ne
          depend donc jamais de son emplacement dans ce fichier. -->
+    <!-- Pendant le chargement d'une nouvelle version (interface/mise-a-jour.js). -->
+    <p id="bandeau-mise-a-jour" class="bandeau-mise-a-jour" hidden></p>
     <p id="message-demarrage-pendules" class="message-demarrage" hidden>
       Touchez une pendule (à droite du plateau) pour démarrer ou mettre en pause la partie.
       À deux autour d'une table : passez en Face-à-face. Pendules debout ou couchées : Réglages &gt; Affichage.
@@ -1655,6 +1657,7 @@
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
   <script src="./interface/aide.js"></script>
+  <script src="./interface/mise-a-jour.js"></script>
   <script src="./interface/notes-perso.js"></script>
   <script src="./interface/abandon-nulle.js"></script>
   <script src="./interface/fin-de-partie.js"></script>
@@ -3329,30 +3332,35 @@
     // ne rien faire d'autre en cas d'echec, ouvrir le fichier directement
     // reste le mode d'emploi normal de KAAH et marche tres bien sans ca.
     //
-    // Mises a jour (saab : "si on est passe a v6 alors que j'etais a v4, je
-    // recharge en v5 puis en v6") :
-    //   - `updateViaCache: 'none'` : la verification d'une nouvelle version
-    //     relit service-worker.js ET version.js au serveur, jamais dans le cache
-    //     HTTP du navigateur (voir aussi `cache: 'reload'`, service-worker.js) ;
-    //   - une fois la nouvelle version installee, elle prend la main
-    //     (`controllerchange`), mais la page affichee reste l'ancienne : on
-    //     recharge donc tout de suite — seulement si l'appli etait deja
-    //     installee (sinon c'est la premiere visite, deja a jour) et si le
-    //     joueur n'a encore rien touche (jamais un rechargement en pleine
-    //     partie ; sinon la nouvelle version sera la au prochain lancement).
+    // Mises a jour, SUR ACCORD (saab, 2026-10-01 : « pour eviter de consommer
+    // internet inutilement ») : interface/mise-a-jour.js et service-worker.js.
+    // `updateViaCache: 'none'` : la verification d'une nouvelle version relit
+    // service-worker.js et version.js (quelques Ko) au serveur, jamais dans le
+    // cache HTTP du navigateur ; les fichiers d'une nouvelle version ne se
+    // telechargent qu'apres « Charger ».
     if ('serviceWorker' in navigator) {
-      const dejaInstallee = Boolean(navigator.serviceWorker.controller);
-      let joueurAInteragi = false;
-      document.addEventListener('pointerdown', () => (joueurAInteragi = true), { capture: true, once: true });
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (dejaInstallee && !joueurAInteragi && !rechargementImminent) demarrerRechargement();
-      });
       window.addEventListener('load', () => {
-        // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
-        // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
-        // Opera : "rien n'indique que c'est installe").
         navigator.serviceWorker
           .register('./service-worker.js', { updateViaCache: 'none' })
+          .then((enregistrement) =>
+            surveillerLesMisesAJour(enregistrement, {
+              proposer: (version, charger) =>
+                confirmation.demander(
+                  `Une nouvelle version de KAAH est disponible (${version}, vous avez ${NOM_VERSION_KAAH_TEST}). La charger maintenant ? Il faut internet, quelques Mo. Sinon, la question reviendra au prochain lancement.`,
+                  charger,
+                  'Charger'
+                ),
+              signaler: (texte) => {
+                const bandeau = document.getElementById('bandeau-mise-a-jour');
+                bandeau.textContent = texte;
+                bandeau.hidden = false;
+              },
+              recharger: () => demarrerRechargement(),
+            })
+          )
+          // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
+          // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
+          // Opera : "rien n'indique que c'est installe").
           .catch((erreur) => retenirRefusHorsLigne(erreur));
       });
     }

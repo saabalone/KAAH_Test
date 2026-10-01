@@ -149,6 +149,7 @@ const FICHIERS_ESSENTIELS = [
   './interface/sons.js',
   './interface/reglages-sons.js',
   './interface/aide.js',
+  './interface/mise-a-jour.js',
   './interface/notes-perso.js',
   './interface/abandon-nulle.js',
   './interface/filtres-classement.js',
@@ -207,27 +208,93 @@ function demandesFraiches(fichiers) {
   return fichiers.map((fichier) => new Request(fichier, { cache: 'reload' }));
 }
 
+// MISES A JOUR SUR ACCORD (saab, 2026-10-01 : « une fois l'appli chargee par
+// internet, tant qu'il n'y a pas une nouvelle version, ce n'est pas la peine de
+// recharger, et si une nouvelle version existe il faut demander si on veut la
+// charger, pour eviter de consommer internet inutilement »). A chaque
+// lancement, le navigateur ne relit que ce fichier et version.js (quelques
+// Ko). S'ils ont change, la nouvelle version s'installe SANS rien telecharger
+// et attend : la page la propose (interface/mise-a-jour.js), et seul un
+// « Charger » telecharge ses fichiers (message 'charger'). Tant qu'elle n'est
+// pas chargee, l'ancienne continue de servir son cache — meme si le navigateur
+// active la nouvelle apres la fermeture de KAAH : son cache vide, c'est
+// l'ancien qui repond (caches.match les parcourt tous), et l'ancien n'est
+// efface qu'une fois le nouveau complet.
+//
+// Un cache complet porte ce marqueur. Les caches d'avant ce fonctionnement
+// n'en ont pas : leur premiere mise a jour se fait encore toute seule, une
+// fois — c'est elle qui installe ce fichier-ci.
+const MARQUEUR_CACHE_COMPLET = 'kaah-cache-complet'; // pas un fichier du site : jamais servi
+
+async function remplirLeCache() {
+  const cache = await caches.open(NOM_CACHE);
+  await cache.addAll(demandesFraiches(FICHIERS_ESSENTIELS));
+  // Les secondaires ne doivent jamais faire echouer l'installation : une erreur
+  // ici (reseau coupe en cours de route, par exemple) est avalee, l'appli reste
+  // installee et jouable hors ligne sans eux.
+  await cache.addAll(demandesFraiches(FICHIERS_SECONDAIRES)).catch(() => {});
+  await cache.put(MARQUEUR_CACHE_COMPLET, new Response(NOM_VERSION_KAAH_TEST));
+}
+
+async function estComplet(nom) {
+  if (!(await caches.has(nom))) return false;
+  return Boolean(await (await caches.open(nom)).match(MARQUEUR_CACHE_COMPLET));
+}
+
+async function oublierLesAutresCaches() {
+  const noms = await caches.keys();
+  await Promise.all(noms.filter((nom) => nom !== NOM_CACHE).map((nom) => caches.delete(nom)));
+}
+
+// Une version deja installee selon ce fonctionnement (un cache complet) ?
+async function installeeSurAccord() {
+  for (const nom of await caches.keys()) if (nom.startsWith('kaah-') && (await estComplet(nom))) return true;
+  return false;
+}
+
 self.addEventListener('install', (evenement) => {
   evenement.waitUntil(
-    caches.open(NOM_CACHE).then((cache) =>
-      cache
-        .addAll(demandesFraiches(FICHIERS_ESSENTIELS))
-        // Les secondaires ne doivent jamais faire echouer l'installation :
-        // une erreur ici (reseau coupe en cours de route, par exemple) est
-        // avalee, l'appli reste installee et jouable hors ligne sans eux.
-        .then(() => cache.addAll(demandesFraiches(FICHIERS_SECONDAIRES)).catch(() => {}))
-    )
+    (async () => {
+      // Une mise a jour attend l'accord (voir plus haut) ; une premiere
+      // installation se charge tout de suite.
+      if (await installeeSurAccord()) return;
+      await remplirLeCache();
+      await self.skipWaiting();
+    })()
   );
-  self.skipWaiting(); // active la nouvelle version des le prochain rechargement, sans attendre
 });
 
 self.addEventListener('activate', (evenement) => {
   evenement.waitUntil(
-    caches
-      .keys()
-      .then((noms) => Promise.all(noms.filter((nom) => nom !== NOM_CACHE).map((nom) => caches.delete(nom))))
+    (async () => {
+      if (await estComplet(NOM_CACHE)) await oublierLesAutresCaches();
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
+});
+
+// La page demande l'etat de cette version ('etat' -> { version, complet }), ou
+// son chargement ('charger' -> { pret } ou { erreur }), par un MessageChannel.
+self.addEventListener('message', (evenement) => {
+  const reponse = evenement.ports[0];
+  if (!reponse) return;
+  if (evenement.data === 'etat') {
+    evenement.waitUntil(estComplet(NOM_CACHE).then((complet) => reponse.postMessage({ version: NOM_VERSION_KAAH_TEST, complet })));
+  } else if (evenement.data === 'charger') {
+    evenement.waitUntil(
+      (async () => {
+        try {
+          await remplirLeCache();
+          await oublierLesAutresCaches();
+          // Prendre la main AVANT de repondre : la page recharge aussitot.
+          await self.skipWaiting();
+          reponse.postMessage({ pret: true });
+        } catch (erreur) {
+          reponse.postMessage({ erreur: String(erreur?.message ?? erreur) });
+        }
+      })()
+    );
+  }
 });
 
 // Safari (iPhone) demande ses sons par PLAGES d'octets (en-tete Range) et
