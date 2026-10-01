@@ -82,6 +82,7 @@ const CHAMPS_REGLAGES = [
   ['curseur-taille-coord-arrivee', 'taille', 'kaah', 'dest_coord_size'],
   ['curseur-taille-ronds-verts', 'taille', 'kaah', 'green_marker_scale'],
   ['nombre-taille-billes-perdantes', 'taille', 'kaah', 'loser_ball_scale'],
+  ['case-livre-ia', 'case', 'kaah', 'ia_book'],
 ];
 
 function chaqueChampReglage(dialogue, action) {

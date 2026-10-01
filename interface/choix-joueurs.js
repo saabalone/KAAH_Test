@@ -16,20 +16,28 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
-// (interface/profils-ia.js) viennent de fichiers charges avant celui-ci.
+// (interface/profils-ia.js), lireReglagesActifs (interface/reglages-profils.js)
+// viennent de fichiers charges avant celui-ci.
 
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
 const CAMPS_JOUEURS = ['noir', 'blanc'];
 
 // Le choix d'un camp : { role ('humain', 'kai' ou 'kai++'), niveau, profil (son
-// nom), reflexionMax }.
+// nom), reflexionMax, livre (le livre d'ouvertures, saab 2026-10-01) }.
 const ROLE_HUMAIN = 'humain';
 const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,
   niveau: MACHINE_PAR_DEFAUT.niveau,
   profil: MACHINE_PAR_DEFAUT.profil,
   reflexionMax: MACHINE_PAR_DEFAUT.reflexionMax,
+  livre: MACHINE_PAR_DEFAUT.livre,
 };
+
+// Le livre d'ouvertures propose par defaut : celui de Reglages (rubrique
+// Machine).
+function livreParDefaut() {
+  return lireReglagesActifs().kaah.ia_book;
+}
 
 function lireDerniersJoueurs() {
   try {
@@ -93,6 +101,7 @@ function brancherChoixMachine(element, surChangement) {
       bouton.classList.toggle('bouton-actif', Number(bouton.dataset.niveau) === niveau);
     }
     element.querySelector('.choix-reflexion-max').value = reflexionMax;
+    element.querySelector('.choix-livre').checked = choix.livre;
   }
 
   const changer = (retouche) => {
@@ -105,6 +114,7 @@ function brancherChoixMachine(element, surChangement) {
     bouton.addEventListener('click', () => changer({ niveau: Number(bouton.dataset.niveau) }));
   }
   element.querySelector('.choix-profil-ia').addEventListener('change', (evenement) => changer({ profil: evenement.target.value }));
+  element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
 
   return {
     definir: (nouveau, profilGarde) => {
@@ -125,7 +135,7 @@ function brancherChoixMachine(element, surChangement) {
 function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
   const profil = trouverProfilIA(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
-  return machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: choix.reflexionMax, moteur: choix.role });
+  return machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: choix.reflexionMax, moteur: choix.role, livre: choix.livre });
 }
 
 // `section` : la rubrique (#section-adversaire), un bloc `.choix-joueur` par
@@ -141,7 +151,7 @@ function demarrerChoixJoueurs(section) {
   function preparer(visible) {
     section.hidden = !visible;
     const choix = lireDerniersJoueurs();
-    for (const camp of CAMPS_JOUEURS) blocs[camp].definir(choix[camp]);
+    for (const camp of CAMPS_JOUEURS) blocs[camp].definir({ ...choix[camp], livre: livreParDefaut() });
   }
 
   function lire() {

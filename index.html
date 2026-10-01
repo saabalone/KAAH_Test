@@ -678,6 +678,7 @@
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite.</li>
         <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
         <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, encadré et remonté sous le vert, avec sa valeur (colonne « Niv. 3 ») ; la ligne « → 3 coups » dit ce que sa séquence entière change à chaque poids. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. <b>Créer Es_</b> (un coup touché) : une copie de la partie, même titre précédé de <b>Es_</b> (puis Br_ s'il y a une branche), avec ce coup joué et la machine au trait sur les poids essayés ; elle dit ce qu'elle jouerait sur chaque position déjà jouée, pour tester depuis le début. La partie d'origine reste dans Mes parties. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
+        <li><b>Livre d'ouvertures</b> (case cochée par défaut, dans Réglages > Machine, et pour chaque machine dans la boîte du mode de pendule et dans celle du nom) : tant que la position est dans la base de coups, la machine y prend au hasard un coup gagnant (au moins la moitié des victoires du meilleur), sans réfléchir ni regarder ses poids — « livre » dans le tableau. Décochée, elle réfléchit dès le premier coup.</li>
         <li><b>Niveau n</b> (1 à 8) : regarde exactement n coups d'avance (les siens et ceux de l'adversaire) — niveau 2 : le sien et votre réponse. Si son temps de réflexion s'écoule avant, elle joue le meilleur coup trouvé, et le tableau Réflexion IA l'écrit <b>3/5 ⏱</b> (profondeur 3 atteinte sur 5) : donnez-lui plus de temps, ou baissez son niveau.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
@@ -952,6 +953,12 @@
            jamais (les retoucher cree un profil IA_<date>). -->
       <details class="rubrique-reglages" data-rubrique="machine">
         <summary>Machine (profils IA)</summary>
+        <!-- Saab, 2026-10-01 : le livre d'ouvertures propose par defaut a chaque
+             machine (boite du mode de pendule, boite du nom). -->
+        <label class="ligne-reglage" title="Tant que la position est dans la base de coups, la machine y prend un coup gagnant au hasard, sans réfléchir">
+          <input id="case-livre-ia" type="checkbox" />
+          Livre d'ouvertures (base de coups)
+        </label>
         <label class="ligne-couleur">Profil IA <select id="select-profil-ia" aria-label="Profil IA"></select></label>
         <div class="boutons-dialogue-cote-a-cote">
           <button id="bouton-nouveau-profil-ia" class="bouton-dialogue" type="button">Nouveau</button>
@@ -1201,6 +1208,7 @@
             Réflexion max (s)
             <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
           </label>
+          <label class="ligne-choix-machine" title="Tant que la position est dans la base de coups (Réglages), la machine y prend un coup gagnant au hasard, sans réfléchir"><input class="choix-livre" type="checkbox" /> Livre d'ouvertures</label>
         </div>
       </div>
       <div class="choix-joueur" data-camp="blanc">
@@ -1218,6 +1226,7 @@
             Réflexion max (s)
             <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
           </label>
+          <label class="ligne-choix-machine" title="Tant que la position est dans la base de coups (Réglages), la machine y prend un coup gagnant au hasard, sans réfléchir"><input class="choix-livre" type="checkbox" /> Livre d'ouvertures</label>
         </div>
       </div>
     </div>
@@ -1256,6 +1265,7 @@
             Réflexion max (s)
             <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
           </label>
+          <label class="ligne-choix-machine" title="Tant que la position est dans la base de coups (Réglages), la machine y prend un coup gagnant au hasard, sans réfléchir"><input class="choix-livre" type="checkbox" /> Livre d'ouvertures</label>
           <p id="description-machine-nom" class="note-reglages"></p>
           <table id="poids-machine-nom" class="poids-machine-nom"></table>
         </div>

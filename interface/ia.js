@@ -130,8 +130,10 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const coupsJoues = arbre.chemin.length + 1;
     const phase = phaseDeLaPartie(etat, arbre.chemin.length);
     const historique = positionsDepuisLaRacine(arbre, arbre.chemin);
+    // Le livre d'ouvertures (la base de coups chargee), si la machine s'en sert
+    // (saab, 2026-10-01 : case Livre, interface/choix-joueurs.js).
     const base = obtenirBase();
-    const livre = base.size > 0 ? base : null;
+    const livre = machine.livre && base.size > 0 ? base : null;
     reflexionEnCours = { etat, camp, coupsJoues, suivi, debut, hypothese };
     if (!hypothese) pendule(camp)?.classList.add('machine-reflechit');
 

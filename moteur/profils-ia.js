@@ -37,6 +37,7 @@ function lireProfilIA(brut) {
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,
 // lireMachine) : tout le profil, pour que le fichier de la partie le garde.
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
-function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai' }) {
-  return lireMachine({ moteur, version: profil.version, niveau, style: profil.style, profil: profil.nom, poids: profil.poids, reflexionMax });
+// `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
+function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
+  return lireMachine({ moteur, version: profil.version, niveau, style: profil.style, profil: profil.nom, poids: profil.poids, reflexionMax, livre });
 }

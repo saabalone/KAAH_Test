@@ -110,6 +110,9 @@ const REGLAGES_PAR_DEFAUT = {
     // Pendules couchees en haut et en bas a droite, Occ sous le titre (saab,
     // 2026-10-01, rendu/pendule-horizontale.js) ; debout par defaut.
     horizontal_clocks: false,
+    // La machine joue l'ouverture dans la base de coups (son livre) : le choix
+    // propose par defaut a chaque machine (saab, 2026-10-01, interface/choix-joueurs.js).
+    ia_book: true,
     // Fleches de Conseils (rendu/conseils.js) : une couleur par resultat, une
     // opacite pour toutes (1 = opaque).
     hint_win_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],

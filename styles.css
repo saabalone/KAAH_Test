@@ -3913,9 +3913,21 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
   body.face-a-face #arbre-panneau {
     width: 100%;
     height: 0;
+    /* Pas la hauteur minimale de la Sequence hors face-a-face (plus haut) : la
+       colonne tournee n'a que l'epaisseur des fenetres, et cette hauteur la
+       faisait deborder sur le plateau (saab, 2026-10-01). */
+    min-height: 0;
     flex: 1 1 auto;
     border-left: none;
     border-top: 1px solid #3a3a3a;
+  }
+
+  /* Meme priorite que hors face-a-face : Reflexion IA cede sa hauteur la
+     premiere, mais dans l'epaisseur des fenetres tournees, pas la hauteur de
+     l'ecran. 270px : le titre, le rappel, l'en-tete de Reflexion et le haut de
+     la Sequence (sa ligne de depart, ses boutons, quelques coups). */
+  body.face-a-face .reflexion-ia .reflexion-ia-defilement {
+    max-height: clamp(2.6em, calc(var(--epaisseur-fenetres-fa) - 270px), 12em);
   }
 
   body.face-a-face #panneau-conseils,

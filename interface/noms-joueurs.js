@@ -30,8 +30,8 @@
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
 // (moteur/ia.js), memesReglagesIA, LIBELLES_REGLAGES_IA
 // (moteur/historique-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
-// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, ROLE_HUMAIN
-// (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
+// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreParDefaut,
+// ROLE_HUMAIN (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
 // Corrige le champ a chaque frappe. Un espace tape devient "_" tout de suite
@@ -75,7 +75,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const choix = choixIA.lire();
     const enJeu = machineEnJeu();
     if (choix.role === ROLE_HUMAIN) return null;
-    if (enJeu && choix.profil === enJeu.profil) return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: choix.reflexionMax });
+    if (enJeu && choix.profil === enJeu.profil) return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: choix.reflexionMax, livre: choix.livre });
     return machineDuChoix(choix);
   }
 
@@ -89,7 +89,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     }
     const profil = trouverProfilIA(machine.profil);
     const retouche = profil && !memesReglagesIA(profil, machine) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
-    elements.descriptionMachine.textContent = `${nomDeLaMachine(machine)} : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}.${retouche}`;
+    elements.descriptionMachine.textContent = `${nomDeLaMachine(machine)} : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`;
     elements.poidsMachine.replaceChildren(
       ...Object.entries(machine.poids).map(([cle, valeur]) => {
         const tr = document.createElement('tr');
@@ -110,8 +110,8 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.choixIA.hidden = !machine;
     choixIA.definir(
       machine
-        ? { role: machine.moteur, niveau: machine.niveau, profil: machine.profil, reflexionMax: machine.reflexionMax }
-        : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN },
+        ? { role: machine.moteur, niveau: machine.niveau, profil: machine.profil, reflexionMax: machine.reflexionMax, livre: machine.livre }
+        : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreParDefaut() },
       machine?.profil
     );
     afficherMachineChoisie();

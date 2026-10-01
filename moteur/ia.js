@@ -80,7 +80,7 @@ const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def'
 // ou 'kai++', la meme en C++ (solveur/kai-plus.cpp), pour les comparer.
 const MOTEURS_IA = ['kai', 'kai++'];
 const PREFIXES_MOTEURS_IA = { kai: 'KAI', 'kai++': 'KAI++' };
-const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5 };
+const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5, livre: true };
 const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
 
 // Le nom du profil integre d'un style et d'une version : « Normal », « Normal v2 ».
@@ -110,6 +110,9 @@ function lireMachine(brut) {
       Number.isFinite(reflexion) && reflexion > 0
         ? Math.min(REFLEXION_MAX_BORNES_S.max, Math.max(REFLEXION_MAX_BORNES_S.min, reflexion))
         : MACHINE_PAR_DEFAUT.reflexionMax,
+    // Le livre d'ouvertures (la base de coups, saab 2026-10-01) : oui, sauf s'il
+    // est explicitement refuse — un fichier d'avant ce reglage le garde.
+    livre: brut.livre !== false,
   };
 }
 

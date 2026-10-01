@@ -57,7 +57,9 @@ function demarrerReglagesIA(elements) {
     for (const [cle, couleur] of Object.entries(couleurs)) {
       for (const [nom, classe] of Object.entries(CLASSES_COULEURS_REGLAGES_IA)) ligneDe(cle).classList.toggle(classe, couleur === nom);
     }
-    elements.rubrique.classList.toggle('rubrique-modifiee', brouillon !== null);
+    // Orange aussi pour la case Livre si elle differe de Défaut
+    // (interface/reglages-champs.js) : la rubrique les reunit.
+    elements.rubrique.classList.toggle('rubrique-modifiee', elements.rubrique.querySelector('.reglage-modifie') !== null);
     elements.valider.disabled = elements.abandonner.disabled = brouillon === null;
   }
 
