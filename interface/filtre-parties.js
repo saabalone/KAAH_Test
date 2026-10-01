@@ -20,7 +20,7 @@ const CHAMPS_DU_FILTRE_PARTIES = [
   { champ: 'joueurs', libelle: 'Joueurs', exemple: 'saab, j1, saab-ami' },
   { champ: 'score', libelle: 'Score', exemple: '5-6' },
   { champ: 'tours', libelle: 'Tours', exemple: '12, <5, >20' },
-  { champ: 'vainqueur', libelle: 'Vainqueur', exemple: 'saab, (en cours)' },
+  { champ: 'vainqueur', libelle: 'Vainqueur', exemple: 'x, n, y, saab, (en cours)' },
   { champ: 'statut', libelle: 'Statut', exemple: 'N,T (N R D T M _)' },
 ];
 

@@ -7,9 +7,11 @@
 //
 // Verifie caractere pres contre un vrai fichier KAAWA
 // (donnees/partie_kaawa_Br_2608172039_temoin.json, voir
-// tests/sauvegarde.test.js) : le nom attendu est exactement
+// tests/sauvegarde.test.js) : le nom reel de ce fichier est
 // "Br_2608172039, Amical, Marguerite Belge, Player_1-Player_2, -0-0tr2
-// Player_2, R" — le nom reel de ce fichier, prefixe "Br_" et tout.
+// Player_2, R", prefixe "Br_" et tout — KAAH y ecrit seulement le vainqueur
+// en une lettre ("... -0-0tr2 y, R", voir codeDuVainqueur). Ce titre n'est
+// qu'affiche : il ne nomme aucun fichier exporte.
 //
 // Separe de moteur/sauvegarde.js (deja au-dela des ~200 lignes de
 // CLAUDE.md) : ce fichier ne fait QUE deriver un texte d'affichage a
@@ -61,10 +63,28 @@ function nomJoueurAutorise(saisie) {
 // suivre `is_origin` jusqu'a la fin de la partie (moteur.cheminPartieDuFichier,
 // phase 30 : jamais la suite jouee apres un temps ecoule) pour connaitre sa
 // profondeur — le numero de tour de KAAWA
-// (`display_turn = (history_index+1)//2`). Vainqueur : KAAWA ecrit
-// "(en cours)" tant que ce n'est pas un vrai nom (litteralement "None"
-// sinon) — meme si un statut de fin existe deja (une nulle sans vainqueur
-// designe, par exemple).
+// (`display_turn = (history_index+1)//2`). Vainqueur : voir codeDuVainqueur.
+
+// Le vainqueur dans le titre en une lettre (saab, 2026-10-01 : le nom du
+// joueur rendait le titre trop long) : x Noir, n Nulle, y Blanc. Seule
+// difference avec le nom de fichier de KAAWA, qui ecrit le nom ; le fichier,
+// lui, garde le nom dans Winner. Tant que la partie n'est pas finie,
+// "(en cours)" comme KAAWA.
+const CODES_DU_VAINQUEUR = Object.freeze({ noir: 'x', nulle: 'n', blanc: 'y' });
+const STATUT_NULLE = 'D';
+const PAS_DE_VAINQUEUR = 'None';
+
+// Le camp se retrouve par le nom des joueurs ; deux joueurs du meme nom (ou un
+// nom qui n'est ni l'un ni l'autre) gardent le nom, faute de savoir lequel.
+function codeDuVainqueur(donnees) {
+  if (donnees.Term === STATUT_NULLE) return CODES_DU_VAINQUEUR.nulle;
+  if (!donnees.Winner || donnees.Winner === PAS_DE_VAINQUEUR) return '(en cours)';
+  const noir = donnees.Winner === donnees.Players.P1_black;
+  const blanc = donnees.Winner === donnees.Players.P2_white;
+  if (noir !== blanc) return noir ? CODES_DU_VAINQUEUR.noir : CODES_DU_VAINQUEUR.blanc;
+  return String(donnees.Winner);
+}
+
 function elementsDuTitre(donnees) {
   const profondeurOrigine = cheminPartieDuFichier(donnees.Tree).length;
   const joueurNoir = nomJoueurNettoye(donnees.Players.P1_black);
@@ -80,7 +100,9 @@ function elementsDuTitre(donnees) {
     joueurBlanc,
     score: `-${donnees.Eject.P1}-${donnees.Eject.P2}`,
     tours: Math.max(1, Math.floor((profondeurOrigine + 1) / 2)),
-    vainqueur: donnees.Winner && donnees.Winner !== 'None' ? String(donnees.Winner) : '(en cours)',
+    vainqueur: codeDuVainqueur(donnees),
+    // Pour le filtre de Mes parties : chercher aussi par le nom.
+    nomDuVainqueur: donnees.Winner && donnees.Winner !== PAS_DE_VAINQUEUR ? String(donnees.Winner) : '',
     statut: String(donnees.Term),
   };
 }

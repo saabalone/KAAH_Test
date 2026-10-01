@@ -11,6 +11,7 @@
 //   - une virgule separe plusieurs choix, un seul suffit ("N,T") ;
 //   - date et tours : "<" avant, ">" apres, "=" ou rien = le DEBUT de la date
 //     ("260925" : tout le 25/09/26) ou le nombre exact de tours ;
+//   - vainqueur : x, n, y (Noir, Nulle, Blanc), ou un nom comme ci-dessous ;
 //   - joueurs, vainqueur : ni casse, ni espace, ni "_" ; un nom par defaut
 //     (Joueur_1, Player_2, Joueur_1R) se trouve aussi par sa premiere lettre et
 //     son numero ("j1") ; "A-B" = une partie entre A et B, dans un sens ou dans
@@ -18,8 +19,8 @@
 //   - score : "5-6" ou "6-5", le premier "-" facultatif ;
 //   - le reste : "contient", sans casse.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : rien d'autre n'est
-// necessaire ici.
+// Pas d'import ni d'export (voir moteur/plateau.js) : CODES_DU_VAINQUEUR
+// vient de moteur/nom-partie.js, charge avant celui-ci.
 
 const CHAMPS_DU_FILTRE = ['date', 'evenement', 'variante', 'joueurs', 'score', 'tours', 'vainqueur', 'statut'];
 
@@ -79,6 +80,17 @@ function joueursCorrespondent(noir, blanc, choix) {
   return (nomCorrespond(noir, a) && nomCorrespond(blanc, b)) || (nomCorrespond(noir, b) && nomCorrespond(blanc, a));
 }
 
+// Le vainqueur du titre (x, n, y : moteur/nom-partie.js), aussi par son mot
+// (Noir, Nulle, Blanc) ; sinon par le nom du joueur, ou "(en cours)". Une
+// lettre seule ne cherche que la lettre : "n" ne trouve pas "(en cours)".
+function vainqueurCorrespond(elements, choix) {
+  const cherche = simplifierNom(choix);
+  const codes = Object.values(CODES_DU_VAINQUEUR);
+  const code = CODES_DU_VAINQUEUR[cherche] ?? (codes.includes(cherche) ? cherche : null);
+  if (code) return elements.vainqueur === code;
+  return nomCorrespond(elements.vainqueur, choix) || nomCorrespond(elements.nomDuVainqueur, choix);
+}
+
 // Score "-5-6" : chaque camp, dans un ordre ou dans l'autre.
 function scoreCorrespond(score, choix) {
   const [x, y] = score.replace(/^-/, '').split('-');
@@ -91,7 +103,7 @@ function champCorrespond(champ, elements, choix) {
   if (champ === 'date') return dateCorrespond(elements.date, choix);
   if (champ === 'tours') return toursCorrespondent(elements.tours, choix);
   if (champ === 'joueurs') return joueursCorrespondent(elements.joueurNoir, elements.joueurBlanc, choix);
-  if (champ === 'vainqueur') return nomCorrespond(elements.vainqueur, choix);
+  if (champ === 'vainqueur') return vainqueurCorrespond(elements, choix);
   if (champ === 'score') return scoreCorrespond(elements.score, choix);
   return elements[champ].toLowerCase().includes(choix.toLowerCase());
 }

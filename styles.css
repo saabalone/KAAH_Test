@@ -1151,6 +1151,22 @@ button,
   min-height: var(--hauteur-ligne-liste);
 }
 
+/* Une ligne garde la hauteur de son titre (saab, 2026-10-01 : dans Mes
+   parties, les titres sur deux lignes se superposaient) : sans cela, quand la
+   liste manque de hauteur, la colonne flex ecrase chaque ligne jusqu'a son
+   min-height, et le texte deborde sur la suivante. C'est la liste qui defile. */
+.liste-dialogue > * {
+  flex-shrink: 0;
+}
+
+/* Mes parties plus large sur ordinateur (saab : « voir aussi pour elargir le
+   champ ») : un titre tient alors le plus souvent sur une ligne. */
+@media (min-width: 700px) {
+  #dialogue-mes-parties {
+    max-width: 760px;
+  }
+}
+
 /* La partie active (celle qu'on est en train de jouer), ou la variante
    qu'on vient de previsualiser (un premier clic charge un second clic la
    confirme, voir interface/variantes.js) : meme orange que
