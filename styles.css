@@ -2160,6 +2160,22 @@ button,
   .reflexion-ia {
     box-sizing: border-box;
     width: var(--largeur-sequence, 330px);
+    max-width: 100%;
+  }
+
+  /* Fenetre basse : le tableau Reflexion IA cede sa hauteur le premier (au
+     moins sa ligne d'en-tete et une ligne), pour que la Sequence garde
+     toujours quelques coups visibles au-dessus de sa poignee et de sa barre
+     de navigation (saab, 2026-10-01 : « des le 1er coup, un tableau disparait
+     sous la poignee »). 380px : le titre, la Sequence a sa hauteur minimale,
+     Annuler et le rappel. */
+  .reflexion-ia .reflexion-ia-defilement {
+    max-height: clamp(2.6em, calc(100vh - 380px), 12em);
+  }
+
+  #arbre-panneau {
+    max-width: 100%;
+    min-height: 180px;
   }
 
   #colonne-droite > .message-demarrage {
@@ -2175,8 +2191,14 @@ button,
     border-bottom: 1px solid #3a3a3a;
   }
 
+  /* Fenetre qu'on retrecit (saab, 2026-10-01 : « sans s'arreter aux limites de
+     la fenetre du plateau ») : c'est la colonne des tableaux qui cede la
+     premiere (flex-shrink tres superieur a celui du plateau), jusqu'a sa
+     largeur minimale ; le plateau ne retrecit qu'ensuite. Ses tableaux suivent
+     (max-width: 100%, plus bas) et defilent sur eux-memes. */
   #colonne-droite {
-    flex: 0 0 auto;
+    flex: 0 1000 auto;
+    min-width: 176px;
     align-self: flex-start;
     max-height: 100vh;
     /* Reste collee au bord droit meme quand il reste de la place libre

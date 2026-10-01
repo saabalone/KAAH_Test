@@ -116,10 +116,16 @@ function disposerLigneNom(groupe) {
   tour.style.display = aTour ? '' : 'none';
   if (aTour) {
     const largeurCadreTour = tour.getComputedTextLength() + MARGE_X_NOM * 2;
-    // « Gagné/Perdu Options » sous la pendule de son camp (saab, 2026-10-01 :
-    // a cote du nom, il recouvrait l'evaluation « Fin Gagne... »).
-    const place = resultat ? placeSousLaPendule(groupe, largeurCadreTour) : null;
-    const xCadreTour = place ? place.x : xFond - ECART_TOUR_NOM - largeurCadreTour;
+    // « Gagné/Perdu Options » (saab, 2026-10-01 : a gauche du nom, il
+    // recouvrait l'evaluation « Fin Gagne... ») : sous la pendule de son camp
+    // quand elles sont couchees, a DROITE du nom quand elles sont debout (la
+    // bande des noms y est libre, les pendules n'y montent pas).
+    const pendulesCouchees = groupe.ownerSVGElement.dataset.pendulesHorizontales === 'oui';
+    const place = resultat && pendulesCouchees ? placeSousLaPendule(groupe, largeurCadreTour) : null;
+    // En face-a-face, la ligne du haut est retournee : sa gauche est la droite
+    // de l'ecran (la ou son joueur la voit a droite de son nom).
+    const aDroite = resultat && !pendulesCouchees && !(groupe.classList.contains('nom-joueur-en-haut') && faceAFace);
+    const xCadreTour = place ? place.x : aDroite ? xFond + largeurFond + ECART_TOUR_NOM : xFond - ECART_TOUR_NOM - largeurCadreTour;
     const yCadreTour = place ? place.y : haut;
     cadreTour.setAttribute('x', xCadreTour);
     cadreTour.setAttribute('y', yCadreTour);
@@ -128,8 +134,13 @@ function disposerLigneNom(groupe) {
     tour.setAttribute('x', xCadreTour + MARGE_X_NOM);
     tour.setAttribute('y', yCadreTour + HAUTEUR_BANDE / 2 - centreDeLEncre(tour, tour.textContent).y);
   }
-  const tourACote = aTour && !resultat;
-  disposerBoutonsAbandonNulle(groupe, { xDroite: xFond + largeurFond, xGauche: tourACote ? Number(cadreTour.getAttribute('x')) : xFond });
+  const pendulesCouchees = groupe.ownerSVGElement.dataset.pendulesHorizontales === 'oui';
+  const tourADroite = aTour && resultat && !pendulesCouchees && !(groupe.classList.contains('nom-joueur-en-haut') && faceAFace);
+  const tourAGauche = aTour && !tourADroite && !(resultat && pendulesCouchees);
+  disposerBoutonsAbandonNulle(groupe, {
+    xDroite: tourADroite ? Number(cadreTour.getAttribute('x')) + Number(cadreTour.getAttribute('width')) : xFond + largeurFond,
+    xGauche: tourAGauche ? Number(cadreTour.getAttribute('x')) : xFond,
+  });
 }
 
 // Redispose les deux lignes (le face-a-face retourne celle du haut :

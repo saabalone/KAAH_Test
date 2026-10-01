@@ -105,6 +105,8 @@ function dessinerPistesEjection(svg, noms = NOMS_PAR_DEFAUT, campDuHaut = 'blanc
   dessinerNomJoueur(svg, campDuBas, yNomBas, noms[campDuBas], false);
 
   if (pendulesHorizontales) {
+    // Lu par rendu/ligne-joueur.js (ou poser « Gagné/Perdu Options »).
+    svg.dataset.pendulesHorizontales = 'oui';
     const places = disposerPendulesHorizontales(svg, cadre, limites);
     dessinerPenduleHorizontale(svg, campDuHaut, places.haut);
     dessinerPenduleHorizontale(svg, campDuBas, places.bas);
