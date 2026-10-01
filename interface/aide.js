@@ -98,10 +98,35 @@ function lancementParLUtilisateur() {
   }
 }
 
+// Les chapitres numerotes (« 1. Jouer un coup »), et chacun, a l'ouverture,
+// remonte en haut de la boite en laissant voir quelques lignes au-dessus de
+// lui (saab, 2026-10-01 : le dernier s'ouvrait hors de vue, tout en bas).
+const LIGNES_AU_DESSUS_DU_CHAPITRE = 2;
+
+function preparerChapitres(corps) {
+  const chapitres = [...corps.querySelectorAll(':scope > details')];
+  chapitres.forEach((chapitre, rang) => {
+    const titre = chapitre.querySelector('summary');
+    titre.prepend(`${rang + 1}. `);
+    chapitre.addEventListener('toggle', () => {
+      if (!chapitre.open) return;
+      const ligne = parseFloat(getComputedStyle(corps).lineHeight) || titre.getBoundingClientRect().height;
+      const ecart = titre.getBoundingClientRect().top - corps.getBoundingClientRect().top - LIGNES_AU_DESSUS_DU_CHAPITRE * ligne;
+      // Les derniers chapitres n'ont pas assez de texte sous eux pour remonter :
+      // un vide en bas le leur donne.
+      corps.style.paddingBottom = '';
+      const reste = corps.scrollHeight - corps.clientHeight - corps.scrollTop;
+      if (ecart > reste) corps.style.paddingBottom = `${ecart - reste}px`;
+      corps.scrollTo({ top: corps.scrollTop + ecart, behavior: 'smooth' });
+    });
+  });
+}
+
 // `elements` : { bouton, dialogue, version, horsLigne, fermer, corps } —
 // `fermer` est une LISTE de boutons (en haut et en bas de la boite).
 function demarrerAide(elements) {
   colorerLesCouleurs(elements.corps);
+  preparerChapitres(elements.corps);
   function afficherHorsLigne() {
     elements.horsLigne.textContent = 'Hors ligne : vérification...';
     etatHorsLigne()

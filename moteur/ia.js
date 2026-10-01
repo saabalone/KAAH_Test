@@ -113,6 +113,8 @@ function lireMachine(brut) {
     // Le livre d'ouvertures (la base de coups, saab 2026-10-01) : oui, sauf s'il
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
+    // L'indice de son profil (moteur/profils-ia.js), s'il en a un.
+    ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
   };
 }
 
@@ -142,10 +144,12 @@ function formaterTempsReflexion(secondes) {
 
 // Le nom que prend le camp d'une machine (saab) : KAI, son niveau, son style en
 // trois lettres, son temps de reflexion — ex. KAI2_Nor_5s, KAI3_Agr_1s2 ; la
-// version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom.
+// version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ;
+// un profil de l'utilisateur, son indice (KAI2_Nor_5s_P3, saab 2026-10-01 : deux
+// machines qui ne different que par le profil se distinguent dans le titre).
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
-  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${machine.version > VERSION_IA ? `_v${machine.version}` : ''}`;
+  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${machine.version > VERSION_IA ? `_v${machine.version}` : ''}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la

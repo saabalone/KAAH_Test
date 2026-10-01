@@ -157,6 +157,8 @@ function creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, e
 
   const zone = document.createElement('textarea');
   zone.className = deplie ? 'texte-commentaire texte-commentaire-deplie' : 'texte-commentaire';
+  // Une suggestion de la machine (interface/ia.js) : en rouge (saab, 2026-10-01).
+  zone.classList.toggle('texte-commentaire-suggestion', /^Suggestion /m.test(noeud.commentaire ?? ''));
   zone.placeholder = 'Aucun commentaire';
   zone.value = noeud.commentaire ?? '';
   zone.rows = deplie ? 3 : 1;

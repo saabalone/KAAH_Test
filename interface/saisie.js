@@ -952,6 +952,14 @@ function demarrerPartie(
     // Le temps arrete sans afficher de pause (boite du nom ouverte contre la
     // machine, interface/ia.js).
     suspendreLeTemps: (oui) => pendules.suspendre(oui),
+    // Une ligne de plus au commentaire d'un coup (une suggestion de la machine,
+    // interface/ia.js).
+    ajouterAuCommentaire: (chemin, ligne) => {
+      const existant = noeudA(arbre, chemin).commentaire;
+      arbre = marquerCommentaire(arbre, chemin, existant ? `${existant}\n${ligne}` : ligne);
+      commentaires.actualiser(arbre);
+      notifierChangement();
+    },
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
     },

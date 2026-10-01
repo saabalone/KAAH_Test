@@ -69,6 +69,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
   // besoin »).
   function celluleProfondeur({ source, profondeur, evaluation, niveau }) {
     if (source === 'livre') return cellule('livre');
+    if (source === 'solution') return cellule('fin vue');
     if (!niveau || !rechercheEcourtee({ source, profondeur, evaluation }, niveau)) return cellule(String(profondeur ?? ''));
     const td = cellule(`${profondeur}/${niveau} ⏱`);
     td.className = 'profondeur-ecourtee';
@@ -98,11 +99,11 @@ function demarrerReflexionIA(details, sequencePrevue) {
     return td;
   }
 
-  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, niveau, hypothese, jouer }, classe) {
+  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, niveau, hypothese, suggestion, jouer }, classe) {
     const tr = document.createElement('tr');
     if (classe) tr.className = classe;
     const marque = camp === 'noir' ? '●' : '○';
-    const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${hypothese && coup ? '→ ' : ''}${coup ?? '…'}`;
+    const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${suggestion ? 'Sugg. ' : ''}${hypothese && coup ? '→ ' : ''}${coup ?? '…'}`;
     tr.append(
       celluleCoup(texteCoup, hypothese ? jouer : null),
       cellule(`${duree.toFixed(DECIMALES_DUREE_REFLEXION)} s`),

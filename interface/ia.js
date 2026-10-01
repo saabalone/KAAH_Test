@@ -27,6 +27,17 @@
 // peut toujours naviguer. Toucher ce coup le joue (une nouvelle branche), et la
 // partie repart de la (saab, 2026-09-30).
 //
+// Fin de partie vue jusqu'au bout (« Gagne/Perd en n », saab 2026-10-01) : la
+// machine retient la suite de sa sequence (moteur/sequence-prevue.js,
+// solutionsDeLaSequence) et, si l'adversaire repond comme prevu, la joue sans
+// chercher (« fin déjà vue » dans le tableau).
+//
+// Suggestion (saab, 2026-10-01) : un humain demande a une machine choisie dans
+// la boite du nom (suggerer) ce qu'elle jouerait ici, sans qu'elle prenne sa
+// place ; le tableau la montre comme « Sugg. → a1b2 » (la toucher la joue), et
+// le coup que l'humain joue ensuite — celui-la ou un autre — recoit la
+// suggestion en commentaire.
+//
 // Surveillance par un simple coup d'oeil regulier (VERIFICATION_MS) plutot
 // qu'un branchement sur chaque evenement : un coup, une navigation, une pause
 // levee d'un clic sur la pendule, Annuler... tous passent par des chemins
@@ -41,8 +52,9 @@
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
 // phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
-// marquerNomMachine (rendu/ligne-joueur.js) viennent de fichiers charges avant
-// celui-ci.
+// marquerNomMachine (rendu/ligne-joueur.js), solutionsDeLaSequence,
+// cleDeSolution (moteur/sequence-prevue.js), noeudA (moteur/arbre.js)
+// viennent de fichiers charges avant celui-ci.
 
 const VERIFICATION_MS = 250;
 // Jamais une reponse plus rapide que ca : le coup du joueur (animation de 300
@@ -76,6 +88,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // et celle de ces reponses que le tableau montre.
   let hypotheses = new WeakMap();
   let hypotheseAffichee = null;
+  // Les suggestions demandees (position -> ce que la machine choisie jouerait,
+  // et la ligne de commentaire a poser sur le coup joue ensuite).
+  const suggestions = new Map();
+  // Les coups deja connus d'une fin de partie vue jusqu'au bout (voir l'en-tete).
+  let solutions = new Map();
   // L'horloge de la machine : le temps suspendu (boite du nom) n'y compte pas.
   let debutSuspension = null;
   let dureeSuspendue = 0;
@@ -90,13 +107,21 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // seulement s'il y a une machine a la table.
   function marquerNoms() {
     for (const camp of ['noir', 'blanc']) marquerNomMachine(svg, camp, { machine: Boolean(machines[camp]), enMarche: enMarche[camp] });
-    reflexion.montrer(Boolean(machines.noir || machines.blanc));
+    montrerTableau();
+  }
+
+  // Le tableau de reflexion : avec une machine a la table, ou une suggestion.
+  function montrerTableau() {
+    reflexion.montrer(Boolean(machines.noir || machines.blanc || hypotheseAffichee?.suggestion || reflexionEnCours?.genre === 'suggestion'));
   }
   marquerNoms();
 
-  function positionInchangee(etat, hypothese) {
+  // `genre` : 'jeu' (elle joue), 'hypothese' (ce qu'elle aurait joue sur une
+  // position deja jouee) ou 'suggestion' (demandee par un humain).
+  function positionInchangee(etat, genre) {
     if (etatCourant(partie.obtenirArbre()) !== etat) return false;
-    return hypothese ? partie.peutEnvisagerUnCoup() : partie.peutJouerUnCoup();
+    if (genre === 'suggestion') return true;
+    return genre === 'hypothese' ? partie.peutEnvisagerUnCoup() : partie.peutJouerUnCoup();
   }
 
   // La ligne « en cours » du tableau (ou ce qu'elle aurait joue ici), et
@@ -106,7 +131,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       evaluations.definirEnCours(null);
       return reflexion.afficherEnCours(hypotheseAffichee);
     }
-    const { etat, camp, coupsJoues, suivi, debut, hypothese } = reflexionEnCours;
+    const { etat, camp, coupsJoues, suivi, debut, genre } = reflexionEnCours;
     evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation });
     reflexion.afficherEnCours({
       etat,
@@ -117,13 +142,15 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       noeuds: suivi.noeuds,
       evaluation: suivi.evaluation,
       sequence: suivi.sequence ? textesDeLaSequence(etat, suivi.sequence) : [],
-      hypothese,
+      hypothese: genre !== 'jeu',
+      suggestion: genre === 'suggestion',
     });
   }
 
-  // `hypothese` : sur une position deja jouee, elle cherche sans jouer.
-  function reflechir(etat, camp, hypothese) {
-    const machine = machines[camp];
+  // `genre` : voir positionInchangee ; `machine` : celle d'une suggestion, sinon
+  // celle du camp.
+  function reflechir(etat, camp, genre, machine = machines[camp]) {
+    const hypothese = genre !== 'jeu';
     const suivi = {};
     const debut = maintenant();
     const arbre = partie.obtenirArbre();
@@ -134,8 +161,9 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // (saab, 2026-10-01 : case Livre, interface/choix-joueurs.js).
     const base = obtenirBase();
     const livre = machine.livre && base.size > 0 ? base : null;
-    reflexionEnCours = { etat, camp, coupsJoues, suivi, debut, hypothese };
+    reflexionEnCours = { etat, camp, coupsJoues, suivi, debut, genre };
     if (!hypothese) pendule(camp)?.classList.add('machine-reflechit');
+    montrerTableau();
 
     function finir() {
       reflexionEnCours = null;
@@ -153,19 +181,32 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       const attente = suivi.arreter || hypothese ? 0 : Math.max(0, debut + DELAI_MINIMUM_REPONSE_MS - maintenant());
       function conclure() {
         if (estSuspendue()) return setTimeout(conclure, ATTENTE_SUSPENSION_MS);
-        const encoreValable = positionInchangee(etat, hypothese);
+        const encoreValable = positionInchangee(etat, genre);
         finir();
         if (!encoreValable || !texte) return;
-        if (machines[camp] !== machine) return; // la boite du nom l'a remplacee entre-temps
+        if (genre !== 'suggestion' && machines[camp] !== machine) return; // la boite du nom l'a remplacee entre-temps
         const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau };
+        if (genre === 'suggestion') {
+          const ligne = `Suggestion ${commentaireDeReflexion(`${nomDeLaMachine(machine)} (profil ${machine.profil})`, reflexionIA)}`;
+          suggestions.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, suggestion: true, ligne, jouer: () => partie.jouerCoupTexte(texte) });
+          hypotheseAffichee = null; // la surveillance l'affiche
+          return;
+        }
         // Saab, 2026-09-30 (« comme on est en test ») : la ligne du tableau aussi
         // en commentaire du coup, si la case du tableau est cochee.
         const commentaire = reflexion.enCommentaire() ? commentaireDeReflexion(nomDeLaMachine(machine), reflexionIA) : null;
         const jouerLeCoup = () => partie.jouerCoupTexte(texte, reflexionIA, commentaire);
-        if (!hypothese) return jouerLeCoup();
-        hypotheses.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, jouer: jouerLeCoup });
+        if (hypothese) return hypotheses.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, jouer: jouerLeCoup });
+        for (const solution of solutionsDeLaSequence(etat, sequence, evaluation)) solutions.set(solution.cle, { ...solution, machine });
+        jouerLeCoup();
       }
       setTimeout(conclure, attente);
+    }
+
+    // La suite d'une fin de partie deja vue : jouee sans chercher.
+    const connue = genre === 'jeu' ? solutions.get(cleDeSolution(etat)) : null;
+    if (connue?.machine === machine) {
+      return jouer({ texte: connue.coup, source: 'solution', profondeur: connue.sequence.length, evaluation: connue.evaluation, noeuds: 0, sequence: connue.sequence });
     }
 
     const recherche = { etat, machine, suivi, historique, livre, jouer, finir };
@@ -173,7 +214,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       kaiPlus ??= creerKaiPlus();
       reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
     } else {
-      reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, hypothese) && machines[camp] === machine });
+      reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, genre) && (genre === 'suggestion' || machines[camp] === machine) });
     }
   }
 
@@ -183,26 +224,39 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     if (arbre !== arbreAffiche) {
       arbreAffiche = arbre;
       reflexion.actualiser(arbre);
+      commenterLaSuggestion(arbre);
     }
     if (reflexionEnCours) {
       // KAI++ cherche sur un autre fil : si la position a change, on l'arrete
       // (KAI, lui, le voit a sa prochaine tranche).
-      if (!positionInchangee(reflexionEnCours.etat, reflexionEnCours.hypothese)) reflexionEnCours.abandonner?.();
+      if (!positionInchangee(reflexionEnCours.etat, reflexionEnCours.genre)) reflexionEnCours.abandonner?.();
       return montrerReflexion();
     }
     const etat = etatCourant(arbre);
     const camp = etat.joueurAuTrait;
     const active = Boolean(machines[camp]) && enMarche[camp];
-    if (active && partie.peutJouerUnCoup()) return reflechir(etat, camp, false);
+    if (active && partie.peutJouerUnCoup()) return reflechir(etat, camp, 'jeu');
     // Deja jouee, et pas par elle : que joue-t-elle ?
     const aEnvisager = active && partie.peutEnvisagerUnCoup() && (toujoursEnvisager || !noeudCourant(arbre).enfants.some((enfant) => enfant.reflexionIA));
-    if (aEnvisager && !hypotheses.has(etat)) return reflechir(etat, camp, true);
-    const voulue = aEnvisager ? hypotheses.get(etat) : null;
+    if (aEnvisager && !hypotheses.has(etat)) return reflechir(etat, camp, 'hypothese');
+    const voulue = suggestions.get(etat) ?? (aEnvisager ? hypotheses.get(etat) : null) ?? null;
     if (voulue !== hypotheseAffichee) {
       hypotheseAffichee = voulue;
       montrerReflexion();
+      montrerTableau();
     }
   }, VERIFICATION_MS);
+
+  // Le coup joue depuis une position ou une suggestion avait ete demandee la
+  // recoit en commentaire, qu'il soit celui suggere ou non (une seule fois).
+  function commenterLaSuggestion(arbre) {
+    if (arbre.chemin.length === 0) return;
+    const parent = noeudA(arbre, arbre.chemin.slice(0, -1));
+    const suggestion = suggestions.get(parent.etat);
+    if (!suggestion) return;
+    suggestions.delete(parent.etat);
+    partie.ajouterAuCommentaire(arbre.chemin, suggestion.ligne);
+  }
 
   // Annuler retire aussi le coup du joueur quand le dernier coup etait celui
   // de LA machine (voir interface/saisie.js) : apres la premiere suppression,
@@ -245,7 +299,21 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       enMarche[camp] = true;
       evaluations.definirMachines(machines);
       hypotheses = new WeakMap(); // ce qu'elle aurait joue avec ses anciens reglages
+      solutions = new Map();
       marquerNoms();
+    },
+    // Une suggestion de `machine` pour le camp au trait (voir l'en-tete).
+    suggerer: (machine) => {
+      const etat = etatCourant(partie.obtenirArbre());
+      if (etat.vainqueur) return;
+      suggestions.delete(etat);
+      // Une hypothese en cours cede la place ; un coup de la machine, lui, finit.
+      if (reflexionEnCours?.genre === 'hypothese') {
+        reflexionEnCours.abandonner?.();
+        reflexionEnCours.suivi.arreter = true;
+      }
+      const lancer = () => (reflexionEnCours ? setTimeout(lancer, VERIFICATION_MS) : reflechir(etat, etat.joueurAuTrait, 'suggestion', machine));
+      lancer();
     },
   };
 }

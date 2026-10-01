@@ -70,7 +70,7 @@ function demarrerReglagesIA(elements) {
       ...profils.map((profil) => {
         const option = document.createElement('option');
         option.value = profil.nom;
-        option.textContent = profil.nom;
+        option.textContent = libelleProfilIA(profil);
         return option;
       })
     );
@@ -156,7 +156,9 @@ function demarrerReglagesIA(elements) {
 
   elements.nouveau.addEventListener('click', () => {
     if (!brouillonAbandonne()) return;
-    const profil = demarrerHistoriqueIA({ ...profilActuel(), nom: nomNouveauProfilIA() }, formaterDateKAAWA(new Date()), `copie de ${nomActuel}`);
+    // Une copie est un autre profil : un nouvel indice (enregistrerProfilIA).
+    const { indice, ...copie } = profilActuel();
+    const profil = demarrerHistoriqueIA({ ...copie, nom: nomNouveauProfilIA() }, formaterDateKAAWA(new Date()), `copie de ${nomActuel}`);
     enregistrerProfilIA(profil);
     choisir(profil.nom);
   });
@@ -183,6 +185,7 @@ function demarrerReglagesIA(elements) {
       const profil = lireProfilIA(donnees);
       if (!profil) return refuser();
       profil.nom = nomDisponible(profil.nom, listerProfilsIA().map((existant) => existant.nom));
+      delete profil.indice; // celui d'un autre appareil : il en recoit un d'ici
       enregistrerProfilIA(profil);
       choisir(profil.nom);
     }, refuser);

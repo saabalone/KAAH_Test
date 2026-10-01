@@ -54,7 +54,7 @@ function brancherSaisieNomJoueur(champ) {
   champ.addEventListener('compositionend', appliquer);
 }
 
-// `elements` : { dialogue, champ, valider, fermer, marcheMachine, boutonIA,
+// `elements` : { dialogue, titre, champ, valider, fermer, marcheMachine, boutonIA, suggestion,
 // choixIA (le choix d'un camp, interface/choix-joueurs.js), descriptionMachine,
 // poidsMachine (<table>) }. `nomsParDefaut` : { noir, blanc }. Renvoie
 // { definirCommandeMachines } : la partie y branche celle des machines
@@ -107,6 +107,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const machine = machineEnJeu();
     elements.marcheMachine.hidden = !machine;
     elements.boutonIA.hidden = Boolean(machine) || !commandeMachines;
+    elements.suggestion.hidden = Boolean(machine) || !commandeMachines;
     elements.choixIA.hidden = !machine;
     choixIA.definir(
       machine
@@ -123,6 +124,14 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       : "Elle rejoue quand c'est son tour";
     elements.marcheMachine.classList.toggle('machine-arretee', !enMarche);
   }
+
+  // Une suggestion pour la position du plateau, par la machine du choix
+  // affiche (KAI si l'on n'en a pas choisi) : le joueur ne change pas.
+  elements.suggestion.addEventListener('click', () => {
+    const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreParDefaut() } : choixIA.lire();
+    commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? 'kai' : choix.role }));
+    elements.dialogue.close();
+  });
 
   // Un humain : le bouton IA ouvre le choix, sur KAI.
   elements.boutonIA.addEventListener('click', () => {
@@ -146,6 +155,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     campEnCours = cadre.closest('.nom-joueur').dataset.camp;
     elements.champ.value = joueurs[campEnCours];
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
+    elements.titre.textContent = `Joueur ${NOM_CAMP[campEnCours]}`;
     elements.dialogue.classList.toggle('dialogue-retourne', campEnCours === 'blanc' && document.body.classList.contains('face-a-face'));
     afficherMachine();
     commandeMachines?.suspendre(true);

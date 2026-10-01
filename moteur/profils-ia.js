@@ -28,10 +28,13 @@ const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) =>
 function lireProfilIA(brut) {
   if (!brut || typeof brut !== 'object' || typeof brut.nom !== 'string' || brut.nom.trim() === '') return null;
   const nom = brut.nom.trim();
+  // L'indice d'un profil de l'utilisateur (interface/profils-ia.js), repris
+  // dans le nom de ses machines (moteur/ia.js, nomDeLaMachine).
+  const indice = Number.isInteger(brut.indice) && brut.indice > 0 ? { indice: brut.indice } : {};
   const lu = lireHistoriqueIA(brut);
-  if (!lu) return { nom, ...valeursReglagesIA(brut) };
+  if (!lu) return { nom, ...valeursReglagesIA(brut), ...indice };
   const courante = lu.historique.find((version) => version.numero === lu.courante);
-  return { nom, ...valeursReglagesIA(courante), historique: lu.historique, courante: lu.courante };
+  return { nom, ...valeursReglagesIA(courante), historique: lu.historique, courante: lu.courante, ...indice };
 }
 
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,
@@ -39,5 +42,5 @@ function lireProfilIA(brut) {
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
 // `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
 function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, niveau, style: profil.style, profil: profil.nom, poids: profil.poids, reflexionMax, livre });
+  return lireMachine({ moteur, version: profil.version, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, poids: profil.poids, reflexionMax, livre });
 }

@@ -16,7 +16,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
-// (interface/profils-ia.js), lireReglagesActifs (interface/reglages-profils.js)
+// libelleProfilIA (interface/profils-ia.js), lireReglagesActifs (interface/reglages-profils.js)
 // viennent de fichiers charges avant celui-ci.
 
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
@@ -78,13 +78,15 @@ function brancherChoixMachine(element, surChangement) {
   }
 
   function remplirProfils(profilGarde) {
-    const noms = listerProfilsIA().map((profil) => profil.nom);
+    const profils = listerProfilsIA();
+    const noms = profils.map((profil) => profil.nom);
     if (profilGarde && !noms.includes(profilGarde)) noms.unshift(profilGarde);
     element.querySelector('.choix-profil-ia').replaceChildren(
       ...noms.map((nom) => {
         const option = document.createElement('option');
+        const profil = profils.find((existant) => existant.nom === nom);
         option.value = nom;
-        option.textContent = nom;
+        option.textContent = profil ? libelleProfilIA(profil) : nom;
         return option;
       })
     );

@@ -675,7 +675,9 @@
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
+        <li>Un <b>profil IA</b> de l'utilisateur a un indice (<b>P3</b>), repris dans le nom de la machine (KAI2_Nor_5s_P3) : deux machines qui ne diffèrent que par leur profil se distinguent dans le titre.</li>
+        <li><b>Fin de partie vue</b> (« Gagne en n », « Perd en n ») : la machine retient sa séquence et, tant que l'adversaire répond comme prévu, joue la suite sans chercher (« fin vue » dans le tableau).</li>
         <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
         <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, encadré et remonté sous le vert, avec sa valeur (colonne « Niv. 3 ») ; la ligne « → 3 coups » dit ce que sa séquence entière change à chaque poids. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. <b>Créer Es_</b> (un coup touché) : une copie de la partie, même titre précédé de <b>Es_</b> (puis Br_ s'il y a une branche), avec ce coup joué et la machine au trait sur les poids essayés ; elle dit ce qu'elle jouerait sur chaque position déjà jouée, pour tester depuis le début. La partie d'origine reste dans Mes parties. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
         <li><b>Livre d'ouvertures</b> (case cochée par défaut, dans Réglages > Machine, et pour chaque machine dans la boîte du mode de pendule et dans celle du nom) : tant que la position est dans la base de coups, la machine y prend au hasard un coup gagnant (au moins la moitié des victoires du meilleur), sans réfléchir ni regarder ses poids — « livre » dans le tableau. Décochée, elle réfléchit dès le premier coup.</li>
@@ -1241,6 +1243,9 @@
        son nom, sur le plateau, ouvre ce champ. Le texte grise du champ est
        pose par le script ("Nom du Joueur (Noir)" / "(Blanc)"). -->
   <dialog id="dialogue-nom-joueur" class="dialogue">
+    <!-- « Joueur Noir » / « Joueur Blanc » (saab, 2026-10-01 : « sinon on se
+         perd »), pose par interface/noms-joueurs.js. -->
+    <h2 id="titre-nom-joueur" class="titre-nom-joueur"></h2>
     <input id="champ-nom-joueur" type="text" maxlength="30" autocomplete="off" />
     <!-- Phase 32 (saab) : pour une machine, Arret (elle joue tout de suite son
          meilleur coup si c'est son tour, puis s'arrete) ou Marche. -->
@@ -1250,7 +1255,12 @@
          qu'au debut de partie (interface/choix-joueurs.js) ; une machine l'a
          deja ouvert, avec ses poids en colonne. -->
     <div id="machine-nom-joueur" class="machine-nom-joueur">
-      <button id="bouton-ia-nom-joueur" class="bouton-dialogue" type="button" title="Faire jouer une machine à la place de ce joueur">IA</button>
+      <div class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-ia-nom-joueur" class="bouton-dialogue" type="button" title="Faire jouer une machine à la place de ce joueur">IA</button>
+        <!-- Saab, 2026-10-01 : demander son coup a une machine sans qu'elle
+             prenne la place du joueur (interface/ia.js, suggerer). -->
+        <button id="bouton-suggestion-nom-joueur" class="bouton-dialogue" type="button" title="Ce que jouerait la machine choisie (IA) ici, sans changer de joueur : affiché dans Réflexion IA, et mis en commentaire du coup que vous jouerez">Suggestion</button>
+      </div>
       <div id="choix-ia-nom-joueur" class="choix-joueur" hidden>
         <div class="ligne-choix-machine">
           <span>Joueur</span>
@@ -1362,6 +1372,7 @@
          depend donc jamais de son emplacement dans ce fichier. -->
     <p id="message-demarrage-pendules" class="message-demarrage" hidden>
       Touchez une pendule (à droite du plateau) pour démarrer ou mettre en pause la partie.
+      À deux autour d'une table : passez en Face-à-face. Pendules debout ou couchées : Réglages &gt; Affichage.
     </p>
     <svg id="plateau" role="img" aria-label="Plateau d'Abalone"></svg>
     <!-- Poignee de hauteur du plateau, TELEPHONE SEULEMENT (phase 18) :
@@ -2801,7 +2812,9 @@
         valider: document.getElementById('bouton-valider-nom-joueur'),
         fermer: document.getElementById('bouton-fermer-nom-joueur'),
         marcheMachine: document.getElementById('bouton-marche-machine'),
+        titre: document.getElementById('titre-nom-joueur'),
         boutonIA: document.getElementById('bouton-ia-nom-joueur'),
+        suggestion: document.getElementById('bouton-suggestion-nom-joueur'),
         choixIA: document.getElementById('choix-ia-nom-joueur'),
         descriptionMachine: document.getElementById('description-machine-nom'),
         poidsMachine: document.getElementById('poids-machine-nom'),

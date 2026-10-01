@@ -3602,10 +3602,17 @@ button,
   margin-bottom: 6px;
 }
 
+/* Version et Hors ligne en orange (saab, 2026-10-01 : « c'est ce qui est
+   actif ») ; les chapitres en vert, numerotes (interface/aide.js) : ils
+   attendent un geste, plier ou deplier. */
 .aide-version {
   margin: 0 0 4px;
-  color: #9a9a9a;
+  color: #e0832a;
   font-size: 12px;
+}
+
+.dialogue-aide .aide-corps > details > summary {
+  color: #45b862;
 }
 
 /* Bloc-notes personnel (phase 27, interface/notes-perso.js) : un simple
@@ -4164,7 +4171,8 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 }
 
 .bouton-marche-machine[hidden],
-#bouton-ia-nom-joueur[hidden] {
+#bouton-ia-nom-joueur[hidden],
+#bouton-suggestion-nom-joueur[hidden] {
   display: none;
 }
 
@@ -4375,6 +4383,11 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 }
 
 /* Le coup touche (interface/essai-ia.js), a comparer au choisi. */
+/* Commentaire portant une suggestion de la machine (rendu/commentaires-html.js). */
+.texte-commentaire.texte-commentaire-suggestion {
+  color: #e04040;
+}
+
 .essai-coup-touche td {
   background: #cc6a00;
   color: #ffffff;
