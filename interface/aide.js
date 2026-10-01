@@ -40,9 +40,68 @@ async function etatHorsLigne() {
   return 'installé, actif à la prochaine ouverture de KAAH.';
 }
 
-// `elements` : { bouton, dialogue, version, horsLigne, fermer } — `fermer` est une
-// LISTE de boutons (en haut et en bas de la boite).
+// Les noms de couleur de l'Aide ecrits DANS leur couleur (saab, 2026-10-01) ;
+// noir et blanc, illisibles ainsi sur le fond sombre, dans un cadre de leur
+// couleur, le mot de la couleur opposee. Au feminin et au pluriel aussi.
+const COULEURS_DE_L_AIDE = [
+  [/^vert(e|s|es)?$/i, 'mot-vert'],
+  [/^oranges?$/i, 'mot-orange'],
+  [/^jaunes?$/i, 'mot-jaune'],
+  [/^rouges?$/i, 'mot-rouge'],
+  [/^bleu(e|s|es)?$/i, 'mot-bleu'],
+  [/^gris(e|es)?$/i, 'mot-gris'],
+  [/^noir(e|s|es)?$/i, 'mot-noir'],
+  [/^blanc(he|s|hes)?$/i, 'mot-blanc'],
+];
+const MOTS_DE_COULEUR = /(\p{L}+)/gu;
+
+function colorerLesCouleurs(conteneur) {
+  const parcours = document.createTreeWalker(conteneur, NodeFilter.SHOW_TEXT);
+  const textes = [];
+  while (parcours.nextNode()) textes.push(parcours.currentNode);
+  for (const noeud of textes) {
+    const morceaux = noeud.textContent.split(MOTS_DE_COULEUR);
+    if (!morceaux.some((mot) => COULEURS_DE_L_AIDE.some(([motif]) => motif.test(mot)))) continue;
+    noeud.replaceWith(
+      ...morceaux.map((mot) => {
+        const couleur = COULEURS_DE_L_AIDE.find(([motif]) => motif.test(mot));
+        if (!couleur) return document.createTextNode(mot);
+        const span = document.createElement('span');
+        span.className = couleur[1];
+        span.textContent = mot;
+        return span;
+      })
+    );
+  }
+}
+
+// L'Aide s'ouvre au lancement de KAAH (saab, 2026-10-01), jamais quand KAAH
+// se recharge lui-meme (nouvelle partie, mode simple...) : index.html le
+// signale juste avant (signalerRechargementVolontaire).
+const CLE_RECHARGEMENT_VOLONTAIRE = 'kaah-rechargement-volontaire';
+
+function signalerRechargementVolontaire() {
+  try {
+    window.sessionStorage.setItem(CLE_RECHARGEMENT_VOLONTAIRE, 'oui');
+  } catch {
+    // Tant pis : l'Aide s'ouvrira aussi apres ce rechargement.
+  }
+}
+
+function lancementParLUtilisateur() {
+  try {
+    const volontaire = window.sessionStorage.getItem(CLE_RECHARGEMENT_VOLONTAIRE) === 'oui';
+    window.sessionStorage.removeItem(CLE_RECHARGEMENT_VOLONTAIRE);
+    return !volontaire;
+  } catch {
+    return true;
+  }
+}
+
+// `elements` : { bouton, dialogue, version, horsLigne, fermer, corps } —
+// `fermer` est une LISTE de boutons (en haut et en bas de la boite).
 function demarrerAide(elements) {
+  colorerLesCouleurs(elements.corps);
   function afficherHorsLigne() {
     elements.horsLigne.textContent = 'Hors ligne : vérification...';
     etatHorsLigne()
@@ -65,10 +124,15 @@ function demarrerAide(elements) {
       .catch(() => {});
   }
 
-  elements.bouton.addEventListener('click', () => {
+  function ouvrir() {
     afficherVersion();
     afficherHorsLigne();
-    elements.dialogue.showModal();
-  });
+    if (!elements.dialogue.open) elements.dialogue.showModal();
+  }
+
+  elements.bouton.addEventListener('click', ouvrir);
   for (const bouton of elements.fermer) bouton.addEventListener('click', () => elements.dialogue.close());
+  // Par-dessus les boites du demarrage (reprise de partie...), une fois la
+  // page prete.
+  if (lancementParLUtilisateur()) setTimeout(ouvrir, 0);
 }

@@ -624,7 +624,7 @@
         <p id="version-kaah" class="aide-version"></p>
         <p id="hors-ligne-kaah" class="aide-version"></p>
       </div>
-      <button id="bouton-fermer-aide-haut" class="bouton-dialogue" type="button">Fermer</button>
+      <button id="bouton-fermer-aide-haut" class="bouton-dialogue bouton-fermer-aide" type="button">Fermer</button>
     </div>
     <div class="aide-corps">
     <details open>
@@ -636,7 +636,7 @@
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur.<br>Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande.<br>Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
         <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ ».<br>(un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs)</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
-        <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
+        <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) — sous la pendule du joueur du haut, au-dessus de celle du joueur du bas — ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).<br>En fin de partie, les billes du perdant rétrécissent (celles des deux camps pour une nulle ; taille réglable dans Réglages, Affichage) ; elles la gardent quand on navigue dans cette partie, et la reprennent sur une branche.</li>
         <li><b>Évaluation</b> : le petit cadre collé au compteur d'éjections de chaque camp donne la phase de la partie (<b>Ouv.</b>, <b>Mil.</b>, <b>Fin</b>) et la valeur de la position pour ce camp (positive : bonne pour lui ; « Gagne en 3 » quand une machine voit la fin ; « Livre » quand elle joue la base de coups).<br>Pour une machine, c'est la sienne ; pour un humain, « Évaluation » en grisé : touchez-le pour la voir (le jugement du profil Normal), encore pour la cacher.</li>
         <li><b>Pendule ou Chrono</b> : seule la partie réellement jouée est à la pendule choisie (Bonus, Délai), jusqu'à sa fin.<br>Tout le reste — une branche, ou la suite jouée après une fin au temps — est en <b>Chrono</b> : le temps de chaque coup, qui part de 0 s, sans jamais faire perdre.<br>Perdue au temps, la partie reste perdue (titre en <b>T</b>) même si on continue à jouer après.<br>Le temps de chaque coup est enregistré : en naviguant, chaque pendule montre le temps d'alors.<br>Le petit cadre collé contre chaque pendule (côté plateau) est le <b>temps total</b> pris par ce camp jusqu'au coup regardé.</li>
@@ -675,10 +675,10 @@
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte dit aussi quelle machine c'est (KAI ou KAI++, niveau, réflexion, version), avec quels <b>poids</b>, et sur quel <b>profil IA</b> elle joue — le changer vaut pour la suite de la partie (son nom suit).</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite.</li>
         <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
-        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, et encadré dans la liste. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
-        <li><b>Niveau 1</b> : regarde 1 coup d'avance.<br><b>Niveau 2</b> : 2 coups (le sien et votre réponse).<br><b>Niveau 3</b> : 3 à 4 coups, dans la limite du temps de réflexion.</li>
+        <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, encadré et remonté sous le vert, avec sa valeur (colonne « Niv. 3 ») ; la ligne « → 3 coups » dit ce que sa séquence entière change à chaque poids. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. <b>Créer Es_</b> (un coup touché) : une copie de la partie, même titre précédé de <b>Es_</b> (puis Br_ s'il y a une branche), avec ce coup joué et la machine au trait sur les poids essayés ; elle dit ce qu'elle jouerait sur chaque position déjà jouée, pour tester depuis le début. La partie d'origine reste dans Mes parties. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
+        <li><b>Niveau n</b> (1 à 8) : regarde exactement n coups d'avance (les siens et ceux de l'adversaire) — niveau 2 : le sien et votre réponse. Si son temps de réflexion s'écoule avant, elle joue le meilleur coup trouvé, et le tableau Réflexion IA l'écrit <b>3/5 ⏱</b> (profondeur 3 atteinte sur 5) : donnez-lui plus de temps, ou baissez son niveau.</li>
         <li><b>Agressif</b> : cherche les poussées et à mettre vos billes au bord.<br><b>Défensif</b> : garde ses billes groupées, au centre, loin du bord.<br><b>Normal</b> : entre les deux.</li>
         <li>En début de partie, elle joue un des meilleurs coups de la <b>base de coups</b> (celle choisie dans Réglages), tant que la position y figure.</li>
         <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.<br>Elle continue à jouer après une fin au temps, et sur une branche (en Chrono).</li>
@@ -786,7 +786,7 @@
     </details>
 
     </div>
-    <button id="bouton-fermer-aide" class="bouton-dialogue" type="button">Fermer</button>
+    <button id="bouton-fermer-aide" class="bouton-dialogue bouton-fermer-aide" type="button">Fermer et Jouer</button>
   </dialog>
 
   <!-- Fin de partie : Options (phase 20bis, interface/fin-de-partie.js) : ouverte en
@@ -1004,6 +1004,9 @@
           <p id="position-essai-ia" class="note-reglages"></p>
           <p id="niveau3-essai-ia" class="note-reglages niveau3-essai-ia"></p>
           <div class="defilement-essai-ia defilement-coups-essai-ia"><table id="coups-essai-ia" class="tableau-essai-ia"></table></div>
+          <!-- Saab, 2026-10-01 : une copie de la partie « Es_ » pour tester ces
+               poids depuis le debut, avec le coup touche (orange). -->
+          <button id="bouton-creer-essai-ia" class="bouton-dialogue" type="button" disabled title="Touchez d'abord un coup de la liste (il passe en orange)">Créer Es_</button>
         </details>
       </details>
 
@@ -1191,12 +1194,8 @@
           <button class="bouton-filtre" type="button" data-role="kai++" title="La même machine en C++, plus rapide : pour comparer">KAI++</button>
         </div>
         <div class="reglages-machine" hidden>
-          <div class="ligne-choix-machine">
-            <span>Niveau</span>
-            <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
-            <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et la réponse)">2</button>
-            <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
-          </div>
+          <!-- Les boutons 1 a NIVEAU_MAX_IA : interface/choix-joueurs.js. -->
+          <div class="ligne-choix-machine ligne-niveaux"><span>Niveau</span></div>
           <label class="ligne-choix-machine">Profil IA <select class="choix-profil-ia"></select></label>
           <label class="ligne-nombre-pendule">
             Réflexion max (s)
@@ -1212,12 +1211,8 @@
           <button class="bouton-filtre" type="button" data-role="kai++" title="La même machine en C++, plus rapide : pour comparer">KAI++</button>
         </div>
         <div class="reglages-machine" hidden>
-          <div class="ligne-choix-machine">
-            <span>Niveau</span>
-            <button class="bouton-filtre" type="button" data-niveau="1" title="Regarde 1 coup d'avance">1</button>
-            <button class="bouton-filtre" type="button" data-niveau="2" title="Regarde 2 coups d'avance (le sien et la réponse)">2</button>
-            <button class="bouton-filtre" type="button" data-niveau="3" title="Regarde 3 à 4 coups d'avance, dans la limite du temps de réflexion">3</button>
-          </div>
+          <!-- Les boutons 1 a NIVEAU_MAX_IA : interface/choix-joueurs.js. -->
+          <div class="ligne-choix-machine ligne-niveaux"><span>Niveau</span></div>
           <label class="ligne-choix-machine">Profil IA <select class="choix-profil-ia"></select></label>
           <label class="ligne-nombre-pendule">
             Réflexion max (s)
@@ -1242,10 +1237,29 @@
          meilleur coup si c'est son tour, puis s'arrete) ou Marche. -->
     <!-- Saab, 2026-09-30 : quelle machine, sur quel profil IA (a changer
          pour la suite de la partie). -->
-    <div id="machine-nom-joueur" class="machine-nom-joueur" hidden>
-      <p id="description-machine-nom" class="note-reglages"></p>
-      <p id="poids-machine-nom" class="note-reglages"></p>
-      <label class="ligne-choix-machine">Profil IA <select id="profil-machine-nom"></select></label>
+    <!-- Saab, 2026-10-01 : un humain a un bouton IA, qui ouvre le meme choix
+         qu'au debut de partie (interface/choix-joueurs.js) ; une machine l'a
+         deja ouvert, avec ses poids en colonne. -->
+    <div id="machine-nom-joueur" class="machine-nom-joueur">
+      <button id="bouton-ia-nom-joueur" class="bouton-dialogue" type="button" title="Faire jouer une machine à la place de ce joueur">IA</button>
+      <div id="choix-ia-nom-joueur" class="choix-joueur" hidden>
+        <div class="ligne-choix-machine">
+          <span>Joueur</span>
+          <button class="bouton-filtre" type="button" data-role="humain">Humain</button>
+          <button class="bouton-filtre" type="button" data-role="kai" title="La machine en JavaScript">KAI</button>
+          <button class="bouton-filtre" type="button" data-role="kai++" title="La même machine en C++, plus rapide">KAI++</button>
+        </div>
+        <div class="reglages-machine">
+          <div class="ligne-choix-machine ligne-niveaux"><span>Niveau</span></div>
+          <label class="ligne-choix-machine">Profil IA <select class="choix-profil-ia"></select></label>
+          <label class="ligne-nombre-pendule">
+            Réflexion max (s)
+            <input class="choix-reflexion-max" type="number" min="0.5" max="60" step="0.1" />
+          </label>
+          <p id="description-machine-nom" class="note-reglages"></p>
+          <table id="poids-machine-nom" class="poids-machine-nom"></table>
+        </div>
+      </div>
     </div>
     <button id="bouton-marche-machine" class="bouton-dialogue bouton-marche-machine" type="button" hidden></button>
     <div class="boutons-dialogue-cote-a-cote">
@@ -1571,6 +1585,7 @@
   <script src="./rendu/ejections-apercu.js"></script>
   <script src="./rendu/pendule.js"></script>
   <script src="./rendu/pendule-horizontale.js"></script>
+  <script src="./rendu/place-options-fin.js"></script>
   <script src="./rendu/courroie.js"></script>
   <script src="./rendu/corde.js"></script>
   <script src="./rendu/vol-ejection.js"></script>
@@ -1732,7 +1747,11 @@
       for (const camp of ['noir', 'blanc']) {
         if (machines?.[camp] && !donneesReprises) joueurs[camp] = nomDeLaMachine(machines[camp]);
       }
-      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines };
+      // Toujours un objet { noir, blanc } (null = un humain) : la boite du nom
+      // peut mettre une machine en cours de partie (interface/ia.js).
+      // Copie d'essai des poids IA « Es_ » (saab, 2026-10-01) : voir creerPartieEssai.
+      const essai = donneesReprises?.Essai === true;
+      return { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines: machines ?? { noir: null, blanc: null }, essai };
     }
 
     let donneesReprises = chargerPartieActive();
@@ -1748,7 +1767,7 @@
       donneesReprises = null;
       etatDepart = construireDonneesDepart(null);
     }
-    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines } =
+    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines, essai } =
       etatDepart;
     // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
     const correspondanceActive = correspondanceDesDonnees(donneesReprises);
@@ -1855,8 +1874,12 @@
     // fixerProportionsPlateau. Voir rendu/compteur-occurrences.js. Pendules
     // a l'horizontale (saab, 2026-10-01) : il quitte le plateau pour une ligne
     // sous le titre de la partie, qui voyage avec lui (#entete-partie).
-    if (pendulesHorizontales) creerCompteurOccurrencesHorizontal(document.getElementById('entete-partie'));
-    else dessinerCompteurOccurrences(svg);
+    if (pendulesHorizontales) {
+      creerCompteurOccurrencesHorizontal(document.getElementById('entete-partie'));
+      reserverMargeGaucheSansOcc(svg);
+    } else {
+      dessinerCompteurOccurrences(svg);
+    }
     // En dernier : la proportion definitive du plateau n'est connue qu'une
     // fois les bandes d'ejection ET le compteur d'occurrences loges dans
     // le viewBox (voir rendu/plateau-svg.js, fixerProportionsPlateau).
@@ -1902,6 +1925,7 @@
     // `location.reload()` nu ailleurs dans ce fichier desormais.
     function demarrerRechargement() {
       rechargementImminent = true;
+      signalerRechargementVolontaire();
       location.reload();
     }
 
@@ -2003,8 +2027,10 @@
           cases: document.getElementById('cases-essai-ia'),
           coups: document.getElementById('coups-essai-ia'),
           niveau3: document.getElementById('niveau3-essai-ia'),
+          creer: document.getElementById('bouton-creer-essai-ia'),
         },
-        () => positionDuPlateau()
+        () => positionDuPlateau(),
+        (texte, valeurs) => creerPartieEssai(texte, valeurs)
       ),
       rubrique: document.querySelector('details[data-rubrique="machine"]'),
       valider: document.getElementById('bouton-valider-profil-ia'),
@@ -2106,6 +2132,7 @@
       version: document.getElementById('version-kaah'),
       horsLigne: document.getElementById('hors-ligne-kaah'),
       fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
+      corps: document.querySelector('#dialogue-aide .aide-corps'),
     });
 
     // Bloc-notes personnel "NP" (phase 27) : interface/notes-perso.js.
@@ -2531,8 +2558,46 @@
         // Les champs corr_* de KAAWA doivent survivre a chaque sauvegarde.
         correspondance: correspondanceActive,
         // Contre la machine (phases 29 et 32) : leurs reglages survivent a chaque sauvegarde.
-        machines,
+        machines: machines.noir || machines.blanc ? machines : null,
+        essai,
       };
+    }
+
+    // « Créer Es_ » (saab, 2026-10-01, boite d'essai des poids, interface/
+    // essai-ia.js) : une COPIE de la partie, meme titre precede de Es_ (puis
+    // Br_), ou le coup touche est joue sur la position du plateau, et ou la
+    // machine au trait joue avec les poids essayes — pour tester depuis le
+    // debut sans casser ni alourdir la partie d'origine, qui reste dans Mes
+    // parties. Dans la copie, la machine dit sur chaque position deja jouee ce
+    // qu'elle jouerait avec ces poids (interface/ia.js, toujoursEnvisager).
+    function creerPartieEssai(texte, valeurs) {
+      const arbre = partie.obtenirArbre();
+      const etat = etatCourant(arbre);
+      const camp = etat.joueurAuTrait;
+      const couleurs = couleursDuPlateau(etat.plateau);
+      const coup = lireCoupNacre(couleurs, camp, texte);
+      if (!coup) return;
+      let arbreEssai = jouerDansArbre(arbre, ecrireCoupNacreSansAmbiguite(couleurs, camp, coup), appliquerCoup(etat, coup).etat);
+      arbreEssai = marquerFlecheDernierCoup(arbreEssai, arbreEssai.chemin, informationFlecheDernierCoup(coup));
+      const machinesEssai = { ...machines };
+      if (machines[camp]) {
+        machinesEssai[camp] = lireMachine({ ...machines[camp], version: valeurs.version, style: valeurs.style, poids: valeurs.poids, profil: `${valeurs.nom} (essai)` });
+      }
+      const donnees = arbreVersDonnees(arbreEssai, { ...metadonneesActuelles(partie.obtenirPerteAuTemps()), machines: machinesEssai.noir || machinesEssai.blanc ? machinesEssai : null, essai: true });
+      confirmation.demander(
+        `Créer la copie d'essai « ${nomDeFichierKAAWA(donnees)} » et l'ouvrir ? La partie d'origine reste dans Mes parties.`,
+        () => {
+          const id = creerNouvellePartie(donnees);
+          if (!id) {
+            window.alert("Impossible d'enregistrer cette partie (stockage du navigateur indisponible).");
+            return;
+          }
+          definirIdPartieActive(id);
+          definirRepriseDejaConfirmee();
+          demarrerRechargement();
+        },
+        'Créer'
+      );
     }
 
     // Sauvegarde immediate (phase 12, correctif de disposition) : factorisee
@@ -2726,10 +2791,10 @@
         valider: document.getElementById('bouton-valider-nom-joueur'),
         fermer: document.getElementById('bouton-fermer-nom-joueur'),
         marcheMachine: document.getElementById('bouton-marche-machine'),
-        machine: document.getElementById('machine-nom-joueur'),
+        boutonIA: document.getElementById('bouton-ia-nom-joueur'),
+        choixIA: document.getElementById('choix-ia-nom-joueur'),
         descriptionMachine: document.getElementById('description-machine-nom'),
         poidsMachine: document.getElementById('poids-machine-nom'),
-        profilMachine: document.getElementById('profil-machine-nom'),
       },
       joueurs,
       NOMS_PAR_DEFAUT,
@@ -3165,10 +3230,11 @@
     dialogueReglages.addEventListener('close', () => {
       caseEssaiPosition.checked = false;
     });
-    if (machines) {
+    {
       const commandeMachines = demarrerMachines({
         partie,
         machines,
+        toujoursEnvisager: essai,
         obtenirBase: () => baseNextMove,
         svg,
         reflexion: demarrerReflexionIA(

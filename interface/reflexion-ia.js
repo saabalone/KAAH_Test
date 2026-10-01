@@ -16,7 +16,7 @@
 // joue ce coup.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour (moteur/
-// arbre.js), libelleEvaluation (moteur/ia.js), ABREVIATIONS_PHASES
+// arbre.js), libelleEvaluation (moteur/ia.js), rechercheEcourtee (moteur/ia-recherche.js), ABREVIATIONS_PHASES
 // (moteur/ia-evaluation.js) viennent de fichiers charges avant celui-ci.
 
 const DECIMALES_DUREE_REFLEXION = 1;
@@ -36,11 +36,10 @@ function sequenceSurDeuxLignes(sequence) {
 
 // `details` : #reflexion-ia (montre seulement contre la machine) ;
 // `sequencePrevue` : interface/sequence-prevue.js. Renvoie { actualiser(arbre),
-// afficherEnCours(enCours | null), enCommentaire() } — `enCours` : { etat, camp,
+// afficherEnCours(enCours | null), enCommentaire(), montrer(oui) } — `enCours` : { etat, camp,
 // coupsJoues, duree, profondeur, noeuds, evaluation, sequence (textes) }, plus,
 // pour ce qu'elle aurait joue, { hypothese: true, coup, jouer() }.
 function demarrerReflexionIA(details, sequencePrevue) {
-  details.hidden = false;
   const corps = details.querySelector('tbody');
   const caseCommentaire = details.querySelector('.case-reflexion-commentaire');
   let lignesDuChemin = [];
@@ -62,6 +61,18 @@ function demarrerReflexionIA(details, sequencePrevue) {
   function cellule(texte) {
     const td = document.createElement('td');
     td.textContent = texte;
+    return td;
+  }
+
+  // « 3/5 ⏱ » : son temps s'est ecoule avant la profondeur de son niveau (saab,
+  // 2026-10-01 : « il faudra que ce soit indique pour le savoir et changer si
+  // besoin »).
+  function celluleProfondeur({ source, profondeur, evaluation, niveau }) {
+    if (source === 'livre') return cellule('livre');
+    if (!niveau || !rechercheEcourtee({ source, profondeur, evaluation }, niveau)) return cellule(String(profondeur ?? ''));
+    const td = cellule(`${profondeur}/${niveau} ⏱`);
+    td.className = 'profondeur-ecourtee';
+    td.title = `Temps de réflexion écoulé avant le niveau ${niveau} : profondeur ${profondeur} seulement`;
     return td;
   }
 
@@ -87,7 +98,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
     return td;
   }
 
-  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, hypothese, jouer }, classe) {
+  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, niveau, hypothese, jouer }, classe) {
     const tr = document.createElement('tr');
     if (classe) tr.className = classe;
     const marque = camp === 'noir' ? '●' : '○';
@@ -95,7 +106,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
     tr.append(
       celluleCoup(texteCoup, hypothese ? jouer : null),
       cellule(`${duree.toFixed(DECIMALES_DUREE_REFLEXION)} s`),
-      cellule(source === 'livre' ? 'livre' : String(profondeur ?? '')),
+      celluleProfondeur({ source, profondeur, evaluation, niveau }),
       cellule(String(noeuds ?? '')),
       cellule(`${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${texteEvaluation({ source, evaluation })}`),
       celluleSequence(etat, sequence, `Séquence prévue — ${texteCoup}`)
@@ -127,5 +138,13 @@ function demarrerReflexionIA(details, sequencePrevue) {
     afficherTableau();
   }
 
-  return { actualiser, afficherEnCours, enCommentaire: () => caseCommentaire.checked };
+  return {
+    actualiser,
+    afficherEnCours,
+    enCommentaire: () => caseCommentaire.checked,
+    // Seulement s'il y a une machine a la table (interface/ia.js).
+    montrer: (oui) => {
+      details.hidden = !oui;
+    },
+  };
 }

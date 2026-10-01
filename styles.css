@@ -1988,6 +1988,25 @@ button,
     align-self: center;
   }
 
+  /* Fenetre etroite mais COUCHEE (PC en fenetre reduite, saab 2026-10-01) :
+     deduite de la largeur, la hauteur du plateau depassait l'ecran, et les
+     tableaux en dessous (Reflexion IA, Sequence) passaient par-dessus lui et
+     sous Annuler. Le plateau ne depasse plus la hauteur de l'ecran moins le
+     titre au-dessus, Annuler et le rappel « Touchez une pendule » en dessous
+     (100px) ; les tableaux se reduisent dans ce qui reste, sans deborder. La
+     poignee de hauteur du plateau (pensee pour le portrait) n'y a plus de
+     sens : la hauteur de l'ecran commande deja. */
+  @media (orientation: landscape) {
+    #plateau {
+      max-height: calc(100vh - 100px);
+      max-height: calc(100dvh - 100px);
+    }
+
+    #colonne-principale > #plateau-poignee-hauteur {
+      display: none;
+    }
+  }
+
   /* Poignee de hauteur du plateau (phase 18) : exception assumee a "le
      plateau garde sa taille maximale", demandee par saab lui-meme pour
      voir plusieurs lignes de Commentaires a la fois — jamais pendant une
@@ -3746,6 +3765,15 @@ body.face-a-face .nom-joueur-en-haut {
   transform-box: view-box; /* avec le transform-origin pose en ligne : (0, y de la ligne), voir rendu/ligne-joueur.js */
 }
 
+/* Chaque NOM se lit depuis l'autre cote (saab, 2026-10-01 : « c'est
+   l'adversaire qui lit mon nom et moi le sien ») ; « Tour n », la boite de
+   saisie et le reste de la ligne restent tournes vers leur joueur. */
+body.face-a-face .nom-texte {
+  transform: rotate(180deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 body.face-a-face:not(.plateau-retourne) .bille-blanc .coordonnee-bille,
 body.face-a-face:not(.plateau-retourne) .coordonnee-destination-blanc,
 body.face-a-face.plateau-retourne .bille-noir .coordonnee-bille,
@@ -4066,6 +4094,57 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   color: #ffffff;
 }
 
+/* `hidden` doit gagner sur le display des .bouton-dialogue (meme piege que
+   .section-mode-pendule[hidden]) : sinon une barre verte vide restait pour un
+   humain. */
+/* Aide (saab, 2026-10-01) : Fermer en vert (le geste attendu), et les noms de
+   couleur dans leur couleur (interface/aide.js). */
+.bouton-fermer-aide {
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+  color: #ffffff;
+}
+
+.mot-vert { color: #45b862; }
+.mot-orange { color: #e0832a; }
+.mot-jaune { color: #e6c300; }
+.mot-rouge { color: #e04040; }
+.mot-bleu { color: #4aa8ff; }
+.mot-gris { color: #9a9a9a; }
+
+.mot-noir,
+.mot-blanc {
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
+.mot-noir {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #5a5a5a;
+}
+
+.mot-blanc {
+  background: #ffffff;
+  color: #000000;
+}
+
+.bouton-marche-machine[hidden],
+#bouton-ia-nom-joueur[hidden] {
+  display: none;
+}
+
+/* Les poids de la machine, en colonne (boite du nom, saab 2026-10-01). */
+.poids-machine-nom {
+  font: 13px sans-serif;
+  border-collapse: collapse;
+}
+
+.poids-machine-nom td:last-child {
+  padding-left: 12px;
+  text-align: right;
+}
+
 .bouton-marche-machine.machine-arretee {
   background: #3a3a3a;
 }
@@ -4271,6 +4350,12 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .essai-coup-niveau-3 td {
   border-top: 1px solid #e6c300;
   border-bottom: 1px solid #e6c300;
+}
+
+/* Ce que la sequence du niveau 3 change, au bout (interface/essai-ia.js). */
+.essai-fin-de-sequence td {
+  color: #e6c300;
+  font-style: italic;
 }
 
 .tableau-essai-ia tr[data-coup] {

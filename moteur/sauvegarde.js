@@ -204,6 +204,9 @@ function arbreVersDonnees(arbre, metadonnees) {
     // entre humains garde exactement le fichier d'avant. L'ancien champ
     // Adversaire (phase 29) se relit toujours (moteur/ia.js, lireMachines).
     ...(metadonnees.machines ? { Machines: metadonnees.machines } : {}),
+    // Copie d'essai des poids IA (saab, 2026-10-01) : champ propre a KAAH, qui
+    // donne le prefixe Es_ du titre (moteur/nom-partie.js).
+    ...(metadonnees.essai ? { Essai: true } : {}),
   };
 }
 
@@ -345,6 +348,11 @@ function donneesVersArbre(donnees) {
       tempsBlanc: donnees.Tree.clock[1],
       mode: 'pendule',
     });
+  }
+
+  // Un temps ecoule avant le premier coup : la fin de la partie est la racine.
+  if (donnees.Tree.term_status && donnees.Tree.term_status !== '_') {
+    arbre = marquerStatutFin(arbre, [], donnees.Tree.term_status);
   }
 
   arbre = rejouerEnfants(arbre, [], donnees.Tree.children ?? []);

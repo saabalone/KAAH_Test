@@ -16,8 +16,10 @@
 // suivi.arreter), puis elle ne joue plus ; Arret quand ce n'est pas son tour
 // l'arrete seulement ; Marche la relance. Saab, 2026-09-30 : tant que la boite
 // du nom est ouverte, la machine ET le temps sont suspendus (suspendre) — sinon
-// le coup etait deja joue avant qu'on ait touche Arret ; on y change aussi son
-// profil IA (changerProfil).
+// le coup etait deja joue avant qu'on ait touche Arret ; on y change aussi la
+// machine d'un camp, ou on en met une a la place d'un humain (definirMachine,
+// saab 2026-10-01) : c'est pourquoi les machines demarrent dans TOUTE partie,
+// meme entre humains.
 //
 // Sur une position DEJA JOUEE (on est revenu en arriere, et le coup qui suit
 // n'est pas le sien — joue a sa place), une machine en marche cherche quand
@@ -34,8 +36,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : textesDeLaSequence,
 // nomDeLaMachine (moteur/ia.js), commentaireDeReflexion
-// (moteur/sequence-prevue.js), machineDuProfil (moteur/profils-ia.js),
-// trouverProfilIA (interface/profils-ia.js), reflechirAvecKai,
+// (moteur/sequence-prevue.js), reflechirAvecKai,
 // reflechirAvecKaiPlus, MILLISECONDES_PAR_SECONDE, ATTENTE_SUSPENSION_MS
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
 // phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
@@ -62,7 +63,10 @@ const DELAI_MINIMUM_REPONSE_MS = 600;
 // « 3 Occ et Nulle automatique validee ») ; chacune sait qu'un coup qui fait
 // revenir une position une troisieme fois mene a la nulle (moteur/ia-recherche.js,
 // historique) et ne le choisit que si tout le reste est pire pour elle.
-function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations }) {
+// `toujoursEnvisager` : une copie d'essai « Es_ » (index.html, creerPartieEssai)
+// — ses poids ont change, elle dit donc ce qu'elle jouerait sur TOUTE position
+// deja jouee, meme la ou elle avait joue.
+function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations, toujoursEnvisager = false }) {
   const enMarche = { noir: true, blanc: true };
   // { etat, camp, coupsJoues, suivi, debut, hypothese, arreterTout?, abandonner? }, ou null
   let reflexionEnCours = null;
@@ -82,8 +86,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   evaluations.definirMachines(machines);
   partie.definirNulleAutomatique(() => Boolean(machines.noir && machines.blanc));
 
+  // Les noms (cadre vert d'une machine) et le tableau de reflexion, montre
+  // seulement s'il y a une machine a la table.
   function marquerNoms() {
     for (const camp of ['noir', 'blanc']) marquerNomMachine(svg, camp, { machine: Boolean(machines[camp]), enMarche: enMarche[camp] });
+    reflexion.montrer(Boolean(machines.noir || machines.blanc));
   }
   marquerNoms();
 
@@ -147,7 +154,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         const encoreValable = positionInchangee(etat, hypothese);
         finir();
         if (!encoreValable || !texte) return;
-        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase };
+        if (machines[camp] !== machine) return; // la boite du nom l'a remplacee entre-temps
+        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau };
         // Saab, 2026-09-30 (« comme on est en test ») : la ligne du tableau aussi
         // en commentaire du coup, si la case du tableau est cochee.
         const commentaire = reflexion.enCommentaire() ? commentaireDeReflexion(nomDeLaMachine(machine), reflexionIA) : null;
@@ -163,7 +171,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       kaiPlus ??= creerKaiPlus();
       reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
     } else {
-      reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, hypothese) });
+      reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, hypothese) && machines[camp] === machine });
     }
   }
 
@@ -185,7 +193,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const active = Boolean(machines[camp]) && enMarche[camp];
     if (active && partie.peutJouerUnCoup()) return reflechir(etat, camp, false);
     // Deja jouee, et pas par elle : que joue-t-elle ?
-    const aEnvisager = active && partie.peutEnvisagerUnCoup() && !noeudCourant(arbre).enfants.some((enfant) => enfant.reflexionIA);
+    const aEnvisager = active && partie.peutEnvisagerUnCoup() && (toujoursEnvisager || !noeudCourant(arbre).enfants.some((enfant) => enfant.reflexionIA));
     if (aEnvisager && !hypotheses.has(etat)) return reflechir(etat, camp, true);
     const voulue = aEnvisager ? hypotheses.get(etat) : null;
     if (voulue !== hypotheseAffichee) {
@@ -199,8 +207,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // c'est a elle de jouer, et elle rejouerait aussitot. Seulement contre UNE
   // machine en marche : entre deux machines (ou une machine arretee), Annuler
   // ne retire qu'un coup.
-  const campHumain = !machines.noir ? 'noir' : !machines.blanc ? 'blanc' : null;
   partie.definirAnnulationEnDouble((arbre) => {
+    const campHumain = machines.noir && !machines.blanc ? 'blanc' : machines.blanc && !machines.noir ? 'noir' : null;
     if (!campHumain || arbre.chemin.length === 0) return false;
     const trait = etatCourant(arbre).joueurAuTrait;
     return trait !== campHumain && enMarche[trait];
@@ -227,17 +235,15 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       }
       partie.suspendreLeTemps(oui);
     },
-    // Un autre profil IA pour la suite de la partie (meme moteur, niveau et
-    // temps de reflexion). Renvoie ses noms automatiques, ancien et nouveau
-    // (moteur/ia.js, nomDeLaMachine), ou null.
-    changerProfil: (camp, nomProfil) => {
-      const profil = trouverProfilIA(nomProfil);
-      const ancienne = machines[camp];
-      if (!profil || !ancienne) return null;
-      machines[camp] = machineDuProfil(profil, { niveau: ancienne.niveau, reflexionMax: ancienne.reflexionMax, moteur: ancienne.moteur });
+    // Une autre machine pour la suite de la partie (moteur/ia.js, lireMachine),
+    // ou null : un humain. Une reflexion en cours pour ce camp est abandonnee.
+    definirMachine: (camp, machine) => {
+      if (reflexionEnCours?.camp === camp) reflexionEnCours.abandonner?.();
+      machines[camp] = machine;
+      enMarche[camp] = true;
       evaluations.definirMachines(machines);
-      hypotheses = new WeakMap(); // ce qu'elle aurait joue avec ses anciens poids
-      return { ancienNom: nomDeLaMachine(ancienne), nouveauNom: nomDeLaMachine(machines[camp]) };
+      hypotheses = new WeakMap(); // ce qu'elle aurait joue avec ses anciens reglages
+      marquerNoms();
     },
   };
 }

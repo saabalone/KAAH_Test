@@ -50,8 +50,8 @@ function reflechirAvecKai({ etat, machine, suivi, debut, historique, livre, main
 }
 
 // Elle rend des positions ; les coups en sont retrouves par les regles
-// (moteur/ia.js, coupsDesPositions). Au niveau 3 elle va aussi loin que son
-// temps le permet (NIVEAUX_IA). `enCours` (la reflexion en cours, interface/
+// (moteur/ia.js, coupsDesPositions). La meme profondeur que KAI a niveau egal
+// (NIVEAUX_IA), atteinte bien plus souvent dans le temps imparti. `enCours` (la reflexion en cours, interface/
 // ia.js) recoit arreterTout() et abandonner() ; `kaiPlus` : le worker.
 function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus, enCours, jouer, finir }) {
   const duLivre = coupDuLivre(livre, etat, Math.random);
@@ -65,13 +65,12 @@ function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus
     abandonnee = true;
     kaiPlus.interrompre();
   };
-  const niveau = NIVEAUX_IA[machine.niveau];
   kaiPlus
     .chercher(
       {
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
-        profondeur: niveau.profondeurKaiPlus ?? niveau.profondeur,
+        profondeur: NIVEAUX_IA[machine.niveau].profondeur,
         poids: poidsEnTexte(machine.poids),
         version: machine.version,
         graine: Math.floor(Math.random() * GRAINE_MAXIMUM),

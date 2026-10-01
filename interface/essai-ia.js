@@ -16,7 +16,8 @@
 // « Essai sur position »).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : essaiDesCoups,
-// valeursDesCases (moteur/essai-ia.js), choisirCoupIA, libelleEvaluation,
+// valeursDesCases, detailDeLEvaluation (moteur/essai-ia.js), etatsDeLaSequence
+// (moteur/sequence-prevue.js), choisirCoupIA, libelleEvaluation,
 // MACHINE_PAR_DEFAUT (moteur/ia.js), CLES_POIDS_IA, VALEUR_VICTOIRE_IA
 // (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), numeroDeTour
@@ -56,16 +57,22 @@ function ligneDeTableau(cellules, balise = 'td') {
 }
 
 // `elements` : { boite (<details>), position (<p>), niveau3 (<p>), cases
-// (<table>), coups (<table>) } ; `obtenirEtat()` : la position du plateau et
-// son nombre de coups joues, { etat, coupsJoues }, ou null. Renvoie
-// { actualiser(valeurs) } — `valeurs` : { version, poids } (le brouillon ou le
-// profil).
-function demarrerEssaiIA(elements, obtenirEtat) {
+// (<table>), coups (<table>), creer (bouton « Créer Es_ ») } ;
+// `obtenirEtat()` : la position du plateau et son nombre de coups joues,
+// { etat, coupsJoues }, ou null ; `creerEssai(texte, valeurs)` : la copie
+// « Es_ » avec ce coup (index.html, creerPartieEssai). Renvoie
+// { actualiser(valeurs) } — `valeurs` : { nom, version, style, poids } (le
+// brouillon ou le profil).
+function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   let valeursMontrees = null;
   let etatMontre = null;
   let coupChoisi = null; // le texte du coup touche (en orange), sur etatMontre
   let rechercheEnCours = 0; // numero de la recherche du niveau 3 qui compte encore
-  let coupNiveau3 = null;
+  let niveau3 = null; // { texte, evaluation, sequence } : le coup du niveau 3, une fois trouve
+
+  elements.creer.addEventListener('click', () => {
+    if (coupChoisi) creerEssai(coupChoisi, valeursMontrees);
+  });
 
   function afficherCases(poids) {
     const cases = valeursDesCases(poids);
@@ -80,17 +87,18 @@ function demarrerEssaiIA(elements, obtenirEtat) {
   function afficherCoups({ version, poids }, etat) {
     const cles = version >= 2 ? [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2] : CLES_POIDS_IA;
     const essai = essaiDesCoups(etat, poids, version);
-    const entete = ligneDeTableau(['#', 'Coup', 'Niv. 2', 'Niv. 1', ...cles.map((cle) => COLONNES_ESSAI_IA[cle])], 'th');
-    cles.forEach((cle, rang) => (entete.children[rang + 4].title = LIBELLES_REGLAGES_IA[cle]));
-    const actuelle = ligneDeTableau(['', 'Position', '', '', ...cles.map((cle) => texteValeurEssai(essai.detail[cle] ?? 0))]);
+    const entete = ligneDeTableau(['#', 'Coup', 'Niv. 3', 'Niv. 2', 'Niv. 1', ...cles.map((cle) => COLONNES_ESSAI_IA[cle])], 'th');
+    cles.forEach((cle, rang) => (entete.children[rang + 5].title = LIBELLES_REGLAGES_IA[cle]));
+    const actuelle = ligneDeTableau(['', 'Position', '', '', '', ...cles.map((cle) => texteValeurEssai(essai.detail[cle] ?? 0))]);
     actuelle.className = 'essai-position-actuelle';
     actuelle.title = 'Les termes de la position actuelle ; en dessous, ce que chaque coup y ajoute';
     const lignes = essai.coups.map((ligne, rang) => {
-      const tr = ligneDeTableau([String(rang + 1), ligne.texte, texteValeurEssai(ligne.deuxCoups), texteValeurEssai(ligne.unCoup), ...cles.map((cle) => texteValeurEssai(ligne.ecarts[cle] ?? 0))]);
+      const duNiveau3 = ligne.texte === niveau3?.texte;
+      const tr = ligneDeTableau([String(rang + 1), ligne.texte, duNiveau3 ? texteValeurEssai(niveau3.evaluation) : '', texteValeurEssai(ligne.deuxCoups), texteValeurEssai(ligne.unCoup), ...cles.map((cle) => texteValeurEssai(ligne.ecarts[cle] ?? 0))]);
       tr.dataset.coup = ligne.texte;
       tr.classList.toggle('essai-coup-choisi', rang === 0);
       tr.classList.toggle('essai-coup-touche', ligne.texte === coupChoisi && rang > 0);
-      tr.classList.toggle('essai-coup-niveau-3', ligne.texte === coupNiveau3);
+      tr.classList.toggle('essai-coup-niveau-3', duNiveau3);
       tr.title = 'Toucher pour suivre ce coup (en orange)';
       tr.addEventListener('click', () => {
         coupChoisi = coupChoisi === ligne.texte ? null : ligne.texte;
@@ -98,10 +106,28 @@ function demarrerEssaiIA(elements, obtenirEtat) {
       });
       return tr;
     });
-    // Le coup touche juste sous le choisi, pour les comparer d'un coup d'oeil.
-    const touchee = lignes.findIndex((tr, rang) => rang > 0 && tr.dataset.coup === coupChoisi);
-    if (touchee > 0) lignes.splice(1, 0, ...lignes.splice(touchee, 1));
+    // Sous le choisi (vert), pour les comparer d'un coup d'oeil : le coup du
+    // niveau 3 et ce qu'il donne AU BOUT de sa sequence (la position que le
+    // niveau 3 a reellement evaluee, terme par terme), puis le coup touche.
+    const remonter = (texte) => {
+      const index = lignes.findIndex((tr, rang) => rang > 0 && tr.dataset.coup === texte);
+      return index > 0 ? lignes.splice(index, 1) : [];
+    };
+    const enTete = [...remonter(niveau3?.texte), ...(niveau3 ? [ligneFinDeSequence(niveau3, etat, cles, essai.detail, { version, poids })] : []), ...remonter(coupChoisi)];
+    lignes.splice(1, 0, ...enTete);
     elements.coups.replaceChildren(entete, actuelle, ...lignes);
+    elements.creer.disabled = !coupChoisi;
+  }
+
+  // La position au bout de la sequence du niveau 3 : ses termes, moins ceux de
+  // la position actuelle (ce que la sequence entiere change).
+  function ligneFinDeSequence(trouve, etat, cles, detailActuel, { version, poids }) {
+    const fin = etatsDeLaSequence(etat, trouve.sequence).at(-1);
+    const detailFin = detailDeLEvaluation(fin, etat.joueurAuTrait, poids, version);
+    const tr = ligneDeTableau(['', `→ ${trouve.sequence.length} coups`, texteValeurEssai(trouve.evaluation), '', '', ...cles.map((cle) => texteValeurEssai((detailFin[cle] ?? 0) - (detailActuel[cle] ?? 0)))]);
+    tr.className = 'essai-fin-de-sequence';
+    tr.title = `Au bout de la séquence du niveau ${NIVEAU_RECHERCHE_ESSAI} (${trouve.sequence.join(' ')}) : ce qui a changé, terme par terme`;
+    return tr;
   }
 
   // Le coup du niveau 3, par la vraie recherche, par tranches (comme la
@@ -109,7 +135,7 @@ function demarrerEssaiIA(elements, obtenirEtat) {
   // commence (retouche, autre position).
   function chercherNiveau3({ version, poids }, etat) {
     const numero = ++rechercheEnCours;
-    coupNiveau3 = null;
+    niveau3 = null;
     const debut = performance.now();
     elements.niveau3.textContent = `Niveau ${NIVEAU_RECHERCHE_ESSAI} : cherche…`;
     const generateur = choisirCoupIA(etat, {
@@ -129,9 +155,9 @@ function demarrerEssaiIA(elements, obtenirEtat) {
       if (!pas.done) return setTimeout(tranche, 0);
       const { texte, profondeur, evaluation, sequence } = pas.value;
       const duree = ((performance.now() - debut) / MILLISECONDES_PAR_SECONDE).toFixed(DECIMALES_DUREE_ESSAI);
-      coupNiveau3 = texte;
+      niveau3 = { texte, evaluation, sequence };
       elements.niveau3.textContent = `Niveau ${NIVEAU_RECHERCHE_ESSAI} (${profondeur} coups d'avance, ${duree} s) : ${texte}, ${libelleEvaluation(evaluation)} — séquence ${sequence.join(' ')}`;
-      for (const tr of elements.coups.querySelectorAll('tr[data-coup]')) tr.classList.toggle('essai-coup-niveau-3', tr.dataset.coup === texte);
+      afficherCoups(valeursMontrees, etat);
     }
     setTimeout(tranche, 0);
   }

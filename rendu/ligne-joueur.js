@@ -28,7 +28,7 @@
 // SEUIL_ALERTE_EJECTIONS (rendu/ejections.js), centreDeLEncre
 // (rendu/coordonnees-bord.js) et creerBoutonsAbandonNulle,
 // disposerBoutonsAbandonNulle (rendu/abandon-nulle.js), actualiserBoutonsFinPiste
-// (rendu/boutons-fin-piste.js) viennent de fichiers
+// (rendu/boutons-fin-piste.js), placeSousLaPendule (rendu/place-options-fin.js) viennent de fichiers
 // charges avant celui-ci, ou seulement appeles au demarrage reel (voir la
 // note d'ordre en tete de rendu/ejections.js).
 
@@ -87,7 +87,9 @@ function disposerLigneNom(groupe) {
   // fonction est appelee plusieurs fois par coup, et chaque setAttribute redessine.
   const fondMachine = groupe.querySelector('.nom-machine-fond');
   const machine = groupe.classList.contains('nom-machine');
-  const cle = `${texte.textContent}|${tour.textContent}|${groupe.classList.contains('nom-en-danger')}|${machine}`;
+  const resultat = groupe.classList.contains('resultat-fin');
+  const faceAFace = document.body.classList.contains('face-a-face');
+  const cle = `${texte.textContent}|${tour.textContent}|${groupe.classList.contains('nom-en-danger')}|${machine}|${resultat}|${faceAFace}`;
   if (groupe.dataset.cle === cle) return;
   groupe.dataset.cle = cle;
   const haut = y - HAUTEUR_BANDE / 2;
@@ -114,15 +116,26 @@ function disposerLigneNom(groupe) {
   tour.style.display = aTour ? '' : 'none';
   if (aTour) {
     const largeurCadreTour = tour.getComputedTextLength() + MARGE_X_NOM * 2;
-    const xCadreTour = xFond - ECART_TOUR_NOM - largeurCadreTour;
+    // « Gagné/Perdu Options » sous la pendule de son camp (saab, 2026-10-01 :
+    // a cote du nom, il recouvrait l'evaluation « Fin Gagne... »).
+    const place = resultat ? placeSousLaPendule(groupe, largeurCadreTour) : null;
+    const xCadreTour = place ? place.x : xFond - ECART_TOUR_NOM - largeurCadreTour;
+    const yCadreTour = place ? place.y : haut;
     cadreTour.setAttribute('x', xCadreTour);
-    cadreTour.setAttribute('y', haut);
+    cadreTour.setAttribute('y', yCadreTour);
     cadreTour.setAttribute('width', largeurCadreTour);
     cadreTour.setAttribute('height', HAUTEUR_BANDE);
     tour.setAttribute('x', xCadreTour + MARGE_X_NOM);
-    tour.setAttribute('y', y - centreDeLEncre(tour, tour.textContent).y);
+    tour.setAttribute('y', yCadreTour + HAUTEUR_BANDE / 2 - centreDeLEncre(tour, tour.textContent).y);
   }
-  disposerBoutonsAbandonNulle(groupe, { xDroite: xFond + largeurFond, xGauche: aTour ? Number(cadreTour.getAttribute('x')) : xFond });
+  const tourACote = aTour && !resultat;
+  disposerBoutonsAbandonNulle(groupe, { xDroite: xFond + largeurFond, xGauche: tourACote ? Number(cadreTour.getAttribute('x')) : xFond });
+}
+
+// Redispose les deux lignes (le face-a-face retourne celle du haut :
+// interface/face-a-face.js).
+function redisposerLignesNoms(svg) {
+  for (const groupe of svg.querySelectorAll('.nom-joueur')) disposerLigneNom(groupe);
 }
 
 // Passe le NOM (jamais le cadre) en rouge quand CE camp (pas l'adversaire) a

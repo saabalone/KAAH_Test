@@ -5,7 +5,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : lireCoupNacre
 // (notation.js), couleursDuPlateau, appliquerCoup (partie.js),
-// libelleEvaluation (ia.js), ABREVIATIONS_PHASES (ia-evaluation.js) viennent
+// libelleEvaluation (ia.js), ABREVIATIONS_PHASES (ia-evaluation.js), rechercheEcourtee (ia-recherche.js) viennent
 // de fichiers charges avant celui-ci.
 
 const DECIMALES_DUREE_COMMENTAIRE = 1;
@@ -26,12 +26,15 @@ function etatsDeLaSequence(etat, textes) {
 // Une ligne du tableau de reflexion (interface/reflexion-ia.js), en texte :
 // « KAI3_Nor_5s : 1.2 s, prof. 4, 12345 positions, éval. Mil. +35, séquence
 // a1b2 i9h8 ».
-function commentaireDeReflexion(nomMachine, { source, profondeur, evaluation, noeuds, duree, sequence, phase }) {
+// Une recherche arretee par le temps avant la profondeur de son niveau le dit :
+// « prof. 3/5 (temps) » (moteur/ia-recherche.js, rechercheEcourtee).
+function commentaireDeReflexion(nomMachine, { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau }) {
   const morceaux = [`${duree.toFixed(DECIMALES_DUREE_COMMENTAIRE)} s`];
   if (source === 'livre') {
     morceaux.push('livre');
   } else {
-    morceaux.push(`prof. ${profondeur}`, `${noeuds} positions`);
+    const ecourtee = niveau && rechercheEcourtee({ source, profondeur, evaluation }, niveau);
+    morceaux.push(ecourtee ? `prof. ${profondeur}/${niveau} (temps)` : `prof. ${profondeur}`, `${noeuds} positions`);
     if (Number.isFinite(evaluation)) morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
   }
   if (sequence?.length) morceaux.push(`séquence ${sequence.join(' ')}`);

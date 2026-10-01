@@ -71,6 +71,7 @@ function elementsDuTitre(donnees) {
   const joueurBlanc = nomJoueurNettoye(donnees.Players.P2_white);
   return {
     branches: possedeUneBranche(donnees.Tree),
+    essai: donnees.Essai === true,
     date: String(donnees.Date),
     evenement: String(donnees.Event),
     variante: String(donnees.VariantName),
@@ -88,5 +89,6 @@ function elementsDuTitre(donnees) {
 function nomDeFichierKAAWA(donnees) {
   const e = elementsDuTitre(donnees);
   const base = `${e.date}, ${e.evenement}, ${e.variante}, ${e.joueurs}, ${e.score}tr${e.tours} ${e.vainqueur}, ${e.statut}`;
-  return e.branches ? `Br_${base}` : base;
+  // Es_ (copie d'essai des poids IA, saab 2026-10-01) avant Br_.
+  return `${e.essai ? 'Es_' : ''}${e.branches ? 'Br_' : ''}${base}`;
 }

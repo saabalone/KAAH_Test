@@ -32,17 +32,23 @@
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
 // (ia-evaluation.js), evaluationDeLaVersion (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
 
-// Profondeur (en coups, les siens et ceux de l'adversaire) par niveau. Le
-// niveau 3 est borne par le temps de reflexion bien avant d'atteindre la
-// sienne sur une position chargee.
-// KAI++ (phase 33bis, 40 a 80 fois plus rapide) va au niveau 3 aussi loin que
-// son temps de reflexion le permet, jusqu'a `profondeurKaiPlus` ; aux niveaux 1
-// et 2, la meme profondeur que KAI, pour les comparer a egalite.
-const NIVEAUX_IA = {
-  1: { profondeur: 1 },
-  2: { profondeur: 2 },
-  3: { profondeur: 4, profondeurKaiPlus: 8 },
-};
+// Profondeur (en coups, les siens et ceux de l'adversaire) par niveau : le
+// niveau n regarde exactement n coups d'avance, KAI comme KAI++ (saab,
+// 2026-10-01 : « IA3 s'arrete a 3 ... rajouter des btn de niveau si on veut 4,
+// 5, n, et c'est le temps qui pourra arreter la recherche si niveau pas
+// atteint ») — voir rechercheEcourtee pour le signaler.
+const NIVEAU_MAX_IA = 8;
+const NIVEAUX_IA = Object.fromEntries(Array.from({ length: NIVEAU_MAX_IA }, (_, rang) => [rang + 1, { profondeur: rang + 1 }]));
+
+// La reflexion d'une machine (moteur/ia.js) s'est-elle arretee AVANT la
+// profondeur de son niveau, faute de temps ? Jamais pour un coup du livre, ni
+// quand elle a vu la fin de la partie (une victoire ou une defaite forcee :
+// chercher plus loin n'y changerait rien).
+function rechercheEcourtee({ source, profondeur, evaluation }, niveau) {
+  if (source === 'livre') return false;
+  if (Number.isFinite(evaluation) && Math.abs(evaluation) > VALEUR_VICTOIRE_IA / 2) return false;
+  return profondeur < NIVEAUX_IA[niveau].profondeur;
+}
 
 // Assez petit pour qu'une tranche dure quelques millisecondes meme sur un
 // telephone lent, assez grand pour que rendre la main ne coute rien.

@@ -73,6 +73,10 @@ function afficherFaceAFace() {
   document.body.classList.toggle('face-a-face', faceAFaceActif);
   boutonFaceAFace?.classList.toggle('bouton-actif', faceAFaceActif);
   replacerNavigation();
+  // « Gagné/Perdu Options » du joueur du haut se place dans sa ligne retournee
+  // (rendu/ligne-joueur.js).
+  const plateau = document.getElementById('plateau');
+  if (plateau) redisposerLignesNoms(plateau);
 }
 
 // Fixe (ou libere) l'ecran en paysage — voir l'en-tete du fichier. Seulement

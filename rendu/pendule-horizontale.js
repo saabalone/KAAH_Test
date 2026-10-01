@@ -13,11 +13,32 @@
 // LARGEUR_BOUTON_PENDULE, HAUTEUR_BOUTON_PENDULE, BANDE_LIBELLE_PENDULE,
 // JEU_PENDULE, JEU_BANDE_PENDULE, LONGUEUR_CUMUL_PENDULE,
 // EPAISSEUR_CUMUL_PENDULE (rendu/pendule.js), centreDeLEncre
-// (rendu/coordonnees-bord.js) viennent de fichiers charges avant l'appel.
+// (rendu/coordonnees-bord.js), MARGE_VIEWBOX_CADRE (rendu/cadre-plateau.js)
+// viennent de fichiers charges avant l'appel.
 
-// Ecart minimal entre une pendule couchee et le cadre du plateau (ou ses
-// coordonnees, dessinees contre lui).
-const ECART_PENDULE_HORIZONTALE = RAYON_PISTE * 2.2;
+// Ecart minimal entre une pendule couchee et ce qu'elle longe (le cadre du
+// plateau, ses coordonnees) : collee, sans toucher (saab, 2026-10-01 : « il
+// faut qu'elles collent au plateau sinon tu perds de la place »).
+const ECART_PENDULE_HORIZONTALE = RAYON_PISTE * 0.4;
+// Sans Occ a gauche, une bande pour ce qui deborde du cadre de ce cote (les
+// boutons Abandon/Nulle, la corde) : sans elle, ils etaient rognes.
+const MARGE_GAUCHE_SANS_OCC = MARGE_VIEWBOX_CADRE * 3;
+
+function reserverMargeGaucheSansOcc(svg) {
+  const [xMin, yMin, largeur, hauteur] = svg.getAttribute('viewBox').split(' ').map(Number);
+  svg.setAttribute('viewBox', `${xMin - MARGE_GAUCHE_SANS_OCC} ${yMin} ${largeur + MARGE_GAUCHE_SANS_OCC} ${hauteur}`);
+}
+
+// Le x le plus a droite occupe entre `yHaut` et `yBas` : le cadre, et les
+// coordonnees dessinees contre lui (les chiffres du bas a droite).
+function bordDroitOccupe(svg, cadre, yHaut, yBas) {
+  let x = Math.max(bordDroitDuCadre(cadre, yHaut), bordDroitDuCadre(cadre, yBas));
+  for (const texte of svg.querySelectorAll('.coordonnee-bord')) {
+    const boite = texte.getBBox();
+    if (boite.y < yBas && boite.y + boite.height > yHaut) x = Math.max(x, boite.x + boite.width);
+  }
+  return x;
+}
 
 // Le x du bord droit du cadre du plateau a la hauteur `y` (le cadre est un
 // hexagone : un sommet a droite, deux cotes obliques).
@@ -36,15 +57,18 @@ function bordDroitDuCadre(cadre, y) {
 function disposerPendulesHorizontales(svg, cadre, limites) {
   const hauteurCadre = HAUTEUR_BOUTON_PENDULE + BANDE_LIBELLE_PENDULE;
   const yHaut = limites.yMin - HAUTEUR_BANDE + JEU_PENDULE;
-  // Cote plateau, la pendule descend jusqu'a yHaut + hauteurCadre, le cumul
-  // encore d'une epaisseur : chacun passe a droite du cadre a sa hauteur.
-  const gauchePendule = bordDroitDuCadre(cadre, yHaut + hauteurCadre) + ECART_PENDULE_HORIZONTALE;
-  const gaucheCumul = bordDroitDuCadre(cadre, yHaut + hauteurCadre + EPAISSEUR_CUMUL_PENDULE) + ECART_PENDULE_HORIZONTALE;
-  const droite = Math.max(gauchePendule + LARGEUR_BOUTON_PENDULE, gaucheCumul + LONGUEUR_CUMUL_PENDULE);
+  const yBas = limites.yMax + HAUTEUR_BANDE - JEU_PENDULE - hauteurCadre;
+  // Chacune longe le plateau a sa hauteur, son cumul aussi (dessous en haut,
+  // dessus en bas) ; les deux pendules restent alignees a droite.
+  const droiteNecessaire = (yPendule, yCumul) =>
+    Math.max(
+      bordDroitOccupe(svg, cadre, yPendule, yPendule + hauteurCadre) + ECART_PENDULE_HORIZONTALE + LARGEUR_BOUTON_PENDULE,
+      bordDroitOccupe(svg, cadre, yCumul, yCumul + EPAISSEUR_CUMUL_PENDULE) + ECART_PENDULE_HORIZONTALE + LONGUEUR_CUMUL_PENDULE
+    );
+  const droite = Math.max(droiteNecessaire(yHaut, yHaut + hauteurCadre), droiteNecessaire(yBas, yBas - EPAISSEUR_CUMUL_PENDULE));
   const [xMin, yMin, largeur, hauteur] = svg.getAttribute('viewBox').split(' ').map(Number);
   const nouveauXMax = Math.max(xMin + largeur, droite + JEU_PENDULE);
   svg.setAttribute('viewBox', `${xMin} ${yMin} ${nouveauXMax - xMin} ${hauteur}`);
-  const yBas = limites.yMax + HAUTEUR_BANDE - JEU_PENDULE - hauteurCadre;
   return {
     haut: { x: droite - LARGEUR_BOUTON_PENDULE, y: yHaut, enHaut: true, droite },
     bas: { x: droite - LARGEUR_BOUTON_PENDULE, y: yBas, enHaut: false, droite },
