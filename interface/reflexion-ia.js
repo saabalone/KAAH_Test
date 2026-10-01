@@ -17,12 +17,11 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour (moteur/
 // arbre.js), libelleEvaluation (moteur/ia.js), rechercheEcourtee (moteur/ia-recherche.js), ABREVIATIONS_PHASES
-// (moteur/ia-evaluation.js), SEUIL_ORDINATEUR (interface/disposition.js)
-// viennent de fichiers charges avant celui-ci.
+// (moteur/ia-evaluation.js), ajusterHauteursColonne, demarrerHauteursColonne
+// (interface/hauteurs-colonne.js), demarrerRechercheIA (interface/recherche-ia.js) viennent de fichiers charges
+// avant celui-ci.
 
 const DECIMALES_DUREE_REFLEXION = 1;
-// Jamais moins que la ligne d'en-tete et une ligne du tableau.
-const HAUTEUR_MINIMUM_REFLEXION_PX = 40;
 const CLE_REFLEXION_EN_COMMENTAIRE = 'kaah-reflexion-en-commentaire';
 
 function texteEvaluation(reflexion) {
@@ -45,8 +44,9 @@ function sequenceSurDeuxLignes(sequence) {
 function demarrerReflexionIA(details, sequencePrevue) {
   const corps = details.querySelector('tbody');
   const caseCommentaire = details.querySelector('.case-reflexion-commentaire');
-  const defilement = details.querySelector('.reflexion-ia-defilement');
   const boutonRelancer = details.querySelector('.bouton-relancer-ia');
+  // La recherche de KAI++ par premier coup (interface/recherche-ia.js).
+  const recherche = demarrerRechercheIA(details.querySelector('.recherche-ia'));
   let relancer = () => {};
   let lignesDuChemin = [];
   let enCours = null;
@@ -132,33 +132,11 @@ function demarrerReflexionIA(details, sequencePrevue) {
     const lignes = lignesDuChemin.map((l) => ligne(l)).reverse();
     if (enCours) lignes.unshift(ligne(enCours, enCours.hypothese && enCours.coup ? 'reflexion-hypothese' : 'reflexion-en-cours'));
     corps.replaceChildren(...lignes);
-    ajusterHauteur();
+    // Sur ordinateur, toute la hauteur libre (interface/hauteurs-colonne.js).
+    ajusterHauteursColonne();
   }
 
-  // Sur ordinateur (hors face-a-face), le tableau se deplie sur toute la
-  // hauteur que la colonne laisse libre jusqu'au bas de la fenetre (saab,
-  // 2026-10-01 : « au maximum de la fenetre s'il n'y a rien en dessous qui
-  // gene ») : mesuree tableau replie, puis rendue a lui — d'un seul trait, sans
-  // affichage entre les deux. Ailleurs, sa hauteur maximale de styles.css.
-  function ajusterHauteur() {
-    const colonne = details.parentElement;
-    const libreCalculable = SEUIL_ORDINATEUR.matches && !document.body.classList.contains('face-a-face');
-    if (details.hidden || !details.open || !libreCalculable) {
-      defilement.style.maxHeight = '';
-      return;
-    }
-    defilement.style.maxHeight = '0px';
-    const libre = window.innerHeight - colonne.getBoundingClientRect().top - colonne.scrollHeight;
-    defilement.style.maxHeight = `${Math.max(HAUTEUR_MINIMUM_REFLEXION_PX, libre)}px`;
-  }
-
-  // La colonne change de hauteur quand un tableau voisin s'ouvre, se ferme ou
-  // grandit ; la fenetre, quand on la redimensionne. Une image plus tard : ce
-  // reglage change lui-meme la taille observee.
-  const reajuster = () => requestAnimationFrame(ajusterHauteur);
-  new ResizeObserver(reajuster).observe(details.parentElement);
-  window.addEventListener('resize', reajuster);
-  details.addEventListener('toggle', reajuster);
+  const reajuster = demarrerHauteursColonne();
 
   // Les coups de la machine sur le chemin regarde.
   function actualiser(arbre) {
@@ -175,6 +153,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
   function afficherEnCours(nouveau) {
     enCours = nouveau;
     afficherTableau();
+    recherche.afficher(nouveau);
   }
 
   return {

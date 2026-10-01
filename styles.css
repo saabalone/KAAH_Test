@@ -3911,7 +3911,9 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
        basculement. */
     --epaisseur-bouton-navigation-fa: calc(100vh * var(--rapport-pendule, 0.07));
     --epaisseur-bouton-navigation-fa: calc(100svh * var(--rapport-pendule, 0.07));
-    --largeur-navigation-fa: calc(var(--epaisseur-bouton-navigation-fa) + 4px);
+    /* Plus de bande pour le grand Annuler (saab, 2026-10-02 : un Annuler sur
+       la ligne de chaque joueur, rendu/ligne-joueur.js) : tout aux fenetres. */
+    --largeur-navigation-fa: 0px;
     --epaisseur-fenetres-fa: max(200px, calc(100vw - 44px - var(--largeur-navigation-fa) - 100vh * var(--rapport-plateau, 1.08)));
     --epaisseur-fenetres-fa: max(200px, calc(100vw - 44px - var(--largeur-navigation-fa) - 100svh * var(--rapport-plateau, 1.08)));
     padding-right: calc(var(--epaisseur-fenetres-fa) + var(--largeur-navigation-fa));
@@ -4261,6 +4263,46 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   min-height: var(--hauteur-ligne-liste);
 }
 
+/* La recherche de KAI++ par premier coup (interface/recherche-ia.js) : sur
+   ordinateur seulement, repliee par defaut ; elle defile sur elle-meme. */
+.recherche-ia {
+  display: none;
+}
+
+@media (min-width: 700px) {
+  .recherche-ia {
+    display: block;
+    border-top: 1px solid #3a3a3a;
+  }
+}
+
+.recherche-ia > summary {
+  cursor: pointer;
+  min-height: var(--hauteur-ligne-liste);
+}
+
+.note-recherche-ia {
+  margin: 2px 0;
+  color: #9a9a9a;
+}
+
+.recherche-ia-defilement {
+  max-height: 40vh;
+  overflow: auto;
+}
+
+.recherche-ia-profondeur td {
+  padding-top: 4px;
+  color: #e0832a;
+  font-weight: bold;
+  white-space: normal;
+}
+
+.recherche-ia-choisi .recherche-ia-coup {
+  color: #3fcf7a;
+  font-weight: bold;
+}
+
 /* Vert : un geste qui fait repartir quelque chose (comme Fermer et Jouer). */
 .bouton-relancer-ia {
   margin-left: 6px;
@@ -4514,4 +4556,95 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .ligne-historique-ia.version-courante {
   background: var(--vert-demande);
   color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------
+   Saab, 2026-10-02 : plus de grand Annuler sous le plateau — chaque joueur a
+   le sien sur sa ligne (rendu/ligne-joueur.js), du cote de « Gagné Options ».
+   Le bouton d'origine reste dans la page, cache : c'est lui qu'ils touchent
+   (interface/saisie.js). Ce que voit Noir (J1) s'ecrit en noir : son Annuler,
+   son « Gagné/Perdu Options », le nom de sa machine, le drapeau et le = de
+   ses boutons Abandonner / Nulle.
+   --------------------------------------------------------------------- */
+#barre-annuler,
+body.face-a-face > #barre-annuler {
+  display: none;
+}
+
+.bouton-annuler-joueur {
+  cursor: pointer;
+}
+
+.bouton-annuler-joueur-fond {
+  fill: var(--vert-demande);
+}
+
+.bouton-annuler-joueur-texte {
+  fill: #ffffff;
+  font: bold 4.4px sans-serif;
+  pointer-events: none;
+}
+
+.bouton-annuler-joueur.bouton-annuler-inactif {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nom-joueur-noir .bouton-annuler-joueur-texte,
+.nom-joueur-noir.resultat-fin .nom-tour,
+.nom-joueur-noir.attend-choix-fin .nom-tour,
+.nom-joueur-noir.demande-en-cours .nom-tour,
+.nom-joueur-noir.nom-machine .nom-texte,
+.bouton-fin-piste[data-camp='noir'] .bouton-fin-piste-dessin {
+  fill: #0a0a0a;
+}
+
+/* ---------------------------------------------------------------------
+   Ordinateur, hors face-a-face (saab, 2026-10-02 : « le plateau n'est pas
+   assez a gauche, et l'espace a droite et a gauche est trop important, ce qui
+   fait que la fenetre de droite est trop petite. Toutes les fenetres doivent
+   etre collees au plus proche de la fenetre du plateau ») :
+     - la colonne du plateau a exactement la largeur du plateau (plus de vide
+       de part et d'autre, plus de largeur maximale) ;
+     - la colonne de droite prend TOUT le reste de la largeur, et toute la
+       hauteur ; ses fenetres en prennent la largeur (les poignees de largeur
+       et de hauteur de la Sequence n'ont plus d'objet) ;
+     - la Sequence remplit la hauteur restante (« comme Reflexion »), qui
+       recoit la sienne de interface/hauteurs-colonne.js.
+   La colonne de droite cede en premier quand la fenetre retrecit (176 px au
+   moins) : le plateau ne retrecit qu'ensuite.
+   --------------------------------------------------------------------- */
+@media (min-width: 700px) {
+  body:not(.face-a-face) #colonne-principale {
+    flex: 0 1 auto;
+    max-width: none;
+  }
+
+  body:not(.face-a-face) #colonne-droite {
+    flex: 1 1 0;
+    min-width: 176px;
+    align-self: stretch;
+    height: 100vh;
+    height: 100dvh;
+    margin-left: 0;
+  }
+
+  body:not(.face-a-face) #colonne-droite > #entete-partie,
+  body:not(.face-a-face) #colonne-droite > .reflexion-ia,
+  body:not(.face-a-face) #colonne-droite > #arbre-panneau,
+  body:not(.face-a-face) #colonne-droite > #panneau-conseils,
+  body:not(.face-a-face) #colonne-droite > #panneau-occurrences {
+    width: auto;
+    max-width: none;
+  }
+
+  body:not(.face-a-face) #colonne-droite > #arbre-panneau {
+    flex: 1 1 auto;
+    height: auto;
+  }
+
+  body:not(.face-a-face) #arbre-poignee-hauteur,
+  body:not(.face-a-face) #arbre-poignee-largeur {
+    display: none;
+  }
 }

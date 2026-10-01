@@ -79,9 +79,23 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     return machineDuChoix(choix);
   }
 
+  // Le nom automatique suit le choix dans le champ, tout de suite (saab,
+  // 2026-10-02 : « les reglages sont seulement dans le nom, donc on valide
+  // apres ») — tant que le nom n'a pas ete tape a la main : un humain, ou une
+  // machine qui portait son nom automatique, au moment d'ouvrir la boite.
+  let nomSuitLeChoix = false;
+  let nomPropose = null;
+
+  function proposerLeNom(machine) {
+    if (!nomSuitLeChoix || elements.champ.value !== nomPropose) return;
+    nomPropose = machine ? nomDeLaMachine(machine) : machineEnJeu() ? nomsParDefaut[campEnCours] : joueurs[campEnCours];
+    elements.champ.value = nomPropose;
+  }
+
   // Laquelle, et ses poids en colonne (saab, 2026-10-01 : « ce sera plus clair »).
   function afficherMachineChoisie() {
     const machine = machineChoisie();
+    proposerLeNom(machine);
     if (!machine) {
       elements.descriptionMachine.textContent = '';
       elements.poidsMachine.replaceChildren();
@@ -157,6 +171,9 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
     elements.titre.textContent = `Joueur ${NOM_CAMP[campEnCours]}`;
     elements.dialogue.classList.toggle('dialogue-retourne', campEnCours === 'blanc' && document.body.classList.contains('face-a-face'));
+    const enJeu = machineEnJeu();
+    nomSuitLeChoix = !enJeu || joueurs[campEnCours] === nomDeLaMachine(enJeu);
+    nomPropose = joueurs[campEnCours];
     afficherMachine();
     commandeMachines?.suspendre(true);
     elements.dialogue.showModal();

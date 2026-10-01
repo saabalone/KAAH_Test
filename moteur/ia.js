@@ -174,13 +174,30 @@ function poidsEnTexte(poids) {
 // ... sa reponse relue — « profondeur, evaluation, positions examinees, puis la
 // sequence prevue en positions » —, ou null si elle n'en est pas une...
 function lireReponseKaiPlus(texte) {
-  const [profondeur, evaluation, noeuds, sequence = ''] = String(texte).split('\n');
+  const [profondeur, evaluation, noeuds, sequence = '', resume, ...lignes] = String(texte).split('\n');
   if (!Number.isFinite(Number(profondeur)) || noeuds === undefined) return null;
   return {
     profondeur: Number(profondeur),
     evaluation: Number(evaluation),
     noeuds: Number(noeuds),
     positions: sequence.split(' ').filter(Boolean),
+    detail: resume ? lireDetailKaiPlus(resume, lignes) : null,
+  };
+}
+
+// Le detail de la profondeur (saab, 2026-10-02) : « nombre de premiers coups
+// <tab> positions examinees », puis un meilleur premier coup par ligne :
+// « valeur <tab> E (exacte) ou H (au plus) <tab> positions sous lui <tab> sa
+// sequence en positions ».
+function lireDetailKaiPlus(resume, lignes) {
+  const [coups, noeuds] = resume.split('\t').map(Number);
+  return {
+    coups,
+    noeuds,
+    lignes: lignes.map((ligne) => {
+      const [valeur, borne, sous, positions = ''] = ligne.split('\t');
+      return { valeur: Number(valeur), exacte: borne === 'E', noeuds: Number(sous), positions: positions.split(' ').filter(Boolean) };
+    }),
   };
 }
 

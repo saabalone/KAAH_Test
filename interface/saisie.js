@@ -565,6 +565,11 @@ function demarrerPartie(
       })
     );
   });
+  // Le bouton Annuler de chaque joueur, sur sa ligne (rendu/ligne-joueur.js,
+  // saab 2026-10-02) : le meme geste que le bouton Annuler, garde cache.
+  svg.addEventListener('click', (evenement) => {
+    if (evenement.target.closest('.bouton-annuler-joueur')) elementsNavigation.annuler.click();
+  });
 
   function gererClic(notation) {
     const etat = etatCourant(arbre);
@@ -883,6 +888,7 @@ function demarrerPartie(
     // d'origine deja depasse, que la securite de moteur.peutSupprimerNoeud
     // interdirait de toute facon de supprimer.
     elementsNavigation.annuler.disabled = suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin);
+    for (const bouton of svg.querySelectorAll('.bouton-annuler-joueur')) bouton.classList.toggle('bouton-annuler-inactif', elementsNavigation.annuler.disabled);
     elementsNavigation.suivant.disabled = alaFin;
     elementsNavigation.fin.disabled = alaFin;
     elementsNavigation.lecture.disabled = alaFin;

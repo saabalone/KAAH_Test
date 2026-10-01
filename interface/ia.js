@@ -162,6 +162,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       noeuds: suivi.noeuds,
       evaluation: suivi.evaluation,
       sequence: suivi.sequence ? textesDeLaSequence(etat, suivi.sequence) : [],
+      details: suivi.details, // KAI++ : sa recherche par premier coup
       hypothese: genre !== 'jeu',
       suggestion: genre === 'suggestion',
     });

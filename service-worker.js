@@ -174,6 +174,8 @@ const FICHIERS_ESSENTIELS = [
   './interface/confirmation.js',
   './interface/embranchement.js',
   './interface/sequence-prevue.js',
+  './interface/hauteurs-colonne.js',
+  './interface/recherche-ia.js',
   './interface/reflexion-ia.js',
   './interface/ia-reflexion.js',
   './interface/evaluations.js',

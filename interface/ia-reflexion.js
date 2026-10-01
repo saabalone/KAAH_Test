@@ -49,6 +49,18 @@ function reflechirAvecKai({ etat, machine, suivi, debut, historique, livre, main
   setTimeout(tranche, 0);
 }
 
+// Le detail d'une profondeur de KAI++ (moteur/ia.js, lireDetailKaiPlus), ses
+// sequences en coups ecrits — traduites une seule fois, a l'annonce : le
+// tableau (interface/reflexion-ia.js) se redessine bien plus souvent.
+function detailEnTextes(etat, { profondeur, detail }) {
+  return {
+    profondeur,
+    coups: detail.coups,
+    noeuds: detail.noeuds,
+    lignes: detail.lignes.map(({ valeur, exacte, noeuds, positions }) => ({ valeur, exacte, noeuds, sequence: textesDeLaSequence(etat, coupsDesPositions(etat, positions)) })),
+  };
+}
+
 // Elle rend des positions ; les coups en sont retrouves par les regles
 // (moteur/ia.js, coupsDesPositions). La meme profondeur que KAI a niveau egal
 // (NIVEAUX_IA), atteinte bien plus souvent dans le temps imparti. `enCours` (la reflexion en cours, interface/
@@ -82,6 +94,7 @@ function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus
         if (!reponse) return;
         derniere = reponse;
         Object.assign(suivi, { profondeur: reponse.profondeur, evaluation: reponse.evaluation, noeuds: reponse.noeuds, sequence: coupsDesPositions(etat, reponse.positions) });
+        if (reponse.detail) suivi.details = [...(suivi.details ?? []), detailEnTextes(etat, reponse)];
         if (suivi.arreter) kaiPlus.interrompre();
       }
     )

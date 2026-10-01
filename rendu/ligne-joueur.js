@@ -35,6 +35,7 @@
 const RAYON_COIN_NOM = RAYON_PISTE * 0.5;
 const MARGE_X_NOM = RAYON_PISTE * 0.5;
 const ECART_TOUR_NOM = RAYON_PISTE * 0.4;
+const RETRAIT_FOND_MACHINE = MARGE_X_NOM * 0.7;
 
 function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
   const groupe = creerElementSVG('g', { id: `nom-${camp}`, class: `nom-joueur nom-joueur-${camp}${enHaut ? ' nom-joueur-en-haut' : ''}` });
@@ -50,9 +51,26 @@ function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
   const tour = creerElementSVG('text', { class: 'nom-tour' });
   tour.append(creerElementSVG('tspan', { class: 'nom-tour-numero' }), creerElementSVG('tspan', { class: 'nom-tour-options' }));
   groupe.appendChild(tour);
+  // Annuler, sur la ligne de chaque joueur (saab, 2026-10-02 : a la place du
+  // grand bouton sous le plateau) : interface/saisie.js le relie a Annuler.
+  groupe.appendChild(creerBoutonFin('bouton-annuler-joueur', { camp }, 'Annuler'));
   creerBoutonsAbandonNulle(groupe);
   svg.appendChild(groupe);
   disposerLigneNom(groupe);
+}
+
+// Le bouton Annuler de la ligne, du cote des Options de fin (voir
+// disposerLigneNom) : a droite du nom, ou a gauche de la ligne du haut
+// retournee en face-a-face. Renvoie les nouveaux bords de la ligne.
+function poserAnnulerJoueur(groupe, y, { xDroite, xGauche }, aGauche) {
+  const annuler = groupe.querySelector('.bouton-annuler-joueur');
+  const largeur = poserBoutonFin(annuler, 0, y);
+  if (aGauche) {
+    poserBoutonFin(annuler, xGauche - ECART_TOUR_NOM - largeur, y);
+    return { xDroite, xGauche: xGauche - ECART_TOUR_NOM - largeur };
+  }
+  poserBoutonFin(annuler, xDroite + ECART_TOUR_NOM, y);
+  return { xDroite: xDroite + ECART_TOUR_NOM + largeur, xGauche };
 }
 
 // Le camp d'une machine (phase 32, interface/ia.js) : `enMarche` faux quand
@@ -105,11 +123,12 @@ function disposerLigneNom(groupe) {
   texte.setAttribute('x', xFond + MARGE_X_NOM);
   texte.setAttribute('y', y - centreDeLEncre(texte, texte.textContent).y);
   if (machine) {
-    // Le fond vert : autour du nom seul, dans le cadre (voir l'en-tete).
-    fondMachine.setAttribute('x', xFond + MARGE_X_NOM / 2);
-    fondMachine.setAttribute('y', haut + MARGE_X_NOM / 2);
-    fondMachine.setAttribute('width', largeurFond - MARGE_X_NOM);
-    fondMachine.setAttribute('height', HAUTEUR_BANDE - MARGE_X_NOM);
+    // Le fond vert : autour du nom seul, dans le cadre (voir l'en-tete), un peu
+    // en retrait (saab, 2026-10-02 : « reduire un peu les cadres verts »).
+    fondMachine.setAttribute('x', xFond + RETRAIT_FOND_MACHINE);
+    fondMachine.setAttribute('y', haut + RETRAIT_FOND_MACHINE);
+    fondMachine.setAttribute('width', largeurFond - RETRAIT_FOND_MACHINE * 2);
+    fondMachine.setAttribute('height', HAUTEUR_BANDE - RETRAIT_FOND_MACHINE * 2);
   }
 
   cadreTour.style.display = aTour ? '' : 'none';
@@ -135,12 +154,14 @@ function disposerLigneNom(groupe) {
     tour.setAttribute('y', yCadreTour + HAUTEUR_BANDE / 2 - centreDeLEncre(tour, tour.textContent).y);
   }
   const pendulesCouchees = groupe.ownerSVGElement.dataset.pendulesHorizontales === 'oui';
-  const tourADroite = aTour && resultat && !pendulesCouchees && !(groupe.classList.contains('nom-joueur-en-haut') && faceAFace);
+  const retourneeEnFaceAFace = groupe.classList.contains('nom-joueur-en-haut') && faceAFace;
+  const tourADroite = aTour && resultat && !pendulesCouchees && !retourneeEnFaceAFace;
   const tourAGauche = aTour && !tourADroite && !(resultat && pendulesCouchees);
-  disposerBoutonsAbandonNulle(groupe, {
+  const bords = {
     xDroite: tourADroite ? Number(cadreTour.getAttribute('x')) + Number(cadreTour.getAttribute('width')) : xFond + largeurFond,
     xGauche: tourAGauche ? Number(cadreTour.getAttribute('x')) : xFond,
-  });
+  };
+  disposerBoutonsAbandonNulle(groupe, poserAnnulerJoueur(groupe, y, bords, retourneeEnFaceAFace));
 }
 
 // Redispose les deux lignes (le face-a-face retourne celle du haut :
