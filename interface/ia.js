@@ -25,7 +25,8 @@
 // n'est pas le sien — joue a sa place), une machine en marche cherche quand
 // meme et montre dans le tableau ce qu'elle AURAIT joue, sans le jouer : on
 // peut toujours naviguer. Toucher ce coup le joue (une nouvelle branche), et la
-// partie repart de la (saab, 2026-09-30).
+// partie repart de la (saab, 2026-09-30). Le bouton « Relancer » du tableau les
+// fait rejouer depuis la position regardee (voir `relance`).
 //
 // Fin de partie vue jusqu'au bout (« Gagne/Perd en n », saab 2026-10-01) : la
 // machine retient la suite de sa sequence (moteur/sequence-prevue.js,
@@ -53,7 +54,7 @@
 // phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
 // marquerNomMachine (rendu/ligne-joueur.js), solutionsDeLaSequence,
-// cleDeSolution (moteur/sequence-prevue.js), noeudA (moteur/arbre.js)
+// cleDeSolution (moteur/sequence-prevue.js), noeudA, cheminsEgaux (moteur/arbre.js)
 // viennent de fichiers charges avant celui-ci.
 
 const VERIFICATION_MS = 250;
@@ -116,12 +117,31 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   }
   marquerNoms();
 
+  // Relancer (saab, 2026-10-01 : « si je remets au debut une partie, l'IA ne
+  // redemarre pas ») : depuis la position regardee, les machines jouent meme
+  // sur des positions deja jouees — leur coup suit la branche existante s'il
+  // est le meme, en ouvre une autre sinon. La relance tient tant que la partie
+  // avance d'un coup a la fois depuis la ou elle en est (machine ou humain) ;
+  // naviguer ailleurs l'arrete.
+  let relance = null; // { chemin } : la position ou elle en est, ou null
+
+  function suitLaRelance(chemin) {
+    if (cheminsEgaux(chemin, relance.chemin)) return true;
+    const unCoupDePlus = chemin.length === relance.chemin.length + 1 && cheminsEgaux(chemin.slice(0, -1), relance.chemin);
+    if (unCoupDePlus) relance.chemin = chemin;
+    return unCoupDePlus;
+  }
+
+  // Une position ou la machine au trait joue : une feuille, ou, en relance, une
+  // position deja jouee.
+  const peutJouerIci = () => partie.peutJouerUnCoup() || (relance !== null && partie.peutEnvisagerUnCoup());
+
   // `genre` : 'jeu' (elle joue), 'hypothese' (ce qu'elle aurait joue sur une
   // position deja jouee) ou 'suggestion' (demandee par un humain).
   function positionInchangee(etat, genre) {
     if (etatCourant(partie.obtenirArbre()) !== etat) return false;
     if (genre === 'suggestion') return true;
-    return genre === 'hypothese' ? partie.peutEnvisagerUnCoup() : partie.peutJouerUnCoup();
+    return genre === 'hypothese' ? partie.peutEnvisagerUnCoup() : peutJouerIci();
   }
 
   // La ligne « en cours » du tableau (ou ce qu'elle aurait joue ici), et
@@ -226,6 +246,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       reflexion.actualiser(arbre);
       commenterLaSuggestion(arbre);
     }
+    if (relance && !suitLaRelance(arbre.chemin)) relance = null;
     if (reflexionEnCours) {
       // KAI++ cherche sur un autre fil : si la position a change, on l'arrete
       // (KAI, lui, le voit a sa prochaine tranche).
@@ -235,7 +256,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const etat = etatCourant(arbre);
     const camp = etat.joueurAuTrait;
     const active = Boolean(machines[camp]) && enMarche[camp];
-    if (active && partie.peutJouerUnCoup()) return reflechir(etat, camp, 'jeu');
+    if (active && peutJouerIci()) return reflechir(etat, camp, 'jeu');
     // Deja jouee, et pas par elle : que joue-t-elle ?
     const aEnvisager = active && partie.peutEnvisagerUnCoup() && (toujoursEnvisager || !noeudCourant(arbre).enfants.some((enfant) => enfant.reflexionIA));
     if (aEnvisager && !hypotheses.has(etat)) return reflechir(etat, camp, 'hypothese');
@@ -263,6 +284,18 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // c'est a elle de jouer, et elle rejouerait aussitot. Seulement contre UNE
   // machine en marche : entre deux machines (ou une machine arretee), Annuler
   // ne retire qu'un coup.
+  // Le bouton « Relancer » du tableau (voir `relance` plus haut) : les machines
+  // arretees repartent aussi. Une hypothese en cours finit tout de suite.
+  reflexion.brancherRelance(() => {
+    relance = { chemin: partie.obtenirArbre().chemin };
+    for (const camp of ['noir', 'blanc']) if (machines[camp]) enMarche[camp] = true;
+    if (reflexionEnCours?.genre === 'hypothese') {
+      reflexionEnCours.abandonner?.();
+      reflexionEnCours.suivi.arreter = true;
+    }
+    marquerNoms();
+  });
+
   partie.definirAnnulationEnDouble((arbre) => {
     const campHumain = machines.noir && !machines.blanc ? 'blanc' : machines.blanc && !machines.noir ? 'noir' : null;
     if (!campHumain || arbre.chemin.length === 0) return false;

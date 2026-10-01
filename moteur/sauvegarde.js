@@ -206,8 +206,23 @@ function arbreVersDonnees(arbre, metadonnees) {
     ...(metadonnees.machines ? { Machines: metadonnees.machines } : {}),
     // Copie d'essai des poids IA (saab, 2026-10-01) : champ propre a KAAH, qui
     // donne le prefixe Es_ du titre (moteur/nom-partie.js).
-    ...(metadonnees.essai ? { Essai: true } : {}),
+    // Elle se rouvre sur la position regardee, pas au bout de la ligne jouee
+    // comme KAAWA (saab : le coup essaye est souvent dans une branche, et la
+    // copie semblait une autre partie).
+    ...(metadonnees.essai ? { Essai: true, CheminRegarde: arbre.chemin } : {}),
   };
+}
+
+// Le chemin `CheminRegarde` d'une partie d'essai, s'il mene bien a un noeud
+// de l'arbre relu ; sinon null.
+function cheminRegardeValide(arbre, chemin) {
+  if (!Array.isArray(chemin)) return null;
+  let noeud = arbre.racine;
+  for (const index of chemin) {
+    noeud = Number.isInteger(index) ? noeud.enfants[index] : undefined;
+    if (!noeud) return null;
+  }
+  return chemin;
 }
 
 // ---------------------------------------------------------------------
@@ -357,11 +372,12 @@ function donneesVersArbre(donnees) {
 
   arbre = rejouerEnfants(arbre, [], donnees.Tree.children ?? []);
   // KAAWA saute au bout de l'origine en chargeant un fichier
-  // (_get_last_origin_node), pas a la racine : meme comportement ici.
+  // (_get_last_origin_node), pas a la racine : meme comportement ici — sauf
+  // une partie d'essai, qui reprend la position regardee (arbreVersDonnees).
   const cheminOrigine = cheminOrigineDuFichier(donnees.Tree);
   arbre = {
     ...arbre,
-    chemin: cheminOrigine,
+    chemin: cheminRegardeValide(arbre, donnees.CheminRegarde) ?? cheminOrigine,
     cheminOrigine,
     // Absent d'un vrai fichier KAAWA (voir l'en-tete du fichier) : []
     // dans ce cas, jamais une erreur de chargement pour autant.

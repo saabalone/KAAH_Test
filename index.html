@@ -678,7 +678,7 @@
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
         <li>Un <b>profil IA</b> de l'utilisateur a un indice (<b>P3</b>), repris dans le nom de la machine (KAI2_Nor_5s_P3) : deux machines qui ne diffèrent que par leur profil se distinguent dans le titre.</li>
         <li><b>Fin de partie vue</b> (« Gagne en n », « Perd en n ») : la machine retient sa séquence et, tant que l'adversaire répond comme prévu, joue la suite sans chercher (« fin vue » dans le tableau).</li>
-        <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).</li>
+        <li><b>Réflexion IA</b>, sous le titre de la partie (à déplier) : pour chacun de ses coups, le temps, la profondeur, les positions examinées, l'évaluation et la séquence qu'elle prévoit (sur 2 lignes) ; la ligne en vert est celle qu'elle cherche en ce moment. Gardé dans le fichier : on le retrouve en rejouant la partie.<br>Touchez une <b>séquence prévue</b> : elle se rejoue sur un petit plateau, coup par coup (|&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;|, ou touchez le plateau ou un coup).<br>Case <b>en commentaire</b> (cochée par défaut) : chaque ligne est aussi écrite dans le commentaire du coup.<br>Case <b>Essai sur position</b> : ouvre Réglages sur l'essai des poids (voir Profils IA), avec le profil de la machine au trait, sans bloquer le plateau — on peut naviguer, l'essai suit la position. La décocher (ou fermer Réglages) le referme. L'essai a ses propres boutons |&lt;&lt; &lt;&lt; &gt;&gt; &gt;&gt;| : la boîte posée à droite pour voir le plateau, on navigue sans eux. « Créer Es_ » ouvre la copie sur le coup essayé.<br>Revenu sur une position où l'on a joué <b>à sa place</b>, la machine (en marche) dit en jaune ce qu'elle <b>aurait joué</b> (« → a1b2 »), sans le jouer ; touchez ce coup pour le jouer (une nouvelle branche).<br>Bouton vert <b>▶ Relancer</b> : les machines jouent depuis la position regardée, même déjà jouée (au début d'une partie, par exemple) : leur coup suit la partie s'il est le même, sinon il ouvre une branche, et elles continuent. Naviguer ailleurs arrête la relance.<br>Sur ordinateur, le tableau prend toute la hauteur libre jusqu'à la Séquence.</li>
         <li><b>Profils IA</b> (Réglages, rubrique « Machine ») : les poids de son évaluation (gain et perte d'une bille, centre, cohésion, bord), avec − et + de chaque côté. Une retouche reste en <b>orange</b> jusqu'à <b>Valider</b> (Abandonner l'oublie) ; après Valider, en <b>vert</b> ce qui a changé à la dernière validation, en <b>jaune</b> aux plus anciennes. Agressif, Normal et Défensif ne changent jamais : valider une retouche de l'un d'eux crée un profil <b>IA_&lt;date&gt;</b>. Nouveau, Supprimer, Exporter, Importer comme les autres fichiers.<br><b>Historique IA</b> : chaque validation y ajoute une version (date et changements) ; touchez-en une pour y revenir. Retoucher puis valider une ancienne version ouvre une branche, décalée comme dans la Séquence.<br><b>Essai sur la position du plateau</b> : avec les poids affichés (retouches en orange comprises, rien n'est enregistré), la valeur d'une bille sur chacune des 9 cases distinctes (e5, d4, c3, c4, b2, b3, a1, a2, a3), et tous les coups de la position du plateau classés comme le niveau 2 les classe (« Niv. 2 » : après la meilleure réponse ; « Niv. 1 » : juste après le coup), avec ce que chaque coup change à chaque poids. Le coup du <b>niveau 3</b> (la vraie recherche, jusqu'à 5 s) est écrit au-dessus, en jaune, encadré et remonté sous le vert, avec sa valeur (colonne « Niv. 3 ») ; la ligne « → 3 coups » dit ce que sa séquence entière change à chaque poids. Touchez un coup : il passe en <b>orange</b>, juste sous le vert, pour les comparer. <b>Créer Es_</b> (un coup touché) : une copie de la partie, même titre précédé de <b>Es_</b> (puis Br_ s'il y a une branche), avec ce coup joué et la machine au trait sur les poids essayés ; elle dit ce qu'elle jouerait sur chaque position déjà jouée, pour tester depuis le début. La partie d'origine reste dans Mes parties. Pour qu'un meilleur coup passe devant, regardez la colonne qui le pénalise, retouchez ce poids, et le tableau se refait aussitôt ; Valider seulement si le résultat vous plaît.</li>
         <li><b>Livre d'ouvertures</b> (case cochée par défaut, dans Réglages > Machine, et pour chaque machine dans la boîte du mode de pendule et dans celle du nom) : tant que la position est dans la base de coups, la machine y prend au hasard un coup gagnant (au moins la moitié des victoires du meilleur), sans réfléchir ni regarder ses poids — « livre » dans le tableau. Décochée, elle réfléchit dès le premier coup.</li>
         <li><b>Niveau n</b> (1 à 8) : regarde exactement n coups d'avance (les siens et ceux de l'adversaire) — niveau 2 : le sien et votre réponse. Si son temps de réflexion s'écoule avant, elle joue le meilleur coup trouvé, et le tableau Réflexion IA l'écrit <b>3/5 ⏱</b> (profondeur 3 atteinte sur 5) : donnez-lui plus de temps, ou baissez son niveau.</li>
@@ -1009,6 +1009,15 @@
              (interface/essai-ia.js). -->
         <details id="boite-essai-ia" class="boite-essai-ia">
           <summary>Essai sur la position du plateau</summary>
+          <!-- Les boutons de navigation du plateau, ici aussi (saab, 2026-10-01 :
+               cette boite, posee a droite pour voir le plateau, cachait les
+               siens) : chacun touche son double (interface/essai-ia.js). -->
+          <div class="navigation-essai-ia">
+            <button type="button" data-bouton-plateau="nav-debut" title="Revenir au début">|&lt;&lt;</button>
+            <button type="button" data-bouton-plateau="nav-precedent" title="Coup précédent">&lt;&lt;</button>
+            <button type="button" data-bouton-plateau="nav-suivant" title="Coup suivant">&gt;&gt;</button>
+            <button type="button" data-bouton-plateau="nav-fin" title="Aller au dernier coup">&gt;&gt;|</button>
+          </div>
           <div class="defilement-essai-ia"><table id="cases-essai-ia" class="tableau-essai-ia"></table></div>
           <p id="position-essai-ia" class="note-reglages"></p>
           <p id="niveau3-essai-ia" class="note-reglages niveau3-essai-ia"></p>
@@ -1350,7 +1359,9 @@
         <!-- « Essai sur position » (saab, 2026-10-01) : ouvre Reglages, rubrique
              Machine, sur l'essai, sans bloquer le plateau ; la decocher (ou
              fermer Reglages) le referme. Branche dans index.html, plus bas. -->
-        <summary>Réflexion IA <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" checked /> en commentaire</label> <label class="reflexion-commentaire"><input id="case-essai-position" type="checkbox" /> Essai sur position</label></summary>
+        <!-- « Relancer » (saab, 2026-10-01) : les machines rejouent depuis la
+             position regardee, meme deja jouee (interface/ia.js, relance). -->
+        <summary>Réflexion IA <button type="button" class="bouton-relancer-ia" title="Les machines jouent depuis cette position, même déjà jouée (leur coup suit la partie s'il est le même, sinon ouvre une branche)">▶ Relancer</button> <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" checked /> en commentaire</label> <label class="reflexion-commentaire"><input id="case-essai-position" type="checkbox" /> Essai sur position</label></summary>
         <div class="reflexion-ia-defilement">
           <table>
             <thead>
@@ -1373,8 +1384,10 @@
     <!-- Pendant le chargement d'une nouvelle version (interface/mise-a-jour.js). -->
     <p id="bandeau-mise-a-jour" class="bandeau-mise-a-jour" hidden></p>
     <p id="message-demarrage-pendules" class="message-demarrage" hidden>
-      Touchez une pendule (à droite du plateau) pour démarrer ou mettre en pause la partie.
-      À deux autour d'une table : passez en Face-à-face. Pendules debout ou couchées : Réglages &gt; Affichage.
+      <!-- Une indication par ligne (saab, 2026-10-01 : « sinon on melange tout »). -->
+      <span class="ligne-rappel">Touchez une pendule pour démarrer ou mettre en pause la partie.</span>
+      <span class="ligne-rappel">À deux autour d'une table : passez en Face-à-face.</span>
+      <span class="ligne-rappel">Pendules debout ou couchées : Réglages &gt; Affichage.</span>
     </p>
     <svg id="plateau" role="img" aria-label="Plateau d'Abalone"></svg>
     <!-- Poignee de hauteur du plateau, TELEPHONE SEULEMENT (phase 18) :
@@ -1565,6 +1578,7 @@
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/ia-evaluation.js"></script>
   <script src="./moteur/ia-evaluation-v2.js"></script>
+  <script src="./moteur/ia-memoire.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
   <script src="./moteur/historique-profil-ia.js"></script>
@@ -2052,6 +2066,7 @@
           coups: document.getElementById('coups-essai-ia'),
           niveau3: document.getElementById('niveau3-essai-ia'),
           creer: document.getElementById('bouton-creer-essai-ia'),
+          navigation: document.querySelectorAll('.navigation-essai-ia [data-bouton-plateau]'),
         },
         () => positionDuPlateau(),
         (texte, valeurs) => creerPartieEssai(texte, valeurs)
@@ -2634,6 +2649,11 @@
     // passe depuis ne serait jamais compte) — voir metadonneesActuelles,
     // pendulesActuelles.
     function sauvegarderMaintenant(arbre, perteAuTemps) {
+      // Plus rien n'est ecrit une fois un rechargement decide : l'id actif
+      // designe deja une AUTRE partie (une copie « Es_ » qu'un coup de la
+      // machine, joue juste avant le rechargement, ecrasait avec la partie
+      // d'origine — saab, 2026-10-01).
+      if (rechargementImminent) return;
       const donnees = arbreVersDonnees(arbre, metadonneesActuelles(perteAuTemps));
       actualiserEtatSauvegarde(sauvegarderPartieActive(donnees), donnees);
       // Une partie neuve qui vient de recevoir son tout premier coup ajoute

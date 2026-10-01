@@ -9,5 +9,5 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 const PHASE_KAAH_TEST = 32;
-const VERSION_KAAH_TEST = 12;
+const VERSION_KAAH_TEST = 13;
 const NOM_VERSION_KAAH_TEST = `KAAH_Test_ph${PHASE_KAAH_TEST}_v${VERSION_KAAH_TEST}`;

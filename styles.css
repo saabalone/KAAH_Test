@@ -1224,6 +1224,10 @@ button,
   animation: clignoter-fin 0.8s ease-in-out 8;
 }
 
+.ligne-rappel {
+  display: block;
+}
+
 .ligne-partie-label {
   flex: 0 0 auto;
   color: #cc6a00;
@@ -4257,6 +4261,18 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   min-height: var(--hauteur-ligne-liste);
 }
 
+/* Vert : un geste qui fait repartir quelque chose (comme Fermer et Jouer). */
+.bouton-relancer-ia {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--vert-demande);
+  border-radius: 6px;
+  background: none;
+  color: #3fcf7a;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .reflexion-ia-defilement {
   max-height: 12em;
   overflow: auto;
@@ -4457,6 +4473,28 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .boite-essai-ia > summary {
   cursor: pointer;
   min-height: var(--hauteur-ligne-liste);
+}
+
+/* Les doubles des boutons de navigation (interface/essai-ia.js). */
+.navigation-essai-ia {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.navigation-essai-ia button {
+  min-width: 44px;
+  min-height: var(--hauteur-commande);
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.navigation-essai-ia button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* Ce que la machine aurait joue (interface/reflexion-ia.js) : a toucher. */

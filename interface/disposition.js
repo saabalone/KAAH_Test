@@ -63,8 +63,9 @@ function replacerNavigation() {
 // y changeait la hauteur disponible pour `#plateau` (`height: 100%` d'un
 // FLEX ITEM, styles.css), donc la taille du plateau elle-meme — signale par
 // saab, "le bandeau fait baisser le plateau, en paysage on est oblige de le
-// remonter [pour] mettre le nom de J1". Il suit desormais `barreAnnuler`,
-// juste apres elle (portrait, paysage) ; en face-a-face, la derniere ligne de
+// remonter [pour] mettre le nom de J1". Il suit desormais `barreAnnuler` en
+// portrait ; sur ordinateur, il passe sous le titre, en tete de la colonne
+// des tableaux (jamais hors fenetre) ; en face-a-face, la derniere ligne de
 // la colonne des fenetres, tournee a la verticale, a cote de la barre. Jamais
 // plus au-dessus du plateau, qui ne bouge plus quand il apparait ou disparait.
 // Quatrieme voyageur (saab, 2026-09-30) : `reflexionIA`, le tableau de reflexion
@@ -81,15 +82,18 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
       // Le rappel, lui, y rejoint la colonne des fenetres, tournee a la
       // verticale : dans l'etroite bande d'Annuler, une phrase entiere ne
       // tiendrait pas (styles.css, body.face-a-face #colonne-droite).
+      // Sinon, juste sous le titre, au-dessus des tableaux (saab, 2026-10-01 :
+      // « jamais hors fenetre » — sous Annuler, Reflexion IA et la Sequence le
+      // poussaient sous le bas de l'ecran).
+      colonneDroite.prepend(enteteJeu);
+      enteteJeu.after(reflexionIA);
       if (document.body.classList.contains('face-a-face')) {
         document.body.appendChild(barreAnnuler);
         colonneDroite.append(messageDemarrage);
       } else {
         arbrePanneau.after(barreAnnuler);
-        barreAnnuler.after(messageDemarrage);
+        enteteJeu.after(messageDemarrage);
       }
-      colonneDroite.prepend(enteteJeu);
-      enteteJeu.after(reflexionIA);
       // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
       // DEFAUT sur telephone (laisser toute la place au plateau) — sur
       // ordinateur, la sequence a toujours ete visible d'entree (voir

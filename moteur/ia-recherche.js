@@ -26,8 +26,14 @@
 // fois (moteur/nulle.js) mene a la nulle et vaut 0 — la machine le choisit
 // quand tout le reste est pire pour elle, l'evite sinon.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : caseDansLaDirection
-// (plateau.js), tousLesCoupsLegaux (regles.js), ecrirePosition (notation.js),
+// Memoire (saab, 2026-10-01 : aller plus loin dans le meme temps) : table de
+// transpositions, coups tueurs, historique — moteur/ia-memoire.js. Elle
+// change le nombre de positions examinees, jamais la valeur trouvee.
+//
+// Pas d'import ni d'export (voir moteur/plateau.js) : creerMemoireIA,
+// cleDePositionIA, lireDansLaTable, ecrireDansLaTable, valeurSuffisante,
+// noterCoupure, ordonnerAvecMemoire (ia-memoire.js), tousLesCoupsLegaux
+// (regles.js), ecrirePosition (notation.js),
 // compterOccurrences, SEUIL_NULLE_PAR_DEFAUT (nulle.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
 // (ia-evaluation.js), evaluationDeLaVersion (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
@@ -56,19 +62,6 @@ const NOEUDS_PAR_TRANCHE = 200;
 
 const ARRET_A_L_ECHEANCE = Symbol('echeance');
 const VALEUR_NULLE_IA = 0;
-
-function ejecte(coup) {
-  const derniere = coup.billesPoussees[coup.billesPoussees.length - 1];
-  return derniere !== undefined && caseDansLaDirection(derniere, coup.direction) === null;
-}
-
-// Les coups les plus forcants d'abord (ejections, puis poussees) : l'elagage
-// alpha-beta coupe d'autant plus qu'il rencontre tot les meilleurs coups. Tri
-// stable : l'ordre recu (melange a la racine) departage le reste.
-function ordonnerCoups(coups) {
-  const priorite = (coup) => (ejecte(coup) ? 2 : coup.billesPoussees.length > 0 ? 1 : 0);
-  return [...coups].sort((a, b) => priorite(b) - priorite(a));
-}
 
 // Melange de Fisher-Yates avec le hasard fourni : entre deux coups de meme
 // valeur, l'IA ne joue pas toujours le meme (sinon deux parties se
@@ -100,18 +93,36 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
     const ajustee = etat.vainqueur ? valeur - Math.sign(valeur) * distance : valeur;
     return signe * ajustee;
   }
-  const coups = ordonnerCoups(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait));
-  if (coups.length === 0) return signe * contexte.evaluer(etat, contexte.camp, contexte.poids);
+  // Deja cherchee a cette profondeur (moteur/ia-memoire.js) ?
+  const { memoire } = contexte;
+  const cle = cleDePositionIA(etat);
+  const connue = lireDansLaTable(memoire, cle, distance);
+  if (connue?.profondeur === profondeur && valeurSuffisante(connue, alpha, beta)) {
+    contexte.variantes[distance] = connue.suite;
+    return connue.valeur;
+  }
+  const legaux = tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait);
+  if (legaux.length === 0) return signe * contexte.evaluer(etat, contexte.camp, contexte.poids);
+  const alphaDeDepart = alpha;
   let meilleure = -Infinity;
-  for (const coup of coups) {
+  let meilleurCoup = null;
+  for (const coup of ordonnerAvecMemoire(legaux, memoire, distance, legaux[connue?.indexCoup])) {
     const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -beta, -alpha, contexte, distance + 1));
     if (valeur > meilleure) {
       meilleure = valeur;
+      meilleurCoup = coup;
       contexte.variantes[distance] = [coup, ...contexte.variantes[distance + 1]];
     }
     if (valeur > alpha) alpha = valeur;
-    if (alpha >= beta) break;
+    if (alpha >= beta) {
+      noterCoupure(memoire, coup, distance, profondeur);
+      break;
+    }
   }
+  // Toute la fenetre en dessous : seulement une borne haute (aucun coup n'a
+  // atteint alpha) ; au-dessus : une borne basse (la coupure).
+  const borne = meilleure <= alphaDeDepart ? 'haute' : meilleure >= beta ? 'basse' : 'exacte';
+  ecrireDansLaTable(memoire, cle, distance, { profondeur, valeur: meilleure, borne, indexCoup: legaux.indexOf(meilleurCoup), suite: contexte.variantes[distance] });
   return meilleure;
 }
 
@@ -125,8 +136,9 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
 // il faut bien un coup a jouer.
 function* rechercherCoup(etat, { niveau, poids, version = 1, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
   const evaluer = evaluationDeLaVersion(version);
-  const contexte = { camp: etat.joueurAuTrait, poids, evaluer, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [] };
-  const racine = ordonnerCoups(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard));
+  const memoire = creerMemoireIA();
+  const contexte = { camp: etat.joueurAuTrait, poids, evaluer, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [], memoire };
+  const racine = ordonnerAvecMemoire(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard), memoire, 0, null);
   let meilleurCoup = racine[0];
   let profondeurAtteinte = 0;
   for (let profondeur = 1; profondeur <= NIVEAUX_IA[niveau].profondeur; profondeur++) {

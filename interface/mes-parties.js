@@ -79,6 +79,7 @@
 // dessinerEjectionsApercu (rendu/ejections-apercu.js), depuisNotation
 // (moteur/plateau.js), envoyerALaCorbeille (interface/corbeille.js,
 // phase 26), afficherCompteDansTitre (interface/compte-titre.js),
+// libelleNombreEtVolume, formaterVolume, volumeEnOctets (moteur/compte-volume.js),
 // elementsDuTitre (moteur/nom-partie.js), partieCorrespond
 // (moteur/filtre-parties.js) et demarrerFiltreParties (interface/
 // filtre-parties.js) viennent tous des fichiers charges avant celui-ci dans
@@ -188,8 +189,9 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     const ids = [...idsSelectionnes];
     if (ids.length === 0) return;
     const contientLaPartieEnCours = ids.includes(obtenirIdPartieActive());
+    const volume = formaterVolume(volumeEnOctets(listerPartiesEnregistrees().filter((entree) => idsSelectionnes.has(entree.id))));
     demanderConfirmation(
-      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} Elle${ids.length > 1 ? 's' : ''} ira${ids.length > 1 ? 'ont' : ''} dans la corbeille.`,
+      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} (${volume}) ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} ${ids.length > 1 ? 'Elles iront' : 'Elle ira'} dans la corbeille.`,
       () => supprimerSelection(ids),
       'Supprimer'
     );
@@ -221,11 +223,14 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   // deja selectionne, "indeterminee" — le tiret natif du navigateur — pour
   // une selection partielle) plutot que de garder son propre etat a part,
   // qui aurait pu se desynchroniser d'une case cochee a la main.
+  // Avec leur volume (saab, 2026-10-01 : « pour savoir combien on supprime »),
+  // comme le titre de la boite : « Supprimer la sélection (3, 12k) ».
   function actualiserBarre() {
     const n = idsSelectionnes.size;
-    elements.supprimer.disabled = n === 0;
-    elements.supprimer.textContent = n === 0 ? 'Supprimer la sélection' : `Supprimer la sélection (${n})`;
     const filtrees = partiesFiltrees();
+    const selection = filtrees.filter((entree) => idsSelectionnes.has(entree.id));
+    elements.supprimer.disabled = n === 0;
+    elements.supprimer.textContent = n === 0 ? 'Supprimer la sélection' : `Supprimer la sélection ${libelleNombreEtVolume(n, volumeEnOctets(selection))}`;
     elements.caseTout.disabled = filtrees.length === 0;
     elements.caseTout.checked = filtrees.length > 0 && filtrees.every((entree) => idsSelectionnes.has(entree.id));
     elements.caseTout.indeterminate = n > 0 && !elements.caseTout.checked;

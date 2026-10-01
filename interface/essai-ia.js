@@ -57,7 +57,8 @@ function ligneDeTableau(cellules, balise = 'td') {
 }
 
 // `elements` : { boite (<details>), position (<p>), niveau3 (<p>), cases
-// (<table>), coups (<table>), creer (bouton « Créer Es_ ») } ;
+// (<table>), coups (<table>), creer (bouton « Créer Es_ »), navigation (les
+// boutons dont `data-bouton-plateau` nomme un bouton de navigation) } ;
 // `obtenirEtat()` : la position du plateau et son nombre de coups joues,
 // { etat, coupsJoues }, ou null ; `creerEssai(texte, valeurs)` : la copie
 // « Es_ » avec ce coup (index.html, creerPartieEssai). Renvoie
@@ -73,6 +74,14 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   elements.creer.addEventListener('click', () => {
     if (coupChoisi) creerEssai(coupChoisi, valeursMontrees);
   });
+
+  // Les doubles des boutons de navigation du plateau (voir index.html) :
+  // chacun touche le sien, et se grise avec lui.
+  const navigation = [...elements.navigation].map((bouton) => [bouton, document.getElementById(bouton.dataset.boutonPlateau)]);
+  for (const [bouton, original] of navigation) bouton.addEventListener('click', () => original.click());
+  function actualiserNavigation() {
+    for (const [bouton, original] of navigation) bouton.disabled = original.disabled;
+  }
 
   function afficherCases(poids) {
     const cases = valeursDesCases(poids);
@@ -193,6 +202,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   // tant qu'on le voit.
   setInterval(() => {
     if (!valeursMontrees || !elements.boite.open || elements.boite.closest('dialog')?.open === false) return;
+    actualiserNavigation();
     if (obtenirEtat()?.etat !== etatMontre) afficher();
   }, VERIFICATION_POSITION_ESSAI_MS);
 
