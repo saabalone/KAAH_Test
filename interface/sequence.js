@@ -150,6 +150,9 @@ function activerRedimensionnementHauteur(panneau, poignee) {
     // Ni trop petit (l'en-tete et une ligne au moins doivent rester
     // visibles) ni plus grand que la fenetre elle-meme.
     panneau.style.height = `${Math.max(120, Math.min(hauteurDemandee, window.innerHeight))}px`;
+    // Sur ordinateur, elle ne remplit plus la colonne : cette hauteur-la
+    // (styles.css, interface/hauteurs-colonne.js).
+    panneau.classList.add('hauteur-choisie');
   });
 
   // Relache EXPLICITEMENT la capture (bug trouve par saab : un

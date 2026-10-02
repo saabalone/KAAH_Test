@@ -94,8 +94,8 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   let dernierInstant = Date.now();
   let arrete = false;
   // Pause DEMANDEE PAR LE JOUEUR (clic sur une pendule, ou sur le grand
-  // bouton rond — voir rendu/pendule.js et index.html). Ne concerne que la
-  // pendule de la partie : l'analyse se joue librement, son chrono tourne.
+  // bouton rond — voir rendu/pendule.js et index.html). Celle de la pendule de
+  // la partie ; le chrono d'analyse a la sienne (pauseAnalyse, plus bas).
   //
   // Commence a TRUE (signale par saab) : une partie neuve OU reprise ne
   // doit jamais decompter toute seule des l'affichage — seul un clic
@@ -106,6 +106,10 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // vert des pendules (et, phase 27, `elementsAffichage.message` plus bas)
   // signale alors qu'un clic est attendu.
   let pauseManuelle = true;
+  // La pause du chrono d'analyse (saab, 2026-10-02 : machines relancees sur une
+  // position deja jouee, interface/ia.js) : levee au depart, l'analyse reste
+  // libre tant qu'on ne touche pas une pendule.
+  let pauseAnalyse = false;
   let alerteTempsDonnee = false;
   // Le temps arrete sans pause affichee (saab, 2026-09-30 : pendant que la
   // boite du nom est ouverte contre la machine, interface/ia.js) : aucune
@@ -122,7 +126,7 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
 
   function horlogeQuiTourne() {
     if (suspendu) return null;
-    return horloge === 'partie' && pauseManuelle ? null : horlogeDuCoup();
+    return estEnPauseManuelle() ? null : horlogeDuCoup();
   }
 
   function suspendre(oui) {
@@ -225,9 +229,9 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   }
 
   // Bascule la pause manuelle (clic sur une pendule ou sur le grand
-  // bouton rond, voir interface/saisie.js). REFUSEE hors de la pendule de la
-  // partie (historique, partie terminee, analyse) : mettre en pause ce qui ne
-  // decompte pas n'a aucun sens.
+  // bouton rond, voir interface/saisie.js) : celle de l'horloge suivie, la
+  // pendule de la partie ou le chrono d'analyse. REFUSEE sur un instantane
+  // fige (historique, partie terminee) : rien n'y decompte.
   //
   // Renvoie si la bascule A EU LIEU, jamais l'etat obtenu (lire
   // estEnPauseManuelle pour ca). Bug signale par saab : en renvoyant
@@ -237,21 +241,20 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // faire disparaitre ensuite, puisque chaque nouveau clic etait refuse de
   // la meme facon et renvoyait encore `true`.
   function basculerPauseManuelle() {
-    if (horloge !== 'partie') return false;
-    pauseManuelle = !pauseManuelle;
+    if (horloge === null) return false;
+    if (horloge === 'partie') pauseManuelle = !pauseManuelle;
+    else pauseAnalyse = !pauseAnalyse;
     // En reprenant, on ne doit pas compter le temps passe en pause comme
     // si le joueur au trait l'avait reflechi.
-    if (!pauseManuelle) dernierInstant = Date.now();
+    if (!estEnPauseManuelle()) dernierInstant = Date.now();
     afficherPendules();
     return true;
   }
 
+  // La pause de l'horloge suivie (jamais sur un instantane fige).
   function estEnPauseManuelle() {
-    return pauseManuelle;
-  }
-
-  function horlogeSuivie() {
-    return horloge;
+    if (horloge === null) return false;
+    return horloge === 'partie' ? pauseManuelle : pauseAnalyse;
   }
 
   // ecrireSiChange (rendu/plateau-svg.js) : verifier() tourne 4 fois par seconde
@@ -262,15 +265,15 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   // partie : ailleurs cliquer ne ferait rien (basculerPauseManuelle refuse).
   // Change les classes seulement si l'etat change : appelee a chaque affichage.
   function signalerEtatPause() {
-    const cliquable = horloge === 'partie';
-    const enAttente = cliquable && pauseManuelle;
+    const cliquable = horloge !== null;
+    const enAttente = cliquable && estEnPauseManuelle();
     for (const element of [elementsAffichage.noir, elementsAffichage.blanc]) {
       const bouton = element.closest('.bouton-pendule');
       bouton?.classList.toggle('pendule-en-attente', enAttente);
-      bouton?.classList.toggle('pendule-en-marche', cliquable && !pauseManuelle);
+      bouton?.classList.toggle('pendule-en-marche', cliquable && !enAttente);
     }
-    // Phase 27 : meme condition que le vert des pendules ci-dessus.
-    if (elementsAffichage.message) elementsAffichage.message.hidden = !enAttente;
+    // Phase 27 : le rappel, seulement pour la partie (pas une pause d'analyse).
+    if (elementsAffichage.message) elementsAffichage.message.hidden = !(horloge === 'partie' && pauseManuelle);
   }
 
   function afficherPendules() {
@@ -319,7 +322,6 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     arreter,
     basculerPauseManuelle,
     estEnPauseManuelle,
-    horlogeSuivie,
     changerMode,
     suspendre,
   };

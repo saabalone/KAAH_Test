@@ -53,7 +53,7 @@ function dessinerNomJoueur(svg, camp, y, nom, enHaut) {
   groupe.appendChild(tour);
   // Annuler, sur la ligne de chaque joueur (saab, 2026-10-02 : a la place du
   // grand bouton sous le plateau) : interface/saisie.js le relie a Annuler.
-  groupe.appendChild(creerBoutonFin('bouton-annuler-joueur', { camp }, 'Annuler'));
+  groupe.appendChild(creerBoutonFin('bouton-annuler-joueur', { camp }, 'ANNULER'));
   creerBoutonsAbandonNulle(groupe);
   svg.appendChild(groupe);
   disposerLigneNom(groupe);

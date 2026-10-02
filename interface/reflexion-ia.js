@@ -148,6 +148,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
       parent = noeud;
     });
     afficherTableau();
+    recherche.montrerPosition(parent.etat); // ce que KAI++ a cherche ici
   }
 
   function afficherEnCours(nouveau) {
@@ -170,5 +171,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
     brancherRelance: (action) => {
       relancer = action;
     },
+    // Une recherche de KAI++ finie, gardee pour la revoir (interface/recherche-ia.js).
+    garderRecherche: (nouvelle) => recherche.garder(nouvelle),
   };
 }

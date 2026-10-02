@@ -27,12 +27,16 @@ function ajusterHauteursColonne() {
     defilement.style.maxHeight = '';
     return;
   }
-  const sequenceOuverte = !sequence.hidden && sequence.parentElement === colonne;
+  // Une Sequence a la hauteur choisie a la poignee (interface/sequence.js) ne
+  // se partage pas : Reflexion IA prend tout ce qui reste.
+  const sequenceQuiRemplit = !sequence.hidden && sequence.parentElement === colonne && !sequence.classList.contains('hauteur-choisie');
+  const avant = { flex: sequence.style.flex, height: sequence.style.height };
   // Ce que la Sequence demanderait au-dela de sa hauteur minimale.
   let besoinSequence = 0;
-  if (sequenceOuverte) {
+  if (sequenceQuiRemplit) {
     const minimum = parseFloat(getComputedStyle(sequence).minHeight) || 0;
     sequence.style.flex = 'none';
+    sequence.style.height = 'auto';
     besoinSequence = Math.max(0, sequence.offsetHeight - minimum);
     sequence.style.height = `${minimum}px`;
   }
@@ -41,19 +45,20 @@ function ajusterHauteursColonne() {
   // qu'on mesure.
   const basDuContenu = Math.max(...[...colonne.children].map((enfant) => enfant.getBoundingClientRect().bottom));
   const libre = window.innerHeight - basDuContenu;
-  sequence.style.flex = '';
-  sequence.style.height = '';
-  const pourReflexion = sequenceOuverte ? libre - Math.min(besoinSequence, libre / MOITIE) : libre;
+  Object.assign(sequence.style, avant);
+  const pourReflexion = sequenceQuiRemplit ? libre - Math.min(besoinSequence, libre / MOITIE) : libre;
   defilement.style.maxHeight = `${Math.max(HAUTEUR_MINIMUM_REFLEXION_PX, pourReflexion)}px`;
 }
 
-// La colonne change quand un tableau s'ouvre, se ferme ou grandit ; la
-// fenetre, quand on la redimensionne. Une image plus tard : ce reglage change
-// lui-meme ce qui est observe.
+// Les fenetres de la colonne changent quand un tableau s'ouvre, se ferme,
+// grandit ou prend une hauteur choisie (la colonne, elle, garde la hauteur de
+// l'ecran) ; la fenetre, quand on la redimensionne. Une image plus tard : ce
+// reglage change lui-meme ce qui est observe.
 function demarrerHauteursColonne() {
   const reajuster = () => requestAnimationFrame(ajusterHauteursColonne);
   const reflexion = document.getElementById('reflexion-ia');
-  new ResizeObserver(reajuster).observe(reflexion.parentElement);
+  const observateur = new ResizeObserver(reajuster);
+  for (const fenetre of reflexion.parentElement.children) observateur.observe(fenetre);
   window.addEventListener('resize', reajuster);
   reflexion.addEventListener('toggle', reajuster);
   return reajuster;

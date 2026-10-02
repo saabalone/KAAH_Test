@@ -462,16 +462,20 @@ function demarrerPartie(
   // c'est de l'analyse, le vrai decompte reste fige de son cote et ne
   // reprendra qu'au retour sur le point vivant.
   function jeuSuspendu() {
-    return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle() && pendules.horlogeSuivie() === 'partie');
+    return apercuPermutationActif || (!pauseIgnoree && pendules.estEnPauseManuelle());
   }
 
   // Pauses prises depuis l'ouverture de la partie, affichees sur le grand
   // bouton rond (rendu/pendule.js). Le premier clic, qui DEMARRE la partie,
   // leve la pause de depart : il ne compte pas.
   let nombreDePauses = 0;
+  // Contre une machine (interface/ia.js), le plateau reste visible en pause
+  // (saab, 2026-10-02 : « sinon on ne voit plus pour etudier ») : les pendules
+  // vertes suffisent a la signaler.
+  let pauseSansRideau = () => false;
   function basculerPause() {
     if (!pendules.basculerPauseManuelle()) return;
-    if (pendules.estEnPauseManuelle()) afficherPause(svg, ++nombreDePauses);
+    if (pendules.estEnPauseManuelle() && !pauseSansRideau()) afficherPause(svg, ++nombreDePauses);
     else masquerPause(svg);
   }
 
@@ -968,6 +972,9 @@ function demarrerPartie(
     },
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
+    },
+    definirPauseSansRideau: (predicat) => {
+      pauseSansRideau = predicat;
     },
     definirNulleAutomatique: (predicat) => {
       nulleAutomatique = predicat;

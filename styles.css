@@ -4581,13 +4581,18 @@ body.face-a-face > #barre-annuler {
 
 .bouton-annuler-joueur-texte {
   fill: #ffffff;
-  font: bold 4.4px sans-serif;
+  font: bold 5.5px sans-serif; /* plus gros que les autres boutons de la ligne (saab) */
   pointer-events: none;
 }
 
 .bouton-annuler-joueur.bouton-annuler-inactif {
   opacity: 0.35;
   cursor: default;
+}
+
+/* « Tour n » en blanc pour Blanc (saab, 2026-10-02), comme ses autres textes. */
+.nom-joueur-blanc .nom-tour {
+  fill: #ffffff;
 }
 
 .nom-joueur-noir .bouton-annuler-joueur-texte,
@@ -4607,12 +4612,14 @@ body.face-a-face > #barre-annuler {
      - la colonne du plateau a exactement la largeur du plateau (plus de vide
        de part et d'autre, plus de largeur maximale) ;
      - la colonne de droite prend TOUT le reste de la largeur, et toute la
-       hauteur ; ses fenetres en prennent la largeur (les poignees de largeur
-       et de hauteur de la Sequence n'ont plus d'objet) ;
+       hauteur ; ses fenetres en prennent la largeur ;
      - la Sequence remplit la hauteur restante (« comme Reflexion »), qui
        recoit la sienne de interface/hauteurs-colonne.js.
-   La colonne de droite cede en premier quand la fenetre retrecit (176 px au
-   moins) : le plateau ne retrecit qu'ensuite.
+   Les poignees de la Sequence restent (saab : « pratiques pour etudier les
+   tableaux, un petit plateau n'est pas genant ») : la largeur choisie est
+   celle de la colonne, au besoin aux depens du plateau (--largeur-sequence,
+   interface/sequence.js) ; une hauteur choisie fige la Sequence
+   (.hauteur-choisie), Reflexion IA prend le reste.
    --------------------------------------------------------------------- */
 @media (min-width: 700px) {
   body:not(.face-a-face) #colonne-principale {
@@ -4621,7 +4628,7 @@ body.face-a-face > #barre-annuler {
   }
 
   body:not(.face-a-face) #colonne-droite {
-    flex: 1 1 0;
+    flex: 1 0 var(--largeur-sequence, 0px);
     min-width: 176px;
     align-self: stretch;
     height: 100vh;
@@ -4643,8 +4650,7 @@ body.face-a-face > #barre-annuler {
     height: auto;
   }
 
-  body:not(.face-a-face) #arbre-poignee-hauteur,
-  body:not(.face-a-face) #arbre-poignee-largeur {
-    display: none;
+  body:not(.face-a-face) #colonne-droite > #arbre-panneau.hauteur-choisie {
+    flex: 0 0 auto;
   }
 }

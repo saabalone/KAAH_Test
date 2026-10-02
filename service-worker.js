@@ -60,6 +60,7 @@ const FICHIERS_ESSENTIELS = [
   './moteur/ia-evaluation.js',
   './moteur/ia-evaluation-v2.js',
   './moteur/ia-memoire.js',
+  './moteur/archive-recherches.js',
   './moteur/ia-recherche.js',
   './moteur/ia.js',
   './moteur/historique-profil-ia.js',

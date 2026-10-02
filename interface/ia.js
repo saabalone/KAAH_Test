@@ -103,6 +103,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   const pendule = (camp) => svg.querySelector(`#bouton-pendule-${camp}`);
   evaluations.definirMachines(machines);
   partie.definirNulleAutomatique(() => Boolean(machines.noir && machines.blanc));
+  partie.definirPauseSansRideau(() => Boolean(machines.noir || machines.blanc));
 
   // Les noms (cadre vert d'une machine) et le tableau de reflexion, montre
   // seulement s'il y a une machine a la table.
@@ -198,6 +199,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // precedent), ou retenu comme ce qu'elle aurait joue. Jamais pendant que la
     // boite du nom est ouverte.
     function jouer({ texte, source, profondeur, evaluation, noeuds, sequence }) {
+      // La recherche de KAI++ par premier coup, gardee a part (interface/recherche-ia.js).
+      if (suivi.details) reflexion.garderRecherche({ etat, machine: nomDeLaMachine(machine), coupsJoues, camp, genre, details: suivi.details });
       const duree = (maintenant() - debut) / MILLISECONDES_PAR_SECONDE;
       const attente = suivi.arreter || hypothese ? 0 : Math.max(0, debut + DELAI_MINIMUM_REPONSE_MS - maintenant());
       function conclure() {

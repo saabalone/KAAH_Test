@@ -228,4 +228,5 @@ function activerRedimensionnementOccurrencesPortrait(arbrePanneau, poignee) {
 // hauteur du plateau).
 function reinitialiserHauteurOccurrencesPortrait(arbrePanneau) {
   arbrePanneau.style.height = '';
+  arbrePanneau.classList.remove('hauteur-choisie'); // interface/sequence.js
 }
