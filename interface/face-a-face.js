@@ -22,19 +22,27 @@
 // iOS/Safari et n'est accepte ailleurs qu'en plein ecran — jamais une erreur
 // si c'est refuse, le mode fonctionne quand meme.
 //
-// Retenu dans localStorage pour survivre a un rechargement.
+// Retenu dans localStorage pour survivre a un rechargement — sauf a la premiere
+// ouverture d'une nouvelle version (saab, 2026-10-02 : « par defaut a
+// l'ouverture d'une version, ni en face-a-face »).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : replacerNavigation
-// (interface/disposition.js) et HAUTEUR_BOUTON_PENDULE (rendu/pendule.js)
-// viennent de fichiers charges avant celui-ci dans index.html.
+// (interface/disposition.js), HAUTEUR_BOUTON_PENDULE (rendu/pendule.js) et
+// NOM_VERSION_KAAH_TEST (version.js) viennent de fichiers charges avant celui-ci dans index.html.
 
 const CLE_FACE_A_FACE = 'kaah-face-a-face';
+// La version pour laquelle le face-a-face retenu vaut.
+const CLE_VERSION_FACE_A_FACE = 'kaah-face-a-face-version';
 
 let boutonFaceAFace = null;
 let faceAFaceActif = false;
 
 function lireFaceAFace() {
   try {
+    if (window.localStorage.getItem(CLE_VERSION_FACE_A_FACE) !== NOM_VERSION_KAAH_TEST) {
+      window.localStorage.setItem(CLE_VERSION_FACE_A_FACE, NOM_VERSION_KAAH_TEST);
+      ecrireFaceAFace(false);
+    }
     return window.localStorage.getItem(CLE_FACE_A_FACE) === '1';
   } catch {
     return false; // stockage indisponible : jamais un plantage pour un reglage

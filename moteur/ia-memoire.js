@@ -32,8 +32,8 @@ function creerMemoireIA() {
 
 // La position ET le camp au trait : la meme position ne vaut pas la meme
 // chose selon qui doit jouer.
-function cleDePositionIA(etat) {
-  return `${ecrirePosition(etat)}${etat.joueurAuTrait}`;
+function cleDePositionIA(etat, position = ecrirePosition(etat)) {
+  return `${position}${etat.joueurAuTrait}`;
 }
 
 // Un coup, quelle que soit la position : sa premiere et sa derniere bille,

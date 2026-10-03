@@ -351,6 +351,9 @@ function demarrerPartie(
   // deux boutons dont le mode est actuellement affiche, jamais les deux a
   // la fois (un seul panneau physique, un seul mode visible) — et sur
   // aucun des deux une fois le panneau referme.
+  // Une Option (Revanche, Same) qu'on peut encore refaire (index.html, saab
+  // 2026-10-02) : le cadre du tour dit alors « Options », comme en fin de partie.
+  let optionARefaire = () => false;
   let modePanneauArbre = 'sequence';
 
   // Les deux boutons suivent l'etat REEL du panneau (visible ou non, quel
@@ -855,7 +858,7 @@ function demarrerPartie(
     // sans suite (puzzle perdu).
     abandonNulle.reinitialiser();
     signalerCampAuTrait(etat.joueurAuTrait);
-    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre));
+    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre) || optionARefaire());
     actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Coordonnees sur les billes du camp au trait (phase 19bis) : `null`
     // une fois la partie terminee, `.bille-null` ne correspond alors a
@@ -947,6 +950,8 @@ function demarrerPartie(
       return applique;
     },
     jouerCoupTexte,
+    // Aller a un coup, comme un clic dans la Sequence (Reflexion IA, interface/reflexion-ia.js).
+    sauterVersNoeud,
     // Adversaire artificiel (phase 29, interface/ia.js) : un coup peut-il etre
     // joue LA, maintenant ? Une feuille jouable (jamais en parcourant
     // l'historique) — y compris une branche, ou la suite d'une partie perdue
@@ -978,6 +983,10 @@ function demarrerPartie(
     },
     definirNulleAutomatique: (predicat) => {
       nulleAutomatique = predicat;
+    },
+    definirOptionARefaire: (predicat) => {
+      optionARefaire = predicat;
+      actualiserAffichagePartie();
     },
     // Correspondance (phase 24, index.html) : voir jeuSuspendu, finDemandee et
     // terminerPartie plus haut.

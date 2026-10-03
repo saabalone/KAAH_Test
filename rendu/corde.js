@@ -71,6 +71,18 @@ function casesDePiste(svg, enHaut) {
     }));
 }
 
+// L'espace entre deux cases voisines de la piste (bord a bord) : la corde en
+// garde autant autour des cases qu'elle contourne ou longe (saab, 2026-10-03 :
+// « laisser un espace identique a celui entre 2 cases eject, ca serait plus
+// harmonieux »).
+function ecartEntreCases(cases) {
+  let ecart = Infinity;
+  for (const [rang, une] of cases.entries()) {
+    for (const autre of cases.slice(rang + 1)) ecart = Math.min(ecart, Math.hypot(autre.x - une.x, autre.y - une.y) - une.rayon - autre.rayon);
+  }
+  return ecart;
+}
+
 // Un cote de l'hexagone : direction (de `debut` vers `fin`), normale vers
 // l'exterieur, et sa distance au centre le long de cette normale.
 function coteDuPlateau(debut, fin) {
@@ -125,11 +137,33 @@ function poulieEntreVerticaleEtCote(x, cote) {
   return { x: xCentre, y: (cote.distance + RAYON_ARRONDI_CORDE - n.x * xCentre) / n.y, rayon: -RAYON_ARRONDI_CORDE };
 }
 
+// L'arrondi a l'envers, dans le creux entre deux poulies `a` et `b` qui se
+// suivent (saab, 2026-10-03 : de la case 1 au drapeau, « contourner un peu la
+// case eject puis arrondir vers le drapeau ») : un cercle tangent aux deux, du
+// cote exterieur (le plus loin du centre du plateau). Rien si elles sont trop
+// loin l'une de l'autre pour qu'il les touche toutes les deux.
+function poulieDansLeCreux(a, b, rayon) {
+  const ra = Math.abs(a.rayon) + rayon;
+  const rb = Math.abs(b.rayon) + rayon;
+  const distance = Math.hypot(b.x - a.x, b.y - a.y);
+  if (distance > ra + rb || distance < Math.abs(ra - rb)) return [];
+  const leLong = (ra * ra - rb * rb + distance * distance) / (2 * distance);
+  const travers = Math.sqrt(ra * ra - leLong * leLong);
+  const ux = (b.x - a.x) / distance;
+  const uy = (b.y - a.y) / distance;
+  const pied = { x: a.x + leLong * ux, y: a.y + leLong * uy };
+  const candidats = [1, -1].map((sens) => ({ x: pied.x - sens * travers * uy, y: pied.y + sens * travers * ux }));
+  const exterieur = candidats.reduce((loin, c) => (Math.hypot(c.x, c.y) > Math.hypot(loin.x, loin.y) ? c : loin));
+  return [{ ...exterieur, rayon: -rayon }];
+}
+
 // Le trajet de la moitie `enHaut` (ou du bas, ramenee en haut), en poulies.
 function pouliesDemiCorde(svg, enHaut) {
   const sommets = sommetsDuHaut();
   const coteGauche = coteDuPlateau(sommets.gauche, sommets.hautGauche);
-  const cases = casesDePiste(svg, enHaut).map((c) => ({ ...c, rayon: c.rayon + MARGE_CORDE }));
+  const piste = casesDePiste(svg, enHaut);
+  const ecart = ecartEntreCases(piste);
+  const cases = piste.map((c) => ({ ...c, rayon: c.rayon + ecart }));
   const [premiere, sixieme] = [cases[0], cases.at(-1)];
   const abandon = boiteDuCote(svg, '.bouton-fin-piste[data-action="abandon"] .bouton-fin-piste-fond', enHaut);
   const nulle = boiteDuCote(svg, '.bouton-fin-piste[data-action="nulle"] .bouton-fin-piste-fond', enHaut);
@@ -137,6 +171,7 @@ function pouliesDemiCorde(svg, enHaut) {
   // (sur l'axe y = 0), en suivant leur arrondi (saab : "toi tu as fait un angle").
   const coinGauche = poulieCoinDuPlateau(sommets.gauche);
   const coinDroit = poulieCoinDuPlateau(sommets.droite);
+  const drapeau = poulieCoinDeBouton(abandon, 'basGauche');
 
   return [
     { x: coinGauche.x - coinGauche.rayon, y: 0, rayon: 0 },
@@ -144,7 +179,8 @@ function pouliesDemiCorde(svg, enHaut) {
     poulieQuitteLeCote(coteGauche, sixieme),
     sixieme,
     premiere,
-    poulieCoinDeBouton(abandon, 'basGauche'),
+    ...poulieDansLeCreux(premiere, drapeau, RAYON_ARRONDI_CORDE),
+    drapeau,
     poulieCoinDeBouton(abandon, 'hautGauche'),
     poulieCoinDeBouton(nulle, 'hautDroite'),
     poulieEntreVerticaleEtCote(nulle.x2 + MARGE_CORDE, coteGauche),

@@ -96,3 +96,13 @@ function valeursDesCases(poids) {
     };
   });
 }
+
+// Ce que la sequence entiere (des coups ecrits, joues depuis `etat`) change a
+// chaque terme, pour le camp au trait de `etat` (saab, 2026-10-02 : colonnes
+// Gain, Perte, Centre... du tableau Recherche par 1er coup, interface/
+// recherche-ia.js). etatsDeLaSequence vient de moteur/sequence-prevue.js.
+function ecartsDeLaSequence(etat, sequence, poids, version) {
+  const fin = etatsDeLaSequence(etat, sequence).at(-1);
+  const camp = etat.joueurAuTrait;
+  return ecartsDesTermes(detailDeLEvaluation(etat, camp, poids, version), detailDeLEvaluation(fin, camp, poids, version));
+}

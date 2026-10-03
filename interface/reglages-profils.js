@@ -55,9 +55,13 @@ function lireNomProfilActif() {
 // nouvelle cle, ex. hole_color, retrouve quand meme sa valeur par defaut —
 // meme garantie que fusionnerReglages).
 function lireReglagesActifs() {
-  const nom = lireNomProfilActif();
-  if (nom === NOM_PROFIL_DEFAUT) return REGLAGES_PAR_DEFAUT;
-  return fusionnerReglages(lireStockageProfils().profils[nom]);
+  return lireReglagesDuProfil(lireNomProfilActif());
+}
+
+function lireReglagesDuProfil(nom) {
+  const profils = lireStockageProfils().profils;
+  if (nom === NOM_PROFIL_DEFAUT || !(nom in profils)) return REGLAGES_PAR_DEFAUT;
+  return fusionnerReglages(profils[nom]);
 }
 
 // Ecrase le profil ACTIF avec `reglages` — jamais « Défaut » (toujours

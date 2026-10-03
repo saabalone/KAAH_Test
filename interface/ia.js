@@ -53,7 +53,9 @@
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
 // phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
-// marquerNomMachine (rendu/ligne-joueur.js), solutionsDeLaSequence,
+// marquerNomMachine, colorerStyleDuNom (rendu/ligne-joueur.js), ABREVIATIONS_STYLES_IA
+// (moteur/ia.js), couleurDeLaMachineIA (moteur/couleurs-profil-ia.js),
+// trouverProfilIA (interface/profils-ia.js), solutionsDeLaSequence, solutionsDeLAdversaire,
 // cleDeSolution (moteur/sequence-prevue.js), noeudA, cheminsEgaux (moteur/arbre.js)
 // viennent de fichiers charges avant celui-ci.
 
@@ -107,8 +109,13 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
 
   // Les noms (cadre vert d'une machine) et le tableau de reflexion, montre
   // seulement s'il y a une machine a la table.
+  // L'abreviation de son style (« Nor ») dans la couleur de ses reglages.
   function marquerNoms() {
-    for (const camp of ['noir', 'blanc']) marquerNomMachine(svg, camp, { machine: Boolean(machines[camp]), enMarche: enMarche[camp] });
+    for (const camp of ['noir', 'blanc']) {
+      const machine = machines[camp];
+      marquerNomMachine(svg, camp, { machine: Boolean(machine), enMarche: enMarche[camp] });
+      colorerStyleDuNom(svg, camp, machine ? ABREVIATIONS_STYLES_IA[machine.style] : '', machine ? couleurDeLaMachineIA(machine, trouverProfilIA(machine.profil)) : null);
+    }
     montrerTableau();
   }
 
@@ -125,6 +132,14 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // avance d'un coup a la fois depuis la ou elle en est (machine ou humain) ;
   // naviguer ailleurs l'arrete.
   let relance = null; // { chemin } : la position ou elle en est, ou null
+
+  // Pas a pas (saab, 2026-10-03 : « faire avancer les parties IA contre IA au
+  // coup par coup ou auto ») : la machine au trait attend « Coup IA » (un coup
+  // permis), et le temps avec elle — sa pendule ne tourne pas pendant qu'on
+  // regarde. Auto : comme avant.
+  let pasAPas = false;
+  let coupsPermis = 0;
+  let tempsArretePourAttendre = false;
 
   function suitLaRelance(chemin) {
     if (cheminsEgaux(chemin, relance.chemin)) return true;
@@ -152,7 +167,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       evaluations.definirEnCours(null);
       return reflexion.afficherEnCours(hypotheseAffichee);
     }
-    const { etat, camp, coupsJoues, suivi, debut, genre } = reflexionEnCours;
+    const { etat, camp, coupsJoues, suivi, debut, genre, machine } = reflexionEnCours;
     evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation });
     reflexion.afficherEnCours({
       etat,
@@ -163,7 +178,10 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       noeuds: suivi.noeuds,
       evaluation: suivi.evaluation,
       sequence: suivi.sequence ? textesDeLaSequence(etat, suivi.sequence) : [],
-      details: suivi.details, // KAI++ : sa recherche par premier coup
+      details: suivi.details, // KAI++ : sa recherche par premier coup, et les poids de ses colonnes
+      poids: machine.poids,
+      version: machine.version,
+      reflexionMax: machine.reflexionMax,
       hypothese: genre !== 'jeu',
       suggestion: genre === 'suggestion',
     });
@@ -183,7 +201,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // (saab, 2026-10-01 : case Livre, interface/choix-joueurs.js).
     const base = obtenirBase();
     const livre = machine.livre && base.size > 0 ? base : null;
-    reflexionEnCours = { etat, camp, coupsJoues, suivi, debut, genre };
+    reflexionEnCours = { etat, camp, coupsJoues, suivi, debut, genre, machine };
     if (!hypothese) pendule(camp)?.classList.add('machine-reflechit');
     montrerTableau();
 
@@ -200,7 +218,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // boite du nom est ouverte.
     function jouer({ texte, source, profondeur, evaluation, noeuds, sequence }) {
       // La recherche de KAI++ par premier coup, gardee a part (interface/recherche-ia.js).
-      if (suivi.details) reflexion.garderRecherche({ etat, machine: nomDeLaMachine(machine), coupsJoues, camp, genre, details: suivi.details });
+      if (suivi.details) reflexion.garderRecherche({ etat, machine: nomDeLaMachine(machine), coupsJoues, camp, genre, details: suivi.details, poids: machine.poids, version: machine.version, reflexionMax: machine.reflexionMax });
       const duree = (maintenant() - debut) / MILLISECONDES_PAR_SECONDE;
       const attente = suivi.arreter || hypothese ? 0 : Math.max(0, debut + DELAI_MINIMUM_REPONSE_MS - maintenant());
       function conclure() {
@@ -222,6 +240,13 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         const jouerLeCoup = () => partie.jouerCoupTexte(texte, reflexionIA, commentaire);
         if (hypothese) return hypotheses.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, jouer: jouerLeCoup });
         for (const solution of solutionsDeLaSequence(etat, sequence, evaluation)) solutions.set(solution.cle, { ...solution, machine });
+        // La machine d'en face le sait aussi : elle joue sa part de la fin sans
+        // chercher (saab, 2026-10-02 : « il faut qu'elle sache qu'elle a perdu »).
+        // Pas si cette fin a ete vue en elaguant : rien ne dit qu'elle est forcee.
+        const adverse = machines[camp === 'noir' ? 'blanc' : 'noir'];
+        if (adverse && !machine.elagage) {
+          for (const solution of solutionsDeLAdversaire(etat, sequence, evaluation)) if (!solutions.has(solution.cle)) solutions.set(solution.cle, { ...solution, machine: adverse });
+        }
         jouerLeCoup();
       }
       setTimeout(conclure, attente);
@@ -260,7 +285,21 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const etat = etatCourant(arbre);
     const camp = etat.joueurAuTrait;
     const active = Boolean(machines[camp]) && enMarche[camp];
-    if (active && peutJouerIci()) return reflechir(etat, camp, 'jeu');
+    const attend = active && peutJouerIci() && pasAPas && coupsPermis === 0;
+    // A chaque coup d'oeil : la boite du nom, refermee, relance le temps.
+    if (attend) {
+      tempsArretePourAttendre = true;
+      partie.suspendreLeTemps(true);
+      return;
+    }
+    if (tempsArretePourAttendre) {
+      tempsArretePourAttendre = false;
+      partie.suspendreLeTemps(false);
+    }
+    if (active && peutJouerIci()) {
+      coupsPermis = Math.max(0, coupsPermis - 1);
+      return reflechir(etat, camp, 'jeu');
+    }
     // Deja jouee, et pas par elle : que joue-t-elle ?
     const aEnvisager = active && partie.peutEnvisagerUnCoup() && (toujoursEnvisager || !noeudCourant(arbre).enfants.some((enfant) => enfant.reflexionIA));
     if (aEnvisager && !hypotheses.has(etat)) return reflechir(etat, camp, 'hypothese');
@@ -290,6 +329,16 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   // ne retire qu'un coup.
   // Le bouton « Relancer » du tableau (voir `relance` plus haut) : les machines
   // arretees repartent aussi. Une hypothese en cours finit tout de suite.
+  reflexion.brancherNavigation((chemin) => partie.sauterVersNoeud(chemin));
+  reflexion.brancherPasAPas(
+    (oui) => {
+      pasAPas = oui;
+      coupsPermis = 0;
+    },
+    () => {
+      coupsPermis = 1;
+    }
+  );
   reflexion.brancherRelance(() => {
     relance = { chemin: partie.obtenirArbre().chemin };
     for (const camp of ['noir', 'blanc']) if (machines[camp]) enMarche[camp] = true;

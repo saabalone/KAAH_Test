@@ -29,7 +29,9 @@
 // (rendu/ligne-joueur.js), NOM_CAMP (rendu/ejections.js), nomJoueurAutorise
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
 // (moteur/ia.js), memesReglagesIA, LIBELLES_REGLAGES_IA
-// (moteur/historique-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
+// (moteur/historique-profil-ia.js), couleursDeLaMachineIA, couleurLaPlusForte
+// (moteur/couleurs-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
+// poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreParDefaut,
 // ROLE_HUMAIN (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
@@ -103,7 +105,13 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     }
     const profil = trouverProfilIA(machine.profil);
     const retouche = profil && !memesReglagesIA(profil, machine) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
-    elements.descriptionMachine.textContent = `${nomDeLaMachine(machine)} : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`;
+    // Les couleurs de ses poids, et celle de son style dans son nom (saab,
+    // 2026-10-02 : de la valeur jusqu'a son fichier).
+    const couleurs = couleursDeLaMachineIA(machine, profil);
+    elements.descriptionMachine.replaceChildren(
+      ...nomDeLaMachineColore(machine, couleurLaPlusForte(Object.values(couleurs))),
+      ` : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`
+    );
     elements.poidsMachine.replaceChildren(
       ...Object.entries(machine.poids).map(([cle, valeur]) => {
         const tr = document.createElement('tr');
@@ -112,6 +120,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
         libelle.textContent = LIBELLES_REGLAGES_IA[cle];
         nombre.textContent = valeur;
         tr.append(libelle, nombre);
+        poserCouleurIA(tr, couleurs[cle]);
         return tr;
       })
     );

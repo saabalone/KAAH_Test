@@ -94,12 +94,10 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
         arbrePanneau.after(barreAnnuler);
         enteteJeu.after(messageDemarrage);
       }
-      // L'attribut `hidden` de la partie HTML vaut pour le repli PAR
-      // DEFAUT sur telephone (laisser toute la place au plateau) — sur
-      // ordinateur, la sequence a toujours ete visible d'entree (voir
-      // styles.css) ; le nouveau bouton pour la masquer, lui, ne doit
-      // jamais partir deja replie.
-      arbrePanneau.hidden = false;
+      // L'attribut `hidden` de la partie HTML : la Sequence repliee PAR
+      // DEFAUT, sur ordinateur aussi desormais (saab, 2026-10-02 : « par
+      // defaut a l'ouverture, ne pas mettre les tableaux ») — son bouton
+      // l'ouvre.
       // Un plateau reduit a la main en portrait (phase 18,
       // activerRedimensionnementPlateauPortrait) n'a plus de sens des
       // qu'on quitte le portrait telephone : la hauteur de l'ECRAN
@@ -157,4 +155,19 @@ function demarrerExtensionColonneGauche(bouton, colonne) {
       colonne.classList.remove('colonne-gauche-etendue');
     }
   });
+}
+
+// Des doubles des boutons de navigation du plateau, la ou ils manquent (l'essai
+// des poids, saab 2026-10-01 ; sous Reflexion IA, 2026-10-02) : chacun nomme le
+// sien (`data-bouton-plateau`) et le touche. Renvoie de quoi les griser (et les
+// etiqueter, Lecture ▶ / ⏸) comme les leurs, a appeler apres chaque changement.
+function doublerBoutonsPlateau(boutons) {
+  const paires = [...boutons].map((bouton) => [bouton, document.getElementById(bouton.dataset.boutonPlateau)]);
+  for (const [bouton, original] of paires) bouton.addEventListener('click', () => original.click());
+  return () => {
+    for (const [bouton, original] of paires) {
+      bouton.disabled = original.disabled;
+      bouton.textContent = original.textContent;
+    }
+  };
 }

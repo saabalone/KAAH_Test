@@ -5,25 +5,21 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : PROFILS_IA_INTEGRES,
 // lireProfilIA (moteur/profils-ia.js), formaterDateKAAWA (interface/
-// sauvegarde.js), nomDisponible (moteur/corbeille.js) viennent de fichiers
+// sauvegarde.js), nomDisponible (moteur/corbeille.js), nomDuProfilALaVersion
+// (moteur/historique-profil-ia.js) viennent de fichiers
 // charges avant celui-ci.
 
 const CLE_PROFILS_IA = 'kaah-profils-ia';
-// Le dernier indice donne a un profil (saab, 2026-10-01 : « indexer chaque
-// profil IA », repris dans le nom de ses machines, KAI2_Nor_5s_P3) : jamais
-// redonne, meme apres une suppression, pour que deux profils ne se confondent
-// jamais d'une partie a l'autre.
-const CLE_DERNIER_INDICE_IA = 'kaah-dernier-indice-ia';
-
-function nouvelIndiceProfilIA(profils) {
-  let dernier = Math.max(0, ...profils.map((profil) => profil.indice ?? 0));
-  try {
-    dernier = Math.max(dernier, Number(window.localStorage.getItem(CLE_DERNIER_INDICE_IA)) || 0);
-    window.localStorage.setItem(CLE_DERNIER_INDICE_IA, String(dernier + 1));
-  } catch {
-    // Sans stockage, le plus grand indice connu suffit.
-  }
-  return dernier + 1;
+// L'indice d'un nouveau profil (saab, 2026-10-01 : « indexer chaque profil
+// IA », repris dans le nom de ses machines, KAI2_Nor_5s_P3) : d'apres les
+// profils restants (moteur/profils-ia.js, prochainIndiceProfilIA) — sans profil,
+// on repart a P1 (saab, 2026-10-03). L'ancien compteur, jamais remis a zero, est
+// oublie.
+const CLE_ANCIEN_DERNIER_INDICE_IA = 'kaah-dernier-indice-ia';
+try {
+  window.localStorage.removeItem(CLE_ANCIEN_DERNIER_INDICE_IA);
+} catch {
+  // Rien a oublier.
 }
 
 // Les profils de l'utilisateur ; ceux d'avant les indices en recoivent un.
@@ -32,7 +28,7 @@ function lireProfilsIAPerso() {
     const bruts = JSON.parse(window.localStorage.getItem(CLE_PROFILS_IA) ?? '[]');
     const profils = Array.isArray(bruts) ? bruts.map(lireProfilIA).filter(Boolean) : [];
     if (profils.every((profil) => profil.indice)) return profils;
-    for (const profil of profils) profil.indice ??= nouvelIndiceProfilIA(profils);
+    for (const profil of profils) profil.indice ??= prochainIndiceProfilIA(profils);
     ecrireProfilsIAPerso(profils);
     return profils;
   } catch {
@@ -68,12 +64,26 @@ function enregistrerProfilIA(profil) {
   if (estProfilIAIntegre(profil.nom)) return false;
   const perso = lireProfilsIAPerso();
   const autres = perso.filter((existant) => existant.nom !== profil.nom);
-  return ecrireProfilsIAPerso([...autres, { ...profil, indice: profil.indice ?? nouvelIndiceProfilIA(perso) }]);
+  return ecrireProfilsIAPerso([...autres, { ...profil, indice: profil.indice ?? prochainIndiceProfilIA(perso) }]);
 }
 
 // Le nom d'un profil dans une liste, avec son indice : « IA_2610011200 (P3) ».
+// Pas deux fois quand le nom le porte deja (Normal_v2_(P4), moteur/historique-
+// profil-ia.js, nomDuProfilALaVersion).
 function libelleProfilIA(profil) {
-  return profil.indice ? `${profil.nom} (P${profil.indice})` : profil.nom;
+  if (!profil.indice || profil.nom.endsWith(`_(P${profil.indice})`)) return profil.nom;
+  return `${profil.nom} (P${profil.indice})`;
+}
+// Enregistre `profil` sous le nom de sa version courante (moteur/historique-
+// profil-ia.js, nomDuProfilALaVersion : Normal_v2, ou Normal_v2_(P4) si ce nom
+// est pris) a la place de `ancienNom` — meme profil, meme indice, meme historique. Renvoie le nom donne (jamais celui d'un autre).
+function enregistrerSousLeNomDeSaVersion(ancienNom, profil) {
+  const autres = lireProfilsIAPerso().filter((existant) => existant.nom !== ancienNom);
+  const nomsPris = [...PROFILS_IA_INTEGRES, ...autres].map((existant) => existant.nom);
+  const indice = profil.indice ?? prochainIndiceProfilIA(autres);
+  const nom = nomDisponible(nomDuProfilALaVersion(profil.nom, profil.courante, indice, nomsPris), nomsPris);
+  ecrireProfilsIAPerso([...autres, { ...profil, nom, indice }]);
+  return nom;
 }
 
 function supprimerProfilIA(nom) {

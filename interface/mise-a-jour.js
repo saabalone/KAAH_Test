@@ -19,8 +19,8 @@ function demanderAuServiceWorker(travailleur, message) {
   });
 }
 
-// `enregistrement` : celui de service-worker.js ; `proposer(version, charger)`
-// : demande l'accord (index.html, boite de confirmation) et appelle charger()
+// `enregistrement` : celui de service-worker.js ; `proposer(version, tailleMo,
+// charger)` (tailleMo : son poids, null s'il n'est pas connu) : demande l'accord (index.html, boite de confirmation) et appelle charger()
 // s'il est donne ; `signaler(texte)` : un message pendant le chargement ;
 // `recharger()` : la page, une fois la nouvelle version prete.
 function surveillerLesMisesAJour(enregistrement, { proposer, signaler, recharger }) {
@@ -38,11 +38,11 @@ function surveillerLesMisesAJour(enregistrement, { proposer, signaler, recharger
   async function verifier() {
     const candidat = enregistrement.waiting ?? enregistrement.active;
     if (!candidat) return;
-    const { version, complet } = await demanderAuServiceWorker(candidat, 'etat');
+    const { version, complet, tailleMo = null } = await demanderAuServiceWorker(candidat, 'etat');
     const aCharger = enregistrement.waiting ? !complet || version !== NOM_VERSION_KAAH_TEST : !complet;
     if (!aCharger || dejaProposee === version) return;
     dejaProposee = version;
-    proposer(version, () => charger(candidat));
+    proposer(version, tailleMo, () => charger(candidat));
   }
 
   enregistrement.addEventListener('updatefound', () => {

@@ -86,7 +86,35 @@ function marquerNomMachine(svg, camp, { machine, enMarche = true }) {
 function afficherNomJoueur(svg, camp, nom) {
   const groupe = svg.querySelector(`#nom-${camp}`);
   ecrireSiChange(groupe.querySelector('.nom-texte'), nom);
+  poserStyleDuNom(groupe);
   disposerLigneNom(groupe);
+}
+
+// L'abreviation du style d'une machine dans son nom (KAI2_Nor_5s : « Nor »),
+// dans la couleur de ses reglages (saab, 2026-10-02 ; moteur/couleurs-profil-ia.js) :
+// 'modifie', 'dernier', 'ancien', ou null — rien a colorer, ou un humain.
+// Retenue sur le groupe : un nom change ensuite (afficherNomJoueur) la garde.
+function colorerStyleDuNom(svg, camp, abreviation, couleur) {
+  const groupe = svg.querySelector(`#nom-${camp}`);
+  groupe.dataset.abreviation = couleur ? abreviation : '';
+  groupe.dataset.couleurStyle = couleur ?? '';
+  poserStyleDuNom(groupe);
+}
+
+// Un <tspan> autour de l'abreviation : meme police, donc meme largeur — le
+// cadre du nom ne bouge pas.
+function poserStyleDuNom(groupe) {
+  const texte = groupe.querySelector('.nom-texte');
+  const nom = texte.textContent;
+  const { abreviation, couleurStyle } = groupe.dataset;
+  const debut = abreviation ? nom.indexOf(`_${abreviation}_`) + 1 : 0;
+  if (debut === 0) {
+    if (texte.children.length > 0) texte.textContent = nom;
+    return;
+  }
+  const style = creerElementSVG('tspan', { class: `nom-style-${couleurStyle}` });
+  style.textContent = abreviation;
+  texte.replaceChildren(nom.slice(0, debut), style, nom.slice(debut + abreviation.length));
 }
 
 // Dimensionne et place les cadres d'apres la largeur REELLE des textes : un

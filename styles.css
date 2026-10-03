@@ -4654,3 +4654,279 @@ body.face-a-face > #barre-annuler {
     flex: 0 0 auto;
   }
 }
+
+/* Un coup de Reflexion IA mene a sa position (interface/reflexion-ia.js). */
+.coup-reflexion-navigable {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+/* La poignee entre Reflexion IA et la Recherche par 1er coup
+   (interface/hauteurs-colonne.js), comme celle de la Sequence. */
+.poignee-reflexion-recherche {
+  height: 8px;
+  cursor: ns-resize;
+  background: #3a3a3a;
+  touch-action: none;
+}
+
+.poignee-reflexion-recherche[hidden] {
+  display: none;
+}
+
+/* Les couleurs d'un profil IA remontent de la valeur jusqu'a son fichier
+   (saab, 2026-10-02 ; interface/couleurs-ia.js) : le chiffre lui-meme et la
+   liste fermee prennent la couleur de leur ligne ; chaque option de profil a
+   la sienne, les autres restent claires. */
+:is(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-ancien) :is(input, select) {
+  color: inherit;
+}
+
+select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-ancien) {
+  color: #e4e4e4;
+}
+
+.rubrique-reglages.rubrique-valide-dernier:not(.rubrique-modifiee) > summary {
+  color: #45b862;
+}
+
+.rubrique-reglages.rubrique-valide-ancien:not(.rubrique-modifiee) > summary {
+  color: #d9b62b;
+}
+
+/* Sur le plateau, sur le fond vert d'une machine : les memes couleurs, plus
+   claires pour s'en detacher (rendu/ligne-joueur.js, colorerStyleDuNom). */
+.nom-joueur .nom-texte .nom-style-modifie {
+  fill: #ffa040;
+}
+
+.nom-joueur .nom-texte .nom-style-dernier {
+  fill: #8dffa8;
+}
+
+.nom-joueur .nom-texte .nom-style-ancien {
+  fill: #ffe14d;
+}
+
+/* Les noms des colonnes restent en haut quand le tableau defile (saab,
+   2026-10-02 : « figer les noms des colonnes Reflexion / 1er coup ») : le fond
+   du tableau sous eux, pour que les lignes passent dessous sans se melanger. */
+.reflexion-ia thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #1e1e1e;
+}
+
+/* La barre de navigation sous Reflexion IA (saab, 2026-10-02 : « a gauche,
+   donc pas centree ») : comme celle de l'Essai. */
+.navigation-reflexion-ia {
+  display: flex;
+  justify-content: flex-start;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.navigation-reflexion-ia button {
+  min-width: 44px;
+  min-height: var(--hauteur-commande);
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.navigation-reflexion-ia button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Le coup regarde sur le plateau, encadre dans les deux tableaux (saab,
+   2026-10-02) : Reflexion IA (le dernier coup du chemin) et Recherche par 1er
+   coup (le coup joue depuis la position cherchee). */
+.reflexion-ia tr.coup-actif td {
+  border-top: 2px solid #e0832a;
+  border-bottom: 2px solid #e0832a;
+}
+
+.reflexion-ia tr.coup-actif td:first-child {
+  border-left: 2px solid #e0832a;
+}
+
+.reflexion-ia tr.coup-actif td:last-child {
+  border-right: 2px solid #e0832a;
+}
+
+/* La poignee de largeur de Reflexion IA (interface/reflexion-ia.js), comme
+   celle de la Sequence (#arbre-poignee-largeur) : a cheval sur le bord gauche,
+   ordinateur seulement, jamais en face-a-face (les fenetres y remplissent
+   l'espace). */
+.poignee-largeur-reflexion {
+  display: none;
+}
+
+@media (min-width: 700px) {
+  #reflexion-ia {
+    position: relative;
+  }
+
+  body:not(.face-a-face) .poignee-largeur-reflexion {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -4px;
+    width: 8px;
+    cursor: ew-resize;
+    touch-action: none;
+    z-index: 2;
+  }
+
+  body:not(.face-a-face) .poignee-largeur-reflexion:hover,
+  body:not(.face-a-face) .poignee-largeur-reflexion:active {
+    background: #3a3a3a;
+  }
+}
+
+/* Sur telephone en portrait, la barre sous Reflexion IA au centre (saab,
+   2026-10-03) ; a gauche sur ordinateur. */
+@media (max-width: 699px) {
+  .navigation-reflexion-ia {
+    justify-content: center;
+  }
+}
+
+/* Ce que cherche le profil IA (saab, 2026-10-03 ; interface/reglages-ia.js) :
+   sur toute la largeur, sous son nom. */
+.ligne-description-profil-ia {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 4px;
+}
+
+.ligne-description-profil-ia textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font: inherit;
+}
+
+.description-choix-profil:empty {
+  display: none;
+}
+
+/* Exporter, dans le titre du tableau Recherche par 1er coup. */
+.bouton-exporter-recherches {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  background: none;
+  color: #e4e4e4;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Le tableau comparatif des profils IA (interface/comparaison-ia.js) : il
+   defile sur lui-meme, dans les deux sens. */
+.defilement-comparaison-ia {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.tableau-comparaison-ia {
+  border-collapse: collapse;
+}
+
+.tableau-comparaison-ia th,
+.tableau-comparaison-ia td {
+  padding: 2px 6px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.tableau-comparaison-ia th {
+  position: sticky;
+  top: 0;
+  background: #1e1e1e;
+  color: #9a9a9a;
+  font-weight: normal;
+}
+
+.tableau-comparaison-ia .comparaison-description {
+  min-width: 14em;
+  max-width: 22em;
+  white-space: normal;
+}
+
+.tableau-comparaison-ia tr {
+  cursor: pointer;
+}
+
+/* Les tableaux comparatifs (profils IA, reglages du plateau : saab, 2026-10-03,
+   « pas scrollable ... illisible ») : la boite prend presque tout l'ecran, et
+   le tableau, lui, retrecit et defile dans les deux sens — la regle generale
+   des grandes boites (`> * { flex-shrink: 0 }`) l'en empechait. */
+#dialogue-comparaison-ia,
+#dialogue-comparaison-reglages {
+  width: 96vw;
+  max-width: 96vw;
+}
+
+.dialogue-grand[open] > .defilement-comparaison-ia {
+  flex-shrink: 1;
+}
+
+/* Le tableau des profils de reglages (interface/comparaison-reglages.js) : le
+   titre de chaque rubrique, une pastille par couleur, le nom d'un profil a
+   toucher. */
+.tableau-comparaison-ia .comparaison-rubrique td {
+  padding-top: 6px;
+  color: #e0832a;
+  font-weight: bold;
+}
+
+.pastille-comparaison {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  border: 1px solid #5a5a5a;
+  border-radius: 3px;
+}
+
+.tableau-comparaison-ia .comparaison-nom-profil {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.tableau-comparaison-ia th.reglage-modifie {
+  color: #cc6a00;
+}
+
+/* Profils IA compares (saab, 2026-10-03) : la colonne Profil IA juste a sa
+   taille ; « Ce qu'il cherche » plie par defaut, une seule ligne coupee par
+   profil (le texte entier au survol), pour comparer d'un coup d'oeil. */
+.tableau-comparaison-ia {
+  width: auto;
+}
+
+.tableau-comparaison-ia .comparaison-profil {
+  width: 1%;
+}
+
+.tableau-comparaison-ia.descriptions-pliees .comparaison-description {
+  min-width: 0;
+  max-width: 16em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tableau-comparaison-ia .comparaison-titre-pliable {
+  cursor: pointer;
+}

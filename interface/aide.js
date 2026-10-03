@@ -43,6 +43,33 @@ async function etatHorsLigne() {
   return 'installé, actif à la prochaine ouverture de KAAH.';
 }
 
+// L'Aide aeree (saab, 2026-10-02 : « trop dense, va a la ligne plus souvent, a
+// chaque ponctuation ») : un retour a la ligne apres chaque fin de phrase (. !
+// ?, suivie d'une majuscule, d'un chiffre ou d'un guillemet) et apres « : » et
+// « ; » — jamais apres une virgule, qui decouperait les listes ; une ligne trop
+// longue se replie d'elle-meme a un espace. Fait ici, a l'affichage : le texte
+// de l'Aide (index.html) reste ecrit d'un seul tenant.
+const COUPURE_DE_L_AIDE = /([.!?](?=\s+[\p{Lu}\d«(])|[:;](?=\s+\S))\s+/gu;
+
+function aererLeTexte(conteneur) {
+  const parcours = document.createTreeWalker(conteneur, NodeFilter.SHOW_TEXT, {
+    acceptNode: (noeud) => (noeud.parentElement.closest('summary') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+  });
+  const textes = [];
+  while (parcours.nextNode()) textes.push(parcours.currentNode);
+  for (const noeud of textes) {
+    const morceaux = noeud.textContent.split(COUPURE_DE_L_AIDE);
+    if (morceaux.length === 1) continue;
+    // split garde la ponctuation capturee : texte, ponctuation, texte, ...
+    const contenu = [];
+    for (let i = 0; i < morceaux.length; i += 2) {
+      contenu.push(document.createTextNode(morceaux[i] + (morceaux[i + 1] ?? '')));
+      if (i + 1 < morceaux.length) contenu.push(document.createElement('br'));
+    }
+    noeud.replaceWith(...contenu);
+  }
+}
+
 // Les noms de couleur de l'Aide ecrits DANS leur couleur (saab, 2026-10-01) ;
 // noir et blanc, illisibles ainsi sur le fond sombre, dans un cadre de leur
 // couleur, le mot de la couleur opposee. Au feminin et au pluriel aussi.
@@ -128,6 +155,7 @@ function preparerChapitres(corps) {
 // `elements` : { bouton, dialogue, version, horsLigne, fermer, corps } —
 // `fermer` est une LISTE de boutons (en haut et en bas de la boite).
 function demarrerAide(elements) {
+  aererLeTexte(elements.corps);
   colorerLesCouleurs(elements.corps);
   preparerChapitres(elements.corps);
   function afficherHorsLigne() {

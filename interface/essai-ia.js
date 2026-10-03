@@ -22,7 +22,8 @@
 // (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), numeroDeTour
 // (moteur/arbre.js), NOM_CAMP (rendu/ejections.js), DUREE_TRANCHE_MS,
-// MILLISECONDES_PAR_SECONDE (interface/ia-reflexion.js) viennent de fichiers
+// MILLISECONDES_PAR_SECONDE (interface/ia-reflexion.js), doublerBoutonsPlateau
+// (interface/disposition.js) viennent de fichiers
 // charges avant celui-ci.
 
 const COLONNES_ESSAI_IA = {
@@ -75,13 +76,9 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
     if (coupChoisi) creerEssai(coupChoisi, valeursMontrees);
   });
 
-  // Les doubles des boutons de navigation du plateau (voir index.html) :
+  // Les doubles des boutons de navigation du plateau (interface/disposition.js) :
   // chacun touche le sien, et se grise avec lui.
-  const navigation = [...elements.navigation].map((bouton) => [bouton, document.getElementById(bouton.dataset.boutonPlateau)]);
-  for (const [bouton, original] of navigation) bouton.addEventListener('click', () => original.click());
-  function actualiserNavigation() {
-    for (const [bouton, original] of navigation) bouton.disabled = original.disabled;
-  }
+  const actualiserNavigation = doublerBoutonsPlateau(elements.navigation);
 
   function afficherCases(poids) {
     const cases = valeursDesCases(poids);
@@ -142,7 +139,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   // Le coup du niveau 3, par la vraie recherche, par tranches (comme la
   // machine, interface/ia-reflexion.js) ; abandonnee des qu'une autre
   // commence (retouche, autre position).
-  function chercherNiveau3({ version, poids }, etat) {
+  function chercherNiveau3({ version, elagage, poids }, etat) {
     const numero = ++rechercheEnCours;
     niveau3 = null;
     const debut = performance.now();
@@ -151,6 +148,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
       niveau: NIVEAU_RECHERCHE_ESSAI,
       poids,
       version,
+      elagage,
       base: null,
       hasard: () => 0,
       maintenant: () => performance.now(),

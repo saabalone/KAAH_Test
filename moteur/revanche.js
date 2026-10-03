@@ -61,3 +61,14 @@ function partieSuivante(choix, { joueurs, plateauRetourne, machines = null }) {
   }
   return { joueurs, plateauRetourne, machines };
 }
+
+// Une partie demarree par une Option (Revanche, Same) la laisse rechoisir tant
+// que personne n'y a vraiment joue (saab, 2026-10-02 : « pouvoir faire une
+// revanche si on s'est trompe dans l'Option, car par ex. on avait clic
+// Same ») : aucun coup, ou seulement le premier coup d'une machine — elle joue
+// tout de suite quand elle a Noir. `arbre` : moteur/arbre.js.
+function choixDeLOptionModifiable(arbre) {
+  const coups = arbre.racine.enfants;
+  if (coups.length === 0) return true;
+  return coups.length === 1 && Boolean(coups[0].reflexionIA) && coups[0].enfants.length === 0;
+}

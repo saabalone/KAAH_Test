@@ -49,6 +49,19 @@ function telechargerReglages(reglages) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// Un texte quelconque en fichier (saab, 2026-10-03 : les recherches de KAI++
+// en tableau CSV, interface/recherche-ia.js) : meme mecanique.
+function telechargerTexte(texte, nomFichier, type) {
+  const url = URL.createObjectURL(new Blob([texte], { type }));
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // Ouvre le selecteur de fichier natif du navigateur (une balise <input>
 // creee et detachee a chaque appel : certains navigateurs — dont Safari,
 // la cible de reference de CLAUDE.md — n'ouvrent le vrai selecteur que si

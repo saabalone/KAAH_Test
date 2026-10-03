@@ -40,3 +40,63 @@ function ajouterRecherche(archive, cle, recherche, tailleMax = TAILLE_ARCHIVE_RE
 function recherchesDeLaPosition(archive, cle) {
   return archive.positions[cle]?.recherches ?? [];
 }
+
+// L'archive en tableau (saab, 2026-10-03 : « le btn Exporter pour voir les
+// fichiers ») : l'en-tete, puis une ligne par premier coup de chaque
+// profondeur de chaque recherche, les plus anciennes positions d'abord ; ce
+// qui vaut pour toute la recherche (machine, reglages) ou toute la profondeur
+// est repete sur chaque ligne, pour trier et filtrer dans un tableur.
+const COLONNES_DES_RECHERCHES = [
+  'Partie', 'Date', 'Coup', 'Camp', 'Machine', 'Genre', 'Temps max (s)', 'Poids', 'Position',
+  'Profondeur', 'Premiers coups', 'Positions (prof.)', 'Durée prof. (ms)', 'Finie à (ms)',
+  'Rang', '1er coup', 'Éval.', 'Exacte', 'Temps (ms)', 'Sous lui (ms)', 'Positions', 'Suite prévue',
+];
+
+const deuxChiffres = (nombre) => String(nombre).padStart(2, '0');
+
+function texteDeLaDate(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${deuxChiffres(d.getMonth() + 1)}-${deuxChiffres(d.getDate())} ${deuxChiffres(d.getHours())}:${deuxChiffres(d.getMinutes())}`;
+}
+
+const texteDesPoids = (poids) => (poids ? Object.entries(poids).map(([cle, valeur]) => `${cle} ${valeur}`).join(', ') : '');
+
+function tableauDesRecherches(archive) {
+  const cles = Object.keys(archive.positions).sort((a, b) => archive.positions[a].rang - archive.positions[b].rang);
+  const lignes = [];
+  for (const cle of cles) {
+    for (const recherche of [...archive.positions[cle].recherches].reverse()) {
+      const communes = [recherche.idPartie ?? '', texteDeLaDate(recherche.date), recherche.coupsJoues, recherche.camp, recherche.machine, recherche.genre ?? '', recherche.reflexionMax ?? '', texteDesPoids(recherche.poids), cle];
+      for (const { profondeur, coups, noeuds, ms, fin, lignes: meilleurs } of recherche.details) {
+        meilleurs.forEach(({ valeur, exacte, noeuds: sous, ms: duree, fin: trouve, sequence }, rang) => {
+          lignes.push([...communes, profondeur, coups, noeuds, ms ?? '', fin ?? '', rang + 1, sequence[0] ?? '', valeur, exacte ? 'oui' : 'non', trouve ?? '', duree ?? '', sous, sequence.slice(1).join(' ')]);
+        });
+      }
+    }
+  }
+  return [COLONNES_DES_RECHERCHES, ...lignes];
+}
+
+// Un tableau en texte CSV pour un tableur en francais (Excel, LibreOffice) :
+// point-virgule entre les colonnes, virgule decimale, guillemets autour d'un
+// texte qui contient un point-virgule, un guillemet ou un retour a la ligne.
+const SEPARATEUR_CSV = ';';
+const FIN_DE_LIGNE_CSV = '\r\n';
+
+function celluleCsv(valeur) {
+  if (typeof valeur === 'number') return String(valeur).replace('.', ',');
+  const texte = String(valeur);
+  return /[;"\r\n]/.test(texte) ? `"${texte.replaceAll('"', '""')}"` : texte;
+}
+
+function ecrireCsv(lignes) {
+  return lignes.map((ligne) => ligne.map(celluleCsv).join(SEPARATEUR_CSV) + FIN_DE_LIGNE_CSV).join('');
+}
+
+// Combien de positions `apres` (un ajout de `cle` a `avant`, ajouterRecherche)
+// a oubliees faute de place (saab, 2026-10-03 : « une alerte si c'est plein ...
+// demander si on veut exporter ») : a savoir avant de l'ecrire.
+function positionsOubliees(avant, apres, cle) {
+  const attendues = Object.keys(avant.positions).length + (cle in avant.positions ? 0 : 1);
+  return attendues - Object.keys(apres.positions).length;
+}

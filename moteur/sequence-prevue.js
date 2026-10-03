@@ -59,12 +59,31 @@ function cleDeSolution(etat) {
 // ne joue pas la reponse prevue, la position ne correspond plus : la machine
 // cherche de nouveau.
 function solutionsDeLaSequence(etat, sequence, evaluation) {
+  return solutionsAPartirDe(etat, sequence, evaluation, RANG_DE_LA_MACHINE);
+}
+
+// Les memes pour l'ADVERSAIRE (saab, 2026-10-02 : « si IA1 a trouve Gagne,
+// IA2 continuait de chercher inutilement : il faut qu'elle sache qu'elle a
+// perdu et jouer les solutions rapidement ») : ses coups dans la sequence (un
+// sur deux, a partir du premier), sa meilleure defense ou sa victoire, et
+// l'evaluation de son cote.
+function solutionsDeLAdversaire(etat, sequence, evaluation) {
+  return solutionsAPartirDe(etat, sequence, -evaluation, RANG_DE_L_ADVERSAIRE);
+}
+
+// Le premier coup de la sequence est celui que la machine joue maintenant.
+const RANG_DE_L_ADVERSAIRE = 1;
+const RANG_DE_LA_MACHINE = 2;
+const COUPS_PAR_TOUR = 2;
+
+// `evaluation` : du cote du camp qui joue aux rangs `premierRang`, +2, +4...
+function solutionsAPartirDe(etat, sequence, evaluation, premierRang) {
   if (!Number.isFinite(evaluation) || Math.abs(evaluation) <= VALEUR_VICTOIRE_IA / 2) return [];
   const etats = etatsDeLaSequence(etat, sequence);
   const signe = Math.sign(evaluation);
   const distance = VALEUR_VICTOIRE_IA - Math.abs(evaluation);
   const solutions = [];
-  for (let rang = 2; rang < Math.min(etats.length, sequence.length); rang += 2) {
+  for (let rang = premierRang; rang < Math.min(etats.length, sequence.length); rang += COUPS_PAR_TOUR) {
     solutions.push({
       cle: cleDeSolution(etats[rang]),
       coup: sequence[rang],

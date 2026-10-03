@@ -15,6 +15,9 @@
 // depart. L'ancienne partie reste dans « Mes parties ». Le mecanisme est celui du
 // bouton « Charger » des variantes : on pose la position de depart du PROCHAIN
 // chargement (interface/sauvegarde.js), puis on recharge la page.
+// Une Option se refait dans la partie qu'elle a demarree, tant que personne n'y a
+// joue (saab, 2026-10-02 : « par ex. on avait clic Same ») : `optionsDisponibles`
+// le dit aussi, et index.html repart alors de la partie finie.
 //
 // Ce fichier ne contient aucune regle du jeu : celle des noms et de l'orientation est
 // dans moteur/revanche.js.

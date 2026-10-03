@@ -113,6 +113,14 @@ function marquerReglagesModifies(dialogue, reglages, autres) {
   }
 }
 
+// Un profil de reglages differe-t-il de Défaut quelque part ? Son nom passe
+// alors en orange lui aussi (saab, 2026-10-02 : « on remonte les couleurs de
+// la valeur jusqu'a son fichier »). `autres` : comme ci-dessus.
+function reglagesDifferentsDuDefaut(reglages, autres) {
+  const cles = [...CHAMPS_REGLAGES.map(([, , categorie, cle]) => [categorie, cle]), ...autres.map(([, categorie, cle]) => [categorie, cle])];
+  return cles.some(([categorie, cle]) => reglageDifferentDuDefaut(reglages, categorie, cle));
+}
+
 // Branche chaque commande une fois pour toutes. `surApercu(retouche)` :
 // pendant le geste (le reglage change, rien n'est encore enregistre) ;
 // `surFinDeGeste()` : geste fini — voir interface/reglages.js,

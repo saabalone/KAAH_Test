@@ -68,6 +68,11 @@ function* choisirCoupIA(etat, options) {
 // secondes, SA pendule tourne pendant ce temps.
 // Les versions jouables (la 1 gardee pour comparer, saab) ; la 1 par defaut.
 const VERSION_IA = 1;
+// L'elagage propose (saab, 2026-10-02 : « par ex. Elag = 10 ») : celui des
+// profils integres « … v2el » et le premier propose dans Reglages.
+const ELAGAGE_PAR_DEFAUT_IA = 10;
+// « el » pour elaguer (saab, 2026-10-03 : remplace le « b » de « v2b »).
+const SUFFIXE_ELAGAGE_IA = 'el';
 const VERSIONS_IA = [1, 2];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
@@ -80,12 +85,14 @@ const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def'
 // ou 'kai++', la meme en C++ (solveur/kai-plus.cpp), pour les comparer.
 const MOTEURS_IA = ['kai', 'kai++'];
 const PREFIXES_MOTEURS_IA = { kai: 'KAI', 'kai++': 'KAI++' };
-const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5, livre: true };
+const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5, livre: true, elagage: 0 };
 const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
 
-// Le nom du profil integre d'un style et d'une version : « Normal », « Normal v2 ».
-function nomDuProfilIntegre(style, version) {
-  return version === VERSION_IA ? NOMS_STYLES_IA[style] : `${NOMS_STYLES_IA[style]} v${version}`;
+// Le nom du profil integre d'un style et d'une version : « Normal », « Normal
+// v2 », et « Normal v2el » s'il elague.
+function nomDuProfilIntegre(style, version, elagage = 0) {
+  if (version === VERSION_IA && !elagage) return NOMS_STYLES_IA[style];
+  return `${NOMS_STYLES_IA[style]} v${version}${elagage ? SUFFIXE_ELAGAGE_IA : ''}`;
 }
 
 // Un reglage relu (fichier, stockage) : null pour un joueur humain, sinon
@@ -96,6 +103,8 @@ function lireMachine(brut) {
   if (!brut || typeof brut !== 'object') return null;
   const style = brut.style in STYLES_IA ? brut.style : MACHINE_PAR_DEFAUT.style;
   const version = VERSIONS_IA.includes(brut.version) ? brut.version : VERSION_IA;
+  // L'elagage (moteur/ia-recherche.js, meilleursCoupsIA) : 0, aucun.
+  const elagage = Number.isInteger(brut.elagage) && brut.elagage > 0 ? brut.elagage : 0;
   const { cles, styles } = POIDS_DES_VERSIONS_IA[version];
   const poids = Object.fromEntries(cles.map((cle) => [cle, Number.isFinite(brut.poids?.[cle]) ? brut.poids[cle] : styles[style][cle]]));
   const reflexion = Number(brut.reflexionMax);
@@ -104,7 +113,7 @@ function lireMachine(brut) {
     version,
     niveau: brut.niveau in NIVEAUX_IA ? Number(brut.niveau) : MACHINE_PAR_DEFAUT.niveau,
     style,
-    profil: typeof brut.profil === 'string' && brut.profil !== '' ? brut.profil : nomDuProfilIntegre(style, version),
+    profil: typeof brut.profil === 'string' && brut.profil !== '' ? brut.profil : nomDuProfilIntegre(style, version, elagage),
     poids,
     reflexionMax:
       Number.isFinite(reflexion) && reflexion > 0
@@ -113,6 +122,7 @@ function lireMachine(brut) {
     // Le livre d'ouvertures (la base de coups, saab 2026-10-01) : oui, sauf s'il
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
+    elagage,
     // L'indice de son profil (moteur/profils-ia.js), s'il en a un.
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
   };
@@ -146,10 +156,12 @@ function formaterTempsReflexion(secondes) {
 // trois lettres, son temps de reflexion — ex. KAI2_Nor_5s, KAI3_Agr_1s2 ; la
 // version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ;
 // un profil de l'utilisateur, son indice (KAI2_Nor_5s_P3, saab 2026-10-01 : deux
-// machines qui ne different que par le profil se distinguent dans le titre).
+// machines qui ne different que par le profil se distinguent dans le titre) ;
+// un elagage, « el » et le nombre de coups gardes (KAI2_Nor_5s_v2el10).
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
-  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${machine.version > VERSION_IA ? `_v${machine.version}` : ''}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
+  const version = machine.version > VERSION_IA || machine.elagage ? `_v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_IA}${machine.elagage}` : ''}` : '';
+  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la
@@ -186,17 +198,20 @@ function lireReponseKaiPlus(texte) {
 }
 
 // Le detail de la profondeur (saab, 2026-10-02) : « nombre de premiers coups
-// <tab> positions examinees », puis un meilleur premier coup par ligne :
-// « valeur <tab> E (exacte) ou H (au plus) <tab> positions sous lui <tab> sa
-// sequence en positions ».
+// <tab> positions examinees <tab> duree (ms) <tab> fin (ms depuis le debut de
+// la reflexion) », puis un meilleur premier coup par ligne : « valeur <tab> E
+// (exacte) ou H (au plus) <tab> positions sous lui <tab> sa duree (ms) <tab>
+// quand il a ete trouve (ms) <tab> sa sequence en positions ».
 function lireDetailKaiPlus(resume, lignes) {
-  const [coups, noeuds] = resume.split('\t').map(Number);
+  const [coups, noeuds, ms, fin] = resume.split('\t').map(Number);
   return {
     coups,
     noeuds,
+    ms,
+    fin,
     lignes: lignes.map((ligne) => {
-      const [valeur, borne, sous, positions = ''] = ligne.split('\t');
-      return { valeur: Number(valeur), exacte: borne === 'E', noeuds: Number(sous), positions: positions.split(' ').filter(Boolean) };
+      const [valeur, borne, sous, duree, trouve, positions = ''] = ligne.split('\t');
+      return { valeur: Number(valeur), exacte: borne === 'E', noeuds: Number(sous), ms: Number(duree), fin: Number(trouve), positions: positions.split(' ').filter(Boolean) };
     }),
   };
 }

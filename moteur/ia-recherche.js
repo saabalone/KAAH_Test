@@ -75,6 +75,23 @@ function melanger(coups, hasard) {
   return melange;
 }
 
+// L'elagage (saab, 2026-10-02 : « v2b » (devenue v2el), « comme v2 mais en elaguant ... Elag = 10,
+// on ne cherche que sur les 10 meilleurs ») : les `nombre` meilleurs `coups`
+// selon la valeur de la position juste apres, pour le camp qui joue ; a valeur
+// egale, la plus petite position en texte — un ordre qui ne doit rien au
+// hasard, pour que KAI++ (solveur/kai-plus.cpp) garde exactement les memes.
+// 0, ou autant que de coups : tous. L'ordre des gardes n'importe pas (la
+// memoire les reordonne).
+function meilleursCoupsIA(etat, coups, nombre, evaluer, poids) {
+  if (nombre <= 0 || nombre >= coups.length) return coups;
+  const notes = coups.map((coup) => {
+    const apres = appliquerCoup(etat, coup).etat;
+    return { coup, valeur: evaluer(apres, etat.joueurAuTrait, poids), position: ecrirePosition(apres) };
+  });
+  notes.sort((a, b) => b.valeur - a.valeur || (a.position < b.position ? -1 : a.position > b.position ? 1 : 0));
+  return notes.slice(0, nombre).map(({ coup }) => coup);
+}
+
 // Valeur de `etat` pour le camp AU TRAIT, en regardant `profondeur` coups plus
 // loin. `distance` (coups depuis la racine) fait preferer la victoire la plus
 // proche et la defaite la plus lointaine.
@@ -88,6 +105,12 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   }
   const signe = etat.joueurAuTrait === contexte.camp ? 1 : -1;
   contexte.variantes[distance] = [];
+  // Nulle par repetition PLUS LOIN que son propre coup (saab, 2026-10-02 : « le
+  // camp en meilleure position doit pouvoir eviter la nulle ») : une position
+  // deja vue dans la partie ou sur la ligne cherchee. Son propre coup (distance
+  // 1) est vu par rechercherCoup.
+  const position = ecrirePosition(etat);
+  if (distance > 1 && !etat.vainqueur && repetitionsVues(contexte, position) + 1 >= SEUIL_NULLE_PAR_DEFAUT) return VALEUR_NULLE_IA;
   if (etat.vainqueur || profondeur === 0) {
     const valeur = contexte.evaluer(etat, contexte.camp, contexte.poids);
     const ajustee = etat.vainqueur ? valeur - Math.sign(valeur) * distance : valeur;
@@ -95,7 +118,7 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   }
   // Deja cherchee a cette profondeur (moteur/ia-memoire.js) ?
   const { memoire } = contexte;
-  const cle = cleDePositionIA(etat);
+  const cle = cleDePositionIA(etat, position);
   const connue = lireDansLaTable(memoire, cle, distance);
   if (connue?.profondeur === profondeur && valeurSuffisante(connue, alpha, beta)) {
     contexte.variantes[distance] = connue.suite;
@@ -106,7 +129,11 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   const alphaDeDepart = alpha;
   let meilleure = -Infinity;
   let meilleurCoup = null;
-  for (const coup of ordonnerAvecMemoire(legaux, memoire, distance, legaux[connue?.indexCoup])) {
+  // Elaguer a un coup de la fin ne gagnerait rien : chaque coup y est juste
+  // evalue, et le meilleur juste apres est garde.
+  const cherches = profondeur > 1 ? meilleursCoupsIA(etat, legaux, contexte.elagage, contexte.evaluer, contexte.poids) : legaux;
+  contexte.ligne.push(position);
+  for (const coup of ordonnerAvecMemoire(cherches, memoire, distance, legaux[connue?.indexCoup])) {
     const valeur = -(yield* negamax(appliquerCoup(etat, coup).etat, profondeur - 1, -beta, -alpha, contexte, distance + 1));
     if (valeur > meilleure) {
       meilleure = valeur;
@@ -119,6 +146,7 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
       break;
     }
   }
+  contexte.ligne.pop();
   // Toute la fenetre en dessous : seulement une borne haute (aucun coup n'a
   // atteint alpha) ; au-dessus : une borne basse (la coupure).
   const borne = meilleure <= alphaDeDepart ? 'haute' : meilleure >= beta ? 'basse' : 'exacte';
@@ -126,19 +154,32 @@ function* negamax(etat, profondeur, alpha, beta, contexte, distance) {
   return meilleure;
 }
 
+// Combien de fois `position` a deja ete vue : dans la partie, et sur la ligne
+// cherchee jusqu'ici.
+function repetitionsVues(contexte, position) {
+  return (contexte.vues.get(position) ?? 0) + contexte.ligne.filter((vue) => vue === position).length;
+}
+
 // Le meilleur coup pour le camp au trait de `etat`. `options` : { niveau,
 // poids, version (1 ou 2 : moteur/ia-evaluation.js ou ia-evaluation-v2.js),
-// hasard, maintenant, echeance, suivi (facultatif, voir l'en-tete),
-// historique }.
+// elagage (meilleursCoupsIA ; 0 : aucun), hasard, maintenant, echeance, suivi
+// (facultatif, voir l'en-tete), historique }.
 // Renvoie { coup, profondeur, evaluation, sequence (des coups), noeuds } — la
 // profondeur ENTIEREMENT examinee, et son evaluation pour la machine. La
 // profondeur 1 va toujours au bout, meme echeance depassee ou arret demande :
 // il faut bien un coup a jouer.
-function* rechercherCoup(etat, { niveau, poids, version = 1, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
+function* rechercherCoup(etat, { niveau, poids, version = 1, elagage = 0, hasard, maintenant, echeance, suivi = {}, historique = [] }) {
   const evaluer = evaluationDeLaVersion(version);
   const memoire = creerMemoireIA();
-  const contexte = { camp: etat.joueurAuTrait, poids, evaluer, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [], memoire };
-  const racine = ordonnerAvecMemoire(melanger(tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait), hasard), memoire, 0, null);
+  // Les positions de la partie (combien de fois chacune) et celles de la ligne
+  // cherchee, pour la nulle par repetition (negamax).
+  const vues = new Map();
+  for (const vue of historique) vues.set(vue, (vues.get(vue) ?? 0) + 1);
+  const contexte = { camp: etat.joueurAuTrait, poids, evaluer, elagage, noeuds: 0, maintenant, echeance, arretPossible: false, suivi, variantes: [], memoire, vues, ligne: [] };
+  // L'elagage vaut aussi pour les premiers coups, a toute profondeur.
+  const legaux = tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait);
+  const gardes = new Set(meilleursCoupsIA(etat, legaux, elagage, evaluer, poids));
+  const racine = ordonnerAvecMemoire(melanger(legaux, hasard), memoire, 0, null).filter((coup) => gardes.has(coup));
   let meilleurCoup = racine[0];
   let profondeurAtteinte = 0;
   for (let profondeur = 1; profondeur <= NIVEAUX_IA[niveau].profondeur; profondeur++) {

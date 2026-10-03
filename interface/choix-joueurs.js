@@ -16,7 +16,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
-// libelleProfilIA (interface/profils-ia.js), lireReglagesActifs (interface/reglages-profils.js)
+// libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA (interface/couleurs-ia.js),
+// lireReglagesActifs (interface/reglages-profils.js)
 // viennent de fichiers charges avant celui-ci.
 
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
@@ -93,6 +94,7 @@ function brancherChoixMachine(element, surChangement) {
     // Un profil supprime depuis : retour au profil du style normal.
     if (!noms.includes(choix.profil)) choix.profil = NOMS_STYLES_IA.normal;
     element.querySelector('.choix-profil-ia').value = choix.profil;
+    colorerListeProfilsIA(element.querySelector('.choix-profil-ia'));
   }
 
   function afficher() {
@@ -104,6 +106,8 @@ function brancherChoixMachine(element, surChangement) {
     }
     element.querySelector('.choix-reflexion-max').value = reflexionMax;
     element.querySelector('.choix-livre').checked = choix.livre;
+    // Ce que cherche le profil choisi (saab, 2026-10-03, moteur/profils-ia.js).
+    element.querySelector('.description-choix-profil').textContent = trouverProfilIA(choix.profil)?.description ?? '';
   }
 
   const changer = (retouche) => {
@@ -115,7 +119,10 @@ function brancherChoixMachine(element, surChangement) {
   for (const bouton of element.querySelectorAll('[data-niveau]')) {
     bouton.addEventListener('click', () => changer({ niveau: Number(bouton.dataset.niveau) }));
   }
-  element.querySelector('.choix-profil-ia').addEventListener('change', (evenement) => changer({ profil: evenement.target.value }));
+  element.querySelector('.choix-profil-ia').addEventListener('change', (evenement) => {
+    colorerListeProfilsIA(evenement.target);
+    changer({ profil: evenement.target.value });
+  });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
 
   return {

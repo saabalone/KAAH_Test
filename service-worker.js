@@ -65,6 +65,7 @@ const FICHIERS_ESSENTIELS = [
   './moteur/ia.js',
   './moteur/historique-profil-ia.js',
   './moteur/profils-ia.js',
+  './moteur/couleurs-profil-ia.js',
   './moteur/sequence-prevue.js',
   './moteur/essai-ia.js',
   './moteur/puzzles.js',
@@ -116,6 +117,10 @@ const FICHIERS_ESSENTIELS = [
   './rendu/menaces.js',
   './interface/pendules.js',
   './interface/profils-ia.js',
+  './interface/couleurs-ia.js',
+  './interface/comparaison-ia.js',
+  './interface/comparaison-reglages.js',
+  './interface/fichiers-profils-ia.js',
   './interface/choix-joueurs.js',
   './interface/pendules-mode.js',
   './interface/ia.js',
@@ -176,6 +181,7 @@ const FICHIERS_ESSENTIELS = [
   './interface/embranchement.js',
   './interface/sequence-prevue.js',
   './interface/hauteurs-colonne.js',
+  './interface/recherche-ia-lignes.js',
   './interface/recherche-ia.js',
   './interface/reflexion-ia.js',
   './interface/ia-reflexion.js',
@@ -277,13 +283,13 @@ self.addEventListener('activate', (evenement) => {
   );
 });
 
-// La page demande l'etat de cette version ('etat' -> { version, complet }), ou
+// La page demande l'etat de cette version ('etat' -> { version, complet, tailleMo }), ou
 // son chargement ('charger' -> { pret } ou { erreur }), par un MessageChannel.
 self.addEventListener('message', (evenement) => {
   const reponse = evenement.ports[0];
   if (!reponse) return;
   if (evenement.data === 'etat') {
-    evenement.waitUntil(estComplet(NOM_CACHE).then((complet) => reponse.postMessage({ version: NOM_VERSION_KAAH_TEST, complet })));
+    evenement.waitUntil(estComplet(NOM_CACHE).then((complet) => reponse.postMessage({ version: NOM_VERSION_KAAH_TEST, complet, tailleMo: TAILLE_VERSION_KAAH_MO })));
   } else if (evenement.data === 'charger') {
     evenement.waitUntil(
       (async () => {

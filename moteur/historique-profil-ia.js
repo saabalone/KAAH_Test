@@ -5,20 +5,20 @@
 // porte toujours les valeurs de sa version courante (celles que la machine
 // joue) ; l'historique ne sert qu'a comparer et a revenir en arriere. Pur.
 //
-// Les couleurs des reglages (saab) : orange, retouche pas encore validee ;
-// vert, change a la derniere validation ; jaune, change a une validation plus
-// ancienne — « le vert indique toujours les dernieres modif, et les jaunes les
-// plus anciennes ».
+// Les couleurs des reglages (orange, vert, jaune) : moteur/couleurs-profil-ia.js.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
 // (ia-evaluation.js), CLES_POIDS_IA_V2 (ia-evaluation-v2.js), NOMS_STYLES_IA,
 // lireMachine (ia.js) viennent de fichiers charges avant celui-ci.
 
 // Ce qu'une version retient, dans l'ordre ou Reglages le montre.
-const CLES_REGLAGES_IA = ['version', 'style', ...CLES_POIDS_IA, ...CLES_POIDS_IA_V2];
+// L'elagage (saab, 2026-10-02, version « 2el » : moteur/ia-recherche.js) suit la version.
+const CLES_REGLAGES_IA = ['version', 'elagage', 'style', ...CLES_POIDS_IA, ...CLES_POIDS_IA_V2];
+const REGLAGES_IA_HORS_POIDS = ['version', 'elagage', 'style'];
 
 const LIBELLES_REGLAGES_IA = {
   version: 'Version',
+  elagage: 'Élagage',
   style: 'Style',
   gain: 'Gain',
   perte: 'Perte',
@@ -33,14 +33,14 @@ const LIBELLES_REGLAGES_IA = {
 
 const NOTE_AVANT_HISTORIQUE_IA = "avant l'historique";
 
-// Version, style et poids, ramenes a des valeurs sures (moteur/ia.js).
+// Version, elagage, style et poids, ramenes a des valeurs sures (moteur/ia.js).
 function valeursReglagesIA(brut) {
-  const { version, style, poids } = lireMachine(brut);
-  return { version, style, poids };
+  const { version, elagage, style, poids } = lireMachine(brut);
+  return { version, elagage, style, poids };
 }
 
 function valeurReglageIA(valeurs, cle) {
-  return cle === 'version' || cle === 'style' ? valeurs[cle] : valeurs.poids[cle];
+  return REGLAGES_IA_HORS_POIDS.includes(cle) ? valeurs[cle] : valeurs.poids[cle];
 }
 
 function memesReglagesIA(a, b) {
@@ -85,23 +85,6 @@ function choisirVersionIA(profil, numero) {
   const version = versionIA(profil, numero);
   if (!version) return profil;
   return { ...profil, ...valeursReglagesIA(version), courante: numero };
-}
-
-// La couleur de chaque reglage (voir l'en-tete) : 'modifie', 'dernier',
-// 'ancien' ou null. `brouillon` : les valeurs des champs, null s'il n'y a
-// aucune retouche en cours.
-function couleursDesReglagesIA(profil, brouillon) {
-  const chemin = cheminDeVersionIA(profil);
-  const courante = chemin.at(-1);
-  const changeA = (cle, rang) => valeurReglageIA(chemin[rang], cle) !== valeurReglageIA(chemin[rang - 1], cle);
-  return Object.fromEntries(
-    CLES_REGLAGES_IA.map((cle) => {
-      if (brouillon && valeurReglageIA(brouillon, cle) !== valeurReglageIA(courante, cle)) return [cle, 'modifie'];
-      if (chemin.length > 1 && changeA(cle, chemin.length - 1)) return [cle, 'dernier'];
-      for (let rang = 1; rang < chemin.length - 1; rang++) if (changeA(cle, rang)) return [cle, 'ancien'];
-      return [cle, null];
-    })
-  );
 }
 
 function texteReglageIA(cle, valeur) {
@@ -162,6 +145,29 @@ function lireHistoriqueIA(brut) {
   }
   if (!vus.has(brut.courante)) return null;
   return { historique, courante: brut.courante };
+}
+
+// Le nom d'un profil a sa version `numero` (saab, 2026-10-02 : valider une
+// retouche change aussi le nom, dans la meme branche de l'historique) : le nom
+// de base, suivi de _v<numero> au-dela de la premiere.
+const SUFFIXE_VERSION_PROFIL_IA = /_v\d+$/;
+const PREMIERE_VERSION_PROFIL_IA = 1;
+
+function nomDeLaVersionIA(nom, numero) {
+  const base = nom.replace(SUFFIXE_VERSION_PROFIL_IA, '');
+  return numero > PREMIERE_VERSION_PROFIL_IA ? `${base}_v${numero}` : base;
+}
+
+// Le nom d'un profil a sa version `numero` (saab, 2026-10-03 : « valider une
+// retouche le renomme profil_v2, puis _v3 : Normal devient Normal_v2 ... et
+// pour retouche d'un profil avec meme version on ajoute un index : Normal_v2
+// devient Normal_v2_(P1) ») : son nom de base (sans version ni indice), puis,
+// si un autre profil a deja ce nom (`nomsPris`), son indice `indice`.
+const SUFFIXE_INDICE_PROFIL_IA = /_\(P\d+\)$/;
+
+function nomDuProfilALaVersion(nom, numero, indice, nomsPris) {
+  const voulu = nomDeLaVersionIA(nom.replace(SUFFIXE_INDICE_PROFIL_IA, ''), numero);
+  return nomsPris.includes(voulu) ? `${voulu}_(P${indice})` : voulu;
 }
 
 // « 2609301410 » (formaterDateKAAWA) -> « 30/09 14:10 ».

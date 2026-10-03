@@ -32,8 +32,8 @@
 // Pied de boite, 4 boutons :
 //   - **Défaut** : remet TOUT aux valeurs d'origine de KAAWA, en direct ;
 //   - **Annuler** : revient au dernier reglage change (une pile, PAS un
-//     brouillon a part) — NE FERME PAS la boite (saab : "il ne doit pas
-//     fermer la boite") ;
+//     brouillon a part), retouches des profils IA comprises — NE FERME PAS
+//     la boite (saab : "il ne doit pas fermer la boite") ;
 //   - **Sauver...** : renomme le profil courant ;
 //   - **Fermer** : ferme la boite, sans rien appliquer de plus (deja fait).
 // Changer de profil (menu deroulant) ou le supprimer, eux, RECHARGENT la
@@ -67,9 +67,10 @@
 // fusionnerReglages (moteur/reglages.js), couleurVersHex (moteur/couleurs.js),
 // actualiserCouleursPlateau (rendu/couleurs-plateau.js),
 // appliquerApparenceReglages (rendu/apparence-reglages.js),
-// remplirChampsReglages, brancherChampsReglages, marquerReglagesModifies (interface/reglages-champs.js),
+// remplirChampsReglages, brancherChampsReglages, marquerReglagesModifies,
+// reglagesDifferentsDuDefaut (interface/reglages-champs.js),
 // demarrerRubriquesReglages (interface/reglages-rubriques.js),
-// listerNomsProfils, lireNomProfilActif, lireReglagesActifs,
+// listerNomsProfils, lireNomProfilActif, lireReglagesActifs, lireReglagesDuProfil,
 // sauverProfilActif, creerProfil, definirProfilActif, supprimerProfil,
 // NOM_PROFIL_DEFAUT (interface/reglages-profils.js), rendreDeplacable,
 // reinitialiserPosition (interface/deplacable.js), telechargerReglages,
@@ -86,14 +87,26 @@
 // ResizeObserver) — voir appliquerEnDirect. `demarrerRechargement`
 // (index.html) : seul le mode simple (structurel) y a encore recours.
 // `baseCoups` : { afficher(nom), charger(nom) } (interface/bases-coups.js).
-function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCoups) {
+// `reglagesIA` : la rubrique des profils IA (interface/reglages-ia.js), dont
+// Annuler defait aussi les retouches.
+function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCoups, reglagesIA) {
   let actuel = REGLAGES_PAR_DEFAUT;
   // Pile d'annulation (Annuler) : les etats d'AVANT chaque reglage change
-  // depuis l'ouverture de la boite, ou depuis le dernier changement de
-  // profil (chargerReglages la vide : un autre profil est un autre
-  // "fichier", rien a annuler dedans). Jamais un simple "brouillon" a part :
-  // chaque etat empile a deja ete reellement applique et enregistre.
+  // depuis le dernier changement de profil (chargerReglages la vide : un autre
+  // profil est un autre "fichier", rien a annuler dedans). Jamais un simple
+  // "brouillon" a part : chaque etat empile a deja ete reellement applique et
+  // enregistre. Elle survit a la fermeture de la boite (saab, 2026-10-02 : « si
+  // je modifie des valeurs sans valider, je ne peux plus revenir a
+  // l'original ») tant que le profil reste le meme (`profilDeLaPile`). Une
+  // retouche d'un profil IA y prend sa place, RETOUCHE_IA, dans l'ordre.
+  const RETOUCHE_IA = 'ia';
   let pile = [];
+  let profilDeLaPile = null;
+  const empiler = (etat) => {
+    pile.push(etat);
+    profilDeLaPile = lireNomProfilActif();
+  };
+  reglagesIA.brancherRetouche(() => empiler(RETOUCHE_IA));
   // Etat au debut d'un geste continu (glisser un curseur de couleur) : posee
   // par actualiserBrouillon au premier `input`, consommee par terminerGeste
   // au `change` qui suit — pour qu'Annuler revienne au debut du geste entier,
@@ -108,15 +121,21 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     marquerModifies();
   }
 
-  // En orange, ce qui differe de Défaut (interface/reglages-champs.js).
+  // Les commandes hors de la table d'interface/reglages-champs.js.
+  const AUTRES_REGLAGES = [
+    [elements.modeSimple, 'board', 'show_shadows'],
+    [elements.pendulesHorizontales, 'kaah', 'horizontal_clocks'],
+    [elements.baseCoups, 'nextmove', 'bdd_file'],
+  ];
+
+  // En orange, ce qui differe de Défaut (interface/reglages-champs.js), jusqu'au
+  // nom du profil.
   function marquerModifies() {
-    marquerReglagesModifies(elements.dialogue, actuel, [
-      [elements.modeSimple, 'board', 'show_shadows'],
-      [elements.pendulesHorizontales, 'kaah', 'horizontal_clocks'],
-      [elements.baseCoups, 'nextmove', 'bdd_file'],
-    ]);
+    marquerReglagesModifies(elements.dialogue, actuel, AUTRES_REGLAGES);
+    elements.selectProfil.classList.toggle('reglage-modifie', reglagesDifferentsDuDefaut(actuel, AUTRES_REGLAGES));
   }
 
+  // Chaque profil de la liste en orange s'il differe de Défaut.
   function remplirProfils() {
     const actif = lireNomProfilActif();
     elements.selectProfil.replaceChildren(
@@ -125,6 +144,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
         option.value = nom;
         option.textContent = nom;
         option.selected = nom === actif;
+        option.classList.toggle('reglage-modifie', reglagesDifferentsDuDefaut(nom === actif ? actuel : lireReglagesDuProfil(nom), AUTRES_REGLAGES));
         return option;
       })
     );
@@ -171,9 +191,10 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // Défaut) et empile l'etat D'AVANT LE GESTE ENTIER pour Annuler.
   function terminerGeste() {
     if (avantGeste === null) return;
-    pile.push(avantGeste);
+    const avant = avantGeste;
     avantGeste = null;
     sauverProfilActif(actuel);
+    empiler(avant); // apres : sur Défaut, le profil cree (set_kaah_<date>) est le sien
     remplirProfils();
   }
 
@@ -240,15 +261,20 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   });
 
   elements.defaut.addEventListener('click', () => {
-    pile.push(actuel);
+    const avant = actuel;
     remplacerReglages(REGLAGES_PAR_DEFAUT);
+    empiler(avant);
   });
 
   // Annule le DERNIER reglage change (saab : "ne doit pas fermer la
-  // boite") — jamais Fermer, voir plus bas.
+  // boite") — jamais Fermer, voir plus bas. Une retouche IA que sa rubrique ne
+  // connait plus (un autre profil IA choisi depuis) est sautee.
   elements.annuler.addEventListener('click', () => {
-    if (pile.length === 0) return;
-    remplacerReglages(pile.pop());
+    while (pile.length > 0) {
+      const dernier = pile.pop();
+      if (dernier !== RETOUCHE_IA) return remplacerReglages(dernier);
+      if (reglagesIA.annulerRetouche()) return;
+    }
   });
 
   elements.sauverSous.addEventListener('click', () => {
@@ -282,8 +308,9 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   elements.importer.addEventListener('click', () => {
     demarrerImportation(
       (donnees) => {
-        pile.push(actuel);
+        const avant = actuel;
         remplacerReglages(fusionnerReglages(donnees));
+        empiler(avant);
       },
       (message) => window.alert(message)
     );
@@ -296,7 +323,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // qu'on navigue sur le plateau.
   function ouvrir(modale = true) {
     actuel = lireReglagesActifs();
-    pile = [];
+    if (lireNomProfilActif() !== profilDeLaPile) pile = [];
     avantGeste = null;
     remplirFormulaire();
     remplirProfils();

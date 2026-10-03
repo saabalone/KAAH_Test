@@ -30,6 +30,7 @@ function reflechirAvecKai({ etat, machine, suivi, debut, historique, livre, main
     niveau: machine.niveau,
     poids: machine.poids,
     version: machine.version,
+    elagage: machine.elagage,
     base: livre,
     hasard: Math.random,
     maintenant,
@@ -57,7 +58,9 @@ function detailEnTextes(etat, { profondeur, detail }) {
     profondeur,
     coups: detail.coups,
     noeuds: detail.noeuds,
-    lignes: detail.lignes.map(({ valeur, exacte, noeuds, positions }) => ({ valeur, exacte, noeuds, sequence: textesDeLaSequence(etat, coupsDesPositions(etat, positions)) })),
+    ms: detail.ms,
+    fin: detail.fin,
+    lignes: detail.lignes.map(({ valeur, exacte, noeuds, ms, fin, positions }) => ({ valeur, exacte, noeuds, ms, fin, sequence: textesDeLaSequence(etat, coupsDesPositions(etat, positions)) })),
   };
 }
 
@@ -88,6 +91,7 @@ function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus
         graine: Math.floor(Math.random() * GRAINE_MAXIMUM),
         dureeMs: machine.reflexionMax * MILLISECONDES_PAR_SECONDE,
         historique: historique.join('\n'),
+        elagage: machine.elagage,
       },
       (texte) => {
         const reponse = lireReponseKaiPlus(texte);

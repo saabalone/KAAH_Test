@@ -18,7 +18,9 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour (moteur/
 // arbre.js), libelleEvaluation (moteur/ia.js), rechercheEcourtee (moteur/ia-recherche.js), ABREVIATIONS_PHASES
 // (moteur/ia-evaluation.js), ajusterHauteursColonne, demarrerHauteursColonne
-// (interface/hauteurs-colonne.js), demarrerRechercheIA (interface/recherche-ia.js) viennent de fichiers charges
+// (interface/hauteurs-colonne.js), demarrerRechercheIA (interface/recherche-ia.js),
+// doublerBoutonsPlateau (interface/disposition.js), activerRedimensionnementLargeur
+// (interface/sequence.js) viennent de fichiers charges
 // avant celui-ci.
 
 const DECIMALES_DUREE_REFLEXION = 1;
@@ -46,8 +48,35 @@ function demarrerReflexionIA(details, sequencePrevue) {
   const caseCommentaire = details.querySelector('.case-reflexion-commentaire');
   const boutonRelancer = details.querySelector('.bouton-relancer-ia');
   // La recherche de KAI++ par premier coup (interface/recherche-ia.js).
-  const recherche = demarrerRechercheIA(details.querySelector('.recherche-ia'));
+  const recherche = demarrerRechercheIA(details.querySelector('.recherche-ia'), sequencePrevue);
+  // La barre de navigation sous le tableau (saab, 2026-10-02 : « sinon je suis
+  // oblige d'ouvrir Sequence pour avoir la barre ») : des doubles de celle du
+  // plateau (interface/disposition.js).
+  const actualiserNavigation = doublerBoutonsPlateau(details.querySelectorAll('.navigation-reflexion-ia [data-bouton-plateau]'));
+  // Sa poignee de largeur, sur son bord gauche : la meme largeur de colonne que
+  // la Sequence (interface/sequence.js).
+  activerRedimensionnementLargeur(details, details.querySelector('.poignee-largeur-reflexion'));
   let relancer = () => {};
+  // Auto ou pas a pas (saab, 2026-10-03 : « faire avancer les parties IA contre
+  // IA au coup par coup ou auto ») : interface/ia.js decide, ces boutons le disent.
+  const boutonPasAPas = details.querySelector('.bouton-pas-a-pas-ia');
+  const boutonCoup = details.querySelector('.bouton-coup-ia');
+  let pasAPas = false;
+  let changerPasAPas = () => {};
+  let jouerUnCoup = () => {};
+  boutonPasAPas.addEventListener('click', (evenement) => {
+    evenement.preventDefault();
+    pasAPas = !pasAPas;
+    boutonPasAPas.textContent = pasAPas ? 'Pas à pas' : 'Auto';
+    boutonPasAPas.classList.toggle('bouton-actif', pasAPas);
+    boutonCoup.hidden = !pasAPas;
+    changerPasAPas(pasAPas);
+  });
+  boutonCoup.addEventListener('click', (evenement) => {
+    evenement.preventDefault();
+    jouerUnCoup();
+  });
+  let allerAuCoup = () => {}; // (chemin) : comme un clic dans la Sequence
   let lignesDuChemin = [];
   let enCours = null;
 
@@ -101,23 +130,30 @@ function demarrerReflexionIA(details, sequencePrevue) {
     return td;
   }
 
-  function celluleCoup(texteCoup, jouer) {
+  // Un coup joue : le toucher y va ; ce qu'elle aurait joue : le toucher le joue.
+  function celluleCoup(texteCoup, jouer, chemin) {
     const td = cellule(texteCoup);
     if (jouer) {
       td.classList.add('coup-hypothese');
       td.title = "Ce qu'elle aurait joué ici : touchez pour le jouer (une nouvelle branche)";
       td.addEventListener('click', jouer);
+    } else if (chemin) {
+      td.classList.add('coup-reflexion-navigable');
+      td.title = 'Aller à ce coup';
+      td.addEventListener('click', () => allerAuCoup(chemin));
     }
     return td;
   }
 
-  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, niveau, hypothese, suggestion, jouer }, classe) {
+  function ligne({ etat, camp, coupsJoues, coup, duree, profondeur, source, noeuds, evaluation, sequence, phase, niveau, hypothese, suggestion, jouer, chemin, actif }, classe) {
     const tr = document.createElement('tr');
     if (classe) tr.className = classe;
+    // Le coup regarde sur le plateau, encadre (saab, 2026-10-02).
+    if (actif) tr.classList.add('coup-actif');
     const marque = camp === 'noir' ? '●' : '○';
     const texteCoup = `${numeroDeTour(coupsJoues)} ${marque} ${suggestion ? 'Sugg. ' : ''}${hypothese && coup ? '→ ' : ''}${coup ?? '…'}`;
     tr.append(
-      celluleCoup(texteCoup, hypothese ? jouer : null),
+      celluleCoup(texteCoup, hypothese ? jouer : null, chemin),
       cellule(`${duree.toFixed(DECIMALES_DUREE_REFLEXION)} s`),
       celluleProfondeur({ source, profondeur, evaluation, niveau }),
       cellule(String(noeuds ?? '')),
@@ -142,13 +178,20 @@ function demarrerReflexionIA(details, sequencePrevue) {
   function actualiser(arbre) {
     lignesDuChemin = [];
     let parent = arbre.racine;
+    let precedent = null; // la position d'avant le dernier coup
+    let dernier = null; // le texte du dernier coup
     arbre.chemin.forEach((index, rang) => {
       const noeud = parent.enfants[index];
-      if (noeud.reflexionIA) lignesDuChemin.push({ etat: parent.etat, camp: parent.etat.joueurAuTrait, coupsJoues: rang + 1, coup: noeud.coup, ...noeud.reflexionIA });
+      const actif = rang === arbre.chemin.length - 1;
+      if (noeud.reflexionIA) lignesDuChemin.push({ etat: parent.etat, camp: parent.etat.joueurAuTrait, coupsJoues: rang + 1, coup: noeud.coup, chemin: arbre.chemin.slice(0, rang + 1), actif, ...noeud.reflexionIA });
+      precedent = parent.etat;
+      dernier = noeud.coup;
       parent = noeud;
     });
     afficherTableau();
-    recherche.montrerPosition(parent.etat); // ce que KAI++ a cherche ici
+    actualiserNavigation();
+    // Ce que KAI++ a cherche pour ce coup, et ici ; les coups joues, encadres.
+    recherche.montrerPosition(parent.etat, precedent, { dernier, suivant: parent.enfants[0]?.coup ?? null });
   }
 
   function afficherEnCours(nouveau) {
@@ -167,9 +210,18 @@ function demarrerReflexionIA(details, sequencePrevue) {
       details.hidden = !oui;
       reajuster();
     },
+    // Toucher un coup du tableau y va (saab, 2026-10-02 : « pour naviguer facilement »).
+    brancherNavigation: (action) => {
+      allerAuCoup = action;
+    },
     // Ce que fait le bouton « Relancer » (interface/ia.js).
     brancherRelance: (action) => {
       relancer = action;
+    },
+    // Auto / Pas a pas : `changer(oui)` au basculement, `jouer()` a « Coup IA ».
+    brancherPasAPas: (changer, jouer) => {
+      changerPasAPas = changer;
+      jouerUnCoup = jouer;
     },
     // Une recherche de KAI++ finie, gardee pour la revoir (interface/recherche-ia.js).
     garderRecherche: (nouvelle) => recherche.garder(nouvelle),

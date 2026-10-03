@@ -20,7 +20,7 @@ const CODE_DU_WORKER_KAI_PLUS = `
     kai.surProgres((texte) => self.postMessage({ numero: d.numero, type: 'progres', texte }));
     let texte;
     try {
-      texte = kai.chercher(d.position, d.joueurNoir ? 1 : 0, d.profondeur, d.poids, d.version, d.graine, d.dureeMs, d.historique);
+      texte = kai.chercher(d.position, d.joueurNoir ? 1 : 0, d.profondeur, d.poids, d.version, d.graine, d.dureeMs, d.historique, d.elagage ?? 0);
     } catch (erreur) {
       texte = 'ERREUR ' + erreur;
     }
@@ -31,7 +31,7 @@ const CODE_DU_WORKER_KAI_PLUS = `
 // Renvoie { chercher(demande, surProgres) -> Promise<texte>, interrompre() }.
 // `demande` : { position, joueurNoir, profondeur, poids (texte, moteur/ia.js,
 // poidsEnTexte), version, graine, dureeMs, historique (positions, une par
-// ligne) }. La reponse (texte) se lit avec lireReponseKaiPlus (moteur/ia.js) ;
+// ligne), elagage (0 : aucun) }. La reponse (texte) se lit avec lireReponseKaiPlus (moteur/ia.js) ;
 // 'ERREUR ...' si le worker ne peut pas demarrer ou a ete interrompu.
 function creerKaiPlus() {
   let worker = null;
