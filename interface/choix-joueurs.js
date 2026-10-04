@@ -40,6 +40,13 @@ function livreParDefaut() {
   return lireReglagesActifs().kaah.ia_book;
 }
 
+// Celui d'une machine qui prend le profil `nom` (saab, 2026-10-03 : le livre
+// fait partie du profil IA) : seulement si le profil s'en sert et que Reglages
+// le permet ; la case reste a cocher ou decocher ensuite.
+function livreDuProfil(nom) {
+  return livreParDefaut() && (trouverProfilIA(nom)?.livre ?? true);
+}
+
 function lireDerniersJoueurs() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_DERNIERS_JOUEURS) ?? 'null');
@@ -121,7 +128,7 @@ function brancherChoixMachine(element, surChangement) {
   }
   element.querySelector('.choix-profil-ia').addEventListener('change', (evenement) => {
     colorerListeProfilsIA(evenement.target);
-    changer({ profil: evenement.target.value });
+    changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value) });
   });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
 
@@ -160,7 +167,7 @@ function demarrerChoixJoueurs(section) {
   function preparer(visible) {
     section.hidden = !visible;
     const choix = lireDerniersJoueurs();
-    for (const camp of CAMPS_JOUEURS) blocs[camp].definir({ ...choix[camp], livre: livreParDefaut() });
+    for (const camp of CAMPS_JOUEURS) blocs[camp].definir({ ...choix[camp], livre: livreDuProfil(choix[camp].profil) });
   }
 
   function lire() {

@@ -9,7 +9,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_REGLAGES_IA,
 // valeurReglageIA, memesReglagesIA, cheminDeVersionIA, choisirVersionIA
 // (historique-profil-ia.js), PROFILS_IA_INTEGRES (profils-ia.js),
-// nomDuProfilIntegre (ia.js) viennent de fichiers charges avant celui-ci.
+// nomDuProfilIntegre (ia.js), CLES_CASES_IA_V3, valeurTotaleDeLaCase
+// (ia-evaluation-v3.js) viennent de fichiers charges avant celui-ci.
 
 // De la plus forte a la plus faible.
 const COULEURS_IA_DE_LA_PLUS_FORTE = ['modifie', 'dernier', 'ancien'];
@@ -48,7 +49,9 @@ function couleursDeLaMachineIA(machine, profil) {
   if (profil && memesReglagesIA(profil, machine)) return couleursDesReglagesIA(profil, null);
   const version = profil?.historique?.find((ancienne) => memesReglagesIA(ancienne, machine));
   if (version) return couleursDesReglagesIA(choisirVersionIA(profil, version.numero), null);
-  const integre = PROFILS_IA_INTEGRES.find((existant) => existant.nom === nomDuProfilIntegre(machine.style, machine.version, machine.elagage));
+  // Sans profil integre qui elague a sa version (3el), celui qui n'elague pas.
+  const integreNomme = (nom) => PROFILS_IA_INTEGRES.find((existant) => existant.nom === nom);
+  const integre = integreNomme(nomDuProfilIntegre(machine.style, machine.version, machine.elagage)) ?? integreNomme(nomDuProfilIntegre(machine.style, machine.version));
   return couleursDesReglagesIA(integre, machine);
 }
 
@@ -61,6 +64,15 @@ function couleurDeLaMachineIA(machine, profil) {
 // avec leur code couleur ») : une ligne par profil — la date de sa version
 // courante ('' pour un profil integre ou d'avant l'historique), et chaque
 // reglage en texte (texteReglageIA, historique-profil-ia.js) avec sa couleur.
+// Les cases (e5 a a1) montrent leur valeur TOTALE, Centre par pas compris, a
+// toutes les versions (saab, 2026-10-04 : « pourquoi jusqu'a v2el, e5 a a1 = —
+// alors qu'elles ont la valeur calculee du centre ? ») ; leur couleur est la
+// plus forte du Centre et de la leur.
+function reglageComparaisonIA(profil, couleurs, cle) {
+  if (!CLES_CASES_IA_V3.includes(cle)) return { texte: texteReglageIA(cle, valeurReglageIA(profil, cle)), couleur: couleurs[cle] };
+  return { texte: String(valeurTotaleDeLaCase(profil.poids, profil.version, cle)), couleur: couleurLaPlusForte([couleurs.centre, couleurs[cle]]) };
+}
+
 function lignesComparaisonIA(profils) {
   return profils.map((profil) => {
     const courante = profil.historique?.find((version) => version.numero === profil.courante);
@@ -70,7 +82,7 @@ function lignesComparaisonIA(profils) {
       indice: profil.indice ?? null,
       date: courante?.date ?? '',
       description: profil.description ?? '',
-      reglages: Object.fromEntries(CLES_REGLAGES_IA.map((cle) => [cle, { texte: texteReglageIA(cle, valeurReglageIA(profil, cle)), couleur: couleurs[cle] }])),
+      reglages: Object.fromEntries(CLES_REGLAGES_IA.map((cle) => [cle, reglageComparaisonIA(profil, couleurs, cle)])),
     };
   });
 }

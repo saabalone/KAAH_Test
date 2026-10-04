@@ -16,10 +16,9 @@
 // « Essai sur position »).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : essaiDesCoups,
-// valeursDesCases, detailDeLEvaluation (moteur/essai-ia.js), etatsDeLaSequence
+// valeursDesCases, detailDeLEvaluation, termesDeLaVersion (moteur/essai-ia.js), etatsDeLaSequence
 // (moteur/sequence-prevue.js), choisirCoupIA, libelleEvaluation,
-// MACHINE_PAR_DEFAUT (moteur/ia.js), CLES_POIDS_IA, VALEUR_VICTOIRE_IA
-// (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
+// MACHINE_PAR_DEFAUT (moteur/ia.js), VALEUR_VICTOIRE_IA (moteur/ia-evaluation.js),
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), numeroDeTour
 // (moteur/arbre.js), NOM_CAMP (rendu/ejections.js), DUREE_TRANCHE_MS,
 // MILLISECONDES_PAR_SECONDE (interface/ia-reflexion.js), doublerBoutonsPlateau
@@ -28,14 +27,20 @@
 
 const COLONNES_ESSAI_IA = {
   gain: 'Gain',
+  // « sc. Gain » (saab, 2026-10-04) : une colonne retrecie se distingue encore de Gain.
+  gainScore: 'sc. Gain',
   perte: 'Perte',
+  perteScore: 'sc. Perte',
   centre: 'Centre',
   cohesion: 'Cohés.',
+  compacite: 'Compac.',
+  cases: 'Cases',
   bordSoi: 'Bord m.',
   bordAdverse: 'Bord a.',
   sumito: 'Sumito',
   menaceEjection: 'Menace',
   fourchette: 'Fourch.',
+  piege: 'Piège',
 };
 const NIVEAU_RECHERCHE_ESSAI = 3;
 const VERIFICATION_POSITION_ESSAI_MS = 300;
@@ -80,8 +85,8 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   // chacun touche le sien, et se grise avec lui.
   const actualiserNavigation = doublerBoutonsPlateau(elements.navigation);
 
-  function afficherCases(poids) {
-    const cases = valeursDesCases(poids);
+  function afficherCases(poids, version) {
+    const cases = valeursDesCases(poids, version);
     elements.cases.replaceChildren(
       ligneDeTableau(['Case', ...cases.map((c) => c.notation)], 'th'),
       ligneDeTableau(['Les miennes', ...cases.map((c) => texteValeurEssai(c.miennes))]),
@@ -91,7 +96,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   }
 
   function afficherCoups({ version, poids }, etat) {
-    const cles = version >= 2 ? [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2] : CLES_POIDS_IA;
+    const cles = termesDeLaVersion(version);
     const essai = essaiDesCoups(etat, poids, version);
     const entete = ligneDeTableau(['#', 'Coup', 'Niv. 3', 'Niv. 2', 'Niv. 1', ...cles.map((cle) => COLONNES_ESSAI_IA[cle])], 'th');
     cles.forEach((cle, rang) => (entete.children[rang + 5].title = LIBELLES_REGLAGES_IA[cle]));
@@ -174,7 +179,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
     const position = obtenirEtat();
     if (position?.etat !== etatMontre) coupChoisi = null;
     etatMontre = position?.etat ?? null;
-    afficherCases(valeurs.poids);
+    afficherCases(valeurs.poids, valeurs.version);
     if (!position || position.etat.vainqueur) {
       rechercheEnCours++;
       elements.position.textContent = 'Pas de coup à essayer sur la position du plateau.';

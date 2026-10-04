@@ -20,8 +20,16 @@ const DESCRIPTIONS_STYLES_IA = {
   defensif: "Cherche à ne rien perdre : une bille perdue coûte plus qu'une prise ne rapporte (1300 contre 800), reste groupé au centre, loin du bord.",
 };
 const DESCRIPTION_VERSION_2_IA = " Version 2 : compte aussi les sumitos possibles, les menaces d'éjection et les fourchettes.";
+const DESCRIPTION_VERSION_3_IA = ' Version 3 : fuit les 2 couronnes du bord, reste groupé (compacité), une éjection pèse plus quand le score avance.';
+const DESCRIPTION_VERSION_4_IA = ' Version 4 : enferme les billes adverses du bord.';
+const DESCRIPTIONS_VERSIONS_IA = {
+  1: '',
+  2: DESCRIPTION_VERSION_2_IA,
+  3: DESCRIPTION_VERSION_2_IA + DESCRIPTION_VERSION_3_IA,
+  4: DESCRIPTION_VERSION_2_IA + DESCRIPTION_VERSION_3_IA + DESCRIPTION_VERSION_4_IA,
+};
 // Une description lue d'un fichier : un texte court.
-const DESCRIPTION_PROFIL_IA_MAX = 300;
+const DESCRIPTION_PROFIL_IA_MAX = 400;
 
 const DESCRIPTION_ELAGAGE_IA = ` Élagage : ne cherche que les ${ELAGAGE_PAR_DEFAUT_IA} meilleurs coups de chaque position, pour aller plus loin dans le même temps.`;
 const VERSION_ELAGUEE_IA = 2;
@@ -30,19 +38,21 @@ function profilIntegre(style, version, elagage) {
   return {
     nom: nomDuProfilIntegre(style, version, elagage),
     version,
+    livre: true,
     elagage,
     style,
     poids: POIDS_DES_VERSIONS_IA[version].styles[style],
-    description: `${DESCRIPTIONS_STYLES_IA[style]}${version > VERSION_IA ? DESCRIPTION_VERSION_2_IA : ''}${elagage ? DESCRIPTION_ELAGAGE_IA : ''}`,
+    description: `${DESCRIPTIONS_STYLES_IA[style]}${DESCRIPTIONS_VERSIONS_IA[version]}${elagage ? DESCRIPTION_ELAGAGE_IA : ''}`,
   };
 }
 
-// Trois par version : Agressif, Normal, Défensif (version 1), puis « … v2 » ;
+// Trois par version : Agressif, Normal, Défensif (version 1), puis « … v2 », « … v3 » ;
 // et trois de la version 2 qui elague, « … v2el » (saab, 2026-10-03).
-const PROFILS_IA_INTEGRES = [
-  ...VERSIONS_IA.flatMap((version) => Object.keys(STYLES_IA).map((style) => profilIntegre(style, version, 0))),
-  ...Object.keys(STYLES_IA).map((style) => profilIntegre(style, VERSION_ELAGUEE_IA, ELAGAGE_PAR_DEFAUT_IA)),
-];
+// Ceux qui elaguent juste apres ceux de leur version.
+const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) => [
+  ...Object.keys(STYLES_IA).map((style) => profilIntegre(style, version, 0)),
+  ...(version === VERSION_ELAGUEE_IA ? Object.keys(STYLES_IA).map((style) => profilIntegre(style, version, ELAGAGE_PAR_DEFAUT_IA)) : []),
+]);
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
 // memes valeurs sures qu'une machine (lireMachine) : style inconnu -> normal,

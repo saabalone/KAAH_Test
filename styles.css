@@ -4930,3 +4930,164 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
 .tableau-comparaison-ia .comparaison-titre-pliable {
   cursor: pointer;
 }
+
+/* Profils IA compares, version 3 (saab, 2026-10-03) : les cases d4 a a2 se
+   replient en touchant le titre Centre (a1 reste) ; chaque colonne s'elargit ou
+   se retrecit en tirant le bord droit de son titre — les largeurs sont alors
+   fixes, le texte trop long coupe. */
+.tableau-comparaison-ia.cases-pliees .colonne-case-repliable {
+  display: none;
+}
+
+.tableau-comparaison-ia .poignee-colonne {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 1;
+}
+
+.tableau-comparaison-ia .poignee-colonne:hover {
+  background: rgba(224, 131, 42, 0.5);
+}
+
+.tableau-comparaison-ia.largeurs-fixees {
+  table-layout: fixed;
+}
+
+.tableau-comparaison-ia.largeurs-fixees th,
+.tableau-comparaison-ia.largeurs-fixees td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Les infos d'une case (saab, 2026-10-04, interface/infos-case.js) : une
+   infobulle qui suit la souris, et le petit tableau d'une bille au clic droit. */
+.infobulle-case,
+.panneau-bille {
+  position: fixed;
+  z-index: 1000;
+  background: #1e1e1e;
+  color: #e6e6e6;
+  border: 1px solid #5a5a5a;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.infobulle-case {
+  padding: 1px 6px;
+  pointer-events: none;
+  color: #e06321;
+  white-space: nowrap;
+}
+
+/* Toujours entier dans la fenetre (saab : « la barre de scroll est hors
+   fenetre ») : le titre reste, le corps defile sur lui-meme. */
+.panneau-bille {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  max-width: 520px;
+  max-height: calc(100vh - 12px);
+  box-sizing: border-box;
+}
+
+.panneau-bille[hidden] {
+  display: none;
+}
+
+.corps-panneau-bille {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.panneau-bille p {
+  margin: 2px 0;
+  color: #9a9a9a;
+}
+
+.entete-panneau-bille {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+  cursor: move;
+  touch-action: none;
+}
+
+.entete-panneau-bille span {
+  flex: 1 1 auto;
+}
+
+.entete-panneau-bille button {
+  min-height: 0;
+  padding: 0 6px;
+  background: none;
+  border: 1px solid #5a5a5a;
+  border-radius: 3px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.panneau-bille table {
+  border-collapse: collapse;
+}
+
+.panneau-bille th,
+.panneau-bille td {
+  padding: 1px 6px 1px 0;
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.panneau-bille th {
+  color: #9a9a9a;
+}
+
+.choix-infos-case {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.choix-infos-case p {
+  margin-top: 4px;
+  color: #e0832a;
+}
+
+.panneau-bille .ligne-total-bille th,
+.panneau-bille .ligne-total-bille td {
+  color: #e6e6e6;
+  font-weight: bold;
+  border-top: 1px solid #5a5a5a;
+}
+
+.entete-panneau-bille button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* L'aire dessinee sur le plateau (interface/aire-plateau.js) : blanche en
+   cours, orange une fois fermee ; pendant le dessin, le curseur le dit. */
+.trace-aire {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.trace-aire-fermee {
+  stroke: #e0832a;
+  fill: rgba(224, 131, 42, 0.12);
+}
+
+svg.dessin-aire {
+  cursor: crosshair;
+  touch-action: none;
+}

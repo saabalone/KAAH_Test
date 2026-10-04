@@ -32,7 +32,7 @@
 // (moteur/historique-profil-ia.js), couleursDeLaMachineIA, couleurLaPlusForte
 // (moteur/couleurs-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
 // poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
-// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreParDefaut,
+// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
 // ROLE_HUMAIN (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
@@ -135,7 +135,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     choixIA.definir(
       machine
         ? { role: machine.moteur, niveau: machine.niveau, profil: machine.profil, reflexionMax: machine.reflexionMax, livre: machine.livre }
-        : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreParDefaut() },
+        : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) },
       machine?.profil
     );
     afficherMachineChoisie();
@@ -151,7 +151,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   // Une suggestion pour la position du plateau, par la machine du choix
   // affiche (KAI si l'on n'en a pas choisi) : le joueur ne change pas.
   elements.suggestion.addEventListener('click', () => {
-    const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreParDefaut() } : choixIA.lire();
+    const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) } : choixIA.lire();
     commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? 'kai' : choix.role }));
     elements.dialogue.close();
   });

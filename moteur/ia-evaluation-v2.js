@@ -83,12 +83,6 @@ function valeurDesSumitos(sumitos, poids) {
   return poids.sumito * sumitos.length + poids.menaceEjection * ejections + poids.fourchette * enPlus;
 }
 
-// L'evaluation de chaque version de l'IA (la recherche, moteur/ia-recherche.js,
-// et l'essai d'un profil, moteur/essai-ia.js).
-function evaluationDeLaVersion(version) {
-  return version === 2 ? evaluerPositionV2 : evaluerPosition;
-}
-
 // La valeur de `etat` pour `camp` (le camp de l'IA), version 2.
 function evaluerPositionV2(etat, camp, poids) {
   const base = evaluerPosition(etat, camp, poids);

@@ -14,15 +14,33 @@
 // (plateau.js), couleurAdverse, couleursDuPlateau, appliquerCoup (partie.js),
 // tousLesCoupsLegaux (regles.js), ecrireCoupNacreSansAmbiguite (notation.js),
 // mesuresDuCamp, ejectionsDe, DISTANCE_AU_CENTRE, VOISINS_DES_CASES,
-// VALEUR_VICTOIRE_IA (ia-evaluation.js), sumitosDuCamp, evaluationDeLaVersion
-// (ia-evaluation-v2.js) viennent de fichiers charges avant celui-ci.
+// VALEUR_VICTOIRE_IA (ia-evaluation.js), sumitosDuCamp (ia-evaluation-v2.js),
+// evaluationDeLaVersion, termesDeLaVersion3, classeDeLaCaseIA,
+// valeurTotaleDeLaCase, VERSION_DES_CASES_IA (ia-evaluation-v3.js),
+// termeDuPiegeIA (ia-evaluation-v4.js) viennent de fichiers charges avant celui-ci.
 
 // Les 9 cases qu'aucune rotation ni aucun miroir ne ramene l'une sur l'autre,
 // du centre au bord (saab : « e5/d4/c34/b23/a123 »).
 const CASES_DISTINCTES_IA = ['e5', 'd4', 'c3', 'c4', 'b2', 'b3', 'a1', 'a2', 'a3'];
 
-// Les termes de l'evaluation de `etat` pour `camp`, un par poids (les memes
-// calculs que evaluerPosition et evaluerPositionV2, rendus a part).
+// Les termes de chaque version, dans l'ordre des colonnes (Essai, tableau 1er
+// coup) : ceux de la version 3 suivent celui qu'ils completent ; « cases » est
+// le terme des 9 cases (ia-evaluation-v3.js).
+const TERMES_DES_VERSIONS_IA = {
+  1: ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse'],
+  2: ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette'],
+  3: ['gain', 'gainScore', 'perte', 'perteScore', 'centre', 'cases', 'cohesion', 'compacite', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette'],
+  4: ['gain', 'gainScore', 'perte', 'perteScore', 'centre', 'cases', 'cohesion', 'compacite', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette', 'piege'],
+};
+const VERSION_DU_PIEGE_IA = 4;
+
+function termesDeLaVersion(version) {
+  return TERMES_DES_VERSIONS_IA[version] ?? TERMES_DES_VERSIONS_IA[1];
+}
+
+// Les termes de l'evaluation de `etat` pour `camp`, un par colonne (les memes
+// calculs que evaluerPosition, evaluerPositionV2 et V3, rendus a part).
+
 function detailDeLEvaluation(etat, camp, poids, version) {
   if (etat.vainqueur) return { victoire: etat.vainqueur === camp ? VALEUR_VICTOIRE_IA : -VALEUR_VICTOIRE_IA };
   const lui = couleurAdverse(camp);
@@ -42,12 +60,15 @@ function detailDeLEvaluation(etat, camp, poids, version) {
   const b = sumitosDuCamp(couleurs, lui);
   const ejections = (sumitos) => sumitos.filter((sumito) => sumito.ejection).length;
   const enPlus = (sumitos) => Math.max(0, sumitos.length - 1);
-  return {
+  const avecSumitos = {
     ...termes,
     sumito: poids.sumito * (a.length - b.length),
     menaceEjection: poids.menaceEjection * (ejections(a) - ejections(b)),
     fourchette: poids.fourchette * (enPlus(a) - enPlus(b)),
   };
+  if (version < VERSION_DES_CASES_IA) return avecSumitos;
+  const avecCases = { ...avecSumitos, ...termesDeLaVersion3(etat, camp, poids) };
+  return version < VERSION_DU_PIEGE_IA ? avecCases : { ...avecCases, piege: termeDuPiegeIA(etat, camp, poids) };
 }
 
 function ecartsDesTermes(avant, apres) {
@@ -81,18 +102,20 @@ function essaiDesCoups(etat, poids, version) {
 
 // Ce que vaut une bille sur chacune des 9 cases distinctes : `miennes` pour
 // une bille du camp de la machine, `adverses` pour une de l'adversaire (le
-// centre compte par pas depuis le bord, le bord a son propre poids) ;
+// centre compte par pas depuis le bord, chaque case a en plus sa valeur en
+// version 3 ; le bord a son propre poids) ;
 // `voisines` : combien de cases voisines (la cohesion possible).
-function valeursDesCases(poids) {
+function valeursDesCases(poids, version) {
   return CASES_DISTINCTES_IA.map((notation) => {
     const pas = RAYON_PLATEAU - DISTANCE_AU_CENTRE[notation];
     const auBord = pas === 0;
+    const valeur = valeurTotaleDeLaCase(poids, version, classeDeLaCaseIA(notation));
     return {
       notation,
       pas,
       voisines: VOISINS_DES_CASES[notation].length,
-      miennes: poids.centre * pas - (auBord ? poids.bordSoi : 0),
-      adverses: -poids.centre * pas + (auBord ? poids.bordAdverse : 0),
+      miennes: valeur - (auBord ? poids.bordSoi : 0),
+      adverses: -valeur + (auBord ? poids.bordAdverse : 0),
     };
   });
 }

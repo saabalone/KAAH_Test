@@ -7,36 +7,71 @@
 //
 // Les couleurs des reglages (orange, vert, jaune) : moteur/couleurs-profil-ia.js.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
-// (ia-evaluation.js), CLES_POIDS_IA_V2 (ia-evaluation-v2.js), NOMS_STYLES_IA,
+// Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA_V2
+// (ia-evaluation-v2.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), NOMS_STYLES_IA,
 // lireMachine (ia.js) viennent de fichiers charges avant celui-ci.
 
 // Ce qu'une version retient, dans l'ordre ou Reglages le montre.
-// L'elagage (saab, 2026-10-02, version « 2el » : moteur/ia-recherche.js) suit la version.
-const CLES_REGLAGES_IA = ['version', 'elagage', 'style', ...CLES_POIDS_IA, ...CLES_POIDS_IA_V2];
-const REGLAGES_IA_HORS_POIDS = ['version', 'elagage', 'style'];
+// Le livre d'ouvertures (saab, 2026-10-03 : colonne Livre apres la Version) et
+// l'elagage (saab, 2026-10-02, version « 2el » : moteur/ia-recherche.js)
+// suivent la version ; chaque poids de la version 3 (moteur/ia-evaluation-v3.js)
+// suit celui qu'il complete : le score apres Gain et Perte, les cases apres le
+// Centre, la compacite apres la Cohesion.
+const REGLAGES_IA_HORS_POIDS = ['version', 'livre', 'elagage', 'style'];
+const CLES_REGLAGES_IA = [
+  ...REGLAGES_IA_HORS_POIDS,
+  'gain',
+  'gainScore',
+  'perte',
+  'perteScore',
+  'centre',
+  ...CLES_CASES_IA_V3,
+  'cohesion',
+  'compacite',
+  'bordSoi',
+  'bordAdverse',
+  ...CLES_POIDS_IA_V2,
+  // Le piege de la version 4 (moteur/ia-evaluation-v4.js).
+  'piege',
+];
 
 const LIBELLES_REGLAGES_IA = {
   version: 'Version',
+  livre: 'Livre',
   elagage: 'Élagage',
   style: 'Style',
   gain: 'Gain',
+  gainScore: 'Gain (score)',
   perte: 'Perte',
+  perteScore: 'Perte (score)',
   centre: 'Centre',
+  caseE5: 'e5',
+  caseD4: 'd4',
+  caseC4: 'c4',
+  caseC3: 'c3',
+  caseB4: 'b4',
+  caseB2: 'b2',
+  caseA3: 'a3',
+  caseA2: 'a2',
+  caseA1: 'a1',
   cohesion: 'Cohésion',
+  compacite: 'Compacité',
+  // Pas un reglage : le terme des cases, une colonne de l'Essai.
+  cases: 'Cases',
   bordSoi: 'Bord (miennes)',
   bordAdverse: 'Bord (adverses)',
   sumito: 'Sumito',
   menaceEjection: "Menace d'éjection",
   fourchette: 'Fourchette',
+  piege: 'Piège',
 };
 
 const NOTE_AVANT_HISTORIQUE_IA = "avant l'historique";
 
-// Version, elagage, style et poids, ramenes a des valeurs sures (moteur/ia.js).
+// Version, livre, elagage, style et poids, ramenes a des valeurs sures (moteur/ia.js).
 function valeursReglagesIA(brut) {
-  const { version, elagage, style, poids } = lireMachine(brut);
-  return { version, elagage, style, poids };
+  const { version, livre, elagage, style, poids } = lireMachine(brut);
+  return { version, livre, elagage, style, poids };
 }
 
 function valeurReglageIA(valeurs, cle) {
@@ -89,6 +124,7 @@ function choisirVersionIA(profil, numero) {
 
 function texteReglageIA(cle, valeur) {
   if (valeur === undefined) return '—';
+  if (cle === 'livre') return valeur ? '✓' : '—';
   return cle === 'style' ? NOMS_STYLES_IA[valeur] : String(valeur);
 }
 

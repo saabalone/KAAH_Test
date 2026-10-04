@@ -674,7 +674,7 @@
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b>, <b>KAI</b> (la machine en JavaScript) ou <b>KAI++</b> (la même machine en C++, 40 à 80 fois plus rapide) — deux machines peuvent jouer l'une contre l'autre, par exemple KAI contre KAI++.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2). La boîte retient votre dernier choix.</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
-        <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.</li>
+        <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.<br><b>Version 3</b> (version de travail, jouée par KAI++ ; KAI aussi, mais lentement) : la 2, plus trois choses. <b>Les cases</b> : chacune des 9 cases distinctes du plateau (<b>e5 d4 c4 c3 b4 b2 a3 a2 a1</b>, chacune valant aussi pour les cases qui lui ressemblent par rotation ou miroir) a une valeur en plus du Centre, pour une bille à soi, l'opposé pour une bille adverse ; au départ, les 2 couronnes éjectables sont négatives (b : −5, a : −10, coin a1 : −12). <b>La compacité</b> : la distance moyenne, en coups, entre ses billes deux à deux — plus elle est petite, plus le bloc est compact ; son poids compte par coup de distance de moins que l'adversaire. <b>Gain et Perte (score)</b> : chaque éjection déjà faite rend la suivante plus précieuse (la 2e prise rapporte Gain + Gain (score), la 3e Gain + 2 × Gain (score)…), de même pour les pertes : en fin de partie, la machine sait s'il vaut mieux attaquer ou se défendre. Profils <b>Agressif v3</b>, <b>Normal v3</b>, <b>Défensif v3</b> ; version <b>3el</b> pour élaguer.<br><b>Version 4</b> (version de travail) : la 3, plus le <b>Piège</b> — chaque bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant : le triangle a3 contre b3 b4 c4) rapporte ce poids, chacune des siennes le coûte. Le vrai piège (les deux camps jouent) est trop long pour chaque position : la version 4 n'en regarde que l'immobilité. Profils <b>Agressif v4</b>, <b>Normal v4</b>, <b>Défensif v4</b> ; version <b>4el</b> pour élaguer.<br><b>Livre d'ouvertures</b> : chaque profil dit s'il s'en sert (case Livre, coche par défaut) ; choisir le profil au début de la partie reprend sa case, que Réglages > Machine > Livre d'ouvertures peut interdire à toutes les machines.<br><b>Comparer</b> : tous les profils côte à côte ; les cases e5 à a1 y montrent la <b>valeur totale</b> d'une bille à soi sur elles (Centre × ses pas, plus sa valeur propre en version 3 ; le bord a ses poids à part) ; toucher le titre <b>Centre</b> cache ou montre les cases d4 à a2 (e5 et a1 restent) ; tirer le bord droit d'un titre élargit ou rétrécit sa colonne.<br><b>Sur ordinateur</b>, survoler une case affiche sa notation, ses coordonnées axiales et ce qui l'occupe ; le <b>clic droit</b> sur une bille ouvre son panneau, à côté du plateau sur la ligne e (à déplacer par son titre) : ce qu'elle apporte à chaque terme, de Gain à Fourchette (l'évaluation avec elle moins sans elle) et leur <b>total</b>, pour la machine et pour d'autres profils IA côte à côte ; puis sa distance moyenne aux siennes, la bille adverse la plus proche, si elle est poussée ou éjectable, et, pour une bille des couronnes b et a, son <b>Piège</b> : KAI++ cherche, les deux camps jouant (l'adversaire peut lui couper la route), si elle sort de la zone éjectable en 4 de ses coups au plus quoi que fasse l'adversaire — « sort en 2 coups, d'abord … », « piégée : aucune sortie en 4 coups », ou « piégée sur 3 coups (au-delà : trop long) » ; quelques secondes au plus, sans gêner la machine qui joue. La <b>Course</b> en est la mesure rapide, sans réponse de l'adversaire (les autres billes ne bougent pas). Le bouton <b>Aire</b> : appuyer sur une case et glisser, le trait suit les cases survolées, relâcher le ferme (Échap annule ; le plateau ne joue pas pendant ce temps). Les billes des deux camps dans l'aire forment une position, évaluée terme par terme pour le camp de la bille — tout le plateau donne exactement l'évaluation de la machine. Un clic droit sur une bille adverse ouvre la même aire pour son camp, dans un 2e panneau collé au 1er. Le bouton ⚙ choisit les termes, les profils, les mesures et les champs du survol.</li>
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
         <li>Un <b>profil IA</b> de l'utilisateur a un indice (<b>P3</b>), repris dans le nom de la machine (KAI2_Nor_5s_P3) : deux machines qui ne diffèrent que par leur profil se distinguent dans le titre. Un nouveau profil prend l'indice qui suit le plus grand des profils restants : sans profil à vous, on repart à P1.</li>
         <li><b>Fin de partie vue</b> (« Gagne en n », « Perd en n ») : la machine retient sa séquence et, tant que l'adversaire répond comme prévu, joue la suite sans chercher (« fin vue » dans le tableau).</li>
@@ -965,7 +965,7 @@
         <label class="ligne-couleur">Profil IA <select id="select-profil-ia" aria-label="Profil IA"></select></label>
         <!-- Ce que cherche le profil (saab, 2026-10-03) : fixe pour un profil
              integre, a ecrire pour les siens (interface/reglages-ia.js). -->
-        <label class="ligne-description-profil-ia">Ce qu'il cherche <textarea id="description-profil-ia" rows="2" maxlength="300" placeholder="Ce que ce profil cherche à faire (attaquer le bord, tenir le centre…)"></textarea></label>
+        <label class="ligne-description-profil-ia">Ce qu'il cherche <textarea id="description-profil-ia" rows="2" maxlength="400" placeholder="Ce que ce profil cherche à faire (attaquer le bord, tenir le centre…)"></textarea></label>
         <div class="boutons-dialogue-cote-a-cote">
           <button id="bouton-nouveau-profil-ia" class="bouton-dialogue" type="button">Nouveau</button>
           <button id="bouton-supprimer-profil-ia" class="bouton-dialogue" type="button">Supprimer</button>
@@ -973,13 +973,21 @@
           <button id="bouton-importer-profil-ia" class="bouton-dialogue" type="button">Importer</button>
           <button id="bouton-comparer-profils-ia" class="bouton-dialogue" type="button" title="Tous les profils IA côte à côte : date, description, réglages et leurs couleurs">Comparer</button>
         </div>
-        <label class="ligne-couleur" title="1 : celle de la phase 29, gardée pour comparer ; 2 : compte aussi les sumitos et les fourchettes">Version de l'IA
+        <label class="ligne-couleur" title="1 : celle de la phase 29, gardée pour comparer ; 2 : compte aussi les sumitos et les fourchettes ; 3 : une valeur par case, compacité, score ; 4 : le piège (KAI++)">Version de l'IA
           <select id="select-version-profil-ia">
             <option value="1">1</option>
             <option value="2">2 (sumitos)</option>
             <option value="2el">2el (sumitos, élagage)</option>
+            <option value="3">3 (une valeur par case)</option>
+            <option value="3el">3el (cases, élagage)</option>
+            <option value="4">4 (piège)</option>
+            <option value="4el">4el (piège, élagage)</option>
           </select>
         </label>
+        <!-- Saab, 2026-10-03 : le livre d'ouvertures fait partie du profil
+             (colonne Livre du tableau comparatif) ; la boite du debut de partie
+             le reprend en choisissant ce profil. -->
+        <label class="ligne-couleur" title="Tant que la position est dans la base de coups, la machine y prend un coup gagnant au hasard, sans réfléchir">Livre d'ouvertures <input id="livre-profil-ia" type="checkbox" /></label>
         <!-- Saab, 2026-10-02 : la version 2el ne cherche que les n meilleurs coups
              de chaque position (moteur/ia-recherche.js, meilleursCoupsIA). -->
         <label class="ligne-couleur" title="À chaque position, ne cherche que ce nombre de coups : les meilleurs juste après le coup">Élagage (coups cherchés) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="elagage-profil-ia" class="nombre-reglage" type="number" min="1" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -991,14 +999,32 @@
           </select>
         </label>
         <label class="ligne-couleur" title="Par bille adverse éjectée">Gain (éjection) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-gain" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="En plus, pour chaque éjection déjà faite : la 2e prise rapporte une fois ce poids de plus que la 1re, la 3e deux fois… (en fin de partie, attaquer quand on mène)">Gain (score) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-gainScore" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par bille à soi perdue">Perte (éjection) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-perte" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="En plus, pour chaque bille déjà perdue : la 2e perte coûte une fois ce poids de plus que la 1re, la 3e deux fois… (en fin de partie, se défendre quand on est mené)">Perte (score) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-perteScore" class="nombre-reglage" type="number" step="50" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par pas de ses billes vers le centre (e5 : 4 pas, d4 : 3, c3/c4 : 2, b2/b3 : 1, bord : 0)">Centre <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-10-03 : la version 3 donne en plus une valeur a chacune
+             des 9 cases distinctes, negative sur les 2 couronnes ejectables
+             (moteur/ia-evaluation-v3.js). -->
+        <label class="ligne-couleur poids-version-3" title="En plus du Centre, par bille à soi sur e5 (l'opposé pour une bille adverse)">Case e5 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseE5" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur d4 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case d4 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseD4" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur c4 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case c4 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseC4" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur c3 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case c3 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseC3" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur b4 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case b4 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseB4" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur b2 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case b2 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseB2" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur a3 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case a3 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseA3" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur a2 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case a2 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseA2" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="Par bille à soi sur a1 et les cases qui lui ressemblent par rotation ou miroir (l'opposé pour une bille adverse)">Case a1 <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-caseA1" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-version-3" title="La distance moyenne, en coups, entre ses billes deux à deux : plus elle est petite, plus le bloc est compact. Ce poids par coup de distance en moins que l'adversaire">Compacité <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-compacite" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les miennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-sumito" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-menaceEjection" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito au-delà du premier : l'adversaire ne peut en parer qu'un">Fourchette <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-fourchette" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-10-04 : la version 4 compte les billes du bord enfermees
+             (le triangle a3_b34c4, moteur/ia-evaluation-v4.js). -->
+        <label class="ligne-couleur poids-version-4" title="Par bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant) ; l'opposé pour une des siennes">Piège <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piege" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-09-30 : une retouche reste en orange jusqu'a Valider
              (vert : derniere validation, jaune : plus ancienne) ; l'historique
              des versions, comme les branches de la Sequence
@@ -1643,6 +1669,8 @@
   <script src="./moteur/nulle.js"></script>
   <script src="./moteur/ia-evaluation.js"></script>
   <script src="./moteur/ia-evaluation-v2.js"></script>
+  <script src="./moteur/ia-evaluation-v3.js"></script>
+  <script src="./moteur/ia-evaluation-v4.js"></script>
   <script src="./moteur/ia-memoire.js"></script>
   <script src="./moteur/archive-recherches.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
@@ -1652,6 +1680,9 @@
   <script src="./moteur/couleurs-profil-ia.js"></script>
   <script src="./moteur/sequence-prevue.js"></script>
   <script src="./moteur/essai-ia.js"></script>
+  <script src="./moteur/sortie-bille.js"></script>
+  <script src="./moteur/bille-ia.js"></script>
+  <script src="./moteur/aire-ia.js"></script>
   <script src="./moteur/puzzles.js"></script>
   <script src="./moteur/solveur.js"></script>
   <script src="./moteur/revanche.js"></script>
@@ -1756,6 +1787,10 @@
   <script src="./interface/reglages-rubriques.js"></script>
   <script src="./interface/historique-ia.js"></script>
   <script src="./interface/essai-ia.js"></script>
+  <script src="./interface/panneau-bille.js"></script>
+  <script src="./interface/panneau-flottant.js"></script>
+  <script src="./interface/aire-plateau.js"></script>
+  <script src="./interface/infos-case.js"></script>
   <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
@@ -2157,6 +2192,7 @@
       style: document.getElementById('select-style-profil-ia'),
       version: document.getElementById('select-version-profil-ia'),
       elagage: document.getElementById('elagage-profil-ia'),
+      livre: document.getElementById('livre-profil-ia'),
       description: document.getElementById('description-profil-ia'),
       note: document.getElementById('note-profil-ia'),
     });
@@ -3412,6 +3448,16 @@
       });
       nomsJoueurs.definirCommandeMachines(commandeMachines);
     }
+
+    // Les infos d'une case (saab, 2026-10-04, interface/infos-case.js) : au
+    // survol, et au clic droit le tableau d'une bille, avec les poids de la
+    // machine de son camp, sinon de celle d'en face, sinon de Normal v3.
+    demarrerInfosCase(svg, () => etatCourant(partie.obtenirArbre()), (camp) => {
+      const machine = machines[camp] ?? machines[camp === 'noir' ? 'blanc' : 'noir'];
+      if (machine) return { nom: nomDeLaMachine(machine), poids: machine.poids, version: machine.version };
+      const parDefaut = PROFILS_IA_INTEGRES.find((profil) => profil.nom === nomDuProfilIntegre('normal', 3));
+      return { nom: parDefaut.nom, poids: parDefaut.poids, version: parDefaut.version };
+    });
 
     // Menaces (phase 19) : les poussées possibles des deux camps sur la
     // position REGARDEE, jamais seulement les coups du joueur au trait —

@@ -14,9 +14,8 @@
 // (comme dans Reflexion IA) ; le coup joue depuis cette position est encadre.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : libelleEvaluation
-// (moteur/ia.js), CLES_POIDS_IA (moteur/ia-evaluation.js), CLES_POIDS_IA_V2
-// (moteur/ia-evaluation-v2.js), LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
-// detailDeLEvaluation, ecartsDeLaSequence (moteur/essai-ia.js),
+// (moteur/ia.js), LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
+// detailDeLEvaluation, ecartsDeLaSequence, termesDeLaVersion (moteur/essai-ia.js),
 // COLONNES_ESSAI_IA, texteValeurEssai (interface/essai-ia.js) viennent de
 // fichiers charges avant celui-ci, ou ne servent qu'une fois la page chargee.
 
@@ -41,7 +40,7 @@ function texteDuTempsRecherche(ms) {
 // avant ces colonnes.
 function clesDesPoidsRecherche({ poids, version }) {
   if (!poids) return [];
-  return version >= 2 ? [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2] : CLES_POIDS_IA;
+  return termesDeLaVersion(version);
 }
 
 function celluleRecherche(texte, classe, balise = 'td') {
@@ -51,14 +50,21 @@ function celluleRecherche(texte, classe, balise = 'td') {
   return cellule;
 }
 
-// Le reglage d'une colonne, entre parentheses ; rien s'il est inconnu (une
-// recherche gardee avant).
-const entreParentheses = (valeur) => (valeur === undefined ? '' : ` (${valeur})`);
+// Le reglage d'une colonne, entre parentheses, sur une 2e ligne du titre
+// (saab, 2026-10-04 : « les noms des colonnes prennent trop de place ») ; rien
+// s'il est inconnu (une recherche gardee avant).
+const entreParentheses = (valeur) => (valeur === undefined ? '' : `(${valeur})`);
+
+function titreSurDeuxLignes(nom, reglage) {
+  const th = celluleRecherche(nom, '', 'th');
+  if (reglage !== '') th.append(document.createElement('br'), reglage);
+  return th;
+}
 const texteDuTempsMax = (secondes) => (Number.isFinite(secondes) ? `${String(secondes).replace('.', ',')} s` : undefined);
 
 function enteteDeLaRecherche(cles, { poids, reflexionMax }) {
   const tr = document.createElement('tr');
-  const temps = celluleRecherche(`Temps${entreParentheses(texteDuTempsMax(reflexionMax))}`, '', 'th');
+  const temps = titreSurDeuxLignes('Temps', entreParentheses(texteDuTempsMax(reflexionMax)));
   temps.title = 'Quand cette séquence a été trouvée, depuis le début de la réflexion (entre parenthèses : son temps max)';
   const sousLui = celluleRecherche('Sous lui', '', 'th');
   sousLui.title = 'Le temps passé à chercher sous ce premier coup, à cette profondeur';
@@ -68,8 +74,8 @@ function enteteDeLaRecherche(cles, { poids, reflexionMax }) {
     sousLui,
     celluleRecherche('Positions', '', 'th'),
     ...cles.map((cle) => {
-      const th = celluleRecherche(`${COLONNES_ESSAI_IA[cle]}${entreParentheses(poids[cle])}`, '', 'th');
-      th.title = `${LIBELLES_REGLAGES_IA[cle]} (poids ${poids[cle]}) : ce que la séquence entière change`;
+      const th = titreSurDeuxLignes(COLONNES_ESSAI_IA[cle], entreParentheses(poids[cle]));
+      th.title = `${LIBELLES_REGLAGES_IA[cle]}${poids[cle] === undefined ? '' : ` (poids ${poids[cle]})`} : ce que la séquence entière change`;
       return th;
     }),
     celluleRecherche('Suite prévue', '', 'th')

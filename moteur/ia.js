@@ -8,8 +8,10 @@
 // (next-move.js), ecrirePosition, lireCoupNacre, ecrireCoupNacreSansAmbiguite
 // (notation.js), couleursDuPlateau, appliquerCoup (partie.js), rechercherCoup,
 // NIVEAUX_IA (ia-recherche.js), STYLES_IA, CLES_POIDS_IA, VALEUR_VICTOIRE_IA
-// (ia-evaluation.js), CLES_POIDS_IA_V2, STYLES_IA_V2 (ia-evaluation-v2.js)
-// viennent de fichiers charges avant celui-ci.
+// (ia-evaluation.js), CLES_POIDS_IA_V2, STYLES_IA_V2 (ia-evaluation-v2.js),
+// CLES_POIDS_IA_V3, STYLES_IA_V3 (ia-evaluation-v3.js), CLES_POIDS_IA_V4,
+// STYLES_IA_V4 (ia-evaluation-v4.js) viennent de fichiers
+// charges avant celui-ci.
 
 // Parmi les coups de la base, sont "parmi les meilleurs" ceux qui ont au
 // moins cette fraction des victoires du premier (tri des Conseils) : un peu de
@@ -73,11 +75,15 @@ const VERSION_IA = 1;
 const ELAGAGE_PAR_DEFAUT_IA = 10;
 // « el » pour elaguer (saab, 2026-10-03 : remplace le « b » de « v2b »).
 const SUFFIXE_ELAGAGE_IA = 'el';
-const VERSIONS_IA = [1, 2];
+const VERSIONS_IA = [1, 2, 3, 4];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
   1: { cles: CLES_POIDS_IA, styles: STYLES_IA },
   2: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2], styles: STYLES_IA_V2 },
+  // La 3 (moteur/ia-evaluation-v3.js) : cases, compacite, gain et perte selon le score.
+  3: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3], styles: STYLES_IA_V3 },
+  // La 4 (moteur/ia-evaluation-v4.js) : le piege.
+  4: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4], styles: STYLES_IA_V4 },
 };
 const NOMS_STYLES_IA = { agressif: 'Agressif', normal: 'Normal', defensif: 'Défensif' };
 const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def' };
@@ -178,9 +184,9 @@ function libelleEvaluation(valeur) {
 }
 
 // KAI++ (phase 33bis, solveur/kai-plus.cpp) : ses poids en texte (CSV, dans
-// l'ordre des cles ; 0 pour ceux de la version 2 absents)...
+// l'ordre des cles ; 0 pour ceux des versions 2 a 4 absents)...
 function poidsEnTexte(poids) {
-  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2].map((cle) => poids[cle] ?? 0).join(',');
+  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4].map((cle) => poids[cle] ?? 0).join(',');
 }
 
 // ... sa reponse relue — « profondeur, evaluation, positions examinees, puis la

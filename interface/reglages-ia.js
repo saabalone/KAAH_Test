@@ -19,6 +19,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
 // (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
+// CLES_POIDS_IA_V3 (moteur/ia-evaluation-v3.js), CLES_POIDS_IA_V4 (moteur/ia-evaluation-v4.js),
 // NOMS_STYLES_IA (moteur/ia.js), lireProfilIA (moteur/profils-ia.js),
 // demarrerHistoriqueIA, validerVersionIA, choisirVersionIA, memesReglagesIA
 // (moteur/historique-profil-ia.js), couleursDesReglagesIA, couleurLaPlusForte,
@@ -38,13 +39,13 @@
 const CLASSES_RUBRIQUE_IA = { dernier: 'rubrique-valide-dernier', ancien: 'rubrique-valide-ancien' };
 
 // `elements` : { rubrique, select, nouveau, supprimer, exporter, importer,
-// style, version, elagage, description, valider, abandonner, historique, note,
-// essai } — `essai` :
+// style, version, elagage, livre, description, valider, abandonner, historique,
+// note, essai } — `essai` :
 // interface/essai-ia.js. Les champs des poids sont trouves par leur id,
-// `poids-ia-<cle>` ; ceux de la version 2 (sumitos, phase 33) ne se montrent
-// qu'avec elle.
+// `poids-ia-<cle>` ; ceux de la version 2 (sumitos, phase 33) et de la 3 (les
+// cases, compacite, score : saab 2026-10-03) ne se montrent qu'avec elles.
 function demarrerReglagesIA(elements) {
-  const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2];
+  const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4];
   let nomActuel = NOMS_STYLES_IA.normal;
   let brouillon = null; // les valeurs retouchees pas encore validees, ou null
   // Le brouillon d'avant chaque retouche : Annuler, en pied de Reglages
@@ -54,7 +55,7 @@ function demarrerReglagesIA(elements) {
   let retouchesPrecedentes = [];
   let surRetouche = () => {};
   const champPoids = (cle) => document.getElementById(`poids-ia-${cle}`);
-  const champDe = (cle) => ({ version: elements.version, style: elements.style, elagage: elements.elagage })[cle] ?? champPoids(cle);
+  const champDe = (cle) => ({ version: elements.version, style: elements.style, elagage: elements.elagage, livre: elements.livre })[cle] ?? champPoids(cle);
   const ligneDe = (cle) => champDe(cle).closest('label');
 
   const profilActuel = () => trouverProfilIA(nomActuel);
@@ -65,6 +66,7 @@ function demarrerReglagesIA(elements) {
     elements.version.value = `${valeurs.version}${valeurs.elagage > 0 ? SUFFIXE_ELAGAGE_IA : ''}`;
     ligneDe('elagage').hidden = !(valeurs.elagage > 0);
     elements.elagage.value = valeurs.elagage;
+    elements.livre.checked = valeurs.livre;
     for (const cle of CLES_POIDS) {
       ligneDe(cle).hidden = !(cle in valeurs.poids);
       if (cle in valeurs.poids) champPoids(cle).value = valeurs.poids[cle];
@@ -133,7 +135,7 @@ function demarrerReglagesIA(elements) {
     else elements.select.value = nomActuel;
   });
 
-  // Une retouche (style, version ou poids) : le brouillon, relu comme un
+  // Une retouche (style, version, livre ou poids) : le brouillon, relu comme un
   // profil (lireProfilIA) — changer de version garde les poids communs, ceux
   // qui manquent prennent la valeur du style.
   function retoucher() {
@@ -143,6 +145,7 @@ function demarrerReglagesIA(elements) {
       nom: nomActuel,
       style: elements.style.value,
       version: Number.parseInt(choix, 10),
+      livre: elements.livre.checked,
       elagage: !elague ? 0 : ligneDe('elagage').hidden ? ELAGAGE_PAR_DEFAUT_IA : Math.max(1, Math.round(Number(elements.elagage.value)) || ELAGAGE_PAR_DEFAUT_IA),
       poids: Object.fromEntries(CLES_POIDS.filter((cle) => !ligneDe(cle).hidden).map((cle) => [cle, Number(champPoids(cle).value)])),
     });
@@ -155,6 +158,7 @@ function demarrerReglagesIA(elements) {
   }
   elements.style.addEventListener('change', retoucher);
   elements.version.addEventListener('change', retoucher);
+  elements.livre.addEventListener('change', retoucher);
   for (const champ of [...CLES_POIDS.map(champPoids), elements.elagage]) {
     champ.addEventListener('change', retoucher);
     // Les boutons - et + (saab, 2026-09-30), comme ceux des tailles d'Affichage.
