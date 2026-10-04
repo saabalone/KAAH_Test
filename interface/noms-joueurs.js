@@ -33,6 +33,7 @@
 // (moteur/couleurs-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
 // poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
+// valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
 // ROLE_HUMAIN (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
@@ -77,7 +78,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const choix = choixIA.lire();
     const enJeu = machineEnJeu();
     if (choix.role === ROLE_HUMAIN) return null;
-    if (enJeu && choix.profil === enJeu.profil) return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: choix.reflexionMax, livre: choix.livre });
+    if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: choix.reflexionMax, livre: choix.livre });
     return machineDuChoix(choix);
   }
 
@@ -134,7 +135,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.choixIA.hidden = !machine;
     choixIA.definir(
       machine
-        ? { role: machine.moteur, niveau: machine.niveau, profil: machine.profil, reflexionMax: machine.reflexionMax, livre: machine.livre }
+        ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre }
         : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) },
       machine?.profil
     );

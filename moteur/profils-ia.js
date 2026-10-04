@@ -32,7 +32,9 @@ const DESCRIPTIONS_VERSIONS_IA = {
 const DESCRIPTION_PROFIL_IA_MAX = 400;
 
 const DESCRIPTION_ELAGAGE_IA = ` Élagage : ne cherche que les ${ELAGAGE_PAR_DEFAUT_IA} meilleurs coups de chaque position, pour aller plus loin dans le même temps.`;
-const VERSION_ELAGUEE_IA = 2;
+// Les versions qui ont aussi leurs profils integres « el » (saab, 2026-10-04 :
+// « mettre v3el et v4el, pour qu'on puisse suivre les modifs ») : a partir de la 2.
+const PREMIERE_VERSION_ELAGUEE_IA = 2;
 
 function profilIntegre(style, version, elagage) {
   return {
@@ -46,13 +48,16 @@ function profilIntegre(style, version, elagage) {
   };
 }
 
-// Trois par version : Agressif, Normal, Défensif (version 1), puis « … v2 », « … v3 » ;
-// et trois de la version 2 qui elague, « … v2el » (saab, 2026-10-03).
-// Ceux qui elaguent juste apres ceux de leur version.
-const PROFILS_IA_INTEGRES = VERSIONS_IA.flatMap((version) => [
-  ...Object.keys(STYLES_IA).map((style) => profilIntegre(style, version, 0)),
-  ...(version === VERSION_ELAGUEE_IA ? Object.keys(STYLES_IA).map((style) => profilIntegre(style, version, ELAGAGE_PAR_DEFAUT_IA)) : []),
-]);
+// Par style (saab, 2026-10-04 : « tous les Agr v1 a v4el, puis Nor, etc. :
+// plus facile de choisir les parties entre IA du meme style, juste en changeant
+// de force »), puis par version, chacune suivie de celle qui elague (« … v2el »,
+// saab 2026-10-03) : Agressif, Agressif v2, Agressif v2el … Agressif v4el, Normal…
+const PROFILS_IA_INTEGRES = Object.keys(STYLES_IA).flatMap((style) =>
+  VERSIONS_IA.flatMap((version) => [
+    profilIntegre(style, version, 0),
+    ...(version >= PREMIERE_VERSION_ELAGUEE_IA ? [profilIntegre(style, version, ELAGAGE_PAR_DEFAUT_IA)] : []),
+  ])
+);
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
 // memes valeurs sures qu'une machine (lireMachine) : style inconnu -> normal,
@@ -101,5 +106,5 @@ function nomDuProfilImporte(nom, auteur, nomsPris) {
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
 // `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
 function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, poids: profil.poids, reflexionMax, livre });
+  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, poids: profil.poids, reflexionMax, livre });
 }

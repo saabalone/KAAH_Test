@@ -9,11 +9,13 @@
 // moteur/aire-ia.js.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ESPACE_NOM_SVG
-// (rendu/plateau-svg.js) vient d'un fichier charge avant celui-ci.
+// (rendu/plateau-svg.js), casesEntre (moteur/aire-ia.js) viennent de fichiers
+// charges avant celui-ci.
 
 const POINTS_MIN_AIRE = 3;
 
-// `surFermee(cases)` : le contour ferme. Renvoie { commencer(), effacer(), enCours() }.
+// `surFermee(cases)` : le contour ferme. Renvoie { commencer(), dessinerContour(cases),
+// effacer(), enCours() }.
 function demarrerAirePlateau(svg, surFermee) {
   let armee = false; // bouton Aire touche, en attente de l'appui
   let cases = null; // le contour pendant le glissement
@@ -41,10 +43,16 @@ function demarrerAirePlateau(svg, surFermee) {
     svg.classList.add('dessin-aire');
   }
 
+  // La case survolee, et celles que la souris a sautees depuis la derniere
+  // (moteur/aire-ia.js, casesEntre). Revenue sur la premiere : le lien qui
+  // fermera le contour se dessine deja (saab : « il manque le lien de la
+  // derniere case »).
   function ajouter(notation) {
-    if (!notation || cases.includes(notation)) return;
-    cases.push(notation);
-    trace.setAttribute('points', cases.map(centreDe).join(' '));
+    if (!notation || notation === cases.at(-1)) return;
+    const chemin = cases.length === 0 ? [notation] : casesEntre(cases.at(-1), notation);
+    for (const suivante of chemin) if (!cases.includes(suivante)) cases.push(suivante);
+    const fermeture = cases.length >= POINTS_MIN_AIRE && notation === cases[0] ? [cases[0]] : [];
+    trace.setAttribute('points', [...cases, ...fermeture].map(centreDe).join(' '));
   }
 
   const arreter = (evenement) => {
@@ -84,7 +92,7 @@ function demarrerAirePlateau(svg, surFermee) {
       const contour = cases;
       const ferme = document.createElementNS(ESPACE_NOM_SVG, 'polygon');
       ferme.setAttribute('class', 'trace-aire trace-aire-fermee');
-      ferme.setAttribute('points', trace.getAttribute('points'));
+      ferme.setAttribute('points', contour.map(centreDe).join(' '));
       trace.replaceWith(ferme);
       trace = ferme;
       cases = null;
@@ -102,5 +110,14 @@ function demarrerAirePlateau(svg, surFermee) {
     true
   );
 
-  return { commencer, effacer, enCours: () => armee || cases !== null };
+  // Un contour deja fait (le tour du plateau, bouton Plateau), dessine ferme.
+  function dessinerContour(contour) {
+    effacer();
+    trace = document.createElementNS(ESPACE_NOM_SVG, 'polygon');
+    trace.setAttribute('class', 'trace-aire trace-aire-fermee');
+    trace.setAttribute('points', contour.map(centreDe).join(' '));
+    svg.append(trace);
+  }
+
+  return { commencer, dessinerContour, effacer, enCours: () => armee || cases !== null };
 }

@@ -17,14 +17,17 @@
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
 // libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA (interface/couleurs-ia.js),
-// lireReglagesActifs (interface/reglages-profils.js)
+// lireReglagesActifs (interface/reglages-profils.js), remplirListeProfils,
+// profilDuChoix, styleDuChoix (interface/liste-profils-choix.js)
 // viennent de fichiers charges avant celui-ci.
 
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
 const CAMPS_JOUEURS = ['noir', 'blanc'];
 
 // Le choix d'un camp : { role ('humain', 'kai' ou 'kai++'), niveau, profil (son
-// nom), reflexionMax, livre (le livre d'ouvertures, saab 2026-10-01) }.
+// nom, ou une ancienne version : interface/liste-profils-choix.js), filtreStyle
+// (le style montre dans la liste, '' : tous), reflexionMax, livre (le livre
+// d'ouvertures, saab 2026-10-01) }.
 const ROLE_HUMAIN = 'humain';
 const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,
@@ -44,7 +47,7 @@ function livreParDefaut() {
 // fait partie du profil IA) : seulement si le profil s'en sert et que Reglages
 // le permet ; la case reste a cocher ou decocher ensuite.
 function livreDuProfil(nom) {
-  return livreParDefaut() && (trouverProfilIA(nom)?.livre ?? true);
+  return livreParDefaut() && (profilDuChoix(nom)?.livre ?? true);
 }
 
 function lireDerniersJoueurs() {
@@ -85,23 +88,14 @@ function brancherChoixMachine(element, surChangement) {
     ligneNiveaux.appendChild(bouton);
   }
 
-  function remplirProfils(profilGarde) {
-    const profils = listerProfilsIA();
-    const noms = profils.map((profil) => profil.nom);
-    if (profilGarde && !noms.includes(profilGarde)) noms.unshift(profilGarde);
-    element.querySelector('.choix-profil-ia').replaceChildren(
-      ...noms.map((nom) => {
-        const option = document.createElement('option');
-        const profil = profils.find((existant) => existant.nom === nom);
-        option.value = nom;
-        option.textContent = profil ? libelleProfilIA(profil) : nom;
-        return option;
-      })
-    );
-    // Un profil supprime depuis : retour au profil du style normal.
-    if (!noms.includes(choix.profil)) choix.profil = NOMS_STYLES_IA.normal;
-    element.querySelector('.choix-profil-ia').value = choix.profil;
-    colorerListeProfilsIA(element.querySelector('.choix-profil-ia'));
+  // La liste des profils, filtree par style, avec les anciennes versions
+  // (interface/liste-profils-choix.js) ; un profil supprime ou cache par le
+  // filtre : le premier de la liste.
+  const listeStyles = element.querySelector('.choix-style-ia');
+  let profilGardeEnJeu = null;
+  function remplirProfils() {
+    listeStyles.value = choix.filtreStyle;
+    choix.profil = remplirListeProfils(element.querySelector('.choix-profil-ia'), { voulue: choix.profil, filtreStyle: choix.filtreStyle, profilGarde: profilGardeEnJeu });
   }
 
   function afficher() {
@@ -114,7 +108,7 @@ function brancherChoixMachine(element, surChangement) {
     element.querySelector('.choix-reflexion-max').value = reflexionMax;
     element.querySelector('.choix-livre').checked = choix.livre;
     // Ce que cherche le profil choisi (saab, 2026-10-03, moteur/profils-ia.js).
-    element.querySelector('.description-choix-profil').textContent = trouverProfilIA(choix.profil)?.description ?? '';
+    element.querySelector('.description-choix-profil').textContent = profilDuChoix(choix.profil)?.description ?? '';
   }
 
   const changer = (retouche) => {
@@ -131,11 +125,19 @@ function brancherChoixMachine(element, surChangement) {
     changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value) });
   });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
+  listeStyles.addEventListener('change', () => {
+    const avant = choix.profil;
+    choix.filtreStyle = listeStyles.value;
+    remplirProfils();
+    changer(choix.profil === avant ? {} : { livre: livreDuProfil(choix.profil) });
+  });
 
   return {
     definir: (nouveau, profilGarde) => {
       choix = { ...CHOIX_JOUEUR_PAR_DEFAUT, ...nouveau };
-      remplirProfils(profilGarde);
+      choix.filtreStyle ??= styleDuChoix(choix.profil);
+      profilGardeEnJeu = profilGarde ?? null;
+      remplirProfils();
       afficher();
     },
     // Le choix tel qu'affiche, temps de reflexion relu dans son champ.
@@ -150,7 +152,7 @@ function brancherChoixMachine(element, surChangement) {
 // partie, meme s'il est modifie ou supprime ensuite —, ou null pour un humain.
 function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
-  const profil = trouverProfilIA(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
+  const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
   return machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: choix.reflexionMax, moteur: choix.role, livre: choix.livre });
 }
 

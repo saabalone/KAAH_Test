@@ -93,6 +93,7 @@ const MOTEURS_IA = ['kai', 'kai++'];
 const PREFIXES_MOTEURS_IA = { kai: 'KAI', 'kai++': 'KAI++' };
 const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5, livre: true, elagage: 0 };
 const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
+const PREMIERE_VERSION_DU_PROFIL_IA = 1;
 
 // Le nom du profil integre d'un style et d'une version : « Normal », « Normal
 // v2 », et « Normal v2el » s'il elague.
@@ -131,6 +132,8 @@ function lireMachine(brut) {
     elagage,
     // L'indice de son profil (moteur/profils-ia.js), s'il en a un.
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
+    // La version de son profil (moteur/historique-profil-ia.js), au-dela de la 1re.
+    ...(Number.isInteger(brut.versionProfil) && brut.versionProfil > PREMIERE_VERSION_DU_PROFIL_IA ? { versionProfil: brut.versionProfil } : {}),
   };
 }
 
@@ -163,11 +166,13 @@ function formaterTempsReflexion(secondes) {
 // version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ;
 // un profil de l'utilisateur, son indice (KAI2_Nor_5s_P3, saab 2026-10-01 : deux
 // machines qui ne different que par le profil se distinguent dans le titre) ;
-// un elagage, « el » et le nombre de coups gardes (KAI2_Nor_5s_v2el10).
+// un elagage, « el » et le nombre de coups gardes (KAI2_Nor_5s_v2el10) ; un
+// profil retouche, la version du profil qu'elle joue (saab, 2026-10-04 : « on
+// n'a pas joue sur le meme profil et rien ne l'indique ») : KAI++7_Nor_30s_v4el10_v2_P1.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
   const version = machine.version > VERSION_IA || machine.elagage ? `_v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_IA}${machine.elagage}` : ''}` : '';
-  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
+  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${machine.versionProfil ? `_v${machine.versionProfil}` : ''}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la

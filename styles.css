@@ -535,11 +535,14 @@ button,
   padding-bottom: 6px;
 }
 
+/* Plus grand que le contenu (saab, 2026-10-04 : « ca ne ressort pas assez par
+   rapport a son contenu »). */
 .rubrique-reglages > summary {
   display: flex;
   align-items: center;
   gap: 6px;
   min-height: var(--hauteur-commande);
+  font-size: 1.2em;
   font-weight: bold;
   cursor: pointer;
   list-style: none;
@@ -1035,9 +1038,16 @@ button,
   cursor: default;
 }
 
-#bouton-supprimer-parties:not(:disabled) {
+/* Saab, 2026-10-04 : Exporter en vert (un geste sans risque), Supprimer en
+   rouge (le meme que le bouton Abandonner) des qu'une partie est cochee. */
+#bouton-exporter-parties:not(:disabled) {
   background: var(--vert-demande);
   border-color: var(--vert-demande);
+}
+
+#bouton-supprimer-parties:not(:disabled) {
+  background: #b3261e;
+  border-color: #b3261e;
 }
 
 .case-partie {
@@ -4718,13 +4728,20 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
   background: #1e1e1e;
 }
 
-/* La barre de navigation sous Reflexion IA (saab, 2026-10-02 : « a gauche,
+/* La barre de navigation de Reflexion IA (saab, 2026-10-02 : « a gauche,
    donc pas centree ») : comme celle de l'Essai. */
 .navigation-reflexion-ia {
   display: flex;
   justify-content: flex-start;
   gap: 6px;
   margin: 4px 0;
+  /* Sous le tableau 1er coup, et toujours dans la fenetre (saab, 2026-10-04) :
+     collee en bas si le reste deborde. */
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 2px 0;
+  background: #1e1e1e;
 }
 
 .navigation-reflexion-ia button {
@@ -5090,4 +5107,35 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
 svg.dessin-aire {
   cursor: crosshair;
   touch-action: none;
+}
+
+/* Le bouton Aire (saab, 2026-10-04) : vert au repos, orange pendant le dessin. */
+.entete-panneau-bille .bouton-aire {
+  background: #2e7d32;
+  border-color: #2e7d32;
+  color: #ffffff;
+}
+
+.entete-panneau-bille .bouton-aire.bouton-aire-en-cours {
+  background: #e0832a;
+  border-color: #e0832a;
+}
+
+/* Les boutons du bas des boites du nom et du debut de partie (saab, 2026-10-04 :
+   « hors fenetre ... il faudrait les avoir toujours en vue ») : colles en bas
+   pendant que le reste defile. */
+.dialogue .pied-dialogue {
+  position: sticky;
+  bottom: -8px; /* le padding de .dialogue */
+  z-index: 2;
+  margin: 0 -8px -8px;
+  padding: 4px 8px 8px;
+  background: #1a1a1a;
+  border-top: 1px solid #3a3a3a;
+}
+
+/* Le choix du style devant la liste des profils (interface/choix-joueurs.js). */
+.choix-style-ia {
+  flex: 0 0 auto;
+  width: auto;
 }

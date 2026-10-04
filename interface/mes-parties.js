@@ -82,11 +82,13 @@
 // libelleNombreEtVolume, formaterVolume, volumeEnOctets (moteur/compte-volume.js),
 // elementsDuTitre (moteur/nom-partie.js), partieCorrespond
 // (moteur/filtre-parties.js) et demarrerFiltreParties (interface/
-// filtre-parties.js) viennent tous des fichiers charges avant celui-ci dans
+// filtre-parties.js), telechargerPartie (interface/fichiers.js) viennent tous des fichiers charges avant celui-ci dans
 // index.html.
 
+const ECART_ENTRE_TELECHARGEMENTS_MS = 300;
+
 // `elements` : { bouton, dialogue, apercu, liste, fermer, message,
-// caseTout, boutonFiltre, panneauFiltre, supprimer }.
+// caseTout, boutonFiltre, panneauFiltre, supprimer, exporter }.
 // `message` est optionnel (texte d'avertissement affiche seulement pour
 // une confirmation de reprise, voir l'en-tete du fichier).
 // `demarrerRechargement` (index.html) : a appeler pour CHAQUE
@@ -197,6 +199,17 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     );
   });
 
+  // Exporter la selection (saab, 2026-10-04 : « il manque un btn Exporter dans
+  // Mes parties ») : un fichier de partie (JSON de KAAWA) par partie cochee,
+  // nomme comme dans la liste (nomDeFichierKAAWA, comme les fichiers de KAAWA) ;
+  // un peu d'ecart entre eux, sinon le navigateur n'en garde qu'un.
+  elements.exporter.addEventListener('click', () => {
+    const entrees = listerPartiesEnregistrees().filter((entree) => idsSelectionnes.has(entree.id));
+    entrees.forEach((entree, rang) =>
+      setTimeout(() => telechargerPartie(entree.donnees, nomDeFichierKAAWA(entree.donnees)), rang * ECART_ENTRE_TELECHARGEMENTS_MS)
+    );
+  });
+
   // Phase 26 (corbeille) : chaque partie supprimee y part intacte AVANT
   // d'etre retiree de "Mes parties" — envoyerALaCorbeille (interface/
   // corbeille.js) vient d'un fichier charge avant celui-ci dans index.html.
@@ -230,6 +243,8 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     const filtrees = partiesFiltrees();
     const selection = filtrees.filter((entree) => idsSelectionnes.has(entree.id));
     elements.supprimer.disabled = n === 0;
+    elements.exporter.disabled = n === 0;
+    elements.exporter.textContent = n === 0 ? 'Exporter' : `Exporter (${n})`;
     elements.supprimer.textContent = n === 0 ? 'Supprimer la sélection' : `Supprimer la sélection ${libelleNombreEtVolume(n, volumeEnOctets(selection))}`;
     elements.caseTout.disabled = filtrees.length === 0;
     elements.caseTout.checked = filtrees.length > 0 && filtrees.every((entree) => idsSelectionnes.has(entree.id));

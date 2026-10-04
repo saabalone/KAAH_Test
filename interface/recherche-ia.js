@@ -13,56 +13,23 @@
 // plateau ; plusieurs (Relancer, d'autres reglages) : une liste pour passer de
 // l'une a l'autre.
 //
+// Ou elles vivent (et la case Garder) : interface/stockage-recherches.js.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour
 // (moteur/arbre.js), cleDeSolution (moteur/sequence-prevue.js),
-// ajouterRecherche, recherchesDeLaPosition, ARCHIVE_RECHERCHES_VIDE,
-// TAILLE_ARCHIVE_RECHERCHES_MAX (moteur/archive-recherches.js),
-// tableauDesRecherches, ecrireCsv, positionsOubliees (moteur/archive-recherches.js),
-// obtenirIdPartieActive, formaterDateKAAWA (interface/sauvegarde.js),
-// telechargerTexte (interface/fichiers.js), tableauDeLaRecherche
-// (interface/recherche-ia-lignes.js) viennent de fichiers charges avant celui-ci.
+// recherchesDeLaPosition, TAILLE_ARCHIVE_RECHERCHES_MAX
+// (moteur/archive-recherches.js), obtenirIdPartieActive (interface/sauvegarde.js),
+// tableauDeLaRecherche (interface/recherche-ia-lignes.js), lireArchiveRecherches,
+// garderDansLArchive, gardeLesRecherches, choisirDeGarderLesRecherches,
+// oublierLesRecherches, placeDesRecherches, exporterLesRecherches
+// (interface/stockage-recherches.js) viennent de fichiers charges avant celui-ci.
 
 const FORMAT_DE_LA_DATE = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-const CLE_ARCHIVE_RECHERCHES = 'kaah-recherches-ia';
-const ESSAIS_D_ECRITURE_ARCHIVE = 3; // en reduisant de moitie a chaque refus du stockage
 const LIBELLES_GENRE_RECHERCHE = { jeu: '', hypothese: ' (aurait joué)', suggestion: ' (suggestion)' };
-const MARQUE_UTF8_EXCEL = '\uFEFF';
 // Un caractere de l'archive (du texte JSON presque tout en ASCII) pese un octet.
 const OCTETS_PAR_KO = 1024;
 const PART_PRESQUE_PLEINE = 0.9;
 const NOTE_ELAGAGE_RECHERCHE = "« ≤ » : écarté par l'élagage, vaut au plus cela. Touchez un coup : sa séquence sur un plateau.";
-
-function lireArchiveRecherches() {
-  try {
-    return JSON.parse(window.localStorage.getItem(CLE_ARCHIVE_RECHERCHES)) ?? ARCHIVE_RECHERCHES_VIDE;
-  } catch {
-    return ARCHIVE_RECHERCHES_VIDE;
-  }
-}
-
-// Le stockage plein (les parties d'abord) : l'archive se resserre.
-// `avantDOublier(archive)` : appele AVANT d'ecrire un ajout qui fait oublier
-// des positions (l'archive pleine), avec l'archive encore entiere.
-function garderDansLArchive(cle, recherche, avantDOublier) {
-  let tailleMax = TAILLE_ARCHIVE_RECHERCHES_MAX;
-  const avant = lireArchiveRecherches();
-  for (let essai = 0; essai < ESSAIS_D_ECRITURE_ARCHIVE; essai++, tailleMax /= 2) {
-    const apres = ajouterRecherche(avant, cle, recherche, tailleMax);
-    if (essai === 0 && positionsOubliees(avant, apres, cle) > 0) avantDOublier(avant);
-    try {
-      window.localStorage.setItem(CLE_ARCHIVE_RECHERCHES, JSON.stringify(apres));
-      return;
-    } catch {
-      // Essai suivant, plus petit.
-    }
-  }
-}
-
-// Toutes les recherches de `archive` en tableau pour Excel ; le BOM fait lire
-// les accents a Excel.
-function exporterLesRecherches(archive) {
-  telechargerTexte(`${MARQUE_UTF8_EXCEL}${ecrireCsv(tableauDesRecherches(archive))}`, `recherches_kaah_${formaterDateKAAWA(new Date())}.csv`, 'text/csv');
-}
 
 // `boite` : le <details> du tableau ; `sequencePrevue` : le petit plateau
 // (interface/sequence-prevue.js). Renvoie { afficher(enCours), montrerPosition(etat,
@@ -150,12 +117,7 @@ function demarrerRechercheIA(boite, sequencePrevue) {
   // les exporter/supprimer »), et de quoi les oublier toutes.
   const poids = boite.querySelector('.poids-recherches');
   function afficherPoids() {
-    let caracteres = 0;
-    try {
-      caracteres = window.localStorage.getItem(CLE_ARCHIVE_RECHERCHES)?.length ?? 0;
-    } catch {
-      // Stockage indisponible : rien de garde.
-    }
+    const caracteres = placeDesRecherches();
     poids.textContent = `${Math.ceil(caracteres / OCTETS_PAR_KO)} Ko (max ${Math.round(TAILLE_ARCHIVE_RECHERCHES_MAX / OCTETS_PAR_KO)})`;
     // Presque pleine : en orange, pour penser a exporter ou vider.
     poids.classList.toggle('reglage-modifie', caracteres >= TAILLE_ARCHIVE_RECHERCHES_MAX * PART_PRESQUE_PLEINE);
@@ -163,15 +125,22 @@ function demarrerRechercheIA(boite, sequencePrevue) {
   boite.querySelector('.bouton-vider-recherches').addEventListener('click', (evenement) => {
     evenement.preventDefault();
     if (!window.confirm('Oublier toutes les recherches de KAI++ gardées sur cet appareil ? (Exporter les garde dans un fichier.)')) return;
-    try {
-      window.localStorage.removeItem(CLE_ARCHIVE_RECHERCHES);
-    } catch {
-      // Rien a oublier.
-    }
+    oublierLesRecherches();
     afficherPoids();
     if (detailsEnDirect === null) montrerLesGardees();
   });
   afficherPoids();
+
+  // Garder ou non les recherches sur l'appareil (saab, 2026-10-04) ; sans, elles
+  // ne vivent que le temps de cette ouverture. Dans le titre : la toucher ne
+  // replie pas le tableau.
+  const caseGarder = boite.querySelector('.case-garder-recherches');
+  caseGarder.checked = gardeLesRecherches();
+  caseGarder.closest('label').addEventListener('click', (evenement) => evenement.stopPropagation());
+  caseGarder.addEventListener('change', () => {
+    choisirDeGarderLesRecherches(caseGarder.checked);
+    afficherPoids();
+  });
 
   function afficher(enCours) {
     const details = enCours?.details;

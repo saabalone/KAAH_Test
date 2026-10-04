@@ -8,8 +8,8 @@
 // machine. Pur.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurAdverse
-// (regles.js), couleursDuPlateau (partie.js), COORDONNEES_DES_CASES_IA
-// (ia-evaluation-v3.js), termesDeLaPosition, sommeDesTermes (bille-ia.js)
+// (regles.js), versNotation (plateau.js), couleursDuPlateau (partie.js),
+// COORDONNEES_DES_CASES_IA, distanceAxiale (ia-evaluation-v3.js), termesDeLaPosition, sommeDesTermes (bille-ia.js)
 // viennent de fichiers charges avant celui-ci.
 
 // Le centre d'une case dans le plan (coordonnees axiales -> cartesiennes : les
@@ -39,6 +39,41 @@ function dansLeContour(p, sommets) {
   }
   return dedans;
 }
+
+// Les cases de `depart` (exclue) a `arrivee` (comprise), en ligne droite : celles
+// que la souris a sautees en dessinant le contour (saab, 2026-10-04 : « il manque
+// le lien de la derniere case »). Une ligne droite sur l'hexagone : le point a
+// chaque pas, arrondi a la case la plus proche (coordonnees cubiques).
+function casesEntre(depart, arrivee) {
+  const a = COORDONNEES_DES_CASES_IA[depart];
+  const b = COORDONNEES_DES_CASES_IA[arrivee];
+  const pas = distanceAxiale(a, b);
+  const cases = [];
+  for (let i = 1; i <= pas; i++) {
+    const q = a.q + ((b.q - a.q) * i) / pas;
+    const r = a.r + ((b.r - a.r) * i) / pas;
+    cases.push(versNotation(...arrondiCubique(q, r)));
+  }
+  return cases;
+}
+
+// La case la plus proche du point (q, r) : arrondir les trois coordonnees
+// cubiques, puis corriger celle qui s'est le plus ecartee.
+function arrondiCubique(q, r) {
+  const s = -q - r;
+  let rq = Math.round(q);
+  let rr = Math.round(r);
+  const rs = Math.round(s);
+  const [eq, er, es] = [Math.abs(rq - q), Math.abs(rr - r), Math.abs(rs - s)];
+  if (eq > er && eq > es) rq = -rr - rs;
+  else if (er > es) rr = -rq - rs;
+  return [rq, rr];
+}
+
+// Le tour du plateau, ses 24 cases du bord (saab, 2026-10-04 : « faire l'aire
+// complete du plateau d'un coup, sans avoir a faire les 6 points ») : de coin en coin.
+const COINS_DU_PLATEAU = ['a1', 'a5', 'e9', 'i9', 'i5', 'e1'];
+const CONTOUR_DU_PLATEAU = COINS_DU_PLATEAU.flatMap((coin, rang) => [coin, ...casesEntre(coin, COINS_DU_PLATEAU[(rang + 1) % COINS_DU_PLATEAU.length]).slice(0, -1)]);
 
 // Les billes de `camp` dans le contour `cases` (notations), triees.
 function billesDansLAire(etat, cases, camp) {

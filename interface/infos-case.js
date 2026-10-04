@@ -16,24 +16,19 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : COORDONNEES_DES_CASES_IA
 // (moteur/ia-evaluation-v3.js), termesDeLaVersion (moteur/essai-ia.js),
-// detailDeLaBille (moteur/bille-ia.js), detailDeLAire (moteur/aire-ia.js),
+// detailDeLaBille (moteur/bille-ia.js), detailDeLAire, CONTOUR_DU_PLATEAU
+// (moteur/aire-ia.js),
 // NOM_CAMP (rendu/ejections.js), COLONNES_ESSAI_IA (interface/essai-ia.js),
 // listerProfilsIA, libelleProfilIA (interface/profils-ia.js), celluleBille,
 // LIGNES_MESURES_BILLE, lignesMesuresAire, tableauDesTermes, tableauDesMesures,
 // zoneDuChoixBille (interface/panneau-bille.js), creerPanneauFlottant
 // (interface/panneau-flottant.js), demarrerAirePlateau (interface/
-// aire-plateau.js), ecrirePosition (moteur/notation.js), lireReponsePiege
-// (moteur/sortie-bille.js), creerKaiPlus (interface/kai-plus.js) viennent de
+// aire-plateau.js), CHAMPS_SURVOL_CASE, demarrerSurvolCase (interface/
+// survol-case.js), creerCalculDuPiege (interface/piege-panneau.js) viennent de
 // fichiers charges avant celui-ci.
 
 const CLE_INFOS_CASE = 'kaah-infos-case';
-// Le piege (KAI++, solveur/kai-plus.cpp) : 4 coups de la bille au plus, et une
-// limite de positions (environ 2 secondes) — au-dela, « trop long ».
-const COUPS_MAX_PIEGE = 4;
-const POSITIONS_MAX_PIEGE = 400000;
-const ECART_AU_CURSEUR_PX = 14;
 const VERSION_LA_PLUS_COMPLETE_IA = 4;
-const CHAMPS_SURVOL_CASE = { notation: 'Notation', axiales: 'Coordonnées axiales (q,r)', occupant: 'Bille (Noir, Blanc, vide)' };
 
 function lireChoixInfosCase() {
   try {
@@ -67,43 +62,23 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   let campCompare = null;
   let choixOuvert = false;
 
-  const infobulle = document.createElement('div');
-  infobulle.className = 'infobulle-case';
-  infobulle.hidden = true;
-  document.body.append(infobulle);
   const boutonAire = boutonDePanneau('Aire', 'Dessiner une aire : appuyer sur une case et glisser, le trait suit les cases survolées ; relâcher la ferme');
+  boutonAire.classList.add('bouton-aire');
+  // Tout le plateau d'un coup (saab, 2026-10-04 : « sans avoir a faire les 6 points »).
+  const boutonPlateau = boutonDePanneau('Plateau', 'Tout le plateau comme aire, d’un coup');
+  boutonPlateau.classList.add('bouton-aire');
   const boutonChoix = boutonDePanneau('⚙', 'Choisir les lignes, les profils IA et les champs du survol');
   const boutonFermer = boutonDePanneau('×', 'Fermer');
   const boutonFermerComparaison = boutonDePanneau('×', 'Fermer la comparaison');
   const comparaison = creerPanneauFlottant([boutonFermerComparaison]);
-  const principal = creerPanneauFlottant([boutonAire, boutonChoix, boutonFermer], () => {
+  const principal = creerPanneauFlottant([boutonAire, boutonPlateau, boutonChoix, boutonFermer], () => {
     if (!comparaison.element.hidden) comparaison.collerA(principal);
   });
 
-  // Le piege, calcule dans son propre worker (la machine qui joue n'attend
-  // jamais) : les reponses gardees par position, trait et case.
-  const kaiPiege = creerKaiPlus();
-  const pieges = new Map();
-  let piegeEnCours = null;
-
-  function piegeDe(etat, notation, detail) {
-    if (detail.sortie === null) return null;
-    const cle = `${ecrirePosition(etat)} ${etat.joueurAuTrait} ${notation}`;
-    if (pieges.has(cle)) return pieges.get(cle);
-    if (piegeEnCours !== cle) {
-      if (piegeEnCours) kaiPiege.interrompre();
-      piegeEnCours = cle;
-      kaiPiege
-        .chercher({ type: 'piege', position: ecrirePosition(etat), joueurNoir: etat.joueurAuTrait === 'noir', notation, coupsMax: COUPS_MAX_PIEGE, limite: POSITIONS_MAX_PIEGE }, () => {})
-        .then((texte) => {
-          if (piegeEnCours !== cle) return; // interrompu par une autre demande
-          piegeEnCours = null;
-          pieges.set(cle, lireReponsePiege(texte) ?? { etat: 'erreur' });
-          if (!principal.element.hidden) remplir();
-        });
-    }
-    return { etat: 'calcul' };
-  }
+  // Le piege d'une bille : interface/piege-panneau.js.
+  const piegeDe = creerCalculDuPiege(() => {
+    if (!principal.element.hidden) remplir();
+  });
 
   const aire = demarrerAirePlateau(svg, (cases) => {
     montre = { camp: montre.camp, cases };
@@ -113,26 +88,8 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   const caseSous = (evenement) => evenement.target.closest?.('[data-notation]')?.dataset.notation ?? null;
   const estUneCase = (notation) => Boolean(notation && COORDONNEES_DES_CASES_IA[notation]);
 
-  // ---- Survol ----
-  function texteDuSurvol(notation) {
-    const { q, r } = COORDONNEES_DES_CASES_IA[notation];
-    const occupant = obtenirEtat()?.plateau[notation]?.couleur;
-    const morceaux = { notation, axiales: `(${q},${r})`, occupant: occupant ? NOM_CAMP[occupant] : 'vide' };
-    return Object.keys(CHAMPS_SURVOL_CASE).filter((cle) => choix[`survol-${cle}`] !== false).map((cle) => morceaux[cle]).join(' ');
-  }
-
-  svg.addEventListener('pointermove', (evenement) => {
-    if (evenement.pointerType !== 'mouse' || aire.enCours()) return;
-    const notation = caseSous(evenement);
-    const texte = estUneCase(notation) ? texteDuSurvol(notation) : '';
-    infobulle.hidden = texte === '';
-    if (texte === '') return;
-    infobulle.textContent = texte;
-    // Au-dessus a droite de la souris (saab, 2026-10-04).
-    infobulle.style.left = `${Math.max(0, Math.min(evenement.clientX + ECART_AU_CURSEUR_PX, window.innerWidth - infobulle.offsetWidth))}px`;
-    infobulle.style.top = `${Math.max(0, evenement.clientY - ECART_AU_CURSEUR_PX - infobulle.offsetHeight)}px`;
-  });
-  svg.addEventListener('pointerleave', () => (infobulle.hidden = true));
+  // Le survol : interface/survol-case.js.
+  const survol = demarrerSurvolCase(svg, obtenirEtat, (cle) => choix[`survol-${cle}`] !== false, () => aire.enCours());
 
   // ---- Panneaux ----
   // Les profils dont on montre les poids : la machine du camp, puis ceux choisis.
@@ -191,7 +148,9 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     if (choixOuvert) morceaux.push(zoneDuChoix());
     principal.corps.replaceChildren(...morceaux);
     // L'aire est celle d'un camp : il faut d'abord avoir touche une de ses billes.
-    boutonAire.disabled = !montre.camp;
+    // Vert au repos, orange pendant le dessin (saab, 2026-10-04).
+    boutonAire.disabled = boutonPlateau.disabled = !montre.camp;
+    boutonAire.classList.toggle('bouton-aire-en-cours', aire.enCours());
     principal.recadrer();
     comparaison.element.hidden = !(montre.cases && campCompare);
     if (comparaison.element.hidden) return;
@@ -212,7 +171,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     const notation = caseSous(evenement);
     if (!estUneCase(notation) || aire.enCours()) return;
     evenement.preventDefault();
-    infobulle.hidden = true;
+    survol.cacher();
     const camp = obtenirEtat()?.plateau[notation]?.couleur ?? null;
     if (montre?.cases && camp && camp !== montre.camp) {
       campCompare = camp;
@@ -229,6 +188,12 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     montre = { camp: montre.camp, notation: montre.notation };
     campCompare = null;
     aire.commencer();
+    remplir();
+  });
+  boutonPlateau.addEventListener('click', () => {
+    montre = { camp: montre.camp, cases: CONTOUR_DU_PLATEAU };
+    campCompare = null;
+    aire.dessinerContour(CONTOUR_DU_PLATEAU);
     remplir();
   });
   boutonChoix.addEventListener('click', () => {
