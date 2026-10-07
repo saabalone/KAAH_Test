@@ -74,15 +74,26 @@ const CODES_DU_VAINQUEUR = Object.freeze({ noir: 'x', nulle: 'n', blanc: 'y' });
 const STATUT_NULLE = 'D';
 const PAS_DE_VAINQUEUR = 'None';
 
-// Le camp se retrouve par le nom des joueurs ; deux joueurs du meme nom (ou un
-// nom qui n'est ni l'un ni l'autre) gardent le nom, faute de savoir lequel.
-function codeDuVainqueur(donnees) {
+// Le camp se retrouve par le nom des joueurs. Deux joueurs du meme nom (deux
+// machines identiques, saab 2026-10-05 : « il ne faut pas remettre le profil
+// du gagnant ») : par le score — 6 billes d'un camp ejectees —, sinon, pour un
+// abandon ou un temps ecoule, par le trait : perd celui qui a le trait au bout
+// de la partie (Noir joue toujours en premier : la parite des coups joues).
+// Rien ne le dit : « ? », jamais le nom.
+const BILLES_EJECTEES_POUR_GAGNER = 6; // EJECTIONS_POUR_GAGNER (moteur/partie.js), meme avec handicap
+const STATUTS_PERDUS_PAR_LE_TRAIT = ['R', 'T'];
+const VAINQUEUR_INCONNU = '?';
+
+function codeDuVainqueur(donnees, coupsJoues) {
   if (donnees.Term === STATUT_NULLE) return CODES_DU_VAINQUEUR.nulle;
   if (!donnees.Winner || donnees.Winner === PAS_DE_VAINQUEUR) return '(en cours)';
   const noir = donnees.Winner === donnees.Players.P1_black;
   const blanc = donnees.Winner === donnees.Players.P2_white;
   if (noir !== blanc) return noir ? CODES_DU_VAINQUEUR.noir : CODES_DU_VAINQUEUR.blanc;
-  return String(donnees.Winner);
+  if (donnees.Eject?.P2 >= BILLES_EJECTEES_POUR_GAGNER) return CODES_DU_VAINQUEUR.noir;
+  if (donnees.Eject?.P1 >= BILLES_EJECTEES_POUR_GAGNER) return CODES_DU_VAINQUEUR.blanc;
+  if (STATUTS_PERDUS_PAR_LE_TRAIT.includes(donnees.Term)) return coupsJoues % 2 === 0 ? CODES_DU_VAINQUEUR.blanc : CODES_DU_VAINQUEUR.noir;
+  return VAINQUEUR_INCONNU;
 }
 
 function elementsDuTitre(donnees) {
@@ -90,6 +101,9 @@ function elementsDuTitre(donnees) {
   const joueurNoir = nomJoueurNettoye(donnees.Players.P1_black);
   const joueurBlanc = nomJoueurNettoye(donnees.Players.P2_white);
   return {
+    // Partie recue : le prefixe de son expediteur (saab, 2026-10-06), nettoye
+    // comme un nom de joueur — jamais de « , » qui decouperait le titre.
+    prefixe: typeof donnees.Prefixe === 'string' ? nomJoueurAutorise(donnees.Prefixe) : '',
     branches: possedeUneBranche(donnees.Tree),
     essai: donnees.Essai === true,
     date: String(donnees.Date),
@@ -100,7 +114,7 @@ function elementsDuTitre(donnees) {
     joueurBlanc,
     score: `-${donnees.Eject.P1}-${donnees.Eject.P2}`,
     tours: Math.max(1, Math.floor((profondeurOrigine + 1) / 2)),
-    vainqueur: codeDuVainqueur(donnees),
+    vainqueur: codeDuVainqueur(donnees, profondeurOrigine),
     // Pour le filtre de Mes parties : chercher aussi par le nom.
     nomDuVainqueur: donnees.Winner && donnees.Winner !== PAS_DE_VAINQUEUR ? String(donnees.Winner) : '',
     statut: String(donnees.Term),
@@ -111,6 +125,7 @@ function elementsDuTitre(donnees) {
 function nomDeFichierKAAWA(donnees) {
   const e = elementsDuTitre(donnees);
   const base = `${e.date}, ${e.evenement}, ${e.variante}, ${e.joueurs}, ${e.score}tr${e.tours} ${e.vainqueur}, ${e.statut}`;
-  // Es_ (copie d'essai des poids IA, saab 2026-10-01) avant Br_.
-  return `${e.essai ? 'Es_' : ''}${e.branches ? 'Br_' : ''}${base}`;
+  // Le prefixe de l'expediteur tout devant (facile a trier, saab 2026-10-06),
+  // puis Es_ (copie d'essai des poids IA, saab 2026-10-01), puis Br_.
+  return `${e.prefixe ? `${e.prefixe}_` : ''}${e.essai ? 'Es_' : ''}${e.branches ? 'Br_' : ''}${base}`;
 }

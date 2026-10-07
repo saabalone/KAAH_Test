@@ -22,11 +22,13 @@ const DESCRIPTIONS_STYLES_IA = {
 const DESCRIPTION_VERSION_2_IA = " Version 2 : compte aussi les sumitos possibles, les menaces d'éjection et les fourchettes.";
 const DESCRIPTION_VERSION_3_IA = ' Version 3 : fuit les 2 couronnes du bord, reste groupé (compacité), une éjection pèse plus quand le score avance.';
 const DESCRIPTION_VERSION_4_IA = ' Version 4 : enferme les billes adverses du bord.';
+const DESCRIPTION_VERSION_5_IA = ' Version 5 : un poids par sorte de sumito (3 contre 2, 3 contre 1, 2 contre 1).';
 const DESCRIPTIONS_VERSIONS_IA = {
   1: '',
   2: DESCRIPTION_VERSION_2_IA,
   3: DESCRIPTION_VERSION_2_IA + DESCRIPTION_VERSION_3_IA,
   4: DESCRIPTION_VERSION_2_IA + DESCRIPTION_VERSION_3_IA + DESCRIPTION_VERSION_4_IA,
+  5: DESCRIPTION_VERSION_2_IA + DESCRIPTION_VERSION_3_IA + DESCRIPTION_VERSION_4_IA + DESCRIPTION_VERSION_5_IA,
 };
 // Une description lue d'un fichier : un texte court.
 const DESCRIPTION_PROFIL_IA_MAX = 400;
@@ -88,17 +90,18 @@ function prochainIndiceProfilIA(profils) {
   return Math.max(0, ...profils.map((profil) => profil.indice ?? 0)) + 1;
 }
 
-// Le nom d'un profil importe (saab, 2026-10-03 : « si collision, on pourrait
-// lui ajouter un suffixe de l'expediteur, par ex. Normal_v2_(P4)_saab ») : le
-// sien s'il est libre ; sinon suivi de son auteur ; deja pris aussi (ou sans
-// auteur) : numerote, comme toute copie (moteur/corbeille.js, nomDisponible).
-// L'auteur, lettres, chiffres et « _ », comme un nom de joueur.
+// Le nom d'un profil importe (saab, 2026-10-03 : « on pourrait lui ajouter un
+// suffixe de l'expediteur », puis 2026-10-06 : « un prefixe est plus parlant
+// qu'un suffixe ») : precede de son auteur, saab_Normal_v2_(P4) — sauf sans
+// auteur, deja precede, ou quand l'auteur est `moi` (son propre profil
+// revenu) ; deja pris : numerote, comme toute copie (moteur/corbeille.js,
+// nomDisponible). L'auteur, lettres, chiffres et « _ », comme un nom de joueur.
 const CARACTERES_HORS_AUTEUR = /[^\p{L}\p{N}_]/gu;
 const AUTEUR_PROFIL_IA_MAX = 20;
 
-function nomDuProfilImporte(nom, auteur, nomsPris) {
-  if (!nomsPris.includes(nom)) return nom;
-  return nomDisponible(auteur ? `${nom}_${auteur}` : nom, nomsPris);
+function nomDuProfilImporte(nom, auteur, nomsPris, moi = '') {
+  const prefixe = auteur && auteur !== moi && !nom.startsWith(`${auteur}_`) ? `${auteur}_` : '';
+  return nomDisponible(`${prefixe}${nom}`, nomsPris);
 }
 
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,

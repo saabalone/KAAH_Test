@@ -21,14 +21,17 @@
 // (moteur/archive-recherches.js), obtenirIdPartieActive (interface/sauvegarde.js),
 // tableauDeLaRecherche (interface/recherche-ia-lignes.js), lireArchiveRecherches,
 // garderDansLArchive, gardeLesRecherches, choisirDeGarderLesRecherches,
-// oublierLesRecherches, placeDesRecherches, exporterLesRecherches
-// (interface/stockage-recherches.js) viennent de fichiers charges avant celui-ci.
+// oublierLesRecherches, placeDesRecherches (interface/stockage-recherches.js),
+// choisirFichiersTexte (interface/fichiers.js), exporterLesRecherches,
+// importerPageDesRecherches (interface/export-recherches.js, charge juste
+// apres : appeles seulement au toucher) viennent d'autres fichiers.
 
 const FORMAT_DE_LA_DATE = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const LIBELLES_GENRE_RECHERCHE = { jeu: '', hypothese: ' (aurait joué)', suggestion: ' (suggestion)' };
 // Un caractere de l'archive (du texte JSON presque tout en ASCII) pese un octet.
 const OCTETS_PAR_KO = 1024;
 const PART_PRESQUE_PLEINE = 0.9;
+const DUREE_BOUTON_TOUCHE_MS = 1000;
 const NOTE_ELAGAGE_RECHERCHE = "« ≤ » : écarté par l'élagage, vaut au plus cela. Touchez un coup : sa séquence sur un plateau.";
 
 // `boite` : le <details> du tableau ; `sequencePrevue` : le petit plateau
@@ -94,12 +97,33 @@ function demarrerRechercheIA(boite, sequencePrevue) {
 
   liste.addEventListener('change', montrerLaChoisie);
 
-  // Toutes les recherches gardees, en tableau pour Excel (saab, 2026-10-03 :
-  // « le btn Exporter pour voir les fichiers »). Dans le titre du tableau : le
+  // Toutes les recherches gardees, en page (saab, 2026-10-03 : « le btn
+  // Exporter pour voir les fichiers » ; interface/export-recherches.js). Dans le titre du tableau : le
   // toucher ne doit pas le replier.
-  boite.querySelector('.bouton-exporter-recherches').addEventListener('click', (evenement) => {
+  // Touche, chacun passe en orange un instant (saab, 2026-10-06, puis 2026-10-07 :
+  // « toujours pas en orange » — la page se construisait avant que l'orange ait
+  // pu s'afficher : elle attend maintenant une image).
+  const allumer = (bouton) => {
+    bouton.classList.add('bouton-touche');
+    setTimeout(() => bouton.classList.remove('bouton-touche'), DUREE_BOUTON_TOUCHE_MS);
+  };
+  const boutonExporter = boite.querySelector('.bouton-exporter-recherches');
+  boutonExporter.addEventListener('click', (evenement) => {
     evenement.preventDefault();
-    exporterLesRecherches(lireArchiveRecherches());
+    allumer(boutonExporter);
+    requestAnimationFrame(() => setTimeout(() => exporterLesRecherches(lireArchiveRecherches())));
+  });
+  // Et les reimporter (saab, 2026-10-06 : « si je veux revoir la partie ») :
+  // interface/export-recherches.js.
+  const boutonImporter = boite.querySelector('.bouton-importer-recherches');
+  boutonImporter.addEventListener('click', (evenement) => {
+    evenement.preventDefault();
+    allumer(boutonImporter);
+    choisirFichiersTexte('.html,text/html', false, ([{ nom, texte }]) => {
+      if (!importerPageDesRecherches(texte, nom)) return;
+      afficherPoids();
+      if (detailsEnDirect === null) montrerLesGardees();
+    });
   });
 
   // Pleine (saab, 2026-10-03 : « une alerte si c'est plein ... sinon demander si

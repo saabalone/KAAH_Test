@@ -16,7 +16,7 @@
 // « Essai sur position »).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : essaiDesCoups,
-// valeursDesCases, detailDeLEvaluation, termesDeLaVersion (moteur/essai-ia.js), etatsDeLaSequence
+// valeursDesCases, detailDeLEvaluation, termesDuProfil (moteur/essai-ia.js), etatsDeLaSequence
 // (moteur/sequence-prevue.js), choisirCoupIA, libelleEvaluation,
 // MACHINE_PAR_DEFAUT (moteur/ia.js), VALEUR_VICTOIRE_IA (moteur/ia-evaluation.js),
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), numeroDeTour
@@ -32,12 +32,18 @@ const COLONNES_ESSAI_IA = {
   perte: 'Perte',
   perteScore: 'sc. Perte',
   centre: 'Centre',
+  etendueCentre: 'Étend.',
+  etendueCases: 'Étend. c.',
   cohesion: 'Cohés.',
   compacite: 'Compac.',
   cases: 'Cases',
   bordSoi: 'Bord m.',
   bordAdverse: 'Bord a.',
   sumito: 'Sumito',
+  sumito32: 'Sum. 3/2',
+  sumito31: 'Sum. 3/1',
+  sumito21: 'Sum. 2/1',
+  sumitoVide: 'Sum. vide',
   menaceEjection: 'Menace',
   fourchette: 'Fourch.',
   piege: 'Piège',
@@ -96,7 +102,7 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
   }
 
   function afficherCoups({ version, poids }, etat) {
-    const cles = termesDeLaVersion(version);
+    const cles = termesDuProfil(version, poids);
     const essai = essaiDesCoups(etat, poids, version);
     const entete = ligneDeTableau(['#', 'Coup', 'Niv. 3', 'Niv. 2', 'Niv. 1', ...cles.map((cle) => COLONNES_ESSAI_IA[cle])], 'th');
     cles.forEach((cle, rang) => (entete.children[rang + 5].title = LIBELLES_REGLAGES_IA[cle]));

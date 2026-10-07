@@ -15,7 +15,7 @@
 // retient le choix.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : COORDONNEES_DES_CASES_IA
-// (moteur/ia-evaluation-v3.js), termesDeLaVersion (moteur/essai-ia.js),
+// (moteur/ia-evaluation-v3.js), TERMES_DANS_L_ORDRE_IA, termesDesProfils (moteur/essai-ia.js),
 // detailDeLaBille (moteur/bille-ia.js), detailDeLAire, CONTOUR_DU_PLATEAU
 // (moteur/aire-ia.js),
 // NOM_CAMP (rendu/ejections.js), COLONNES_ESSAI_IA (interface/essai-ia.js),
@@ -28,7 +28,8 @@
 // fichiers charges avant celui-ci.
 
 const CLE_INFOS_CASE = 'kaah-infos-case';
-const VERSION_LA_PLUS_COMPLETE_IA = 4;
+// Les termes qu'on peut choisir de montrer : ceux de toutes les versions et ajouts.
+const TOUS_LES_TERMES_IA = TERMES_DANS_L_ORDRE_IA;
 
 function lireChoixInfosCase() {
   try {
@@ -81,7 +82,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   });
 
   const aire = demarrerAirePlateau(svg, (cases) => {
-    montre = { camp: montre.camp, cases };
+    montre = { ...montre, cases };
     remplir();
   });
 
@@ -105,7 +106,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     const coche = (cle) => choix[cle] !== false;
     return zoneDuChoixBille(
       [
-        ['Termes', termesDeLaVersion(VERSION_LA_PLUS_COMPLETE_IA).map((terme) => [`terme-${terme}`, COLONNES_ESSAI_IA[terme], coche(`terme-${terme}`)])],
+        ['Termes', TOUS_LES_TERMES_IA.map((terme) => [`terme-${terme}`, COLONNES_ESSAI_IA[terme], coche(`terme-${terme}`)])],
         ['Profils IA (en plus de la machine)', listerProfilsIA().map((profil) => [`profil:${profil.nom}`, libelleProfilIA(profil), choix.profils.includes(profil.nom)])],
         ['Mesures', Object.entries(LIGNES_MESURES_BILLE).map(([cle, [libelle]]) => [cle, libelle, coche(cle)])],
         ['Au survol', Object.entries(CHAMPS_SURVOL_CASE).map(([cle, libelle]) => [`survol-${cle}`, libelle, coche(`survol-${cle}`)])],
@@ -123,19 +124,22 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   function contenuPour(camp) {
     const etat = obtenirEtat();
     const sources = sourcesPour(camp);
-    const version = Math.max(...sources.map((source) => source.version));
-    const colonnes = sources.map((source) => ({
+    const colonnes = sources.map((source, rang) => ({
       nom: source.nom,
+      poids: source.poids,
+      actif: rang === 0,
       detail: montre.cases ? detailDeLAire(etat, montre.cases, camp, source.poids, source.version) : detailDeLaBille(etat, montre.notation, source.poids, source.version),
     }));
     if (!montre.cases) colonnes[0].detail.piege = piegeDe(etat, montre.notation, colonnes[0].detail);
     const mesures = montre.cases ? tableauDesMesures(lignesMesuresAire(camp), colonnes[0].detail, {}) : tableauDesMesures(LIGNES_MESURES_BILLE, colonnes[0].detail, choix);
-    return [tableauDesTermes(colonnes, version, choix), mesures];
+    return [tableauDesTermes(colonnes, termesDesProfils(sources), choix, Boolean(montre.cases)), mesures];
   }
 
   function remplir() {
     const morceaux = [];
-    if (montre.camp) {
+    // Une case vide pendant qu'on y dessine une aire : montre.camp est deja le camp au trait.
+    const surUneBille = obtenirEtat()?.plateau[montre.notation]?.couleur === montre.camp;
+    if (montre.cases || (montre.camp && surUneBille)) {
       principal.titre.textContent = montre.cases ? `Aire · ${NOM_CAMP[montre.camp]}` : `${montre.notation} · ${NOM_CAMP[montre.camp]}`;
       morceaux.push(...contenuPour(montre.camp));
     } else {
@@ -147,9 +151,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     if (montre.cases) morceaux.push(celluleBille('p', 'Clic droit sur une bille adverse : la même aire pour son camp, à côté.'));
     if (choixOuvert) morceaux.push(zoneDuChoix());
     principal.corps.replaceChildren(...morceaux);
-    // L'aire est celle d'un camp : il faut d'abord avoir touche une de ses billes.
     // Vert au repos, orange pendant le dessin (saab, 2026-10-04).
-    boutonAire.disabled = boutonPlateau.disabled = !montre.camp;
     boutonAire.classList.toggle('bouton-aire-en-cours', aire.enCours());
     principal.recadrer();
     comparaison.element.hidden = !(montre.cases && campCompare);
@@ -184,14 +186,19 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     remplir();
     principal.placerAuBordDuPlateau(svg);
   });
+  // La bille touchee reste connue (saab, 2026-10-05 : une 2e aire ne se fermait
+  // pas : le panneau ne savait plus de quelle bille il partait). L'aire est celle
+  // de son camp ; depuis une case vide (saab, 2026-10-06 : « parfois possible,
+  // parfois impossible » — le bouton y etait grise), celle du camp au trait.
+  const campDeLAire = () => montre.camp ?? obtenirEtat().joueurAuTrait;
   boutonAire.addEventListener('click', () => {
-    montre = { camp: montre.camp, notation: montre.notation };
+    montre = { camp: campDeLAire(), notation: montre.notation };
     campCompare = null;
     aire.commencer();
     remplir();
   });
   boutonPlateau.addEventListener('click', () => {
-    montre = { camp: montre.camp, cases: CONTOUR_DU_PLATEAU };
+    montre = { camp: campDeLAire(), notation: montre.notation, cases: CONTOUR_DU_PLATEAU };
     campCompare = null;
     aire.dessinerContour(CONTOUR_DU_PLATEAU);
     remplir();

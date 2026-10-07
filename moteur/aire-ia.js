@@ -9,8 +9,9 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurAdverse
 // (regles.js), versNotation (plateau.js), couleursDuPlateau (partie.js),
-// COORDONNEES_DES_CASES_IA, distanceAxiale (ia-evaluation-v3.js), termesDeLaPosition, sommeDesTermes (bille-ia.js)
-// viennent de fichiers charges avant celui-ci.
+// COORDONNEES_DES_CASES_IA, distanceAxiale (ia-evaluation-v3.js),
+// termesDeLaPosition, sommeDesTermes (bille-ia.js) viennent de fichiers charges
+// avant celui-ci.
 
 // Le centre d'une case dans le plan (coordonnees axiales -> cartesiennes : les
 // cases voisines y sont toutes a 1 l'une de l'autre).
@@ -84,15 +85,33 @@ function billesDansLAire(etat, cases, camp) {
     .sort();
 }
 
-// La position de l'aire (ses billes seulement, les ejections de la partie) et
-// sa valeur pour `camp`, terme par terme.
+// L'aire pour `camp`, terme par terme, de deux facons (saab, 2026-10-05) :
+//   - SEULE (termes, valeur) : la position de ses billes seulement, comme si
+//     rien d'autre n'existait — sans les ejections de la partie, faites
+//     ailleurs (saab, 2026-10-06 : « +3000 est bien une valeur ext, non ? ») ;
+//   - son APPORT (apport, valeurApport) : ce que ses billes apportent a toute
+//     la position — l'evaluation avec elles, moins sans elles ni les
+//     ejections (les billes du dehors comptent : sumitos, voisines, compacite
+//     avec le reste ; Gain et Perte, toutes les ejections de la partie). Tout
+//     le plateau : l'evaluation de la machine.
 function detailDeLAire(etat, cases, camp, poids, version) {
   const sommets = cases.map(pointDeLaCase);
-  const plateau = Object.fromEntries(Object.entries(etat.plateau).filter(([notation]) => dansLeContour(pointDeLaCase(notation), sommets)));
-  const termes = termesDeLaPosition({ ...etat, plateau }, camp, poids, version);
+  const dedans = (notation) => dansLeContour(pointDeLaCase(notation), sommets);
+  const sousPosition = (garder) => ({
+    ...etat,
+    billesEjecteesNoires: 0,
+    billesEjecteesBlanches: 0,
+    plateau: Object.fromEntries(Object.entries(etat.plateau).filter(([notation]) => garder(notation))),
+  });
+  const termes = termesDeLaPosition(sousPosition(dedans), camp, poids, version);
+  const avec = termesDeLaPosition(etat, camp, poids, version);
+  const sans = termesDeLaPosition(sousPosition((notation) => !dedans(notation)), camp, poids, version);
+  const apport = Object.fromEntries(Object.keys(avec).map((terme) => [terme, avec[terme] - sans[terme]]));
   return {
     billes: { [camp]: billesDansLAire(etat, cases, camp), [couleurAdverse(camp)]: billesDansLAire(etat, cases, couleurAdverse(camp)) },
     termes,
     valeur: sommeDesTermes(termes),
+    apport,
+    valeurApport: sommeDesTermes(apport),
   };
 }

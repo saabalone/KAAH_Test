@@ -8,14 +8,13 @@
 //   - les MESURES, qui ne dependent d'aucun poids.
 // Chaque ligne se montre ou se cache (bouton ⚙ : zoneDuChoixBille).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : termesDeLaVersion
-// (moteur/essai-ia.js), LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
 // NOM_CAMP (rendu/ejections.js), COLONNES_ESSAI_IA (interface/essai-ia.js)
 // viennent de fichiers charges avant celui-ci.
 
 const plurielPanneau = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
 // « 0 » et jamais « -0 » ; « ? » pour un calcul impossible (jamais un faux 0).
-const nombrePanneau = (valeur) => (Number.isNaN(valeur) ? '?' : (valeur || 0).toLocaleString('fr-FR', { maximumFractionDigits: 2 }));
+const nombrePanneau = (valeur) => (Number.isNaN(valeur) ? '?' : (valeur || 0).toLocaleString('fr-FR', { maximumFractionDigits: 2, useGrouping: false }));
 const signePanneau = (valeur) => (valeur > 0 ? `+${nombrePanneau(valeur)}` : nombrePanneau(valeur));
 
 function texteDeLaSortie(sortie) {
@@ -76,24 +75,78 @@ function celluleBille(balise, texte, titre) {
   return element;
 }
 
-// Les termes : une ligne par terme de la plus haute version des colonnes, et le
-// total. `colonnes` : [{ nom, detail }] (detail.termes, detail.valeur).
-function tableauDesTermes(colonnes, version, choix) {
+// La valeur d'un terme, et a cote, en gris, le reglage qui l'a donnee (saab,
+// 2026-10-05 : « Gain | +5000/+1000 | ») — rien pour un terme sans reglage
+// unique (Cases) ; « — » pour un terme absent de la version du profil.
+function celluleDeTerme(termes, terme, poids) {
+  const td = document.createElement('td');
+  if (!(terme in termes)) {
+    td.textContent = '—';
+    return td;
+  }
+  td.textContent = signePanneau(termes[terme]);
+  if (poids && Number.isFinite(poids[terme])) {
+    const reglage = document.createElement('span');
+    reglage.className = 'reglage-du-terme';
+    reglage.textContent = `/${signePanneau(poids[terme])}`;
+    td.append(reglage);
+  }
+  return td;
+}
+
+// Les termes : une ligne par terme (`termes`, ceux des versions des colonnes,
+// moteur/essai-ia.js, termesDesProfils), et le total. `colonnes` : [{ nom, detail, poids, actif }] — `actif` : le profil de
+// la machine, en orange. Pour une bille, une colonne par profil : ce qu'elle
+// apporte (detail.termes), reglages en gris. Pour une aire (`aire`), deux par
+// profil : l'aire seule, puis son apport a toute la position, reglages en gris.
+function tableauDesTermes(colonnes, termes, choix, aire = false) {
   const tableau = document.createElement('table');
+  tableau.className = 'tableau-termes-bille';
   const entete = document.createElement('tr');
-  entete.append(celluleBille('th', ''), ...colonnes.map(({ nom }) => celluleBille('th', nom, `Poids de ${nom}`)));
+  entete.append(celluleBille('th', ''));
+  for (const { nom, actif } of colonnes) {
+    const th = celluleBille('th', nom, actif ? `Poids de ${nom} (la machine de ce camp)` : `Poids de ${nom}`);
+    th.className = actif ? 'profil-panneau profil-actif' : 'profil-panneau';
+    if (aire) th.colSpan = 2;
+    entete.append(th);
+  }
   tableau.append(entete);
-  for (const terme of termesDeLaVersion(version)) {
+  if (aire) {
+    const sousTitres = document.createElement('tr');
+    sousTitres.append(celluleBille('th', ''));
+    for (let i = 0; i < colonnes.length; i++) {
+      sousTitres.append(
+        celluleBille('th', 'seule', 'L’aire seule : ses billes, comme si rien d’autre n’existait (ni les éjections de la partie)'),
+        celluleBille('th', 'avec l’ext.', 'Ce que les billes de l’aire apportent à toute la position : avec elles, moins sans elles ; Gain et Perte : les éjections de la partie. Tout le plateau : l’évaluation de la machine')
+      );
+    }
+    tableau.append(sousTitres);
+  }
+  // Les valeurs du profil de la machine en orange, comme son nom (saab,
+  // 2026-10-07 : « ca sera plus visuel » — pour une bille aussi, sans attendre
+  // Aire ou Plateau) ; les reglages restent gris.
+  const enOrange = (actif, cellulesDuProfil) => {
+    if (actif) for (const cellule of cellulesDuProfil) cellule.classList.add('valeur-profil-actif');
+    return cellulesDuProfil;
+  };
+  const cellules = ({ detail, poids, actif }, terme) =>
+    enOrange(actif, aire ? [celluleDeTerme(detail.termes, terme, null), celluleDeTerme(detail.apport, terme, poids)] : [celluleDeTerme(detail.termes, terme, poids)]);
+  for (const terme of termes) {
     if (choix[`terme-${terme}`] === false) continue;
     const ligne = document.createElement('tr');
     ligne.title = LIBELLES_REGLAGES_IA[terme];
-    ligne.append(celluleBille('th', COLONNES_ESSAI_IA[terme]), ...colonnes.map(({ detail }) => celluleBille('td', terme in detail.termes ? signePanneau(detail.termes[terme]) : '—')));
+    ligne.append(celluleBille('th', COLONNES_ESSAI_IA[terme]), ...colonnes.flatMap((colonne) => cellules(colonne, terme)));
     tableau.append(ligne);
   }
   const total = document.createElement('tr');
   total.className = 'ligne-total-bille';
   total.title = 'La somme des termes';
-  total.append(celluleBille('th', 'Total'), ...colonnes.map(({ detail }) => celluleBille('td', signePanneau(detail.valeur))));
+  total.append(
+    celluleBille('th', 'Total'),
+    ...colonnes.flatMap(({ detail, actif }) =>
+      enOrange(actif, aire ? [celluleBille('td', signePanneau(detail.valeur)), celluleBille('td', signePanneau(detail.valeurApport))] : [celluleBille('td', signePanneau(detail.valeur))])
+    )
+  );
   tableau.append(total);
   return tableau;
 }

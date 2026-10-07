@@ -4846,6 +4846,13 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
   cursor: pointer;
 }
 
+/* Touche : orange un instant (saab, 2026-10-06 ; interface/recherche-ia.js). */
+.bouton-exporter-recherches.bouton-touche {
+  background: #cc6a00;
+  color: #0a0a0a;
+  border-color: #cc6a00;
+}
+
 /* Le tableau comparatif des profils IA (interface/comparaison-ia.js) : il
    defile sur lui-meme, dans les deux sens. */
 .defilement-comparaison-ia {
@@ -5007,9 +5014,16 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
   display: flex;
   flex-direction: column;
   padding: 4px 6px;
-  max-width: 520px;
+  max-width: calc(100vw - 12px);
   max-height: calc(100vh - 12px);
   box-sizing: border-box;
+  /* Une poignee dans le coin en bas a droite (saab, 2026-10-05 : « ajouter des
+     poignees sur les panneaux, qu'on puisse les modifier a volonte ») ; le
+     corps defile dedans, jamais hors de la fenetre. */
+  resize: both;
+  overflow: hidden;
+  min-width: 160px;
+  min-height: 80px;
 }
 
 .panneau-bille[hidden] {
@@ -5017,8 +5031,9 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
 }
 
 .corps-panneau-bille {
+  flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .panneau-bille p {
@@ -5138,4 +5153,117 @@ svg.dessin-aire {
 .choix-style-ia {
   flex: 0 0 auto;
   width: auto;
+}
+
+/* Le tableau des termes du panneau (saab, 2026-10-05) : le profil de la machine
+   en orange, le reglage de chaque terme en gris (« +5000/+1000 »), le nom du
+   profil a la largeur de sa colonne (il passe a la ligne). */
+.panneau-bille th.profil-panneau {
+  white-space: normal;
+  text-align: center;
+  color: #e6e6e6;
+}
+
+.panneau-bille th.profil-actif,
+.panneau-bille td.valeur-profil-actif {
+  color: #e0832a;
+}
+
+.panneau-bille .reglage-du-terme {
+  color: #7a7a7a;
+}
+
+/* Sur ordinateur, la barre de navigation de Reflexion IA tout en bas de la
+   colonne des tableaux, fixe (saab, 2026-10-05 ; interface/disposition.js) ;
+   cachee avec Reflexion IA. */
+#colonne-droite > .navigation-reflexion-ia {
+  margin-top: auto;
+  position: static;
+}
+
+#reflexion-ia[hidden] ~ .navigation-reflexion-ia,
+#reflexion-ia:not([open]) ~ .navigation-reflexion-ia {
+  display: none;
+}
+
+/* Sur ordinateur hors face-a-face, une seule barre (saab, 2026-10-06 : « ca fait
+   doublon ») : celle du plateau, dans la colonne des tableaux, toujours visible
+   — tout en bas par defaut, ou entre deux tableaux (boutons ▲ ▼ :
+   interface/navigation-colonne.js). Celle de Reflexion IA n'y sert plus. */
+@media (min-width: 700px) {
+  body:not(.face-a-face) .navigation-reflexion-ia {
+    display: none;
+  }
+}
+
+.bouton-place-navigation {
+  display: none;
+}
+
+#colonne-droite > #navigation {
+  justify-content: flex-start;
+  gap: 4px;
+  margin: 4px 0;
+  padding: 2px 0;
+  background: #1e1e1e;
+}
+
+#colonne-droite > #navigation:last-child {
+  margin-top: auto;
+}
+
+#colonne-droite > #navigation button {
+  min-width: 36px;
+  min-height: var(--hauteur-commande);
+  font-size: inherit;
+  cursor: pointer;
+}
+
+#colonne-droite > #navigation button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#colonne-droite > #navigation .bouton-place-navigation {
+  display: inline-block;
+  min-width: 26px;
+}
+
+#colonne-droite > #navigation #nav-monter {
+  margin-left: auto;
+}
+
+/* − et + du temps de reflexion d'une machine (saab, 2026-10-07 ;
+   interface/choix-joueurs.js) : sur telephone aussi. */
+.bouton-palier-reflexion {
+  min-width: var(--hauteur-commande);
+  min-height: var(--hauteur-commande);
+  margin: 0 2px;
+  padding: 0 6px;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #5a5a5a;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* KAI choisi avec un profil recent (interface/choix-joueurs.js). */
+.note-moteur-choix {
+  margin: 2px 0;
+  color: #cc6a00;
+  font-size: 12px;
+}
+
+/* La case devant chaque poids d'un profil IA (saab, 2026-10-07 ;
+   interface/reglages-ia.js) : decochee, le poids ne compte plus. */
+.coche-poids {
+  margin: 0 4px 0 0;
+  vertical-align: middle;
+}
+
+/* Les ajouts de l'IA (sv, ec, ea, da) : seulement dans une version de travail
+   (index.html, classe version-de-travail) — pas encore pour les testeurs. */
+body:not(.version-de-travail) .poids-ajout,
+body:not(.version-de-travail) .aide-ajouts {
+  display: none !important;
 }

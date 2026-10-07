@@ -10,7 +10,8 @@
 // NIVEAUX_IA (ia-recherche.js), STYLES_IA, CLES_POIDS_IA, VALEUR_VICTOIRE_IA
 // (ia-evaluation.js), CLES_POIDS_IA_V2, STYLES_IA_V2 (ia-evaluation-v2.js),
 // CLES_POIDS_IA_V3, STYLES_IA_V3 (ia-evaluation-v3.js), CLES_POIDS_IA_V4,
-// STYLES_IA_V4 (ia-evaluation-v4.js) viennent de fichiers
+// STYLES_IA_V4 (ia-evaluation-v4.js), CLES_POIDS_IA_V5, STYLES_IA_V5
+// (ia-evaluation-v5.js), OPTIONS_IA, CLES_OPTIONS_IA (ia-ajouts.js) viennent de fichiers
 // charges avant celui-ci.
 
 // Parmi les coups de la base, sont "parmi les meilleurs" ceux qui ont au
@@ -75,7 +76,7 @@ const VERSION_IA = 1;
 const ELAGAGE_PAR_DEFAUT_IA = 10;
 // « el » pour elaguer (saab, 2026-10-03 : remplace le « b » de « v2b »).
 const SUFFIXE_ELAGAGE_IA = 'el';
-const VERSIONS_IA = [1, 2, 3, 4];
+const VERSIONS_IA = [1, 2, 3, 4, 5];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
   1: { cles: CLES_POIDS_IA, styles: STYLES_IA },
@@ -84,6 +85,11 @@ const POIDS_DES_VERSIONS_IA = {
   3: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3], styles: STYLES_IA_V3 },
   // La 4 (moteur/ia-evaluation-v4.js) : le piege.
   4: { cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4], styles: STYLES_IA_V4 },
+  // La 5 (moteur/ia-evaluation-v5.js) : un poids par sorte de sumito, a la place du Sumito unique.
+  5: {
+    cles: [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2.flatMap((cle) => (cle === 'sumito' ? CLES_POIDS_IA_V5 : [cle])), ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4],
+    styles: STYLES_IA_V5,
+  },
 };
 const NOMS_STYLES_IA = { agressif: 'Agressif', normal: 'Normal', defensif: 'Défensif' };
 const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def' };
@@ -114,6 +120,8 @@ function lireMachine(brut) {
   const elagage = Number.isInteger(brut.elagage) && brut.elagage > 0 ? brut.elagage : 0;
   const { cles, styles } = POIDS_DES_VERSIONS_IA[version];
   const poids = Object.fromEntries(cles.map((cle) => [cle, Number.isFinite(brut.poids?.[cle]) ? brut.poids[cle] : styles[style][cle]]));
+  // Les ajouts (le sumito vide, moteur/ia-sumito-vide.js) : seulement s'il a leur poids.
+  for (const cle of CLES_OPTIONS_IA) if (Number.isFinite(brut.poids?.[cle])) poids[cle] = brut.poids[cle];
   const reflexion = Number(brut.reflexionMax);
   return {
     moteur: MOTEURS_IA.includes(brut.moteur) ? brut.moteur : MACHINE_PAR_DEFAUT.moteur,
@@ -171,7 +179,9 @@ function formaterTempsReflexion(secondes) {
 // n'a pas joue sur le meme profil et rien ne l'indique ») : KAI++7_Nor_30s_v4el10_v2_P1.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
-  const version = machine.version > VERSION_IA || machine.elagage ? `_v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_IA}${machine.elagage}` : ''}` : '';
+  // Les ajouts en suffixe, apres l'elagage (saab, 2026-10-07 : KAI++7_Nor_30s_v4el10sv).
+  const ajouts = OPTIONS_IA.filter((option) => option.cle in machine.poids).map((option) => option.suffixe).join('');
+  const version = machine.version > VERSION_IA || machine.elagage || ajouts ? `_v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_IA}${machine.elagage}` : ''}${ajouts}` : '';
   return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${machine.versionProfil ? `_v${machine.versionProfil}` : ''}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
 }
 
@@ -189,9 +199,10 @@ function libelleEvaluation(valeur) {
 }
 
 // KAI++ (phase 33bis, solveur/kai-plus.cpp) : ses poids en texte (CSV, dans
-// l'ordre des cles ; 0 pour ceux des versions 2 a 4 absents)...
+// l'ordre des cles ; 0 pour ceux des versions 2 a 5 absents — ceux de la 5 a
+// la fin, pour que les anciens restent a leur place)...
 function poidsEnTexte(poids) {
-  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4].map((cle) => poids[cle] ?? 0).join(',');
+  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_IA].map((cle) => poids[cle] ?? 0).join(',');
 }
 
 // ... sa reponse relue — « profondeur, evaluation, positions examinees, puis la

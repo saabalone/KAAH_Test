@@ -49,8 +49,10 @@ const INDEX_DIRECTION_OPPOSEE = DIRECTIONS.map((direction) =>
 );
 
 // Les sumitos que `camp` peut jouer sur `couleurs` (notation -> couleur) : un
-// par bille de tete et par direction, [{ tete, direction, ejection }]. Le
-// groupe est la tete et jusqu'a 2 billes amies derriere elle, dans l'axe.
+// par bille de tete et par direction, [{ tete, direction, ejection, billes,
+// poussees }] — `billes` qui poussent et `poussees` : sa sorte, 3/2, 3/1 ou 2/1
+// (la version 5, moteur/ia-evaluation-v5.js). Le groupe est la tete et jusqu'a
+// 2 billes amies derriere elle, dans l'axe.
 function sumitosDuCamp(couleurs, camp) {
   const adverse = couleurAdverse(camp);
   const sumitos = [];
@@ -70,17 +72,33 @@ function sumitosDuCamp(couleurs, camp) {
       const coup = coupEnLigne(groupe, direction, couleurs, camp);
       if (!coup || coup.billesPoussees.length === 0) return;
       const derniere = coup.billesPoussees[coup.billesPoussees.length - 1];
-      sumitos.push({ tete, direction, ejection: CASES_VOISINES_IA[derniere][index] === null });
+      sumitos.push({ tete, direction, ejection: CASES_VOISINES_IA[derniere][index] === null, billes: groupe.length, poussees: coup.billesPoussees.length });
     });
   }
   return sumitos;
 }
 
-// Ce que les sumitos d'un camp valent, avec `poids`.
+// Combien de sumitos de chaque sorte : { 32, 31, 21 }.
+function sumitosParSorte(sumitos) {
+  const nombre = (billes, poussees) => sumitos.filter((sumito) => sumito.billes === billes && sumito.poussees === poussees).length;
+  return { 32: nombre(3, 2), 31: nombre(3, 1), 21: nombre(2, 1) };
+}
+
+// Ce que les sumitos d'un camp valent, avec `poids` : le Sumito unique
+// (versions 2 a 4) ou un poids par sorte (version 5) — celui qu'un profil n'a
+// pas compte 0, le meme calcul que solveur/kai-plus.cpp au bit pres.
 function valeurDesSumitos(sumitos, poids) {
   const ejections = sumitos.filter((sumito) => sumito.ejection).length;
   const enPlus = Math.max(0, sumitos.length - 1);
-  return poids.sumito * sumitos.length + poids.menaceEjection * ejections + poids.fourchette * enPlus;
+  const sortes = sumitosParSorte(sumitos);
+  return (
+    (poids.sumito ?? 0) * sumitos.length +
+    (poids.sumito32 ?? 0) * sortes[32] +
+    (poids.sumito31 ?? 0) * sortes[31] +
+    (poids.sumito21 ?? 0) * sortes[21] +
+    poids.menaceEjection * ejections +
+    poids.fourchette * enPlus
+  );
 }
 
 // La valeur de `etat` pour `camp` (le camp de l'IA), version 2.

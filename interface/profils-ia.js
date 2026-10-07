@@ -95,3 +95,26 @@ function supprimerProfilIA(nom) {
 function nomNouveauProfilIA() {
   return nomDisponible(`IA_${formaterDateKAAWA(new Date())}`, listerProfilsIA().map((profil) => profil.nom));
 }
+
+// Le profil que montre la rubrique Machine de Reglages (saab, 2026-10-07 :
+// « faire le focus sur le profil IA du joueur qui demande, mais aussi garder le
+// dernier profil utilise si je ne passe pas par Joueur ») : le dernier choisi
+// dans Reglages, ou celui de la machine regardee dans la boite d'un joueur
+// (interface/noms-joueurs.js). Retenu sur cet appareil.
+const CLE_PROFIL_IA_MONTRE = 'kaah-profil-ia-montre';
+
+function lireProfilIAMontre() {
+  try {
+    return window.localStorage.getItem(CLE_PROFIL_IA_MONTRE);
+  } catch {
+    return null;
+  }
+}
+
+function retenirProfilIAMontre(nom) {
+  try {
+    window.localStorage.setItem(CLE_PROFIL_IA_MONTRE, nom);
+  } catch {
+    // Tant pis : Reglages montrera le dernier profil de cette ouverture.
+  }
+}

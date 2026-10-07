@@ -8,7 +8,8 @@
 // Les couleurs des reglages (orange, vert, jaune) : moteur/couleurs-profil-ia.js.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA_V2
-// (ia-evaluation-v2.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), NOMS_STYLES_IA,
+// (ia-evaluation-v2.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), CLES_POIDS_IA_V5
+// (ia-evaluation-v5.js), NOMS_STYLES_IA,
 // lireMachine (ia.js) viennent de fichiers charges avant celui-ci.
 
 // Ce qu'une version retient, dans l'ordre ou Reglages le montre.
@@ -26,11 +27,17 @@ const CLES_REGLAGES_IA = [
   'perteScore',
   'centre',
   ...CLES_CASES_IA_V3,
+  // L'etendue, ajouts ec, ea et da (moteur/ia-etendue.js).
+  'etendueCentre',
+  'etendueCases',
+  'etendueReference',
   'cohesion',
   'compacite',
   'bordSoi',
   'bordAdverse',
-  ...CLES_POIDS_IA_V2,
+  // Version 5 (moteur/ia-evaluation-v5.js) : un Sumito par sorte, juste apres le Sumito unique.
+  // Puis l'ajout sv, le sumito vide (moteur/ia-sumito-vide.js).
+  ...CLES_POIDS_IA_V2.flatMap((cle) => (cle === 'sumito' ? [cle, ...CLES_POIDS_IA_V5, 'sumitoVide'] : [cle])),
   // Le piege de la version 4 (moteur/ia-evaluation-v4.js).
   'piege',
 ];
@@ -54,6 +61,9 @@ const LIBELLES_REGLAGES_IA = {
   caseA3: 'a3',
   caseA2: 'a2',
   caseA1: 'a1',
+  etendueCentre: 'Étendue (ec)',
+  etendueCases: 'Étendue des cases (ea)',
+  etendueReference: 'Étendue ÷ adverses (da)',
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.
@@ -61,6 +71,10 @@ const LIBELLES_REGLAGES_IA = {
   bordSoi: 'Bord (miennes)',
   bordAdverse: 'Bord (adverses)',
   sumito: 'Sumito',
+  sumito32: 'Sumito 3/2',
+  sumito31: 'Sumito 3/1',
+  sumito21: 'Sumito 2/1',
+  sumitoVide: 'Sumito vide (sv)',
   menaceEjection: "Menace d'éjection",
   fourchette: 'Fourchette',
   piege: 'Piège',

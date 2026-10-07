@@ -91,10 +91,4 @@ function evaluerPositionV4(etat, camp, poids) {
   return base + termeDuPiegeIA(etat, camp, poids);
 }
 
-// L'evaluation de chaque version de l'IA (la recherche, moteur/ia-recherche.js,
-// et l'essai d'un profil, moteur/essai-ia.js).
-const EVALUATIONS_DES_VERSIONS_IA = { 1: evaluerPosition, 2: evaluerPositionV2, 3: evaluerPositionV3, 4: evaluerPositionV4 };
-
-function evaluationDeLaVersion(version) {
-  return EVALUATIONS_DES_VERSIONS_IA[version] ?? evaluerPosition;
-}
+// L'evaluation de chaque version : moteur/ia-evaluation-v5.js, evaluationDeLaVersion.

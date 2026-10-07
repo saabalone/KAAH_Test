@@ -14,7 +14,7 @@
 // couleurAdverse (regles.js), couleursDuPlateau (partie.js), VOISINS_DES_CASES
 // (ia-evaluation.js), sumitosDuCamp, CASES_VOISINES_IA (ia-evaluation-v2.js),
 // CLASSE_DES_CASES_IA, PAS_DES_CASES_IA, COORDONNEES_DES_CASES_IA,
-// distanceAxiale (ia-evaluation-v3.js), detailDeLEvaluation, termesDeLaVersion
+// distanceAxiale (ia-evaluation-v3.js), detailDeLEvaluation, termesDuProfil
 // (essai-ia.js), sortieDeLaZone (sortie-bille.js), billeBloqueeVersLeCentre
 // (ia-evaluation-v4.js) viennent de fichiers charges avant celui-ci.
 
@@ -45,7 +45,7 @@ function billesPousseesPar(sumito, couleurs) {
 // des colonnes de sa version ; 0 pour un terme absent (partie finie).
 function termesDeLaPosition(etat, camp, poids, version) {
   const detail = detailDeLEvaluation(etat, camp, poids, version);
-  return Object.fromEntries(termesDeLaVersion(version).map((cle) => [cle, detail[cle] ?? 0]));
+  return Object.fromEntries(termesDuProfil(version, poids).map((cle) => [cle, detail[cle] ?? 0]));
 }
 
 const sommeDesTermes = (termes) => Object.values(termes).reduce((somme, terme) => somme + terme, 0);

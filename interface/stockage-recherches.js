@@ -7,15 +7,13 @@
 // visibles jusqu'a Vider.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ajouterRecherche,
-// ARCHIVE_RECHERCHES_VIDE, TAILLE_ARCHIVE_RECHERCHES_MAX, tableauDesRecherches,
-// ecrireCsv, positionsOubliees (moteur/archive-recherches.js), formaterDateKAAWA
-// (interface/sauvegarde.js), telechargerTexte (interface/fichiers.js) viennent
-// de fichiers charges avant celui-ci.
+// fusionnerRecherches, ARCHIVE_RECHERCHES_VIDE, TAILLE_ARCHIVE_RECHERCHES_MAX, positionsOubliees
+// (moteur/archive-recherches.js) viennent de fichiers charges avant celui-ci.
+// L'export : interface/export-recherches.js.
 
 const CLE_ARCHIVE_RECHERCHES = 'kaah-recherches-ia';
 const CLE_GARDER_RECHERCHES = 'kaah-garder-recherches';
 const ESSAIS_D_ECRITURE_ARCHIVE = 3; // en reduisant de moitie a chaque refus du stockage
-const MARQUE_UTF8_EXCEL = '\uFEFF';
 
 // Les recherches de cette ouverture quand l'appareil ne les garde pas (parties
 // des gardees), ou null.
@@ -68,6 +66,23 @@ function garderDansLArchive(cle, recherche, avantDOublier) {
   }
 }
 
+// Des recherches importees (interface/export-recherches.js) : la ou vivent les
+// autres (l'appareil, ou cette ouverture). Renvoie combien sont neuves.
+function importerDansLArchive(importees) {
+  const avant = lireArchiveRecherches();
+  if (!gardeLesRecherches()) {
+    const { archive, ajoutees } = fusionnerRecherches(avant, importees);
+    archiveDeLaSeance = archive;
+    return ajoutees;
+  }
+  let tailleMax = TAILLE_ARCHIVE_RECHERCHES_MAX;
+  for (let essai = 0; essai < ESSAIS_D_ECRITURE_ARCHIVE; essai++, tailleMax /= 2) {
+    const { archive, ajoutees } = fusionnerRecherches(avant, importees, tailleMax);
+    if (ecrireArchiveStockee(archive)) return ajoutees;
+  }
+  return 0;
+}
+
 // Garder (ou non) les recherches sur l'appareil ; celles de cette ouverture y
 // passent des qu'on choisit de les garder.
 function choisirDeGarderLesRecherches(garder) {
@@ -95,9 +110,4 @@ function placeDesRecherches() {
   } catch {
     return 0;
   }
-}
-
-// Toutes les recherches en tableau pour Excel ; le BOM fait lire les accents a Excel.
-function exporterLesRecherches(archive) {
-  telechargerTexte(`${MARQUE_UTF8_EXCEL}${ecrireCsv(tableauDesRecherches(archive))}`, `recherches_kaah_${formaterDateKAAWA(new Date())}.csv`, 'text/csv');
 }

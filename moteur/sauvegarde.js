@@ -210,6 +210,9 @@ function arbreVersDonnees(arbre, metadonnees) {
     // comme KAAWA (saab : le coup essaye est souvent dans une branche, et la
     // copie semblait une autre partie).
     ...(metadonnees.essai ? { Essai: true, CheminRegarde: arbre.chemin } : {}),
+    // Partie recue (saab, 2026-10-06) : champ propre a KAAH, le prefixe de son
+    // expediteur, tout devant le titre (moteur/nom-partie.js).
+    ...(metadonnees.prefixe ? { Prefixe: metadonnees.prefixe } : {}),
   };
 }
 

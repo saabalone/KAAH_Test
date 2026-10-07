@@ -14,10 +14,11 @@
 // (plateau.js), couleurAdverse, couleursDuPlateau, appliquerCoup (partie.js),
 // tousLesCoupsLegaux (regles.js), ecrireCoupNacreSansAmbiguite (notation.js),
 // mesuresDuCamp, ejectionsDe, DISTANCE_AU_CENTRE, VOISINS_DES_CASES,
-// VALEUR_VICTOIRE_IA (ia-evaluation.js), sumitosDuCamp (ia-evaluation-v2.js),
+// VALEUR_VICTOIRE_IA (ia-evaluation.js), sumitosDuCamp, sumitosParSorte (ia-evaluation-v2.js),
 // evaluationDeLaVersion, termesDeLaVersion3, classeDeLaCaseIA,
 // valeurTotaleDeLaCase, VERSION_DES_CASES_IA (ia-evaluation-v3.js),
-// termeDuPiegeIA (ia-evaluation-v4.js) viennent de fichiers charges avant celui-ci.
+// termeDuPiegeIA (ia-evaluation-v4.js), CLES_TERMES_OPTIONS_IA, termesDesAjouts
+// (ia-ajouts.js) viennent de fichiers charges avant celui-ci.
 
 // Les 9 cases qu'aucune rotation ni aucun miroir ne ramene l'une sur l'autre,
 // du centre au bord (saab : « e5/d4/c34/b23/a123 »).
@@ -31,17 +32,37 @@ const TERMES_DES_VERSIONS_IA = {
   2: ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette'],
   3: ['gain', 'gainScore', 'perte', 'perteScore', 'centre', 'cases', 'cohesion', 'compacite', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette'],
   4: ['gain', 'gainScore', 'perte', 'perteScore', 'centre', 'cases', 'cohesion', 'compacite', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette', 'piege'],
+  // La 5 : un Sumito par sorte (ia-evaluation-v5.js).
+  5: ['gain', 'gainScore', 'perte', 'perteScore', 'centre', 'cases', 'cohesion', 'compacite', 'bordSoi', 'bordAdverse', 'sumito32', 'sumito31', 'sumito21', 'menaceEjection', 'fourchette', 'piege'],
 };
 const VERSION_DU_PIEGE_IA = 4;
+const VERSION_DES_SORTES_DE_SUMITO_IA = 5;
 
 function termesDeLaVersion(version) {
   return TERMES_DES_VERSIONS_IA[version] ?? TERMES_DES_VERSIONS_IA[1];
 }
 
+// Les termes de plusieurs profils a la fois (cote a cote, interface/
+// panneau-bille.js) : chacun une fois, dans l'ordre des colonnes — le Sumito
+// unique juste avant ceux de chaque sorte, puis le sumito vide.
+// Les ajouts (moteur/ia-ajouts.js) suivent le terme qu'ils completent.
+const AJOUTS_APRES_LE_TERME_IA = { centre: ['etendueCentre'], cases: ['etendueCases'], sumito21: ['sumitoVide'] };
+const TERMES_DANS_L_ORDRE_IA = TERMES_DES_VERSIONS_IA[5].flatMap((terme) => [...(terme === 'sumito32' ? ['sumito'] : []), terme, ...(AJOUTS_APRES_LE_TERME_IA[terme] ?? [])]);
+
+// Ceux d'un profil : sa version, plus ses ajouts (le sumito vide, s'il en a le poids).
+function termesDuProfil(version, poids) {
+  return TERMES_DANS_L_ORDRE_IA.filter((terme) => termesDeLaVersion(version).includes(terme) || (CLES_TERMES_OPTIONS_IA.includes(terme) && terme in poids));
+}
+
+// `profils` : [{ version, poids }].
+function termesDesProfils(profils) {
+  return TERMES_DANS_L_ORDRE_IA.filter((terme) => profils.some(({ version, poids }) => termesDuProfil(version, poids).includes(terme)));
+}
+
 // Les termes de l'evaluation de `etat` pour `camp`, un par colonne (les memes
 // calculs que evaluerPosition, evaluerPositionV2 et V3, rendus a part).
 
-function detailDeLEvaluation(etat, camp, poids, version) {
+function detailDeLaVersion(etat, camp, poids, version) {
   if (etat.vainqueur) return { victoire: etat.vainqueur === camp ? VALEUR_VICTOIRE_IA : -VALEUR_VICTOIRE_IA };
   const lui = couleurAdverse(camp);
   const miens = mesuresDuCamp(etat, camp);
@@ -60,15 +81,28 @@ function detailDeLEvaluation(etat, camp, poids, version) {
   const b = sumitosDuCamp(couleurs, lui);
   const ejections = (sumitos) => sumitos.filter((sumito) => sumito.ejection).length;
   const enPlus = (sumitos) => Math.max(0, sumitos.length - 1);
+  const sortesA = sumitosParSorte(a);
+  const sortesB = sumitosParSorte(b);
+  const parSorte = {
+    sumito32: poids.sumito32 * (sortesA[32] - sortesB[32]),
+    sumito31: poids.sumito31 * (sortesA[31] - sortesB[31]),
+    sumito21: poids.sumito21 * (sortesA[21] - sortesB[21]),
+  };
   const avecSumitos = {
     ...termes,
-    sumito: poids.sumito * (a.length - b.length),
+    ...(version >= VERSION_DES_SORTES_DE_SUMITO_IA ? parSorte : { sumito: poids.sumito * (a.length - b.length) }),
     menaceEjection: poids.menaceEjection * (ejections(a) - ejections(b)),
     fourchette: poids.fourchette * (enPlus(a) - enPlus(b)),
   };
   if (version < VERSION_DES_CASES_IA) return avecSumitos;
   const avecCases = { ...avecSumitos, ...termesDeLaVersion3(etat, camp, poids) };
   return version < VERSION_DU_PIEGE_IA ? avecCases : { ...avecCases, piege: termeDuPiegeIA(etat, camp, poids) };
+}
+
+// Le detail, plus le terme des ajouts que les poids portent.
+function detailDeLEvaluation(etat, camp, poids, version) {
+  const detail = detailDeLaVersion(etat, camp, poids, version);
+  return { ...detail, ...termesDesAjouts(etat, camp, poids) };
 }
 
 function ecartsDesTermes(avant, apres) {

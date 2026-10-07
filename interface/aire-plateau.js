@@ -3,8 +3,9 @@
 // doit etre inactif pour ne pas selectionner des billes » ; puis « dessiner
 // l'aire avec clic appuye, et donc le trait suit le centre des cases que je
 // survole »). Bouton Aire, puis on appuie sur une case et on glisse : le trait
-// passe par le centre de chaque case survolee ; relacher ferme le contour (3
-// cases au moins). Pendant ce temps, les clics du plateau ne vont plus a la
+// passe par le centre de chaque case survolee ; relacher ferme le contour (2
+// cases au moins : une ligne, un sumito, saab 2026-10-07 ; avec le bouton
+// gauche ou le droit). Pendant ce temps, les clics du plateau ne vont plus a la
 // saisie (ecouteurs en phase de capture, qui les arretent). Les poids :
 // moteur/aire-ia.js.
 //
@@ -12,7 +13,11 @@
 // (rendu/plateau-svg.js), casesEntre (moteur/aire-ia.js) viennent de fichiers
 // charges avant celui-ci.
 
-const POINTS_MIN_AIRE = 3;
+const POINTS_MIN_AIRE = 2;
+// Le lien de fermeture ne se dessine qu'a partir d'un triangle.
+const POINTS_MIN_POLYGONE = 3;
+// Le clic droit qui suit le relacher du bouton droit arrive tout de suite apres.
+const DELAI_CLIC_DROIT_APRES_DESSIN_MS = 500;
 
 // `surFermee(cases)` : le contour ferme. Renvoie { commencer(), dessinerContour(cases),
 // effacer(), enCours() }.
@@ -51,7 +56,7 @@ function demarrerAirePlateau(svg, surFermee) {
     if (!notation || notation === cases.at(-1)) return;
     const chemin = cases.length === 0 ? [notation] : casesEntre(cases.at(-1), notation);
     for (const suivante of chemin) if (!cases.includes(suivante)) cases.push(suivante);
-    const fermeture = cases.length >= POINTS_MIN_AIRE && notation === cases[0] ? [cases[0]] : [];
+    const fermeture = cases.length >= POINTS_MIN_POLYGONE && notation === cases[0] ? [cases[0]] : [];
     trace.setAttribute('points', [...cases, ...fermeture].map(centreDe).join(' '));
   }
 
@@ -83,12 +88,15 @@ function demarrerAirePlateau(svg, surFermee) {
     (evenement) => {
       if (cases === null) return;
       arreter(evenement);
+      finDuDessin = performance.now();
       // Le clic qui suit le relacher n'est pas pour la saisie ; s'il ne vient
       // pas, le suivant compte de nouveau.
       avalerLeClic = true;
       setTimeout(() => (avalerLeClic = false));
+      // Trop court (un simple clic) : on reste en dessin, bouton orange, pour
+      // recommencer tout de suite (saab, 2026-10-06 : « parfois impossible »).
+      if (cases.length < POINTS_MIN_AIRE) return commencer();
       svg.classList.remove('dessin-aire');
-      if (cases.length < POINTS_MIN_AIRE) return effacer();
       const contour = cases;
       const ferme = document.createElementNS(ESPACE_NOM_SVG, 'polygon');
       ferme.setAttribute('class', 'trace-aire trace-aire-fermee');
@@ -97,6 +105,25 @@ function demarrerAirePlateau(svg, surFermee) {
       trace = ferme;
       cases = null;
       surFermee(contour);
+    },
+    true
+  );
+  // Le navigateur a repris l'appui (defilement, glisser de l'image) : sans ce
+  // retour, le trait restait ouvert pour de bon. On recommence.
+  svg.addEventListener('pointercancel', () => {
+    if (cases !== null) commencer();
+  });
+  // Dessin au bouton droit (saab, 2026-10-07 : « je n'arrive toujours pas ...
+  // sinon j'ai le panneau de Windows ») : relacher le bouton droit envoie un
+  // clic droit, qui ouvrait le menu de Windows, ou rouvrait le panneau sur la
+  // bille et effacait l'aire a peine fermee (interface/infos-case.js). Pendant
+  // le dessin et juste apres, il est avale.
+  let finDuDessin = 0;
+  svg.addEventListener(
+    'contextmenu',
+    (evenement) => {
+      if (!armee && cases === null && performance.now() - finDuDessin > DELAI_CLIC_DROIT_APRES_DESSIN_MS) return;
+      arreter(evenement);
     },
     true
   );

@@ -29,9 +29,26 @@ const CAMPS_JOUEURS = ['noir', 'blanc'];
 // (le style montre dans la liste, '' : tous), reflexionMax, livre (le livre
 // d'ouvertures, saab 2026-10-01) }.
 const ROLE_HUMAIN = 'humain';
+// Une machine proposee la premiere fois (saab, 2026-10-07 : « mettre KAI++3_Nor
+// v1 par defaut pour les IA Joueur, puis le dernier utilise ») : KAI++, niveau 3,
+// Normal ; ensuite, le dernier choix retenu (lireDerniersJoueurs).
+const MOTEUR_PROPOSE_IA = 'kai++';
+const NIVEAU_PROPOSE_IA = 3;
+const VERSION_MAX_CONSEILLEE_KAI = 2;
+// Les paliers du temps de reflexion des boutons − et + (secondes), dans les
+// bornes de lireMachine (moteur/ia.js).
+const PALIERS_REFLEXION_S = [0.5, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60];
+
+// Le palier au-dessus (sens 1) ou au-dessous (-1) de `valeur`, meme hors palier.
+function palierVoisin(valeur, sens) {
+  if (sens > 0) return PALIERS_REFLEXION_S.find((palier) => palier > valeur) ?? PALIERS_REFLEXION_S.at(-1);
+  return PALIERS_REFLEXION_S.findLast((palier) => palier < valeur) ?? PALIERS_REFLEXION_S[0];
+}
+
 const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,
-  niveau: MACHINE_PAR_DEFAUT.niveau,
+  moteur: MOTEUR_PROPOSE_IA, // le dernier moteur choisi, meme redevenu humain
+  niveau: NIVEAU_PROPOSE_IA,
   profil: MACHINE_PAR_DEFAUT.profil,
   reflexionMax: MACHINE_PAR_DEFAUT.reflexionMax,
   livre: MACHINE_PAR_DEFAUT.livre,
@@ -109,10 +126,39 @@ function brancherChoixMachine(element, surChangement) {
     element.querySelector('.choix-livre').checked = choix.livre;
     // Ce que cherche le profil choisi (saab, 2026-10-03, moteur/profils-ia.js).
     element.querySelector('.description-choix-profil').textContent = profilDuChoix(choix.profil)?.description ?? '';
+    // KAI est fige (seule KAI++ progresse) : une version recente y joue, mais
+    // bien moins loin (saab, 2026-10-07 : « j'avais mis v4el10 sur KAI au lieu
+    // de KAI++ ... sans alerte »).
+    const version = profilDuChoix(choix.profil)?.version ?? VERSION_IA;
+    noteMoteur.hidden = !(role === 'kai' && version > VERSION_MAX_CONSEILLEE_KAI);
+    noteMoteur.textContent = `KAI (JavaScript, figé) joue ce profil v${version}, mais bien plus lentement : il voit moins loin. Pour les versions 3 et plus, prenez plutôt KAI++.`;
   }
+  // − et + autour du temps de reflexion (saab, 2026-10-07 : sur telephone, le
+  // champ n'a pas les petits triangles du PC) : de palier en palier.
+  const champReflexion = element.querySelector('.choix-reflexion-max');
+  const boutonPalier = (texte, titre, sens) => {
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'bouton-palier-reflexion';
+    bouton.textContent = texte;
+    bouton.title = titre;
+    bouton.addEventListener('click', (evenement) => {
+      evenement.preventDefault();
+      champReflexion.value = palierVoisin(Number(champReflexion.value), sens);
+      changer({ reflexionMax: Number(champReflexion.value) });
+    });
+    return bouton;
+  };
+  champReflexion.before(boutonPalier('−', 'Moins de temps de réflexion', -1));
+  champReflexion.after(boutonPalier('+', 'Plus de temps de réflexion', 1));
+  const noteMoteur = document.createElement('p');
+  noteMoteur.className = 'note-moteur-choix';
+  noteMoteur.hidden = true;
+  element.querySelector('.description-choix-profil').after(noteMoteur);
 
   const changer = (retouche) => {
     choix = { ...choix, ...retouche };
+    if (choix.role !== ROLE_HUMAIN) choix.moteur = choix.role;
     afficher();
     surChangement?.();
   };

@@ -60,8 +60,14 @@ function ajusterHauteursColonne() {
   if (rechercheOuverte) defilementRecherche.style.maxHeight = '0px';
   // La colonne a toute la hauteur de la fenetre : c'est le bas de son contenu
   // qu'on mesure.
-  const basDuContenu = Math.max(...[...colonne.children].map((enfant) => enfant.getBoundingClientRect().bottom));
-  const libre = window.innerHeight - basDuContenu;
+  // La barre de navigation collee en bas (interface/navigation-colonne.js ; en
+  // face-a-face, celle de Reflexion IA) : sa place se garde, elle ne compte pas
+  // dans le bas du contenu. Entre deux tableaux, elle compte comme eux.
+  const derniere = colonne.lastElementChild;
+  const barreDuBas = derniere?.matches('#navigation, .navigation-reflexion-ia') ? derniere : null;
+  const enfants = [...colonne.children].filter((enfant) => enfant !== barreDuBas);
+  const basDuContenu = Math.max(...enfants.map((enfant) => enfant.getBoundingClientRect().bottom));
+  const libre = window.innerHeight - basDuContenu - (barreDuBas ? barreDuBas.offsetHeight : 0);
   Object.assign(sequence.style, avant);
   const pourLesTableaux = sequenceQuiRemplit ? libre - Math.min(besoinSequence, libre / MOITIE) : libre;
   if (rechercheOuverte) {

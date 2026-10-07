@@ -15,7 +15,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : libelleEvaluation
 // (moteur/ia.js), LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
-// detailDeLEvaluation, ecartsDeLaSequence, termesDeLaVersion (moteur/essai-ia.js),
+// detailDeLEvaluation, ecartsDeLaSequence, termesDuProfil (moteur/essai-ia.js),
 // COLONNES_ESSAI_IA, texteValeurEssai (interface/essai-ia.js) viennent de
 // fichiers charges avant celui-ci, ou ne servent qu'une fois la page chargee.
 
@@ -40,7 +40,7 @@ function texteDuTempsRecherche(ms) {
 // avant ces colonnes.
 function clesDesPoidsRecherche({ poids, version }) {
   if (!poids) return [];
-  return termesDeLaVersion(version);
+  return termesDuProfil(version, poids);
 }
 
 function celluleRecherche(texte, classe, balise = 'td') {

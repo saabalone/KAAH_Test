@@ -19,13 +19,15 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
 // (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
-// CLES_POIDS_IA_V3 (moteur/ia-evaluation-v3.js), CLES_POIDS_IA_V4 (moteur/ia-evaluation-v4.js),
-// NOMS_STYLES_IA (moteur/ia.js), lireProfilIA (moteur/profils-ia.js),
+// CLES_POIDS_IA_V3 (moteur/ia-evaluation-v3.js), CLES_POIDS_IA_V4 (moteur/ia-evaluation-v4.js), CLES_POIDS_IA_V5 (moteur/ia-evaluation-v5.js),
+// CLES_OPTIONS_IA, POIDS_PROPOSES_OPTIONS_IA (moteur/ia-ajouts.js),
+// NOMS_STYLES_IA, POIDS_DES_VERSIONS_IA (moteur/ia.js), lireProfilIA (moteur/profils-ia.js),
 // demarrerHistoriqueIA, validerVersionIA, choisirVersionIA, memesReglagesIA
 // (moteur/historique-profil-ia.js), couleursDesReglagesIA, couleurLaPlusForte,
 // couleurDuProfilIA (moteur/couleurs-profil-ia.js), listerProfilsIA,
 // trouverProfilIA, estProfilIAIntegre, enregistrerProfilIA,
-// enregistrerSousLeNomDeSaVersion (interface/profils-ia.js), poserCouleurIA,
+// enregistrerSousLeNomDeSaVersion, lireProfilIAMontre, retenirProfilIAMontre
+// (interface/profils-ia.js), poserCouleurIA,
 // colorerListeProfilsIA (interface/couleurs-ia.js), afficherHistoriqueIA
 // (interface/historique-ia.js), formaterDateKAAWA (interface/sauvegarde.js),
 // brancherFichiersProfilsIA (interface/fichiers-profils-ia.js) viennent de
@@ -45,8 +47,10 @@ const CLASSES_RUBRIQUE_IA = { dernier: 'rubrique-valide-dernier', ancien: 'rubri
 // `poids-ia-<cle>` ; ceux de la version 2 (sumitos, phase 33) et de la 3 (les
 // cases, compacite, score : saab 2026-10-03) ne se montrent qu'avec elles.
 function demarrerReglagesIA(elements) {
-  const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4];
-  let nomActuel = NOMS_STYLES_IA.normal;
+  const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_IA];
+  // Le dernier profil montre, ou celui du joueur regarde (interface/profils-ia.js,
+  // lireProfilIAMontre) — jamais toujours Normal (saab, 2026-10-07).
+  let nomActuel = lireProfilIAMontre() ?? NOMS_STYLES_IA.normal;
   let brouillon = null; // les valeurs retouchees pas encore validees, ou null
   // Le brouillon d'avant chaque retouche : Annuler, en pied de Reglages
   // (interface/reglages.js), y revient (saab, 2026-10-02 : « je ne peux plus
@@ -57,6 +61,29 @@ function demarrerReglagesIA(elements) {
   const champPoids = (cle) => document.getElementById(`poids-ia-${cle}`);
   const champDe = (cle) => ({ version: elements.version, style: elements.style, elagage: elements.elagage, livre: elements.livre })[cle] ?? champPoids(cle);
   const ligneDe = (cle) => champDe(cle).closest('label');
+  const estUnAjout = (cle) => CLES_OPTIONS_IA.includes(cle);
+
+  // Une case devant chaque poids (saab, 2026-10-07 : « ce qui permettrait de le
+  // supprimer plutot que de le regler a 0, c'est bcp plus simple ») : decochee,
+  // le poids vaut 0 — ou, pour un ajout (le sumito vide), le profil ne l'a plus.
+  // Recochee : la valeur d'avant, sinon celle du style.
+  const cases = Object.fromEntries(
+    CLES_POIDS.map((cle) => {
+      const coche = document.createElement('input');
+      coche.type = 'checkbox';
+      coche.className = 'coche-poids';
+      coche.title = estUnAjout(cle) ? 'Mettre ou enlever cet ajout' : 'Décochée : ce poids ne compte plus (0)';
+      ligneDe(cle).prepend(coche);
+      return [cle, coche];
+    })
+  );
+  const valeursAvantDecoche = {};
+  function valeurProposee(cle) {
+    const style = elements.style.value;
+    const version = Number.parseInt(elements.version.value, 10);
+    const proposee = estUnAjout(cle) ? POIDS_PROPOSES_OPTIONS_IA[style]?.[cle] : POIDS_DES_VERSIONS_IA[version]?.styles[style]?.[cle];
+    return valeursAvantDecoche[cle] || proposee || Number(champPoids(cle).step) || 1;
+  }
 
   const profilActuel = () => trouverProfilIA(nomActuel);
 
@@ -68,8 +95,13 @@ function demarrerReglagesIA(elements) {
     elements.elagage.value = valeurs.elagage;
     elements.livre.checked = valeurs.livre;
     for (const cle of CLES_POIDS) {
-      ligneDe(cle).hidden = !(cle in valeurs.poids);
-      if (cle in valeurs.poids) champPoids(cle).value = valeurs.poids[cle];
+      const present = cle in valeurs.poids;
+      // Un ajout se montre toujours (sa case le met) ; un poids, avec sa version.
+      ligneDe(cle).hidden = !present && !estUnAjout(cle);
+      cases[cle].checked = present && valeurs.poids[cle] !== 0;
+      champPoids(cle).disabled = !cases[cle].checked;
+      if (present) champPoids(cle).value = valeurs.poids[cle];
+      else if (estUnAjout(cle)) champPoids(cle).value = valeurProposee(cle);
     }
   }
 
@@ -92,6 +124,12 @@ function demarrerReglagesIA(elements) {
 
   function remplir() {
     const profils = listerProfilsIA();
+    // Un joueur regarde depuis (sa boite) : son profil, sauf retouche en cours.
+    const voulu = lireProfilIAMontre();
+    if (brouillon === null && voulu && voulu !== nomActuel && profils.some((profil) => profil.nom === voulu)) {
+      nomActuel = voulu;
+      retouchesPrecedentes = [];
+    }
     if (!profils.some((profil) => profil.nom === nomActuel)) nomActuel = NOMS_STYLES_IA.normal;
     elements.select.replaceChildren(
       ...profils.map((profil) => {
@@ -127,6 +165,7 @@ function demarrerReglagesIA(elements) {
     nomActuel = nom;
     brouillon = null;
     retouchesPrecedentes = [];
+    retenirProfilIAMontre(nom);
     remplir();
   }
 
@@ -147,7 +186,9 @@ function demarrerReglagesIA(elements) {
       version: Number.parseInt(choix, 10),
       livre: elements.livre.checked,
       elagage: !elague ? 0 : ligneDe('elagage').hidden ? ELAGAGE_PAR_DEFAUT_IA : Math.max(1, Math.round(Number(elements.elagage.value)) || ELAGAGE_PAR_DEFAUT_IA),
-      poids: Object.fromEntries(CLES_POIDS.filter((cle) => !ligneDe(cle).hidden).map((cle) => [cle, Number(champPoids(cle).value)])),
+      poids: Object.fromEntries(
+        CLES_POIDS.filter((cle) => !ligneDe(cle).hidden && (cases[cle].checked || !estUnAjout(cle))).map((cle) => [cle, cases[cle].checked ? Number(champPoids(cle).value) : 0])
+      ),
     });
     retouchesPrecedentes.push(brouillon);
     surRetouche();
@@ -159,6 +200,13 @@ function demarrerReglagesIA(elements) {
   elements.style.addEventListener('change', retoucher);
   elements.version.addEventListener('change', retoucher);
   elements.livre.addEventListener('change', retoucher);
+  for (const cle of CLES_POIDS) {
+    cases[cle].addEventListener('change', () => {
+      if (cases[cle].checked) champPoids(cle).value = valeurProposee(cle);
+      else valeursAvantDecoche[cle] = Number(champPoids(cle).value);
+      retoucher();
+    });
+  }
   for (const champ of [...CLES_POIDS.map(champPoids), elements.elagage]) {
     champ.addEventListener('change', retoucher);
     // Les boutons - et + (saab, 2026-09-30), comme ceux des tailles d'Affichage.

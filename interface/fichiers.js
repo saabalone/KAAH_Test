@@ -68,6 +68,25 @@ function telechargerTexte(texte, nomFichier, type) {
 // l'element est attache au document au moment du clic) et appelle
 // `surFichierChoisi(donnees)` avec le JSON lu, ou `surErreur(message)` si
 // le fichier n'est pas un JSON valide.
+// Meme selecteur, pour des fichiers texte quelconques (saab, 2026-10-06 : la
+// page des recherches 1er coup, seule ou avec sa partie) : `accept` comme
+// l'attribut du meme nom ; `surFichiers([{ nom, texte }])`.
+function choisirFichiersTexte(accept, multiple, surFichiers) {
+  const entree = document.createElement('input');
+  entree.type = 'file';
+  entree.accept = accept;
+  entree.multiple = multiple;
+  entree.style.display = 'none';
+  entree.addEventListener('change', () => {
+    const fichiers = [...entree.files];
+    entree.remove();
+    if (fichiers.length === 0) return;
+    Promise.all(fichiers.map((fichier) => fichier.text().then((texte) => ({ nom: fichier.name, texte })))).then(surFichiers);
+  });
+  document.body.appendChild(entree);
+  entree.click();
+}
+
 function demarrerImportation(surFichierChoisi, surErreur) {
   const entree = document.createElement('input');
   entree.type = 'file';

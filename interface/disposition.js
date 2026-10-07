@@ -4,9 +4,10 @@
 // Annuler est toujours visible : sous le plateau sur telephone (la ou le
 // pouce arrive — regle CLAUDE.md), sous le panneau Sequence sur ordinateur,
 // au milieu du plateau en face-a-face. La barre vit DANS le panneau Sequence/
-// Commentaires, du cote d'Annuler : en haut sur telephone (Annuler est
-// au-dessus du panneau), en bas sur ordinateur (Annuler est en dessous) —
-// fermer le panneau la cache avec lui. Un seul jeu de boutons et d'ecouteurs de
+// Commentaires, en haut, sur telephone (Annuler est au-dessus du panneau), et
+// en bas en face-a-face — fermer le panneau la cache avec lui ; sur ordinateur,
+// dans la colonne des tableaux, toujours visible (saab, 2026-10-06 :
+// interface/navigation-colonne.js). Un seul jeu de boutons et d'ecouteurs de
 // clic (voir interface/saisie.js, elementsNavigation) : `appendChild` sur
 // un element existant le DEPLACE (il ne le duplique pas) et garde ses
 // ecouteurs de clic intacts, contrairement a une reconstruction par
@@ -73,9 +74,21 @@ function replacerNavigation() {
 // ordinateur, sous le plateau sur telephone), jamais au-dessus du plateau : en
 // paysage etroit, il lui volait de la hauteur.
 function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipale, arbrePanneau, enteteJeu, reflexionIA, colonneDroite, messageDemarrage) {
+  // Sur ordinateur, la barre du plateau elle-meme vit dans la colonne des
+  // tableaux, en bas par defaut, deplacable (interface/navigation-colonne.js ;
+  // saab, 2026-10-06 : une seule barre, « ca fait doublon ») : celle de
+  // Reflexion IA n'y sert plus (styles.css la cache). En face-a-face, comme
+  // avant : la barre au bas de la Sequence, celle de Reflexion IA dans la
+  // colonne. Sur telephone, celle de Reflexion IA sous ses tableaux.
+  const navigationReflexion = reflexionIA.querySelector('.navigation-reflexion-ia');
   function placer() {
     if (SEUIL_ORDINATEUR.matches) {
-      arbrePanneau.appendChild(navigation);
+      if (document.body.classList.contains('face-a-face')) {
+        colonneDroite.append(navigationReflexion);
+        arbrePanneau.appendChild(navigation);
+      } else {
+        reflexionIA.append(navigationReflexion);
+      }
       // Face-a-face (phase 20, saab) : Annuler quitte la colonne des fenetres
       // pour se poser au milieu du plateau, contre lui — les deux joueurs a
       // egale distance. Voir styles.css.
@@ -93,6 +106,8 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
       } else {
         arbrePanneau.after(barreAnnuler);
         enteteJeu.after(messageDemarrage);
+        // Les tableaux sont en place : la barre peut retrouver le sien.
+        poserNavigationDansLaColonne(navigation, colonneDroite);
       }
       // L'attribut `hidden` de la partie HTML : la Sequence repliee PAR
       // DEFAUT, sur ordinateur aussi desormais (saab, 2026-10-02 : « par
@@ -116,6 +131,7 @@ function demarrerDispositionNavigation(navigation, barreAnnuler, colonnePrincipa
     } else {
       colonnePrincipale.prepend(enteteJeu); // au-dessus du plateau, sa place d'origine
       colonneDroite.prepend(reflexionIA);
+      reflexionIA.append(navigationReflexion);
       colonnePrincipale.appendChild(barreAnnuler);
       barreAnnuler.after(messageDemarrage);
       arbrePanneau.prepend(navigation);

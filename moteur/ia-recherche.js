@@ -36,7 +36,7 @@
 // (regles.js), ecrirePosition (notation.js),
 // compterOccurrences, SEUIL_NULLE_PAR_DEFAUT (nulle.js), appliquerCoup,
 // couleursDuPlateau (partie.js), evaluerPosition, VALEUR_VICTOIRE_IA
-// (ia-evaluation.js), evaluationDeLaVersion (ia-evaluation-v3.js) viennent de fichiers charges avant celui-ci.
+// (ia-evaluation.js), evaluationDeLaVersion (ia-evaluation-v5.js) viennent de fichiers charges avant celui-ci.
 
 // Profondeur (en coups, les siens et ceux de l'adversaire) par niveau : le
 // niveau n regarde exactement n coups d'avance, KAI comme KAI++ (saab,

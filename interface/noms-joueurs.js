@@ -30,7 +30,7 @@
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
 // (moteur/ia.js), memesReglagesIA, LIBELLES_REGLAGES_IA
 // (moteur/historique-profil-ia.js), couleursDeLaMachineIA, couleurLaPlusForte
-// (moteur/couleurs-profil-ia.js), trouverProfilIA (interface/profils-ia.js),
+// (moteur/couleurs-profil-ia.js), trouverProfilIA, retenirProfilIAMontre (interface/profils-ia.js),
 // poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
 // valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
@@ -105,6 +105,9 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       return;
     }
     const profil = trouverProfilIA(machine.profil);
+    // Reglages s'ouvrira sur ce profil (saab, 2026-10-07 : « faire le focus sur
+    // le profil IA du joueur qui demande » ; interface/reglages-ia.js).
+    if (profil) retenirProfilIAMontre(profil.nom);
     const retouche = profil && !memesReglagesIA(profil, machine) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
     // Les couleurs de ses poids, et celle de son style dans son nom (saab,
     // 2026-10-02 : de la valeur jusqu'a son fichier).
@@ -150,18 +153,19 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   }
 
   // Une suggestion pour la position du plateau, par la machine du choix
-  // affiche (KAI si l'on n'en a pas choisi) : le joueur ne change pas.
+  // affiche (sinon le dernier moteur choisi, KAI++ au debut) : le joueur ne change pas.
   elements.suggestion.addEventListener('click', () => {
     const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) } : choixIA.lire();
-    commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? 'kai' : choix.role }));
+    commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? choix.moteur : choix.role }));
     elements.dialogue.close();
   });
 
-  // Un humain : le bouton IA ouvre le choix, sur KAI.
+  // Un humain : le bouton IA ouvre le choix, sur le dernier moteur choisi
+  // (KAI++ au debut, saab 2026-10-07).
   elements.boutonIA.addEventListener('click', () => {
     elements.boutonIA.hidden = true;
     elements.choixIA.hidden = false;
-    elements.choixIA.querySelector('[data-role="kai"]').click();
+    elements.choixIA.querySelector(`[data-role="${choixIA.lire().moteur}"]`).click();
   });
 
   // La boite fermee (Valider, Fermer, Echap, Arret) : la machine et le temps
