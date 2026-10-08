@@ -38,6 +38,7 @@ const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
   etendueProfondeur: 'ep',
   elagageReponse: 'er',
   elagageSuite: 'es',
+  elagageFin: 'ef',
   cohesion: 'Coh.',
   compacite: 'Cmp.',
   bordSoi: 'B.m',

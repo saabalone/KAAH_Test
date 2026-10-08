@@ -61,6 +61,33 @@ const PROFILS_IA_INTEGRES = Object.keys(STYLES_IA).flatMap((style) =>
   ])
 );
 
+// Les meilleurs profils de saab (2026-10-08 : « ajoute les profils »), de base
+// dans la VERSION DE TRAVAIL seulement (interface/profils-ia.js) : ils portent des
+// ajouts pas encore publies (ec, ea, ep, ef). v4 : v5el_v3 + ec 20, ea 0,5, ep 1
+// (37 parties sur 40 contre v4el) ; v5 : v4 + ef 5 (20 des 21 puzzles jamais
+// resolus, 25 parties sur 40 contre v4 sans livre).
+const POIDS_NORMAL_V5EL_V4 = { gain: 1000, perte: 1000, centre: 10, cohesion: 10, bordSoi: 15, bordAdverse: 15, sumito32: 21, sumito31: 12, sumito21: 7, menaceEjection: 100, fourchette: 0, gainScore: 100, perteScore: 100, compacite: 100, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22, piege: 60, sumitoVide: -20, etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1 };
+const PROFILS_IA_DE_TRAVAIL = [
+  {
+    nom: 'Normal v5el_v4',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    poids: POIDS_NORMAL_V5EL_V4,
+    description: "Profil de saab (2026-10-08) : la version 5 élaguée, Gain et Perte (score) 100, Fourchette 0, plus l'étendue (ec 20, ea 0,5, sur 1 coup : ep 1). 37 parties sur 40 contre Normal v4el, 22 des 41 puzzles difficiles.",
+  },
+  {
+    nom: 'Normal v5el_v5',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    poids: { ...POIDS_NORMAL_V5EL_V4, elagageFin: 5 },
+    description: "Profil de saab (2026-10-08) : Normal v5el_v4, plus l'élagage coupé dès 5 billes éjectées d'un camp (ef 5) — il voit les combinaisons forcées de fin de partie : 20 des 21 puzzles qu'aucun profil ne résolvait, 25 parties sur 40 contre v5el_v4.",
+  },
+];
+
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
 // memes valeurs sures qu'une machine (lireMachine) : style inconnu -> normal,
 // poids faux -> celui du style. Son historique (moteur/historique-profil-ia.js)

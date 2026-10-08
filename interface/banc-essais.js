@@ -14,9 +14,9 @@
 // (interface/banc-essais-partie.js), creerSuiviDuBanc (interface/banc-essais-
 // suivi.js), contenuDuBanc, pageDuBanc (interface/banc-essais-page.js),
 // telechargerTexte (interface/fichiers.js), formaterDateKAAWA (interface/
-// sauvegarde.js), ecrirePosition (moteur/notation.js), resumeDesPuzzles,
+// sauvegarde.js), resumeDesPuzzles,
 // entreeDuPuzzleRecolte (moteur/banc-puzzles.js), jouerUnPuzzleDuBanc,
-// recolterLaPartie, verifierParLeSolveur (interface/banc-essais-puzzles.js),
+// puzzleDeLaPartie, verifierParLeSolveur (interface/banc-essais-puzzles.js),
 // creerSolveur (interface/solveur.js), contenuDesPuzzles
 // (interface/banc-essais-page-puzzles.js), fichierPositionsMy
 // (moteur/positions-my.js), importerEntreesMy (interface/positions-my.js)
@@ -70,20 +70,20 @@ function demarrerBancEssais(elements, obtenirBase) {
     const taches = partiesDuBanc(essais.length, parametres);
     const parties = [];
     const { active, toursMini } = parametres.recolte;
-    recolte = { entrees: [], date: formaterDateKAAWA(new Date()), ajoutee: false };
+    recolte = { entrees: [], ecartes: 0, date: formaterDateKAAWA(new Date()), ajoutee: false };
+    const solveur = active ? creerSolveur() : null; // un seul pour tout le banc (128 Mo)
+    const fabriquer = (partie) => (etat, tours) => entreeDuPuzzleRecolte({ etat, gagnant: partie.fin, tours, numero: partie.numero, date: recolte.date, createur: CREATEUR_DES_RECOLTES });
     const jouer = async (tache, kai, suivi) => {
       const partie = await jouerUnePartieDuBanc(tache, reference, essais[tache.essai], parametres, kai, obtenirBase(), enCours, suivi);
       if (!partie) return;
-      const trouve = active ? await recolterLaPartie(partie, reference, kai, toursMini, suivi) : null;
+      const trouve = active ? await puzzleDeLaPartie(partie, reference, kai, solveur, toursMini, suivi, fabriquer(partie)) : null;
       // Arretee pendant la recolte : sa reponse n'est pas sure. Une position deja recoltee : une fois.
-      if (trouve && !enCours.arret && !recolte.entrees.some((deja) => deja.position === ecrirePosition(trouve.etat))) {
-        const entree = entreeDuPuzzleRecolte({ etat: trouve.etat, gagnant: partie.fin, tours: trouve.tours, numero: partie.numero, date: recolte.date, createur: CREATEUR_DES_RECOLTES });
-        recolte.entrees.push({ entree, position: ecrirePosition(trouve.etat), numero: partie.numero, tours: trouve.tours });
-      }
+      if (trouve?.ecarte) recolte.ecartes++;
+      else if (trouve && !enCours.arret && !recolte.entrees.some((deja) => deja.entree.pos === trouve.entree.pos)) recolte.entrees.push({ ...trouve, numero: partie.numero });
       delete partie.etats; // les positions ne servaient qu'a la recolte
       parties.push(partie);
     };
-    const rendu = () => contenuDuBanc({ reference, essais, parties, resume: resumeDuBanc(parties, essais.length), parametres, recoltes: active ? recolte.entrees : null });
+    const rendu = () => contenuDuBanc({ reference, essais, parties, resume: resumeDuBanc(parties, essais.length), parametres, recoltes: active ? recolte : null });
     const libelle = (tache) => `Partie ${tache.numero}/${taches.length} — ${tache.essai + 1}. ${essais[tache.essai].nom} en ${tache.referenceNoir ? 'Blanc' : 'Noir'}, ouverture ${tache.ouverture}`;
     return { taches, jouer, rendu, fait: () => parties.length, unite: 'parties', libelle };
   }

@@ -15,6 +15,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
+// brancherConseilDeTemps (interface/conseil-temps-ia.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
 // libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA (interface/couleurs-ia.js),
 // lireReglagesActifs (interface/reglages-profils.js), remplirListeProfils,
@@ -132,6 +133,7 @@ function brancherChoixMachine(element, surChangement) {
     const version = profilDuChoix(choix.profil)?.version ?? VERSION_IA;
     noteMoteur.hidden = !(role === 'kai' && version > VERSION_MAX_CONSEILLEE_KAI);
     noteMoteur.textContent = `KAI (JavaScript, figé) joue ce profil v${version}, mais bien plus lentement : il voit moins loin. Pour les versions 3 et plus, prenez plutôt KAI++.`;
+    afficherConseil(reflexionMax);
   }
   // − et + autour du temps de reflexion (saab, 2026-10-07 : sur telephone, le
   // champ n'a pas les petits triangles du PC) : de palier en palier.
@@ -155,6 +157,8 @@ function brancherChoixMachine(element, surChangement) {
   noteMoteur.className = 'note-moteur-choix';
   noteMoteur.hidden = true;
   element.querySelector('.description-choix-profil').after(noteMoteur);
+  // Le temps qu'il faut a ce niveau (interface/conseil-temps-ia.js).
+  const afficherConseil = brancherConseilDeTemps(champReflexion, () => ({ ...choix, elague: (profilDuChoix(choix.profil)?.elagage ?? 0) > 0 }));
 
   const changer = (retouche) => {
     choix = { ...choix, ...retouche };

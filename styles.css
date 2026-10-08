@@ -4308,6 +4308,13 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   color: #9a9a9a;
 }
 
+/* « en commentaire » decochee : entouree de vert, pour rappeler qu'on peut la
+   cocher (saab, 2026-10-08) — le vert de ce qui attend un geste. */
+.case-reflexion-commentaire:not(:checked) {
+  outline: 2px solid #45b862;
+  outline-offset: 1px;
+}
+
 .reflexion-ia > summary {
   cursor: pointer;
   min-height: var(--hauteur-ligne-liste);
@@ -5288,6 +5295,18 @@ svg.dessin-aire {
 }
 
 /* KAI choisi avec un profil recent (interface/choix-joueurs.js). */
+/* Le conseil de temps d'un niveau (interface/conseil-temps-ia.js) ; en orange
+   quand la reflexion max est trop courte pour le finir. */
+.conseil-temps-niveau {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.conseil-temps-niveau.conseil-trop-court {
+  color: #e0832a;
+}
+
 .note-moteur-choix {
   margin: 2px 0;
   color: #cc6a00;

@@ -4,7 +4,8 @@
 // indisponible ne fait jamais planter, il laisse seulement les profils integres.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : PROFILS_IA_INTEGRES,
-// lireProfilIA (moteur/profils-ia.js), formaterDateKAAWA (interface/
+// PROFILS_IA_DE_TRAVAIL, lireProfilIA (moteur/profils-ia.js),
+// SUFFIXE_VERSION_KAAH_TEST (version.js), formaterDateKAAWA (interface/
 // sauvegarde.js), nomDisponible (moteur/corbeille.js), nomDuProfilALaVersion
 // (moteur/historique-profil-ia.js) viennent de fichiers
 // charges avant celui-ci.
@@ -45,9 +46,17 @@ function ecrireProfilsIAPerso(profils) {
   }
 }
 
-// Les integres d'abord (toujours la), puis ceux de l'utilisateur.
+// Les profils de base : les integres, plus, dans une version de travail
+// seulement, les meilleurs de saab (moteur/profils-ia.js, PROFILS_IA_DE_TRAVAIL :
+// des ajouts pas encore publies).
+const profilsIADeBase = () => [...PROFILS_IA_INTEGRES, ...(SUFFIXE_VERSION_KAAH_TEST !== '' ? PROFILS_IA_DE_TRAVAIL : [])];
+
+// Ceux de base d'abord (toujours la), puis ceux de l'utilisateur. Un profil de
+// travail du meme nom qu'un profil importe (Normal v5el_v4, importe avant d'etre
+// de base) s'efface devant lui : jamais deux profils du meme nom.
 function listerProfilsIA() {
-  return [...PROFILS_IA_INTEGRES, ...lireProfilsIAPerso()];
+  const perso = lireProfilsIAPerso();
+  return [...profilsIADeBase().filter((profil) => PROFILS_IA_INTEGRES.includes(profil) || !perso.some((sien) => sien.nom === profil.nom)), ...perso];
 }
 
 function trouverProfilIA(nom) {
@@ -55,7 +64,7 @@ function trouverProfilIA(nom) {
 }
 
 function estProfilIAIntegre(nom) {
-  return PROFILS_IA_INTEGRES.some((profil) => profil.nom === nom);
+  return listerProfilsIA().some((profil) => profil.nom === nom && profilsIADeBase().includes(profil));
 }
 
 // Enregistre (ou remplace) un profil de l'utilisateur ; jamais un integre.
@@ -79,7 +88,7 @@ function libelleProfilIA(profil) {
 // est pris) a la place de `ancienNom` — meme profil, meme indice, meme historique. Renvoie le nom donne (jamais celui d'un autre).
 function enregistrerSousLeNomDeSaVersion(ancienNom, profil) {
   const autres = lireProfilsIAPerso().filter((existant) => existant.nom !== ancienNom);
-  const nomsPris = [...PROFILS_IA_INTEGRES, ...autres].map((existant) => existant.nom);
+  const nomsPris = [...profilsIADeBase(), ...autres].map((existant) => existant.nom);
   const indice = profil.indice ?? prochainIndiceProfilIA(autres);
   const nom = nomDisponible(nomDuProfilALaVersion(profil.nom, profil.courante, indice, nomsPris), nomsPris);
   ecrireProfilsIAPerso([...autres, { ...profil, nom, indice }]);

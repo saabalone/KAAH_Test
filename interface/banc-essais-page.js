@@ -102,8 +102,9 @@ function partiesHtmlDuBanc(essais, parties) {
   return `<table class="banc-tableau"><tr><th>N°</th><th>Essai</th>${titres.map((titre) => enteteBanc(titre, largeur)).join('')}<th>Séquence</th></tr>${lignes.join('')}</table>`;
 }
 
-// Le contenu : { reference, essais, parties, resume, parametres, recoltes (null :
-// pas de recolte ; interface/banc-essais-page-puzzles.js, recolteHtml) }.
+// Le contenu : { reference, essais, parties, resume, parametres, recoltes ({
+// entrees, ecartes } ; null : pas de recolte ; interface/banc-essais-page-puzzles.js,
+// recolteHtml) }.
 function contenuDuBanc({ reference, essais, parties, resume, parametres, recoltes = null }) {
   const { ouvertures, revanche, hasard, livre } = parametres;
   const livreDeLaReference = livre
@@ -112,7 +113,7 @@ function contenuDuBanc({ reference, essais, parties, resume, parametres, recolte
   return `<p class="note-reglages">KAI++ (niveau et réflexion de chacun dans les réglages complets), Marguerite belge, ${ouvertures} ouvertures${revanche ? ' × revanche' : ''}. ${livreDeLaReference}, l'essai jamais.</p>
 <h3>Les réglages complets (en orange : ce qui diffère de la référence)</h3>${reglagesCompletsDuBanc(reference, essais)}
 <h3>Résumé</h3>${resumeHtmlDuBanc(essais, resume, parametres)}
-<h3>Les parties</h3><p class="note-reglages">Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre.</p>${partiesHtmlDuBanc(essais, parties)}${recoltes ? recolteHtml(recoltes, parametres.recolte.toursMini) : ''}`;
+<h3>Les parties</h3><p class="note-reglages">Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre.</p>${partiesHtmlDuBanc(essais, parties)}${recoltes ? recolteHtml(recoltes.entrees, parametres.recolte.toursMini, recoltes.ecartes) : ''}`;
 }
 
 // La page exportee, lisible seule (ses couleurs comprises) : `html`, le contenu

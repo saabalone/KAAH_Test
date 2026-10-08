@@ -125,3 +125,22 @@ async function verifierParLeSolveur(solveur, resultat) {
   const { reponse } = await solveur.verifier({ position: ecrirePosition(puzzle.position), noirGagne: puzzle.campGagnant === 'noir', toursMaximum: puzzle.toursMaximum, coups: resultat.coups });
   return lireReponseSolveur(reponse).verdict;
 }
+
+// Le puzzle d'une partie, CONFIRME par le solveur (saab, 2026-10-08 : « ajoute
+// aussi la verif par le solver ») : le solveur de KAAWA compte une position
+// repetee comme une echappee de la defense, pas KAI++ (qui suit la regle de la
+// partie : nulle a la 3e fois). Un puzzle trouve par KAI++ peut donc demander un
+// tour de plus au solveur, ou aucun. `fabriquer(etat, tours)` : son entree KAAWA
+// (moteur/banc-puzzles.js, entreeDuPuzzleRecolte). Renvoie { entree, tours },
+// { ecarte: true } si le solveur ne le confirme pas, ou null (rien a recolter).
+async function puzzleDeLaPartie(partie, reference, kai, solveur, toursMini, suivi, fabriquer) {
+  const trouve = await recolterLaPartie(partie, reference, kai, toursMini, suivi);
+  if (!trouve) return null;
+  suivi({ etape: 'vérification du puzzle par le solveur…' });
+  for (const tours of [trouve.tours, trouve.tours + 1]) {
+    const entree = fabriquer(trouve.etat, tours);
+    const { reponse } = await solveur.verifier({ position: entree.pos, noirGagne: entree.winner === 'Noir', toursMaximum: tours, coups: [] });
+    if (lireReponseSolveur(reponse).verdict === 'valide') return { entree, tours };
+  }
+  return { ecarte: true };
+}

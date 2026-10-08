@@ -80,10 +80,12 @@ function demarrerReflexionIA(details, sequencePrevue) {
   let lignesDuChemin = [];
   let enCours = null;
 
+  // Decochee au depart (saab, 2026-10-08 : « ca peut devenir lourd pour ceux qui
+  // ne s'en servent pas ») ; un choix deja fait reste le sien.
   try {
-    caseCommentaire.checked = window.localStorage.getItem(CLE_REFLEXION_EN_COMMENTAIRE) !== 'non';
+    caseCommentaire.checked = window.localStorage.getItem(CLE_REFLEXION_EN_COMMENTAIRE) === 'oui';
   } catch {
-    caseCommentaire.checked = true;
+    caseCommentaire.checked = false;
   }
   // Dans le titre du tableau : le toucher ne doit pas le replier.
   boutonRelancer.addEventListener('click', (evenement) => {

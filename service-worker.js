@@ -131,6 +131,7 @@ const FICHIERS_ESSENTIELS = [
   './interface/comparaison-reglages.js',
   './interface/fichiers-profils-ia.js',
   './interface/liste-profils-choix.js',
+  './interface/conseil-temps-ia.js',
   './interface/choix-joueurs.js',
   './interface/pendules-mode.js',
   './interface/ia.js',

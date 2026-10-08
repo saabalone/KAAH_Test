@@ -12,7 +12,10 @@
 //     3 : et apres son coup suivant) — saab, 2026-10-08 ;
 //   - es : le meme classement (apres la reponse adverse) pour les coups suivants
 //     de celui qui cherche, jusqu'a cette distance de la racine (2 : son coup d'apres) ;
-//   - ep : la profondeur de l'etendue, en coups (absente : 4) — saab, 2026-10-08.
+//   - ep : la profondeur de l'etendue, en coups (absente : 4) — saab, 2026-10-08 ;
+//   - ef : l'elagage coupe en fin de partie (KAI++ seulement) : des qu'un camp a
+//     ef billes ejectees, plus d'elagage — saab, 2026-10-08 (les puzzles jamais
+//     resolus l'etaient presque tous sans elagage).
 // `terme` : il a sa colonne (Essai, panneaux) ; da et ep n'en ont pas, ils changent ec et ea.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
@@ -28,6 +31,7 @@ const OPTIONS_IA = [
   { cle: 'elagageReponse', suffixe: 'er', terme: false },
   { cle: 'elagageSuite', suffixe: 'es', terme: false },
   { cle: 'etendueProfondeur', suffixe: 'ep', terme: false },
+  { cle: 'elagageFin', suffixe: 'ef', terme: false },
 ];
 const CLES_OPTIONS_IA = OPTIONS_IA.map((option) => option.cle);
 const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((option) => option.cle);
@@ -37,15 +41,16 @@ const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((
 // version 2 ; une case de l'etendue vaut le Centre du style ; la moitie de la
 // valeur d'une case ; 14 billes de reference (1 au debut de la partie) ; les
 // premiers coups classes apres la reponse adverse et son propre coup suivant ;
-// l'etendue sur 4 coups, comme sans ep.
+// l'etendue sur 4 coups, comme sans ep ; plus d'elagage des 4 billes ejectees d'un camp.
 const PART_DES_CASES_ETENDUE = 0.5;
 const BILLES_DE_REFERENCE_ETENDUE = 14;
 const DISTANCE_ELAGAGE_PAR_REPONSE = 3;
 const DISTANCE_ELAGAGE_SUITE = 2;
+const EJECTIONS_SANS_ELAGAGE_PROPOSEES = 4;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES },
   ])
 );
 

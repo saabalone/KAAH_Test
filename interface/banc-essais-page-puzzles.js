@@ -64,11 +64,13 @@ function contenuDesPuzzles({ reference, essais, resultats, resume, parametres })
 <h3>Les puzzles</h3><p class="note-reglages">✓ résolu, ✗ non${solveur ? ' ; ≈ gagné mais pas la solution, ? trop long à vérifier' : ''} ; les coups joués en infobulle.</p>${grilleDesPuzzlesHtml(essais, resultats)}`;
 }
 
-// Les puzzles recoltes dans les parties : [{ entree (KAAWA), numero, tours }].
-function recolteHtml(recoltes, toursMini) {
+// Les puzzles recoltes dans les parties : [{ entree (KAAWA), numero, tours }] ;
+// `ecartes` : ceux que le solveur n'a pas confirmes.
+function recolteHtml(recoltes, toursMini, ecartes = 0) {
+  const sansCeux = ecartes ? ` — ${ecartes} écarté${ecartes > 1 ? 's' : ''} : le solveur n'y trouve pas de victoire forcée (il compte une position répétée comme une échappée de la défense)` : '';
   const auMoins = `au moins ${toursMini} tour${toursMini > 1 ? 's' : ''}`;
-  if (recoltes.length === 0) return `<h3>Puzzles récoltés</h3><p class="note-reglages">Aucun pour l'instant (${auMoins}).</p>`;
+  if (recoltes.length === 0) return `<h3>Puzzles récoltés</h3><p class="note-reglages">Aucun pour l'instant (${auMoins})${sansCeux}.</p>`;
   const lignes = recoltes.map(({ entree, numero, tours }) => `<tr><td>${echapperBanc(entree.PZL_name)}</td><td>${tours}</td><td>${entree.winner}</td><td>${numero}</td><td class="banc-coups">${echapperBanc(entree.pos)}</td></tr>`);
-  return `<h3>Puzzles récoltés (${recoltes.length}, ${auMoins})</h3><p class="note-reglages">« Exporter les puzzles » les télécharge au format de KAAWA ; « Ajouter à My » les range avec vos puzzles.</p>
+  return `<h3>Puzzles récoltés (${recoltes.length}, ${auMoins})</h3><p class="note-reglages">Chacun confirmé par le solveur, parfois avec un tour de plus${sansCeux}. « Exporter les puzzles » les télécharge au format de KAAWA ; « Ajouter à My » les range avec vos puzzles.</p>
 <table class="banc-tableau"><tr><th>Nom</th><th>Tours</th><th>Gagnant</th><th>Partie n°</th><th>Position</th></tr>${lignes.join('')}</table>`;
 }

@@ -35,6 +35,7 @@ const CLES_REGLAGES_IA = [
   // L'elagage par reponse, ajout er (solveur/kai-plus.cpp, valeur_pour_l_elagage).
   'elagageReponse',
   'elagageSuite',
+  'elagageFin',
   'cohesion',
   'compacite',
   'bordSoi',
@@ -71,6 +72,7 @@ const LIBELLES_REGLAGES_IA = {
   etendueProfondeur: 'Étendue, profondeur en coups (ep)',
   elagageReponse: 'Élagage par réponse (er)',
   elagageSuite: 'Élagage par réponse, coups suivants (es)',
+  elagageFin: 'Élagage coupé en fin de partie (ef)',
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.
