@@ -31,6 +31,9 @@ const CLES_REGLAGES_IA = [
   'etendueCentre',
   'etendueCases',
   'etendueReference',
+  // L'elagage par reponse, ajout er (solveur/kai-plus.cpp, valeur_pour_l_elagage).
+  'elagageReponse',
+  'elagageSuite',
   'cohesion',
   'compacite',
   'bordSoi',
@@ -64,6 +67,8 @@ const LIBELLES_REGLAGES_IA = {
   etendueCentre: 'Étendue (ec)',
   etendueCases: 'Étendue des cases (ea)',
   etendueReference: 'Étendue ÷ adverses (da)',
+  elagageReponse: 'Élagage par réponse (er)',
+  elagageSuite: 'Élagage par réponse, coups suivants (es)',
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.

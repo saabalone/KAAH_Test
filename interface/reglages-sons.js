@@ -37,6 +37,22 @@ function demarrerReglagesSons(elements, sons) {
     elements.liste.classList.toggle('reglages-inactifs', !sons.lire('sound.enabled'));
   }
 
+  // Essayer (saab, 2026-10-08 : « aucun son sur mon tel ») : si le son part sans
+  // s'entendre, c'est le telephone ; si le navigateur refuse, sa raison.
+  elements.essai.addEventListener('click', () => {
+    elements.noteEssai.textContent = '';
+    sons
+      .essayer()
+      .then(() => {
+        elements.noteEssai.textContent = sons.lireVolume() === 0
+          ? 'Joué, mais le volume ci-dessus est à 0.'
+          : "Joué. Rien entendu ? Le volume « multimédia » du téléphone (pas celui de la sonnerie), et le réglage Son de ce site dans le navigateur.";
+      })
+      .catch((erreur) => {
+        elements.noteEssai.textContent = `Le navigateur refuse de jouer le son : ${erreur?.name ?? erreur}.`;
+      });
+  });
+
   elements.bouton.addEventListener('click', () => {
     afficher();
     elements.dialogue.showModal();

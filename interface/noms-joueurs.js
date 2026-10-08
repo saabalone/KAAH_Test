@@ -28,7 +28,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : afficherNomJoueur
 // (rendu/ligne-joueur.js), NOM_CAMP (rendu/ejections.js), nomJoueurAutorise
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
-// (moteur/ia.js), memesReglagesIA, LIBELLES_REGLAGES_IA
+// (moteur/ia.js), memesReglagesIA, CLES_REGLAGES_IA, LIBELLES_REGLAGES_IA
 // (moteur/historique-profil-ia.js), couleursDeLaMachineIA, couleurLaPlusForte
 // (moteur/couleurs-profil-ia.js), trouverProfilIA, retenirProfilIAMontre (interface/profils-ia.js),
 // poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
@@ -64,7 +64,12 @@ function brancherSaisieNomJoueur(champ) {
 // (interface/ia.js : machineDe, estEnMarche, basculer, suspendre,
 // definirMachine). Marche/Arret n'apparait que pour le camp d'une machine
 // (saab : « se servir du btn Nom pour la relancer ... ou l'arreter »).
-function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement) {
+// `machinePermise()` : faux pendant un puzzle dans la version publiee (saab,
+// 2026-10-08 : « interdire de se servir de l'IA pour les PZL ») — les boutons IA
+// et Suggestion sont alors grises, et les toucher le dit.
+const MESSAGE_MACHINE_PUZZLE = "Pas de machine dans les puzzles : à vous de trouver la solution !";
+
+function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true) {
   let campEnCours = null;
   let commandeMachines = null;
   brancherSaisieNomJoueur(elements.champ);
@@ -116,8 +121,9 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       ...nomDeLaMachineColore(machine, couleurLaPlusForte(Object.values(couleurs))),
       ` : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`
     );
+    // Dans l'ordre de Reglages, profil IA (saab, 2026-10-07).
     elements.poidsMachine.replaceChildren(
-      ...Object.entries(machine.poids).map(([cle, valeur]) => {
+      ...CLES_REGLAGES_IA.filter((cle) => cle in machine.poids).map((cle) => [cle, machine.poids[cle]]).map(([cle, valeur]) => {
         const tr = document.createElement('tr');
         const libelle = document.createElement('td');
         const nombre = document.createElement('td');
@@ -135,6 +141,10 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.marcheMachine.hidden = !machine;
     elements.boutonIA.hidden = Boolean(machine) || !commandeMachines;
     elements.suggestion.hidden = Boolean(machine) || !commandeMachines;
+    for (const bouton of [elements.boutonIA, elements.suggestion]) {
+      bouton.classList.toggle('bouton-interdit', !machinePermise());
+      bouton.title = machinePermise() ? bouton.title.replace(` — ${MESSAGE_MACHINE_PUZZLE}`, '') : `${bouton.title.replace(` — ${MESSAGE_MACHINE_PUZZLE}`, '')} — ${MESSAGE_MACHINE_PUZZLE}`;
+    }
     elements.choixIA.hidden = !machine;
     choixIA.definir(
       machine
@@ -155,6 +165,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   // Une suggestion pour la position du plateau, par la machine du choix
   // affiche (sinon le dernier moteur choisi, KAI++ au debut) : le joueur ne change pas.
   elements.suggestion.addEventListener('click', () => {
+    if (!machinePermise()) return window.alert(MESSAGE_MACHINE_PUZZLE);
     const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) } : choixIA.lire();
     commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? choix.moteur : choix.role }));
     elements.dialogue.close();
@@ -163,6 +174,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   // Un humain : le bouton IA ouvre le choix, sur le dernier moteur choisi
   // (KAI++ au debut, saab 2026-10-07).
   elements.boutonIA.addEventListener('click', () => {
+    if (!machinePermise()) return window.alert(MESSAGE_MACHINE_PUZZLE);
     elements.boutonIA.hidden = true;
     elements.choixIA.hidden = false;
     elements.choixIA.querySelector(`[data-role="${choixIA.lire().moteur}"]`).click();

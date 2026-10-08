@@ -217,6 +217,27 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
 // verification-puzzle.js) : celui du solveur pour une victoire au bon tour,
 // ou null. `etiquette` (facultative) : les reglages PZL a usage unique encore
 // en attente (KAAWA : "[offset:2, seuil:1s]").
+// La case Solveur de la boite Puzzles (saab, 2026-10-08) : dans une version de
+// travail seulement ; la version publiee verifie toujours. Retenue sur cet appareil.
+const CLE_SOLVEUR_PUZZLES = 'kaah-solveur-puzzles';
+
+function solveurDesPuzzlesActif() {
+  if (SUFFIXE_VERSION_KAAH_TEST === '') return true;
+  try {
+    return window.localStorage.getItem(CLE_SOLVEUR_PUZZLES) !== 'non';
+  } catch {
+    return true;
+  }
+}
+
+function choisirSolveurDesPuzzles(actif) {
+  try {
+    window.localStorage.setItem(CLE_SOLVEUR_PUZZLES, actif ? 'oui' : 'non');
+  } catch {
+    // Tant pis : le solveur reste actif a la prochaine ouverture.
+  }
+}
+
 function afficherEtatPuzzle(element, puzzle, etat, verdict = null, etiquette = '') {
   if (!puzzle) {
     element.hidden = true;

@@ -139,5 +139,17 @@ function demarrerSons(dossier = './sons/') {
     }
   }
 
-  return { jouer, regler, lire: (cle) => reglages[cle], reglerVolume, lireVolume: () => volume };
+  // Le son du coup, cases ignorees (Reglages, Sons : Essayer) : resout la promesse
+  // de play(), ou la refuse avec la raison du navigateur.
+  // Apres le deblocage du premier contact, qui met les sons en pause.
+  function essayer() {
+    const audio = elements.move;
+    const lancer = () => {
+      audio.currentTime = 0;
+      return audio.play();
+    };
+    return deblocage ? deblocage.then(lancer) : lancer();
+  }
+
+  return { jouer, essayer, regler, lire: (cle) => reglages[cle], reglerVolume, lireVolume: () => volume };
 }

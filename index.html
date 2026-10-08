@@ -338,6 +338,13 @@
           <span class="icone-bouton icone-texte" aria-hidden="true">⚙</span><span class="libelle-bouton">Réglages</span>
         </button>
       </div>
+      <!-- Le banc d'essais (saab, 2026-10-08) : ordinateur seulement (styles.css,
+           banc-ordinateur). interface/banc-essais.js. -->
+      <div class="groupe-boutons banc-ordinateur">
+        <button id="bouton-banc-essais" title="Banc d'essais : faire jouer des profils IA contre un profil de référence, résultats en tableau">
+          <span class="icone-bouton icone-texte" aria-hidden="true">🧪</span><span class="libelle-bouton">Banc d'essais</span>
+        </button>
+      </div>
       <div class="groupe-boutons">
         <button id="bouton-exporter" title="Télécharger la partie en cours, au format de KAAWA">
           <span class="icone-bouton icone-texte" aria-hidden="true">💾</span><span class="libelle-bouton">Exporter</span>
@@ -509,6 +516,14 @@
       <input id="case-permutation-aleatoire-puzzles" type="checkbox" />
       Permutation aléatoire à l'ouverture d'un puzzle
     </label>
+    <!-- Saab, 2026-10-08 : « une coche Solver pour que je teste aussi des trucs » —
+         decochee, le solveur ne verifie plus la solution d'un puzzle (pas de
+         « Bravo » ni de refus : seulement gagne ou perdu dans ses tours). Version
+         de travail seulement (styles.css, poids-ajout). -->
+    <label class="ligne-reglage poids-ajout" title="Décochée : le solveur ne vérifie plus la solution des puzzles (seulement gagné ou perdu dans les tours) — pour essayer les machines">
+      <input id="case-solveur-puzzles" type="checkbox" />
+      Solveur (vérifie la solution d'un puzzle)
+    </label>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-nouveau-puzzle-my" class="bouton-dialogue" type="button">Nouveau</button>
       <button id="bouton-modifier-puzzle-my" class="bouton-dialogue" type="button" disabled>Modifier</button>
@@ -624,6 +639,10 @@
         <h2>Aide de KAAH</h2>
         <p id="version-kaah" class="aide-version"></p>
         <p id="hors-ligne-kaah" class="aide-version"></p>
+        <!-- Ordinateur ou telephone (saab, 2026-10-08) : meme fichiers, le seuil
+             de 700 px (styles.css) choisit la ligne. -->
+        <p class="aide-version banc-ordinateur">Version ordinateur : avec le Banc d'essais (icône 🧪, ou Réglages &gt; Profil IA) pour faire jouer des profils IA contre un profil de référence.</p>
+        <p class="aide-version banc-telephone">Version téléphone : une version plus complète existe sur ordinateur, avec le Banc d'essais (faire jouer des profils IA entre eux, résultats en tableau).</p>
       </div>
       <button id="bouton-fermer-aide-haut" class="bouton-dialogue bouton-fermer-aide" type="button">Fermer</button>
     </div>
@@ -675,7 +694,7 @@
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b>, <b>KAI</b> (la machine en JavaScript) ou <b>KAI++</b> (la même machine en C++, 40 à 80 fois plus rapide) — deux machines peuvent jouer l'une contre l'autre, par exemple KAI contre KAI++.<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2 ; boutons <b>−</b> / <b>+</b> de palier en palier : 0,5 1 2 3 5 10 15 20 30 45 60 s). La boîte retient votre dernier choix ; la toute première fois, une machine est proposée en <b>KAI++</b>, niveau 3, Normal. KAI, figé, joue aussi les profils v3 et v4, mais bien plus lentement (il voit moins loin) : la boîte le signale en orange.</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
-        <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.<br><b>Version 3</b> (version de travail, jouée par KAI++ ; KAI aussi, mais lentement) : la 2, plus trois choses. <b>Les cases</b> : chacune des 9 cases distinctes du plateau (<b>e5 d4 c4 c3 b4 b2 a3 a2 a1</b>, chacune valant aussi pour les cases qui lui ressemblent par rotation ou miroir) a une valeur en plus du Centre, pour une bille à soi, l'opposé pour une bille adverse ; au départ, les 2 couronnes éjectables sont négatives (b : −5, a : −10, coin a1 : −12). <b>La compacité</b> : la distance moyenne, en coups, entre ses billes deux à deux — plus elle est petite, plus le bloc est compact ; son poids compte par coup de distance de moins que l'adversaire. <b>Gain et Perte (score)</b> : chaque éjection déjà faite rend la suivante plus précieuse (la 2e prise rapporte Gain + Gain (score), la 3e Gain + 2 × Gain (score)…), de même pour les pertes : en fin de partie, la machine sait s'il vaut mieux attaquer ou se défendre. Profils <b>Agressif v3</b>, <b>Normal v3</b>, <b>Défensif v3</b> ; version <b>3el</b> pour élaguer.<br><span class="aide-ajouts"><b>Ajouts ec, ea, da</b>, l'<b>étendue</b> de chaque camp, à toute version : chaque case vide va au camp qui l'atteint en le moins de coups (4 au plus, par les vraies règles, les autres billes immobiles — 4 billes en ligne n'avancent pas dans leur axe ; à égalité, à personne) et vaut pour lui, divisée par ces coups : le poids <b>ec</b> (le même pour toutes les cases), et <b>ea</b>, une part de la valeur de la case (e5 … a1, version 3 et plus). <b>da</b> multiplie l'étendue de chaque camp par son nombre divisé par les billes adverses (14 : rien ne change au début, le plus nombreux pèse plus ensuite). Plus lent : KAI++ examine environ 2 fois moins de positions par seconde. <b>Ajout sv</b>, le <b>sumito vide</b>, à mettre sur n'importe quelle version (sa case dans Réglages) : un sumito 2 contre 1 dont la bille poussée tombe dans un trou suivi de 2 billes adverses — qui repousseront à 3 contre 2 —, sauf si une ligne de 2 ou 3 billes, sur un autre axe, reprend le trou ; son poids, négatif (proposé : moins un sumito), lui retire sa valeur. Le nom de la machine le dit : KAI++7_Nor_30s_v4el10<b>sv</b>. </span>Chaque poids a aussi sa <b>case</b> : décochée, il ne compte plus (0), recochée, il reprend sa valeur. <b>Version 5</b> (version de travail) : la 4, le poids <b>Sumito</b> séparé en trois, un par sorte de poussée — <b>Sumito 3/2</b>, <b>3/1</b>, <b>2/1</b> ; par défaut chacun vaut le Sumito de la 4, pour qu'elle joue d'abord exactement comme elle (profils … v5 et … v5el). <b>Version 4</b> (version de travail) : la 3, plus le <b>Piège</b> — chaque bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant : le triangle a3 contre b3 b4 c4) rapporte ce poids, chacune des siennes le coûte. Le vrai piège (les deux camps jouent) est trop long pour chaque position : la version 4 n'en regarde que l'immobilité. Profils <b>Agressif v4</b>, <b>Normal v4</b>, <b>Défensif v4</b> ; version <b>4el</b> pour élaguer.<br>Dans le choix d'une machine (début de partie, boîte du nom), la petite liste devant le profil n'en montre qu'un <b>style</b> (Agr, Nor, Déf ou Tous), et chaque profil à vous est suivi de ses <b>anciennes versions</b> (« ↳ v2 · 03/10 14:10 »), jouables telles quelles (la machine s'appelle alors …_v2_P1). Les boutons du bas de ces boîtes restent toujours visibles. Les profils de base sont rangés <b>par style</b>, puis par force : Agressif, Agressif v2, v2el, v3, v3el, v4, v4el, puis Normal…, puis Défensif… — pour opposer deux machines du même style en ne changeant que la version. Chaque version à partir de la 2 a son profil « el », qui garde ce marqueur quand on le retouche (Normal v3el_v2).<br><b>Livre d'ouvertures</b> : chaque profil dit s'il s'en sert (case Livre, coche par défaut) ; choisir le profil au début de la partie reprend sa case, que Réglages > Machine > Livre d'ouvertures peut interdire à toutes les machines.<br><b>Comparer</b> : tous les profils côte à côte ; les cases e5 à a1 y montrent la <b>valeur totale</b> d'une bille à soi sur elles (Centre × ses pas, plus sa valeur propre en version 3 ; le bord a ses poids à part) ; toucher le titre <b>Centre</b> cache ou montre les cases d4 à a2 (e5 et a1 restent) ; tirer le bord droit d'un titre élargit ou rétrécit sa colonne.<br><b>Sur ordinateur</b>, survoler une case affiche sa notation, ses coordonnées axiales et ce qui l'occupe ; le <b>clic droit</b> sur une bille ouvre son panneau, à côté du plateau sur la ligne e (à déplacer par son titre) : ce qu'elle apporte à chaque terme, de Gain à Fourchette (l'évaluation avec elle moins sans elle) et leur <b>total</b>, pour la machine et pour d'autres profils IA côte à côte ; puis sa distance moyenne aux siennes, la bille adverse la plus proche, si elle est poussée ou éjectable, et, pour une bille des couronnes b et a, son <b>Piège</b> : KAI++ cherche, les deux camps jouant (l'adversaire peut lui couper la route), si elle sort de la zone éjectable en 4 de ses coups au plus quoi que fasse l'adversaire — « sort en 2 coups, d'abord … », « piégée : aucune sortie en 4 coups », ou « piégée sur 3 coups (au-delà : trop long) » ; quelques secondes au plus, sans gêner la machine qui joue. La <b>Course</b> en est la mesure rapide, sans réponse de l'adversaire (les autres billes ne bougent pas). Le bouton <b>Aire</b> (vert ; orange pendant le dessin) : appuyer (bouton gauche ou droit de la souris) sur une case et glisser jusqu'à relâcher — 2 cases suffisent (une ligne, un sumito) —, le trait suit les cases survolées (et celles que la souris saute, en ligne droite : les 6 coins suffisent pour tout le plateau), le lien de fermeture apparaît en revenant sur la première, relâcher le ferme ; le bouton <b>Plateau</b> prend tout le plateau d'un coup (Échap annule ; le plateau ne joue pas pendant ce temps). Les billes des deux camps dans l'aire forment une position, évaluée terme par terme pour le camp de la bille — tout le plateau donne exactement l'évaluation de la machine. Pour chaque profil, deux colonnes : <b>seule</b> (l'aire comme si rien d'autre n'existait, ni les éjections de la partie : Gain et Perte y valent 0) et <b>avec l'ext.</b> (ce que les billes de l'aire apportent à toute la position : avec elles moins sans elles ; Gain et Perte : les éjections déjà faites dans la partie ; le réglage de chaque terme en gris, « +5000/+1000 ») — tout le plateau (bouton <b>Plateau</b>) y donne l'évaluation de la machine ; depuis une case vide, l'aire est celle du camp au trait ; le profil de la machine en orange. Un clic droit sur une bille adverse ouvre la même aire pour son camp, dans un 2e panneau collé au 1er. Les panneaux s'agrandissent ou rétrécissent par leur coin en bas à droite. Le bouton ⚙ choisit les termes, les profils, les mesures et les champs du survol.</li>
+        <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.<br><b>Version 3</b> (version de travail, jouée par KAI++ ; KAI aussi, mais lentement) : la 2, plus trois choses. <b>Les cases</b> : chacune des 9 cases distinctes du plateau (<b>e5 d4 c4 c3 b4 b2 a3 a2 a1</b>, chacune valant aussi pour les cases qui lui ressemblent par rotation ou miroir) a une valeur en plus du Centre, pour une bille à soi, l'opposé pour une bille adverse ; au départ, les 2 couronnes éjectables sont négatives (b : −5, a : −10, coin a1 : −12). <b>La compacité</b> : la distance moyenne, en coups, entre ses billes deux à deux — plus elle est petite, plus le bloc est compact ; son poids compte par coup de distance de moins que l'adversaire. <b>Gain et Perte (score)</b> : chaque éjection déjà faite rend la suivante plus précieuse (la 2e prise rapporte Gain + Gain (score), la 3e Gain + 2 × Gain (score)…), de même pour les pertes : en fin de partie, la machine sait s'il vaut mieux attaquer ou se défendre. Profils <b>Agressif v3</b>, <b>Normal v3</b>, <b>Défensif v3</b> ; version <b>3el</b> pour élaguer.<br>Chaque poids a aussi sa <b>case</b> : décochée, il ne compte plus (0), recochée, il reprend sa valeur. <b>Version 5</b> (version de travail) : la 4, le poids <b>Sumito</b> séparé en trois, un par sorte de poussée — <b>Sumito 3/2</b>, <b>3/1</b>, <b>2/1</b> ; par défaut chacun vaut le Sumito de la 4, pour qu'elle joue d'abord exactement comme elle (profils … v5 et … v5el). <b>Version 4</b> (version de travail) : la 3, plus le <b>Piège</b> — chaque bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant : le triangle a3 contre b3 b4 c4) rapporte ce poids, chacune des siennes le coûte. Le vrai piège (les deux camps jouent) est trop long pour chaque position : la version 4 n'en regarde que l'immobilité. Profils <b>Agressif v4</b>, <b>Normal v4</b>, <b>Défensif v4</b> ; version <b>4el</b> pour élaguer.<br>Dans le choix d'une machine (début de partie, boîte du nom), la petite liste devant le profil n'en montre qu'un <b>style</b> (Agr, Nor, Déf ou Tous), et chaque profil à vous est suivi de ses <b>anciennes versions</b> (« ↳ v2 · 03/10 14:10 »), jouables telles quelles (la machine s'appelle alors …_v2_P1). Les boutons du bas de ces boîtes restent toujours visibles. Les profils de base sont rangés <b>par style</b>, puis par force : Agressif, Agressif v2, v2el, v3, v3el, v4, v4el, puis Normal…, puis Défensif… — pour opposer deux machines du même style en ne changeant que la version. Chaque version à partir de la 2 a son profil « el », qui garde ce marqueur quand on le retouche (Normal v3el_v2).<br><b>Livre d'ouvertures</b> : chaque profil dit s'il s'en sert (case Livre, coche par défaut) ; choisir le profil au début de la partie reprend sa case, que Réglages > Machine > Livre d'ouvertures peut interdire à toutes les machines.<br><b>Comparer</b> : tous les profils côte à côte ; les cases e5 à a1 y montrent la <b>valeur totale</b> d'une bille à soi sur elles (Centre × ses pas, plus sa valeur propre en version 3 ; le bord a ses poids à part) ; toucher le titre <b>Centre</b> cache ou montre les cases d4 à a2 (e5 et a1 restent) ; tirer le bord droit d'un titre élargit ou rétrécit sa colonne.<br><b>Sur ordinateur</b>, survoler une case affiche sa notation, ses coordonnées axiales et ce qui l'occupe ; le <b>clic droit</b> sur une bille ouvre son panneau, à côté du plateau sur la ligne e (à déplacer par son titre) : ce qu'elle apporte à chaque terme, de Gain à Fourchette (l'évaluation avec elle moins sans elle) et leur <b>total</b>, pour la machine et pour d'autres profils IA côte à côte ; puis sa distance moyenne aux siennes, la bille adverse la plus proche, si elle est poussée ou éjectable, et, pour une bille des couronnes b et a, son <b>Piège</b> : KAI++ cherche, les deux camps jouant (l'adversaire peut lui couper la route), si elle sort de la zone éjectable en 4 de ses coups au plus quoi que fasse l'adversaire — « sort en 2 coups, d'abord … », « piégée : aucune sortie en 4 coups », ou « piégée sur 3 coups (au-delà : trop long) » ; quelques secondes au plus, sans gêner la machine qui joue. La <b>Course</b> en est la mesure rapide, sans réponse de l'adversaire (les autres billes ne bougent pas). Le bouton <b>Aire</b> (vert ; orange pendant le dessin) : appuyer (bouton gauche ou droit de la souris) sur une case et glisser jusqu'à relâcher — 2 cases suffisent (une ligne, un sumito) —, le trait suit les cases survolées (et celles que la souris saute, en ligne droite : les 6 coins suffisent pour tout le plateau), le lien de fermeture apparaît en revenant sur la première, relâcher le ferme ; le bouton <b>Plateau</b> prend tout le plateau d'un coup (Échap annule ; le plateau ne joue pas pendant ce temps). Les billes des deux camps dans l'aire forment une position, évaluée terme par terme pour le camp de la bille — tout le plateau donne exactement l'évaluation de la machine. Pour chaque profil, deux colonnes : <b>seule</b> (l'aire comme si rien d'autre n'existait, ni les éjections de la partie : Gain et Perte y valent 0) et <b>avec l'ext.</b> (ce que les billes de l'aire apportent à toute la position : avec elles moins sans elles ; Gain et Perte : les éjections déjà faites dans la partie ; le réglage de chaque terme en gris, « +5000/+1000 ») — tout le plateau (bouton <b>Plateau</b>) y donne l'évaluation de la machine ; depuis une case vide, l'aire est celle du camp au trait ; le profil de la machine en orange. Un clic droit sur une bille adverse ouvre la même aire pour son camp, dans un 2e panneau collé au 1er. Les panneaux s'agrandissent ou rétrécissent par leur coin en bas à droite. Le bouton ⚙ choisit les termes, les profils, les mesures et les champs du survol.</li>
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
         <li>Un <b>profil IA</b> de l'utilisateur a un indice (<b>P3</b>), repris dans le nom de la machine (KAI2_Nor_5s_P3) : deux machines qui ne diffèrent que par leur profil se distinguent dans le titre. Un nouveau profil prend l'indice qui suit le plus grand des profils restants : sans profil à vous, on repart à P1.</li>
         <li><b>Fin de partie vue</b> (« Gagne en n », « Perd en n ») : la machine retient sa séquence et, tant que l'adversaire répond comme prévu, joue la suite sans chercher (« fin vue » dans le tableau).</li>
@@ -688,6 +707,19 @@
         <li>Sa <b>pendule tourne</b> pendant qu'elle réfléchit, et clignote doucement : elle peut perdre au temps.<br>Elle continue à jouer après une fin au temps, et sur une branche (en Chrono).</li>
         <li><b>Annuler</b> reprend son dernier coup ET le vôtre (sinon elle rejouerait aussitôt) — un seul coup entre deux machines, ou si elle est arrêtée.<br>Une position répétée : la machine voit aussi la nulle que l'adversaire pourrait compléter au coup suivant, et la machine en avance l'évite quand elle a mieux. Elle ne la fait revenir une 3e fois (nulle) que si tout autre coup est pire pour elle ; entre deux machines, la nulle est alors acceptée toute seule.<br><b>Revanche</b> : chaque machine prend l'autre camp.<br>Quand KAI++ voit qu'il a perdu de force (« Perd en n »), il arrête de chercher plus loin. Quand une machine voit la fin (« Gagne en n » ou « Perd en n »), la machine d'en face le sait aussi : elle joue sa part de cette fin sans chercher (« fin déjà vue »), tant que l'autre suit la séquence prévue. Pas si la fin a été vue en élaguant (version 2el) : rien ne dit alors qu'elle est forcée.</li>
         <li>Une proposition de <b>nulle</b> : pour l'instant c'est vous qui répondez à sa place.</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>Banc d'essais (ordinateur)</summary>
+      <ul>
+        <li>Pour savoir si un réglage joue mieux qu'un autre sans rien programmer : des profils IA jouent chacun une série de parties contre un profil de <b>référence</b>, et le résultat s'affiche en tableau. Sur ordinateur seulement (trop lourd pour un téléphone) : icône <b>🧪</b> de la colonne de gauche, ou bouton <b>Banc d'essais</b> dans Réglages &gt; Profil IA, à côté de Comparer.</li>
+        <li><b>Les profils à essayer</b> : cochez-en autant que vous voulez (la petite liste n'en montre qu'un style, ou Tous). Au bout de chaque ligne, son <b>niveau</b> (Niv.) et sa <b>réflexion max</b> en secondes (Réfl.), au départ ceux par défaut (réglés en bas, dans Les parties, qu'ils suivent tant qu'on n'y touche pas) ; les petites flèches ▲ ▼ (ou celles du clavier) montent ou descendent le niveau de 1 en 1, la réflexion de palier en palier (0,5 1 2 3 5 10 15 20 30 45 60 s) ; la référence a les siens à côté de son nom. Pour changer beaucoup de poids à la fois, retouchez-les dans Réglages &gt; Profil IA, validez, et cochez la nouvelle version à côté de l'ancienne.</li>
+        <li><b>Faire varier</b> (facultatif) : un poids (sa valeur d'origine dans chaque profil coché s'écrit dessous) et ses valeurs séparées par des virgules (<code>0, 40, 60</code> : trois essais par profil coché) ; <code>sans</code> enlève le poids ; <b>Élagage</b> se fait varier aussi ; <b>Cases (e5 à a1) ×</b> multiplie les 9 cases ensemble (<code>0,5, 1, 2</code>). <b>Niveau</b> et <b>Réflexion max</b> se font varier aussi (le même profil au niveau 3 puis 5, par exemple). Avec un 2e poids, toutes les combinaisons sont jouées (3 valeurs × 2 valeurs = 6 essais par profil).</li>
+        <li><b>Contre</b> : la référence (Normal v4el au départ). Case <b>avec le livre</b> : elle prend ses coups dans le livre d'ouvertures tant qu'elle peut ; décochée, seulement ses premiers coups au hasard (ci-dessous), puis elle cherche elle-même. Les profils essayés ne se servent jamais du livre.</li>
+        <li><b>Les parties</b> : le nombre d'<b>ouvertures</b> (chaque ouverture : la référence joue ses <b>premiers coups au hasard</b> parmi ceux du livre, 6 au départ, pour que les parties ne se ressemblent pas ; les mêmes ouvertures pour chaque essai, pour comparer à égalité) ; <b>Revanche</b> : chaque ouverture jouée des deux couleurs ; le <b>niveau</b> et la <b>réflexion max</b> par défaut de KAI++ ; combien de parties <b>en même temps</b> (une par cœur du processeur, au départ tous sauf un). Depuis la Marguerite belge ; nulle à la 3e répétition d'une position ou après 150 tours. Au-dessus du compteur, en orange, le <b>total</b> : essais × ouvertures × 2 (revanche) = parties, recalculé à chaque changement.</li>
+        <li><b>Lancer</b> (vert ; orange pendant la série) : en orange, le temps écoulé depuis le lancement, puis une ligne par partie en cours — laquelle, son tour, qui cherche (l'essai ou la référence), la dernière profondeur finie et son évaluation, et depuis combien de secondes ; les secondes avancent toutes seules : si elles bougent, rien n'est bloqué. Le tableau se remplit au fil des parties —d'abord les <b>réglages complets</b> de la référence (titre en jaune) et de chaque essai côte à côte, niveau et réflexion compris (en orange ce qui diffère de la référence), puis le <b>résumé</b> (parties gagnées par l'essai, en Noir et en Blanc, nulles, tours et temps moyens ; le nom en vert s'il en gagne plus de la moitié, en orange s'il en perd plus), puis <b>chaque partie</b> avec son score et sa séquence (un coup du livre en orange quand la référence le joue, en vert quand l'essai le trouve tout seul).<br><b>Pause</b> / <b>Reprendre</b>, <b>Arrêter</b> (garde les parties finies) ; <b>Exporter</b> télécharge le tableau en page <code>banc_essais_….html</code>, à ouvrir dans le navigateur. <b>Cacher les résultats</b> : les choix reprennent toute la hauteur pour préparer une nouvelle série (le tableau revient au prochain Lancer, ou par <b>Montrer les résultats</b>). Fermer la boîte n'arrête pas les parties : rouvrez-la pour voir où elles en sont.</li>
+        <li>Une série est longue : 20 ouvertures × revanche = 40 parties par essai, souvent plusieurs minutes chacune au niveau 5 avec 30 s. Pour un premier coup d'œil, baissez le niveau et la réflexion.</li>
       </ul>
     </details>
 
@@ -818,6 +850,10 @@
       Volume
       <input id="curseur-volume-sons" type="range" min="0" max="1" step="0.01" />
     </label>
+    <!-- Essayer (saab, 2026-10-08 : « aucun son sur mon tel ») : le son du coup,
+         cases ignorees — s'il ne s'entend pas, c'est le telephone (volume
+         multimedia, reglage Son du site), pas KAAH. interface/reglages-sons.js. -->
+    <p class="ligne-essai-sons"><button id="bouton-essai-sons" class="bouton-dialogue" type="button">▶ Essayer</button> <span id="note-essai-sons" class="note-reglages"></span></p>
     <div id="liste-sons"></div>
     <button id="bouton-fermer-sons" class="bouton-dialogue" type="button">Fermer</button>
   </dialog>
@@ -973,6 +1009,7 @@
           <button id="bouton-exporter-profil-ia" class="bouton-dialogue" type="button">Exporter</button>
           <button id="bouton-importer-profil-ia" class="bouton-dialogue" type="button">Importer</button>
           <button id="bouton-comparer-profils-ia" class="bouton-dialogue" type="button" title="Tous les profils IA côte à côte : date, description, réglages et leurs couleurs">Comparer</button>
+          <button id="bouton-banc-essais-reglages" class="bouton-dialogue banc-ordinateur" type="button" title="Banc d'essais : faire jouer des profils IA contre un profil de référence, résultats en tableau">Banc d'essais</button>
         </div>
         <label class="ligne-couleur" title="1 : celle de la phase 29, gardée pour comparer ; 2 : compte aussi les sumitos et les fourchettes ; 3 : une valeur par case, compacité, score ; 4 : le piège (KAI++)">Version de l'IA
           <select id="select-version-profil-ia">
@@ -1022,6 +1059,8 @@
         <label class="ligne-couleur poids-ajout" title="Ajout ec, à toute version : chaque case vide va au camp qui l'atteint en le moins de coups (4 au plus, les vraies règles, à égalité à personne) et vaut ce poids divisé par ses coups">Étendue (ec) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueCentre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout ea, à toute version (version 3 et plus : la valeur des cases) : la même étendue, chaque case comptant cette part de sa valeur (e5 … a1), divisée par ses coups">Étendue des cases (ea) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueCases" class="nombre-reglage" type="number" step="0.05" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout da : l'étendue de chaque camp (ec, ea) multipliée par ce nombre divisé par les billes adverses — 14 : rien ne change au début, le plus nombreux pèse plus ensuite">Étendue ÷ adverses (da) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueReference" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout er (KAI++) : l'élagage classe les premiers coups par une courte recherche de ce nombre de demi-coups (2 : après la réponse de l'adversaire ; 3 : et après son coup suivant), au lieu de la position juste après eux — garde les coups qui préparent une éjection">Élagage par réponse (er) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageReponse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout es (KAI++) : les coups suivants de la machine qui cherche (son coup d'après : 2 ; et le suivant : 4) sont classés après la réponse de l'adversaire, comme er pour les premiers coups. Plus lent">Élagage, coups suivants (es) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageSuite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-3" title="La distance moyenne, en coups, entre ses billes deux à deux : plus elle est petite, plus le bloc est compact. Ce poids par coup de distance en moins que l'adversaire">Compacité <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-compacite" class="nombre-reglage" type="number" step="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les miennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1103,6 +1142,52 @@
 
   <!-- Tableau comparatif des profils IA (saab, 2026-10-03,
        interface/comparaison-ia.js), ouvert depuis Reglages, rubrique Machine. -->
+  <!-- Le banc d'essais (saab, 2026-10-08 : « une petite appli, en une option pour
+       ordi, qui permet de programmer ce qu'on veut, comme tu fais, sans faire de
+       code ») : moteur/banc-essais.js, interface/banc-essais.js et
+       interface/banc-essais-page.js. -->
+  <dialog id="dialogue-banc-essais" class="dialogue dialogue-grand dialogue-banc-essais">
+    <h2>Banc d'essais</h2>
+    <div class="banc-reglages">
+      <div class="banc-colonne">
+        <p class="banc-titre">Les profils à essayer</p>
+        <label class="ligne-reglage">Style <select id="banc-style"><option value="">Tous</option><option value="agressif">Agr</option><option value="normal" selected>Nor</option><option value="defensif">Déf</option></select></label>
+        <p class="note-reglages banc-entete-profils"><span>Niv.</span><span>Réfl. (s)</span></p>
+        <div id="banc-profils" class="banc-profils"></div>
+      </div>
+      <div class="banc-colonne">
+        <p class="banc-titre">Faire varier (facultatif)</p>
+        <p class="note-reglages">Des valeurs séparées par des virgules ; « sans » enlève le poids. « Cases (e5 à a1) × » multiplie les 9 cases ensemble (ex. 0,5, 1, 2). Deux poids : toutes les combinaisons.</p>
+        <label class="ligne-reglage"><select id="banc-cle-1"></select> <input id="banc-valeurs-1" type="text" placeholder="ex. 0, 40, 60" /></label>
+        <p id="banc-origine-1" class="note-reglages banc-origine"></p>
+        <label class="ligne-reglage"><select id="banc-cle-2"></select> <input id="banc-valeurs-2" type="text" placeholder="ex. sans, 20" /></label>
+        <p id="banc-origine-2" class="note-reglages banc-origine"></p>
+        <p class="banc-titre">Contre</p>
+        <div class="ligne-reglage banc-ligne-profil"><label>Référence <select id="banc-reference"></select></label><span id="banc-recherche-reference" class="banc-recherche-reference"></span></div>
+        <label class="ligne-reglage" title="Décochée : la référence ne prend dans le livre que ses coups au hasard (pour varier les ouvertures), ensuite elle cherche elle-même"><input id="banc-livre" type="checkbox" checked /> avec le livre</label>
+        <p class="banc-titre">Les parties</p>
+        <label class="ligne-reglage">Ouvertures <input id="banc-ouvertures" type="number" min="1" max="100" value="20" /></label>
+        <label class="ligne-reglage"><input id="banc-revanche" type="checkbox" checked /> Revanche (chaque ouverture jouée des deux couleurs)</label>
+        <label class="ligne-reglage">Coups au hasard dans le livre (référence) <input id="banc-hasard" type="number" min="0" max="20" value="6" /></label>
+        <label class="ligne-reglage" title="Pour chaque profil dont le petit champ Niv. est vide">Niveau par défaut <input id="banc-niveau" type="number" min="1" max="8" value="5" /></label>
+        <label class="ligne-reglage" title="Pour chaque profil dont le petit champ Réfl. est vide">Réflexion max par défaut (s) <input id="banc-temps" type="number" min="0.5" max="60" step="0.5" value="30" /></label>
+        <label class="ligne-reglage">Parties en même temps <input id="banc-paralleles" type="number" min="1" max="32" /></label>
+      </div>
+    </div>
+    <p id="banc-total" class="banc-total"></p>
+    <p id="banc-progres" class="note-reglages"></p>
+    <div id="banc-en-cours" class="note-reglages banc-en-cours"></div>
+    <div id="banc-resultats" class="banc-resultats"></div>
+    <div class="pied-dialogue boutons-dialogue-cote-a-cote">
+      <button id="bouton-lancer-banc" class="bouton-dialogue" type="button">Lancer</button>
+      <button id="bouton-pause-banc" class="bouton-dialogue" type="button" disabled>Pause</button>
+      <button id="bouton-arreter-banc" class="bouton-dialogue" type="button" disabled>Arrêter</button>
+      <button id="bouton-exporter-banc" class="bouton-dialogue" type="button" disabled>Exporter</button>
+      <button id="bouton-cacher-resultats-banc" class="bouton-dialogue" type="button" disabled title="Cacher le tableau des résultats pour préparer une nouvelle série (il revient au prochain Lancer, Exporter le garde)">Cacher les résultats</button>
+      <button id="bouton-fermer-banc" class="bouton-dialogue" type="button">Fermer</button>
+    </div>
+  </dialog>
+
   <dialog id="dialogue-comparaison-ia" class="dialogue dialogue-grand">
     <h2>Profils IA comparés</h2>
     <p class="note-reglages legende-couleurs-ia"><span class="legende-dernier">vert</span> : changé à la dernière validation · <span class="legende-ancien">jaune</span> : plus ancienne. Touchez un profil pour le choisir.</p>
@@ -1786,6 +1871,13 @@
   <script src="./interface/solveur.js"></script>
   <script src="./solveur/kai-plus.js"></script>
   <script src="./interface/kai-plus.js"></script>
+  <script src="./moteur/banc-essais.js"></script>
+  <script src="./interface/banc-essais-page.js"></script>
+  <script src="./interface/banc-essais-partie.js"></script>
+  <script src="./interface/banc-essais-suivi.js"></script>
+  <script src="./interface/banc-essais-champs.js"></script>
+  <script src="./interface/banc-essais-choix.js"></script>
+  <script src="./interface/banc-essais.js"></script>
   <script src="./interface/verification-puzzle.js"></script>
   <script src="./interface/positions-my.js"></script>
   <script src="./interface/corbeille.js"></script>
@@ -2169,6 +2261,8 @@
         liste: document.getElementById('liste-sons'),
         fermer: document.getElementById('bouton-fermer-sons'),
         volume: document.getElementById('curseur-volume-sons'),
+        essai: document.getElementById('bouton-essai-sons'),
+        noteEssai: document.getElementById('note-essai-sons'),
       },
       sons
     );
@@ -2251,6 +2345,41 @@
         fermer: document.getElementById('bouton-fermer-comparaison-ia'),
       },
       (nom) => reglagesIA.choisirProfil(nom)
+    );
+    // Le banc d'essais (saab, 2026-10-08) : interface/banc-essais.js.
+    demarrerBancEssais(
+      {
+        boutons: [document.getElementById('bouton-banc-essais'), document.getElementById('bouton-banc-essais-reglages')],
+        dialogue: document.getElementById('dialogue-banc-essais'),
+        style: document.getElementById('banc-style'),
+        profils: document.getElementById('banc-profils'),
+        cle1: document.getElementById('banc-cle-1'),
+        valeurs1: document.getElementById('banc-valeurs-1'),
+        cle2: document.getElementById('banc-cle-2'),
+        valeurs2: document.getElementById('banc-valeurs-2'),
+        origine1: document.getElementById('banc-origine-1'),
+        origine2: document.getElementById('banc-origine-2'),
+        reference: document.getElementById('banc-reference'),
+        livre: document.getElementById('banc-livre'),
+        rechercheReference: document.getElementById('banc-recherche-reference'),
+        total: document.getElementById('banc-total'),
+        ouvertures: document.getElementById('banc-ouvertures'),
+        revanche: document.getElementById('banc-revanche'),
+        hasard: document.getElementById('banc-hasard'),
+        niveau: document.getElementById('banc-niveau'),
+        temps: document.getElementById('banc-temps'),
+        paralleles: document.getElementById('banc-paralleles'),
+        progres: document.getElementById('banc-progres'),
+        enCours: document.getElementById('banc-en-cours'),
+        resultats: document.getElementById('banc-resultats'),
+        lancer: document.getElementById('bouton-lancer-banc'),
+        pause: document.getElementById('bouton-pause-banc'),
+        arreter: document.getElementById('bouton-arreter-banc'),
+        exporter: document.getElementById('bouton-exporter-banc'),
+        cacherResultats: document.getElementById('bouton-cacher-resultats-banc'),
+        fermer: document.getElementById('bouton-fermer-banc'),
+      },
+      () => baseNextMove
     );
     const boiteReglages = demarrerReglages(
       {
@@ -2561,8 +2690,11 @@
     // orientation n'est marquee resolue (phase 16bis) que sur son "Bravo",
     // comme KAAWA (_pzl_mark_permutation_solved sur full_match) — plus sur une
     // simple victoire, la simplification assumee faute de solveur est levee.
-    const verificationPuzzle =
-      puzzleEnCours &&
+    // Decoche (case Solveur de la boite Puzzles, version de travail) : aucun
+    // verdict, le puzzle se juge seulement gagne ou perdu dans ses tours.
+    const verificationPuzzle = !solveurDesPuzzlesActif()
+      ? puzzleEnCours && { suivre: () => null }
+      : puzzleEnCours &&
       demarrerVerificationPuzzle(
         creerSolveur(),
         puzzleEnCours,
@@ -3055,7 +3187,10 @@
       },
       joueurs,
       NOMS_PAR_DEFAUT,
-      () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps())
+      () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps()),
+      // Saab, 2026-10-08 : « interdire de se servir de l'IA pour les PZL dans
+      // KAAH_Test » — permise seulement dans une version de travail.
+      () => !puzzleEnCours || SUFFIXE_VERSION_KAAH_TEST !== ''
     );
     // Jauge du nombre de parties enregistrees (phase 12ter,
     // interface/jauge-mes-parties.js) : mise a jour au demarrage, puis a
@@ -3384,6 +3519,9 @@
     // permutations.js) : en direct, comme les reglages (phase 22) — jamais un
     // "Valider" a part. Change juste le PROCHAIN tirage, jamais celui deja
     // fait pour la partie en cours.
+    const caseSolveur = document.getElementById('case-solveur-puzzles');
+    caseSolveur.checked = solveurDesPuzzlesActif();
+    caseSolveur.addEventListener('change', () => choisirSolveurDesPuzzles(caseSolveur.checked));
     const casePermutationAleatoire = document.getElementById('case-permutation-aleatoire-puzzles');
     casePermutationAleatoire.checked = permutationAleatoireActive();
     casePermutationAleatoire.addEventListener('change', () => {

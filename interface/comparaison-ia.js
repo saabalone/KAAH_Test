@@ -8,7 +8,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_REGLAGES_IA,
 // LIBELLES_REGLAGES_IA, libelleDateHistoriqueIA (moteur/historique-profil-ia.js),
-// CLES_CASES_IA_V3 (moteur/ia-evaluation-v3.js), lignesComparaisonIA,
+// CLES_CASES_IA_V3 (moteur/ia-evaluation-v3.js), CLES_OPTIONS_IA (moteur/ia-ajouts.js), lignesComparaisonIA,
 // couleurLaPlusForte (moteur/couleurs-profil-ia.js), listerProfilsIA, libelleProfilIA
 // (interface/profils-ia.js), poserCouleurIA (interface/couleurs-ia.js),
 // COLONNES_ESSAI_IA (interface/essai-ia.js) viennent de fichiers charges avant
@@ -19,6 +19,58 @@ const ABREVIATIONS_STYLES_COMPARAISON_IA = { agressif: 'Agr', normal: 'Nor', def
 // Les cases de la version 3 qu'on peut replier (saab : « plie on aura e5 et a1 »).
 const CASES_TOUJOURS_VISIBLES_IA = ['caseE5', 'caseA1'];
 const CASES_REPLIABLES_IA = CLES_CASES_IA_V3.filter((cle) => !CASES_TOUJOURS_VISIBLES_IA.includes(cle));
+// Des en-tetes courts (saab, 2026-10-07 : « les colonnes doivent etre ajustees
+// sur la valeur, pas sur l'en-tete : mettre des abreviations, et l'infobulle du
+// nom complet ») ; le nom complet : LIBELLES_REGLAGES_IA.
+const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
+  version: 'V.',
+  livre: 'Liv.',
+  elagage: 'Él.',
+  style: 'Sty.',
+  gain: 'Gain',
+  gainScore: 'sc.G',
+  perte: 'Perte',
+  perteScore: 'sc.P',
+  centre: 'Ctr',
+  etendueCentre: 'ec',
+  etendueCases: 'ea',
+  etendueReference: 'da',
+  elagageReponse: 'er',
+  elagageSuite: 'es',
+  cohesion: 'Coh.',
+  compacite: 'Cmp.',
+  bordSoi: 'B.m',
+  bordAdverse: 'B.a',
+  sumito: 'Sum.',
+  sumito32: '3/2',
+  sumito31: '3/1',
+  sumito21: '2/1',
+  sumitoVide: 'sv',
+  menaceEjection: 'Men.',
+  fourchette: 'Fch.',
+  piege: 'Pièg.',
+};
+// Les profils coches remontent en tete (saab, 2026-10-08 : « des fichiers
+// eloignes ne sont pas bien comparables : soit les faire remonter, soit coche
+// de ceux qu'on veut ») ; CET appareil retient les coches.
+const CLE_COCHES_COMPARAISON_IA = 'kaah-comparaison-ia-coches';
+
+function lireCochesComparaisonIA() {
+  try {
+    return new Set(JSON.parse(window.localStorage.getItem(CLE_COCHES_COMPARAISON_IA) ?? '[]'));
+  } catch {
+    return new Set();
+  }
+}
+
+function retenirCochesComparaisonIA(coches) {
+  try {
+    window.localStorage.setItem(CLE_COCHES_COMPARAISON_IA, JSON.stringify([...coches]));
+  } catch {
+    // Tant pis : decoches a la prochaine ouverture.
+  }
+}
+
 // Une colonne retrecie a la main reste lisible.
 const LARGEUR_MIN_COLONNE_PX = 24;
 
@@ -48,7 +100,7 @@ function demarrerComparaisonIA(elements, choisir) {
 
   // Les cases d4 a a2 (version 3), repliees ou non en touchant le titre Centre.
   function titreDuCentre() {
-    return `${casesPliees ? '▸' : '▾'} ${COLONNES_ESSAI_IA.centre}`;
+    return `${casesPliees ? '▸' : '▾'} ${ABREVIATIONS_COLONNES_COMPARAISON_IA.centre}`;
   }
   function basculerCases(titre) {
     casesPliees = !casesPliees;
@@ -118,29 +170,52 @@ function demarrerComparaisonIA(elements, choisir) {
     return titre;
   }
 
-  const classeDeColonne = (cle) => (CASES_REPLIABLES_IA.includes(cle) ? 'colonne-case-repliable' : '');
+  // Les ajouts (sv, ec, ea, da) : caches hors d'une version de travail (styles.css, poids-ajout).
+  const classeDeColonne = (cle) => (CASES_REPLIABLES_IA.includes(cle) ? 'colonne-case-repliable' : CLES_OPTIONS_IA.includes(cle) ? 'poids-ajout' : '');
 
   function remplir() {
-    const colonnes = { ...LIBELLES_REGLAGES_IA, elagage: 'Élag.', ...COLONNES_ESSAI_IA };
-    const profils = listerProfilsIA();
+    const colonnes = { ...LIBELLES_REGLAGES_IA, ...COLONNES_ESSAI_IA, ...ABREVIATIONS_COLONNES_COMPARAISON_IA };
+    const coches = lireCochesComparaisonIA();
+    const tousLesProfils = listerProfilsIA();
+    const profils = [...tousLesProfils.filter((profil) => coches.has(profil.nom)), ...tousLesProfils.filter((profil) => !coches.has(profil.nom))];
     const entete = document.createElement('tr');
     const titreDescription = titreDeColonne('description', "▸ Ce qu'il cherche", 'comparaison-titre-pliable');
     titreDescription.title = 'Toucher pour déplier ou replier les descriptions';
     titreDescription.addEventListener('click', () => basculerDescriptions(titreDescription));
     tableau.classList.add('descriptions-pliees');
     tableau.classList.toggle('cases-pliees', casesPliees);
-    const titresReglages = CLES_REGLAGES_IA.map((cle) => titreDeColonne(cle, colonnes[cle], classeDeColonne(cle)));
+    const titresReglages = CLES_REGLAGES_IA.map((cle) => {
+      const titre = titreDeColonne(cle, colonnes[cle], classeDeColonne(cle));
+      titre.title = LIBELLES_REGLAGES_IA[cle];
+      return titre;
+    });
     const titreCentre = titresReglages[CLES_REGLAGES_IA.indexOf('centre')];
     titreCentre.firstChild.textContent = titreDuCentre();
     titreCentre.classList.add('comparaison-titre-pliable');
     titreCentre.title = 'Toucher pour montrer ou cacher les cases d4 à a2 de la version 3 (e5 et a1 restent)';
     titreCentre.addEventListener('click', () => basculerCases(titreCentre));
-    entete.append(titreDeColonne('date', 'Date'), titreDeColonne('profil', 'Profil IA', 'comparaison-profil'), titreDescription, ...titresReglages);
+    const titreCoche = cellule('th', '✓');
+    titreCoche.title = 'Cochez les profils à comparer : ils remontent en tête';
+    entete.append(titreCoche, titreDeColonne('date', 'Date'), titreDeColonne('profil', 'Profil IA', 'comparaison-profil'), titreDescription, ...titresReglages);
     const lignes = lignesComparaisonIA(profils).map((ligne, rang) => {
       const tr = document.createElement('tr');
       const description = cellule('td', ligne.description, 'comparaison-description');
       description.title = ligne.description;
+      const coche = document.createElement('input');
+      coche.type = 'checkbox';
+      coche.checked = coches.has(ligne.nom);
+      coche.title = 'Comparer ce profil : il remonte en tête';
+      coche.addEventListener('click', (evenement) => evenement.stopPropagation());
+      coche.addEventListener('change', () => {
+        if (coche.checked) coches.add(ligne.nom);
+        else coches.delete(ligne.nom);
+        retenirCochesComparaisonIA(coches);
+        remplir();
+      });
+      const caseCoche = cellule('td', '');
+      caseCoche.append(coche);
       tr.append(
+        caseCoche,
         cellule('td', libelleDateHistoriqueIA(ligne.date)),
         cellule('td', libelleProfilIA(profils[rang]), 'comparaison-profil'),
         description,
@@ -152,7 +227,8 @@ function demarrerComparaisonIA(elements, choisir) {
         })
       );
       // Le nom prend la plus forte de ses couleurs, comme partout (de la valeur au fichier).
-      poserCouleurIA(tr.children[1], couleurLaPlusForte(Object.values(ligne.reglages).map((reglage) => reglage.couleur)));
+      if (coche.checked) tr.classList.add('profil-coche-comparaison');
+      poserCouleurIA(tr.children[2], couleurLaPlusForte(Object.values(ligne.reglages).map((reglage) => reglage.couleur)));
       tr.title = 'Toucher pour choisir ce profil dans Réglages';
       tr.addEventListener('click', () => {
         elements.dialogue.close();

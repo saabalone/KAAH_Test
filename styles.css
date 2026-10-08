@@ -5267,3 +5267,224 @@ body:not(.version-de-travail) .poids-ajout,
 body:not(.version-de-travail) .aide-ajouts {
   display: none !important;
 }
+
+/* Profils IA compares : les profils coches, remontes en tete (interface/comparaison-ia.js). */
+.tableau-comparaison-ia tr.profil-coche-comparaison td {
+  background: #26302a;
+}
+
+/* Le banc d'essais (interface/banc-essais.js) : ordinateur seulement (saab,
+   2026-10-08 : « sur tel c'est trop lourd »). En haut les choix sur deux
+   colonnes, en dessous les resultats qui defilent. */
+@media (max-width: 699px) {
+  .banc-ordinateur {
+    display: none !important;
+  }
+}
+
+/* Sur telephone seulement : l'Aide dit que l'ordinateur a le banc en plus. */
+@media (min-width: 700px) {
+  .banc-telephone {
+    display: none !important;
+  }
+}
+
+#dialogue-banc-essais {
+  width: min(1100px, 96vw);
+  max-width: 96vw;
+  height: 92vh;
+}
+
+/* Les choix prennent toute la hauteur tant qu'il n'y a pas de resultats (saab :
+   « elles sont coupees au milieu de la fenetre ») ; ensuite un tiers, les
+   resultats le reste. Chaque colonne defile seule. */
+.dialogue-grand[open] > .banc-reglages {
+  display: flex;
+  gap: 16px;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.banc-colonne {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: auto;
+}
+
+.banc-colonne input[type='text'] {
+  width: 12em;
+}
+
+/* Assez large pour « 20 » ou « 30 » et les fleches du champ (trop etroit, il
+   n'en montrait que le premier chiffre). */
+.banc-colonne input[type='number'] {
+  width: 5em;
+}
+
+/* Un profil par ligne : son nom, puis ses petits champs Niv. et Refl. (vides :
+   ceux par defaut, en gris), alignes en colonnes sous leur titre. */
+.banc-ligne-profil {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.banc-ligne-profil > label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Un reglage : son champ, puis deux petites fleches empilees. */
+.banc-reglage-recherche,
+.banc-recherche-reference {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.banc-recherche-reference {
+  gap: 6px;
+}
+
+.banc-fleches {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+#dialogue-banc-essais button.banc-fleche {
+  width: 16px;
+  min-width: 0;
+  height: calc(var(--hauteur-commande) / 2);
+  min-height: 0;
+  padding: 0;
+  font-size: 8px;
+  line-height: 1;
+  background: #3a3a3a;
+  color: #e4e4e4;
+  border: 1px solid #555555;
+}
+
+.banc-colonne input.banc-champ-recherche {
+  width: 3em;
+  text-align: right;
+}
+
+.banc-entete-profils {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 2px;
+  margin: 0;
+}
+
+.banc-entete-profils span {
+  /* la largeur d'un reglage : son champ et ses deux boutons */
+  width: calc(3em + 18px);
+  text-align: center;
+}
+
+/* Le total des parties, au-dessus du compteur : on sait avant de lancer. */
+.banc-total {
+  margin: 4px 0 0;
+  color: #cc6a00;
+}
+
+.banc-titre {
+  margin: 6px 0 2px;
+  font-weight: bold;
+}
+
+/* Les parties en cours, une ligne chacune (interface/banc-essais-suivi.js). */
+.banc-en-cours {
+  font-size: 12px;
+  max-height: 20vh;
+  overflow: auto;
+}
+
+.banc-en-cours > div:first-child {
+  color: #cc6a00;
+}
+
+.dialogue-grand[open] > .banc-resultats {
+  flex: 2 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dialogue-grand[open] > .banc-resultats:empty,
+#dialogue-banc-essais.banc-resultats-caches > .banc-resultats {
+  display: none;
+}
+
+.banc-tableau {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.banc-tableau th,
+.banc-tableau td {
+  padding: 1px 6px;
+  border-bottom: 1px solid #3a3a3a;
+  text-align: left;
+  vertical-align: top;
+}
+
+.banc-tableau th {
+  color: #9a9a9a;
+  font-weight: normal;
+  vertical-align: bottom; /* les titres sur plusieurs lignes, alignes sur leurs valeurs */
+}
+
+/* Le titre de la reference en jaune, la couleur des versions plus anciennes
+   (.reglage-valide-ancien) : la base a laquelle on compare (saab). */
+.banc-tableau th.banc-reference {
+  color: #d9b62b;
+  font-weight: bold;
+}
+
+/* Les boutons du banc (interface/banc-essais.js) : vert quand il attend qu'on le
+   touche (Lancer), orange quand il est actif — les couleurs de tout KAAH. */
+#dialogue-banc-essais .bouton-attend {
+  background: var(--vert-demande);
+  color: #ffffff;
+  border-color: var(--vert-demande);
+}
+
+#dialogue-banc-essais .bouton-actif {
+  background: #cc6a00;
+  color: #0a0a0a;
+  border-color: #cc6a00;
+}
+
+.banc-change,
+.banc-livre-actif,
+.banc-moins td:first-child {
+  color: #e0832a;
+}
+
+.banc-change {
+  font-weight: bold;
+}
+
+.banc-essai,
+.banc-livre,
+.banc-mieux td:first-child {
+  color: #3fcf7a;
+}
+
+.banc-coups {
+  font-family: monospace;
+  max-width: 700px;
+}
+
+.banc-tour {
+  color: #7a7a7a;
+  margin-left: 4px;
+}
+
+/* La machine interdite dans un puzzle, version publiee (interface/noms-joueurs.js) :
+   grise, mais on peut toucher pour savoir pourquoi. */
+.bouton-interdit {
+  opacity: 0.4;
+}
