@@ -3,12 +3,16 @@
 // chapitres s'ouvrent, ▲ ▼ (ou Entree, Maj+Entree) passent d'un endroit a
 // l'autre, l'endroit courant en orange. Sans tenir compte des accents ni des
 // majuscules (« reflexion » trouve « Réflexion »). Effacer le champ enleve les
-// surlignages et referme ce que la recherche avait ouvert.
+// surlignages et referme ce que la recherche avait ouvert. Selectionner un mot
+// dans le texte (double-clic, ou appui long sur telephone) le cherche aussitot
+// (saab : « au lieu de copier/coller »), l'endroit selectionne devenant le courant.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 const LONGUEUR_MIN_RECHERCHE_AIDE = 2;
 const DELAI_RECHERCHE_AIDE_MS = 200; // attendre la fin de la frappe
+const DELAI_SELECTION_AIDE_MS = 600; // laisser le temps d'ajuster la selection
+const LONGUEUR_MAX_SELECTION_AIDE = 60; // au-dela, ce n'est plus un terme
 
 // Un caractere sans accent, en minuscule — toujours de la meme longueur que
 // l'original (un emoji compte pour deux), pour que les positions du texte
@@ -21,6 +25,13 @@ function caractereSimplifie(caractere) {
 }
 
 const texteSimplifie = (texte) => [...texte].map(caractereSimplifie).join('');
+
+// Les positions de `terme` dans `texte` (tous deux simplifies), sans chevauchement.
+function positionsDuTerme(texte, terme) {
+  const positions = [];
+  for (let position = texte.indexOf(terme); position >= 0; position = texte.indexOf(terme, position + terme.length)) positions.push(position);
+  return positions;
+}
 
 // `elements` : { champ, compte, precedent, suivant, corps }.
 function demarrerRechercheAide(elements) {
@@ -51,9 +62,7 @@ function demarrerRechercheAide(elements) {
 
   // Entoure chaque occurrence de `terme` (deja simplifie) dans `noeud` d'un <mark>.
   function surligner(noeud, terme) {
-    const simple = texteSimplifie(noeud.textContent);
-    const positions = [];
-    for (let position = simple.indexOf(terme); position >= 0; position = simple.indexOf(terme, position + terme.length)) positions.push(position);
+    const positions = positionsDuTerme(texteSimplifie(noeud.textContent), terme);
     // De la fin vers le debut : couper le texte ne decale pas les positions restantes.
     const marks = [];
     for (const position of positions.reverse()) {
@@ -99,7 +108,33 @@ function demarrerRechercheAide(elements) {
     elements.compte.textContent = `${courant + 1} / ${trouves.length}`;
   }
 
-  function chercher() {
+  // Le rang, parmi les endroits ou `terme` sera trouve, de celui ou commence la
+  // selection `plage` : les occurrences des noeuds de texte qui la precedent.
+  function rangDeLaSelection(plage, terme) {
+    let rang = 0;
+    for (const noeud of noeudsDeTexte()) {
+      const avant = noeud === plage.startContainer || plage.startContainer.compareDocumentPosition(noeud) & Node.DOCUMENT_POSITION_PRECEDING;
+      if (!avant) break;
+      const limite = noeud === plage.startContainer ? plage.startOffset : Infinity;
+      rang += positionsDuTerme(texteSimplifie(noeud.textContent), terme).filter((position) => position < limite).length;
+    }
+    return rang;
+  }
+
+  function chercherLaSelection() {
+    const selection = document.getSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+    const plage = selection.getRangeAt(0);
+    if (!elements.corps.contains(plage.commonAncestorContainer)) return;
+    const texte = selection.toString().replace(/s+/g, ' ').trim();
+    if (texte.length < LONGUEUR_MIN_RECHERCHE_AIDE || texte.length > LONGUEUR_MAX_SELECTION_AIDE) return;
+    const rang = rangDeLaSelection(plage, texteSimplifie(texte)); // avant de toucher au texte
+    selection.removeAllRanges(); // sinon elle relancerait la meme recherche
+    elements.champ.value = texte;
+    chercher(rang);
+  }
+
+  function chercher(rangVoulu = 0) {
     effacer();
     const terme = texteSimplifie(elements.champ.value.trim());
     const assez = terme.length >= LONGUEUR_MIN_RECHERCHE_AIDE;
@@ -107,12 +142,17 @@ function demarrerRechercheAide(elements) {
     for (const mark of trouves) ouvrirAutourDe(mark);
     elements.compte.textContent = !assez ? '' : trouves.length === 0 ? 'rien trouvé' : `${trouves.length} trouvé${trouves.length > 1 ? 's' : ''}`;
     elements.precedent.disabled = elements.suivant.disabled = trouves.length === 0;
-    if (trouves.length > 0) aller(0);
+    if (trouves.length > 0) aller(Math.min(rangVoulu, trouves.length - 1));
   }
 
   elements.champ.addEventListener('input', () => {
     clearTimeout(minuterie);
-    minuterie = setTimeout(chercher, DELAI_RECHERCHE_AIDE_MS);
+    minuterie = setTimeout(() => chercher(), DELAI_RECHERCHE_AIDE_MS);
+  });
+  let minuterieSelection = null;
+  document.addEventListener('selectionchange', () => {
+    clearTimeout(minuterieSelection);
+    minuterieSelection = setTimeout(chercherLaSelection, DELAI_SELECTION_AIDE_MS);
   });
   elements.champ.addEventListener('keydown', (evenement) => {
     if (evenement.key !== 'Enter') return;
