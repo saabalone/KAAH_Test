@@ -17,6 +17,11 @@
 // (ia-evaluation-v4.js, peutAvancer) — 4 ou 5 billes en ligne n'avancent pas
 // dans leur axe (saab : « elles n'iront au mieux que jusqu'a la couronne 3 ou 4 »).
 //
+// L'ajout « ep » (etendueProfondeur, saab, 2026-10-08 : « regler la profondeur,
+// car 4 c'est peut-etre trop, et voir sur 1 ca pourrait etre mieux ») : jusqu'a
+// combien de coups une case compte, de 1 a PROFONDEUR_D_ETENDUE_MAX ; absent (ou
+// 0), 4 comme avant lui.
+//
 // L'ajout « da » (etendueReference) multiplie l'etendue d'un camp par
 // reference / billes adverses (saab : « si on divise par le camp adverse, ca
 // pourrait donner plus de poids pour le plus nombreux ») : 1 a 14 contre 14.
@@ -32,15 +37,22 @@
 // (ia-evaluation-v3.js), peutAvancer (ia-evaluation-v4.js) viennent de
 // fichiers charges avant celui-ci.
 
-const COUPS_D_ETENDUE_MAX = 4;
+const PROFONDEUR_D_ETENDUE_PAR_DEFAUT = 4;
+const PROFONDEUR_D_ETENDUE_MAX = 6;
 
-// En combien de coups `camp` atteint chaque case (COUPS_D_ETENDUE_MAX au plus) :
+// La profondeur de l'etendue que `poids` demande (ep), en coups entiers.
+function profondeurDeLEtendue(poids) {
+  const profondeur = Math.round(poids.etendueProfondeur ?? 0);
+  return profondeur >= 1 ? Math.min(profondeur, PROFONDEUR_D_ETENDUE_MAX) : PROFONDEUR_D_ETENDUE_PAR_DEFAUT;
+}
+
+// En combien de coups `camp` atteint chaque case (`profondeur` au plus) :
 // { notation: coups } — 0 pour ses billes.
-function distancesDuCamp(couleurs, camp) {
+function distancesDuCamp(couleurs, camp, profondeur = PROFONDEUR_D_ETENDUE_PAR_DEFAUT) {
   const distances = {};
   let vague = Object.keys(couleurs).filter((notation) => couleurs[notation] === camp);
   for (const notation of vague) distances[notation] = 0;
-  for (let coups = 1; coups <= COUPS_D_ETENDUE_MAX && vague.length > 0; coups++) {
+  for (let coups = 1; coups <= profondeur && vague.length > 0; coups++) {
     const suivante = [];
     for (const ici of vague) {
       DIRECTIONS.forEach((_, index) => {
@@ -55,12 +67,12 @@ function distancesDuCamp(couleurs, camp) {
   return distances;
 }
 
-// Les cases vides de chaque camp, comptees par coups (1 a 4) et par classe
-// (l'ordre de CLES_CASES_IA_V3) : { noir: [[...9], ...4], blanc: ... }.
-function casesDeLEtendue(couleurs) {
-  const vide = () => Array.from({ length: COUPS_D_ETENDUE_MAX }, () => CLES_CASES_IA_V3.map(() => 0));
+// Les cases vides de chaque camp, comptees par coups (1 a `profondeur`) et par
+// classe (l'ordre de CLES_CASES_IA_V3) : { noir: [[...9], ...profondeur], blanc: ... }.
+function casesDeLEtendue(couleurs, profondeur = PROFONDEUR_D_ETENDUE_PAR_DEFAUT) {
+  const vide = () => Array.from({ length: profondeur }, () => CLES_CASES_IA_V3.map(() => 0));
   const comptes = { noir: vide(), blanc: vide() };
-  const distances = { noir: distancesDuCamp(couleurs, 'noir'), blanc: distancesDuCamp(couleurs, 'blanc') };
+  const distances = { noir: distancesDuCamp(couleurs, 'noir', profondeur), blanc: distancesDuCamp(couleurs, 'blanc', profondeur) };
   for (const notation of Object.keys(CASES_VOISINES_IA)) {
     if (couleurs[notation] !== undefined) continue;
     const noir = distances.noir[notation] ?? Infinity;
@@ -77,7 +89,7 @@ function casesDeLEtendue(couleurs) {
 function etendueDuCamp(comptes, poids) {
   let centre = 0;
   let cases = 0;
-  for (let coups = 1; coups <= COUPS_D_ETENDUE_MAX; coups++) {
+  for (let coups = 1; coups <= comptes.length; coups++) {
     const parClasse = comptes[coups - 1];
     centre += parClasse.reduce((somme, nombre) => somme + nombre, 0) / coups;
     CLES_CASES_IA_V3.forEach((cle, classe) => {
@@ -93,7 +105,7 @@ function etendueDuCamp(comptes, poids) {
 function termesDeLEtendue(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   const lui = couleurAdverse(camp);
-  const comptes = casesDeLEtendue(couleurs);
+  const comptes = casesDeLEtendue(couleurs, profondeurDeLEtendue(poids));
   const billes = (couleur) => Object.values(couleurs).filter((autre) => autre === couleur).length;
   // « da » a 0 ne change rien, comme absent (solveur/kai-plus.cpp).
   const facteur = (couleur) => (poids.etendueReference ? poids.etendueReference / billes(couleurAdverse(couleur)) : 1);

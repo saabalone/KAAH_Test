@@ -20,13 +20,15 @@ const MILLISECONDES_PAR_SECONDE_BANC = 1000;
 // 2026-10-08 : « il faudrait voir qu'il cherche, sinon on croit que c'est
 // bloque ») recoit a chaque coup cherche { coup, camp ('référence' | 'essai'),
 // debut (ms) }, puis a chaque profondeur finie { profondeur, evaluation }.
-// Renvoie la partie (`tache` et { fin, coups, livre, tours, score,
-// secondesEssai }) ou null si elle a ete arretee.
+// Renvoie la partie (`tache` et { fin, etats (chaque position, la derniere
+// comprise), coups, livre, tours, score, secondesEssai }) ou null si elle a ete
+// arretee.
 async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, base, controle, suivi = () => {}) {
   const livre = base?.size > 0 ? base : null;
   const hasard = hasardDuBanc(tache.graine);
   let etat = { ...lirePosition(POSITION_DEPART_BANC), joueurAuTrait: 'noir' };
   const historique = [ecrirePosition(etat)];
+  const etats = [etat]; // pour la recolte des puzzles (interface/banc-essais-puzzles.js)
   const coups = [];
   const dansLivre = [];
   let coupsDeLaReference = 0;
@@ -64,7 +66,8 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     coups.push(textesDeLaSequence(etat, [coup])[0]);
     etat = appliquerCoup(etat, coup).etat;
     historique.push(ecrirePosition(etat));
+    etats.push(etat);
     fin = finDeLaPartieDuBanc(etat, historique, coups.length);
   }
-  return { ...tache, fin, coups, livre: dansLivre, tours: Math.ceil(coups.length / 2), score: `-${etat.billesEjecteesNoires}-${etat.billesEjecteesBlanches}`, secondesEssai };
+  return { ...tache, fin, etats, coups, livre: dansLivre, tours: Math.ceil(coups.length / 2), score: `-${etat.billesEjecteesNoires}-${etat.billesEjecteesBlanches}`, secondesEssai };
 }

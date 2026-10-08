@@ -18,18 +18,19 @@ const dureeDuBanc = (millisecondes) => {
   return minutes > 0 ? `${minutes} min ${String(secondes % SECONDES_PAR_MINUTE_BANC).padStart(2, '0')} s` : `${secondes} s`;
 };
 
-// `element` : la zone ou ecrire ; `essais` : leurs noms ; `estEnPause()`.
-// Renvoie { commencer(machine, tache, numero, total), suivi(machine) -> la
-// fonction a passer a jouerUnePartieDuBanc, finir(machine), arreter() }.
-function creerSuiviDuBanc(element, essais, estEnPause) {
+// `element` : la zone ou ecrire ; `estEnPause()`. Renvoie { commencer(machine,
+// libelle) — « Partie 3/40 — 1. Normal v5el en Noir, ouverture 2 », ou un puzzle —,
+// suivi(machine) -> la fonction a passer a jouerUnePartieDuBanc (ou a un puzzle,
+// ou a la recolte : { etape }), finir(machine), arreter() }.
+function creerSuiviDuBanc(element, estEnPause) {
   const lancement = performance.now();
-  const parties = new Map(); // machine -> { tache, numero, total, coup, camp, debut, profondeur, evaluation }
+  const parties = new Map(); // machine -> { libelle, etape, coup, camp, debut, profondeur, evaluation }
 
-  function ligne({ tache, numero, total, coup, camp, debut, profondeur, evaluation }) {
-    const qui = `${tache.essai + 1}. ${essais[tache.essai].nom} en ${tache.referenceNoir ? 'Blanc' : 'Noir'}, ouverture ${tache.ouverture}`;
-    if (!coup) return `Partie ${numero}/${total} — ${qui} : le livre…`;
+  function ligne({ libelle, etape, coup, camp, debut, profondeur, evaluation }) {
+    if (etape) return `${libelle} : ${etape}`;
+    if (!coup) return `${libelle} : le livre…`;
     const profondeurFinie = profondeur ? `profondeur ${profondeur} finie (${libelleEvaluation(evaluation)})` : 'cherche…';
-    return `Partie ${numero}/${total} — ${qui} : tour ${Math.ceil(coup / 2)}, ${camp} : ${profondeurFinie}, ${dureeDuBanc(performance.now() - debut)}`;
+    return `${libelle} : tour ${Math.ceil(coup / 2)}, ${camp} : ${profondeurFinie}, ${dureeDuBanc(performance.now() - debut)}`;
   }
 
   function afficher() {
@@ -46,8 +47,8 @@ function creerSuiviDuBanc(element, essais, estEnPause) {
   const minuterie = setInterval(afficher, RAFRAICHISSEMENT_SUIVI_BANC_MS);
   afficher();
   return {
-    commencer(machine, tache, numero, total) {
-      parties.set(machine, { tache, numero, total, coup: null });
+    commencer(machine, libelle) {
+      parties.set(machine, { libelle, coup: null });
       afficher();
     },
     suivi: (machine) => (nouveau) => {

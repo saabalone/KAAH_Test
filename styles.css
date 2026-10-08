@@ -5424,6 +5424,27 @@ body:not(.version-de-travail) .aide-ajouts {
   text-align: center;
 }
 
+/* Parties ou puzzles (interface/banc-essais-choix.js) : chaque mode ne montre que
+   ses reglages ; les boutons de la recolte, seulement quand il y en a une. */
+#dialogue-banc-essais:not(.banc-en-puzzles) .banc-mode-puzzles,
+#dialogue-banc-essais.banc-en-puzzles .banc-mode-parties,
+#dialogue-banc-essais:not(.banc-a-recolte) .banc-avec-recolte {
+  display: none;
+}
+
+.banc-choix-mode {
+  display: flex;
+  gap: 16px;
+}
+
+.banc-tableau .banc-rate {
+  color: #e05a5a;
+}
+
+.banc-tableau .banc-moins-sur {
+  color: #d9b62b;
+}
+
 /* Le total des parties, au-dessus du compteur : on sait avant de lancer. */
 .banc-total {
   margin: 4px 0 0;

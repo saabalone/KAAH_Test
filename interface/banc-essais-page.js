@@ -88,7 +88,7 @@ function partiesHtmlDuBanc(essais, parties) {
   const gagnant = (p) => (p.fin.startsWith('nulle') ? p.fin : gagnee(p) ? `essai (${essaiNoir(p) ? 'Noir' : 'Blanc'})` : `référence (${essaiNoir(p) ? 'Blanc' : 'Noir'})`);
   const titres = ['Ouverture', "L'essai joue", 'Gagnant', 'Score', 'Tours'];
   const largeur = largeurCommune(titres, triees.flatMap((p) => [p.ouverture, essaiNoir(p) ? 'Noir' : 'Blanc', gagnant(p), p.score, p.tours]));
-  const lignes = triees.map((p, rang) => {
+  const lignes = triees.map((p) => {
     const texteGagnant = gagnee(p) ? `<b class="banc-essai">${echapperBanc(gagnant(p))}</b>` : echapperBanc(gagnant(p));
     const coups = p.coups
       .map((coup, i) => {
@@ -97,13 +97,14 @@ function partiesHtmlDuBanc(essais, parties) {
         return i % 2 === 0 ? `<span class="banc-tour">${i / 2 + 1}.</span>${texte}` : texte;
       })
       .join(' ');
-    return `<tr><td>${rang + 1}</td><td>${p.essai + 1}. ${echapperBanc(essais[p.essai].nom)}</td><td>${p.ouverture}</td><td>${essaiNoir(p) ? 'Noir' : 'Blanc'}</td><td>${texteGagnant}</td><td>${p.score}</td><td>${p.tours}</td><td class="banc-coups">${coups}</td></tr>`;
+    return `<tr><td>${p.numero}</td><td>${p.essai + 1}. ${echapperBanc(essais[p.essai].nom)}</td><td>${p.ouverture}</td><td>${essaiNoir(p) ? 'Noir' : 'Blanc'}</td><td>${texteGagnant}</td><td>${p.score}</td><td>${p.tours}</td><td class="banc-coups">${coups}</td></tr>`;
   });
   return `<table class="banc-tableau"><tr><th>N°</th><th>Essai</th>${titres.map((titre) => enteteBanc(titre, largeur)).join('')}<th>Séquence</th></tr>${lignes.join('')}</table>`;
 }
 
-// Le contenu : { reference, essais, parties, resume, parametres }.
-function contenuDuBanc({ reference, essais, parties, resume, parametres }) {
+// Le contenu : { reference, essais, parties, resume, parametres, recoltes (null :
+// pas de recolte ; interface/banc-essais-page-puzzles.js, recolteHtml) }.
+function contenuDuBanc({ reference, essais, parties, resume, parametres, recoltes = null }) {
   const { ouvertures, revanche, hasard, livre } = parametres;
   const livreDeLaReference = livre
     ? `La référence se sert du livre (ses ${hasard} premiers coups au hasard parmi ceux du livre)`
@@ -111,18 +112,19 @@ function contenuDuBanc({ reference, essais, parties, resume, parametres }) {
   return `<p class="note-reglages">KAI++ (niveau et réflexion de chacun dans les réglages complets), Marguerite belge, ${ouvertures} ouvertures${revanche ? ' × revanche' : ''}. ${livreDeLaReference}, l'essai jamais.</p>
 <h3>Les réglages complets (en orange : ce qui diffère de la référence)</h3>${reglagesCompletsDuBanc(reference, essais)}
 <h3>Résumé</h3>${resumeHtmlDuBanc(essais, resume, parametres)}
-<h3>Les parties</h3><p class="note-reglages">Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre.</p>${partiesHtmlDuBanc(essais, parties)}`;
+<h3>Les parties</h3><p class="note-reglages">Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre.</p>${partiesHtmlDuBanc(essais, parties)}${recoltes ? recolteHtml(recoltes, parametres.recolte.toursMini) : ''}`;
 }
 
-// La page exportee, lisible seule (ses couleurs comprises).
+// La page exportee, lisible seule (ses couleurs comprises) : `html`, le contenu
+// affiche (contenuDuBanc ou contenuDesPuzzles, interface/banc-essais-page-puzzles.js).
 const STYLE_PAGE_BANC = `body { background: #1e1e1e; color: #e4e4e4; font: 13px sans-serif; margin: 12px; }
 h1 { font-size: 18px; } h3 { font-size: 15px; margin-top: 18px; } .note-reglages { color: #c4c4c4; }
 table { border-collapse: collapse; } th, td { padding: 2px 6px; border-bottom: 1px solid #3a3a3a; text-align: left; vertical-align: top; }
 th { color: #9a9a9a; font-weight: normal; vertical-align: bottom; } th.banc-reference { color: #d9b62b; font-weight: bold; } .banc-change { color: #e0832a; font-weight: bold; }
 .banc-mieux td:first-child { color: #3fcf7a; } .banc-moins td:first-child { color: #e0832a; } .banc-essai { color: #3fcf7a; }
 .banc-coups { font-family: monospace; font-size: 12px; max-width: 900px; } .banc-tour { color: #7a7a7a; margin-left: 4px; }
-.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; }`;
+.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }`;
 
-function pageDuBanc(contenu, titre) {
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${echapperBanc(titre)}</title><style>${STYLE_PAGE_BANC}</style></head><body><h1>${echapperBanc(titre)}</h1>${contenuDuBanc(contenu)}</body></html>`;
+function pageDuBanc(html, titre) {
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${echapperBanc(titre)}</title><style>${STYLE_PAGE_BANC}</style></head><body><h1>${echapperBanc(titre)}</h1>${html}</body></html>`;
 }

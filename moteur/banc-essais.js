@@ -70,14 +70,14 @@ function variantesDuBanc(profils, variations) {
 }
 
 // Les parties a jouer : par essai, une par ouverture (et sa revanche) —
-// { essai, ouverture, graine, referenceNoir }. Meme ouverture, meme graine, d'un
+// { numero (a partir de 1), essai, ouverture, graine, referenceNoir }. Meme ouverture, meme graine, d'un
 // essai a l'autre : on compare les essais sur les memes debuts.
 function partiesDuBanc(nombreDEssais, { ouvertures, revanche }) {
   const parties = [];
   for (let essai = 0; essai < nombreDEssais; essai++) {
     for (let ouverture = 1; ouverture <= ouvertures; ouverture++) {
       const graine = GRAINE_PREMIERE_OUVERTURE + (ouverture - 1) * PAS_DES_GRAINES;
-      for (const referenceNoir of revanche ? [true, false] : [true]) parties.push({ essai, ouverture, graine, referenceNoir });
+      for (const referenceNoir of revanche ? [true, false] : [true]) parties.push({ numero: parties.length + 1, essai, ouverture, graine, referenceNoir });
     }
   }
   return parties;

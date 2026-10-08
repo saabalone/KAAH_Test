@@ -31,6 +31,7 @@ const CLES_REGLAGES_IA = [
   'etendueCentre',
   'etendueCases',
   'etendueReference',
+  'etendueProfondeur',
   // L'elagage par reponse, ajout er (solveur/kai-plus.cpp, valeur_pour_l_elagage).
   'elagageReponse',
   'elagageSuite',
@@ -67,6 +68,7 @@ const LIBELLES_REGLAGES_IA = {
   etendueCentre: 'Étendue (ec)',
   etendueCases: 'Étendue des cases (ea)',
   etendueReference: 'Étendue ÷ adverses (da)',
+  etendueProfondeur: 'Étendue, profondeur en coups (ep)',
   elagageReponse: 'Élagage par réponse (er)',
   elagageSuite: 'Élagage par réponse, coups suivants (es)',
   cohesion: 'Cohésion',

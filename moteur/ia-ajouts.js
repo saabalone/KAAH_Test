@@ -11,12 +11,13 @@
 //     par une courte recherche de er demi-coups (2 : apres la reponse adverse ;
 //     3 : et apres son coup suivant) — saab, 2026-10-08 ;
 //   - es : le meme classement (apres la reponse adverse) pour les coups suivants
-//     de celui qui cherche, jusqu'a cette distance de la racine (2 : son coup d'apres).
-// `terme` : il a sa colonne (Essai, panneaux) ; da n'en a pas, il change ec et ea.
+//     de celui qui cherche, jusqu'a cette distance de la racine (2 : son coup d'apres) ;
+//   - ep : la profondeur de l'etendue, en coups (absente : 4) — saab, 2026-10-08.
+// `terme` : il a sa colonne (Essai, panneaux) ; da et ep n'en ont pas, ils changent ec et ea.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide
-// (ia-sumito-vide.js), termesDeLEtendue (ia-etendue.js) viennent de fichiers
+// (ia-sumito-vide.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js) viennent de fichiers
 // charges avant celui-ci.
 
 const OPTIONS_IA = [
@@ -26,6 +27,7 @@ const OPTIONS_IA = [
   { cle: 'etendueReference', suffixe: 'da', terme: false },
   { cle: 'elagageReponse', suffixe: 'er', terme: false },
   { cle: 'elagageSuite', suffixe: 'es', terme: false },
+  { cle: 'etendueProfondeur', suffixe: 'ep', terme: false },
 ];
 const CLES_OPTIONS_IA = OPTIONS_IA.map((option) => option.cle);
 const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((option) => option.cle);
@@ -34,7 +36,8 @@ const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((
 // sont juste une base a ameliorer ») : le sumito vide annule un sumito de la
 // version 2 ; une case de l'etendue vaut le Centre du style ; la moitie de la
 // valeur d'une case ; 14 billes de reference (1 au debut de la partie) ; les
-// premiers coups classes apres la reponse adverse et son propre coup suivant.
+// premiers coups classes apres la reponse adverse et son propre coup suivant ;
+// l'etendue sur 4 coups, comme sans ep.
 const PART_DES_CASES_ETENDUE = 0.5;
 const BILLES_DE_REFERENCE_ETENDUE = 14;
 const DISTANCE_ELAGAGE_PAR_REPONSE = 3;
@@ -42,7 +45,7 @@ const DISTANCE_ELAGAGE_SUITE = 2;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT },
   ])
 );
 

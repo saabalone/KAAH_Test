@@ -9,7 +9,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 const PHASE_KAAH_TEST = 32;
-const VERSION_KAAH_TEST = 22;
+const VERSION_KAAH_TEST = 23;
 // Les versions de travail entre deux publications (saab, 2026-10-02 : on ne
 // publie sur KAAH_Test que quand il le dit) : bis, ter... — vide pour publier
 // (preparer-kaah-test.js le refuse sinon). Le nom change quand meme : un
@@ -19,4 +19,4 @@ const NOM_VERSION_KAAH_TEST = `KAAH_Test_ph${PHASE_KAAH_TEST}_v${VERSION_KAAH_TE
 // Ce que pese la version a charger, en Mo arrondis au-dessus (saab : « 7 Mo
 // pour 6,5 ») : calcule par preparer-kaah-test.js dans la copie publiee,
 // annonce par la question de mise a jour (interface/mise-a-jour.js).
-const TAILLE_VERSION_KAAH_MO = 4;
+const TAILLE_VERSION_KAAH_MO = 5;

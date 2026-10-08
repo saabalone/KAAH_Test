@@ -726,6 +726,7 @@
         <li><b>Contre</b> : la référence (Normal v4el au départ). Case <b>avec le livre</b> : elle prend ses coups dans le livre d'ouvertures tant qu'elle peut ; décochée, seulement ses premiers coups au hasard (ci-dessous), puis elle cherche elle-même. Les profils essayés ne se servent jamais du livre.</li>
         <li><b>Les parties</b> : le nombre d'<b>ouvertures</b> (chaque ouverture : la référence joue ses <b>premiers coups au hasard</b> parmi ceux du livre, 6 au départ, pour que les parties ne se ressemblent pas ; les mêmes ouvertures pour chaque essai, pour comparer à égalité) ; <b>Revanche</b> : chaque ouverture jouée des deux couleurs ; le <b>niveau</b> et la <b>réflexion max</b> par défaut de KAI++ ; combien de parties <b>en même temps</b> (une par cœur du processeur, au départ tous sauf un). Depuis la Marguerite belge ; nulle à la 3e répétition d'une position ou après 150 tours. Au-dessus du compteur, en orange, le <b>total</b> : essais × ouvertures × 2 (revanche) = parties, recalculé à chaque changement.</li>
         <li><b>Lancer</b> (vert ; orange pendant la série) : en orange, le temps écoulé depuis le lancement, puis une ligne par partie en cours — laquelle, son tour, qui cherche (l'essai ou la référence), la dernière profondeur finie et son évaluation, et depuis combien de secondes ; les secondes avancent toutes seules : si elles bougent, rien n'est bloqué. Le tableau se remplit au fil des parties —d'abord les <b>réglages complets</b> de la référence (titre en jaune) et de chaque essai côte à côte, niveau et réflexion compris (en orange ce qui diffère de la référence), puis le <b>résumé</b> (parties gagnées par l'essai, en Noir et en Blanc, nulles, tours et temps moyens ; le nom en vert s'il en gagne plus de la moitié, en orange s'il en perd plus), puis <b>chaque partie</b> avec son score et sa séquence (un coup du livre en orange quand la référence le joue, en vert quand l'essai le trouve tout seul).<br><b>Pause</b> / <b>Reprendre</b>, <b>Arrêter</b> (garde les parties finies) ; <b>Exporter</b> télécharge le tableau en page <code>banc_essais_….html</code>, à ouvrir dans le navigateur. <b>Cacher les résultats</b> : les choix reprennent toute la hauteur pour préparer une nouvelle série (le tableau revient au prochain Lancer, ou par <b>Montrer les résultats</b>). Fermer la boîte n'arrête pas les parties : rouvrez-la pour voir où elles en sont.</li>
+        <li><b>Ce qu'on essaie : Parties ou Puzzles.</b><br><b>Récolter les puzzles des parties</b> (en Parties) : après chaque partie gagnée, KAI++ remonte depuis la fin et garde la plus ancienne position d'où le gagnant force la victoire, sans élagage, jusqu'à 3 tours ; plus court que <b>Tours mini</b>, elle n'est pas gardée. Chaque puzzle est nommé comme ceux de KAAWA, avec le numéro de sa partie : <code>PZL_M_2610081900_(-5-2)xtr3x_p12</code> (Noir commence toujours : si c'est Blanc qui doit jouer, les camps sont inversés). <b>Exporter les puzzles</b> les télécharge (<code>KAA_PZL_banc_….json</code>, que Puzzles > Importer reprend) ; <b>Ajouter à My</b> les range avec vos puzzles.<br><b>Puzzles</b> : ceux de KAAWA et/ou les vôtres (My), entre <b>Tours mini</b> et <b>Tours maxi</b>. Chaque profil coché attaque avec son niveau et sa réflexion ; la référence défend, sans élagage, en voyant jusqu'à 6 demi-coups (exact jusqu'à 3 tours), et choisit la parade qui retarde le plus la défaite. Résolu : gagné dans les tours du puzzle. Deux cases, à cocher si besoin : <b>Défense jusqu'à la fin du puzzle</b> (exacte partout, sans limite de temps : plus lente sur les puzzles de 4 tours où Blanc gagne) ; <b>Vérifier par le solveur</b> (un puzzle gagné ne compte que si le solveur dit « Bravo » : chaque coup de l'attaquant gardait la victoire forcée ; ≈ gagné mais pas la solution, ? trop long à vérifier). Le tableau donne les résolus de chaque profil (en tout et par nombre de tours), puis chaque puzzle avec ✓ ou ✗ par profil (les coups joués en infobulle).</li>
         <li>Une série est longue : 20 ouvertures × revanche = 40 parties par essai, souvent plusieurs minutes chacune au niveau 5 avec 30 s. Pour un premier coup d'œil, baissez le niveau et la réflexion.</li>
       </ul>
     </details>
@@ -1066,6 +1067,7 @@
         <label class="ligne-couleur poids-ajout" title="Ajout ec, à toute version : chaque case vide va au camp qui l'atteint en le moins de coups (4 au plus, les vraies règles, à égalité à personne) et vaut ce poids divisé par ses coups">Étendue (ec) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueCentre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout ea, à toute version (version 3 et plus : la valeur des cases) : la même étendue, chaque case comptant cette part de sa valeur (e5 … a1), divisée par ses coups">Étendue des cases (ea) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueCases" class="nombre-reglage" type="number" step="0.05" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout da : l'étendue de chaque camp (ec, ea) multipliée par ce nombre divisé par les billes adverses — 14 : rien ne change au début, le plus nombreux pèse plus ensuite">Étendue ÷ adverses (da) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueReference" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout ep : jusqu'à combien de coups une case vide compte dans l'étendue (ec, ea), de 1 à 6 — 4 sans cet ajout ; 1 : seulement les cases voisines atteignables">Étendue, profondeur (ep) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-etendueProfondeur" class="nombre-reglage" type="number" step="1" min="1" max="6" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout er (KAI++) : l'élagage classe les premiers coups par une courte recherche de ce nombre de demi-coups (2 : après la réponse de l'adversaire ; 3 : et après son coup suivant), au lieu de la position juste après eux — garde les coups qui préparent une éjection">Élagage par réponse (er) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageReponse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout es (KAI++) : les coups suivants de la machine qui cherche (son coup d'après : 2 ; et le suivant : 4) sont classés après la réponse de l'adversaire, comme er pour les premiers coups. Plus lent">Élagage, coups suivants (es) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageSuite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1163,22 +1165,43 @@
         <div id="banc-profils" class="banc-profils"></div>
       </div>
       <div class="banc-colonne">
+        <!-- Parties ou puzzles (saab, 2026-10-08 : l'etape 2, interface/banc-essais-puzzles.js). -->
+        <p class="banc-titre">Ce qu'on essaie</p>
+        <div class="ligne-reglage banc-choix-mode">
+          <label><input type="radio" name="banc-mode" value="parties" checked /> Parties</label>
+          <label><input type="radio" name="banc-mode" value="puzzles" /> Puzzles</label>
+        </div>
         <p class="banc-titre">Faire varier (facultatif)</p>
         <p class="note-reglages">Des valeurs séparées par des virgules ; « sans » enlève le poids. « Cases (e5 à a1) × » multiplie les 9 cases ensemble (ex. 0,5, 1, 2). Deux poids : toutes les combinaisons.</p>
         <label class="ligne-reglage"><select id="banc-cle-1"></select> <input id="banc-valeurs-1" type="text" placeholder="ex. 0, 40, 60" /></label>
         <p id="banc-origine-1" class="note-reglages banc-origine"></p>
         <label class="ligne-reglage"><select id="banc-cle-2"></select> <input id="banc-valeurs-2" type="text" placeholder="ex. sans, 20" /></label>
         <p id="banc-origine-2" class="note-reglages banc-origine"></p>
-        <p class="banc-titre">Contre</p>
+        <p class="banc-titre banc-mode-parties">Contre</p>
+        <p class="banc-titre banc-mode-puzzles">Défense</p>
+        <p class="note-reglages banc-mode-puzzles">La référence défend chaque puzzle, sans élagage, en voyant jusqu'à 6 demi-coups (au plus jusqu'à la fin du puzzle ; toujours, avec « Défense jusqu'à la fin ») : la défense qui retarde le plus la défaite.</p>
         <div class="ligne-reglage banc-ligne-profil"><label>Référence <select id="banc-reference"></select></label><span id="banc-recherche-reference" class="banc-recherche-reference"></span></div>
-        <label class="ligne-reglage" title="Décochée : la référence ne prend dans le livre que ses coups au hasard (pour varier les ouvertures), ensuite elle cherche elle-même"><input id="banc-livre" type="checkbox" checked /> avec le livre</label>
-        <p class="banc-titre">Les parties</p>
-        <label class="ligne-reglage">Ouvertures <input id="banc-ouvertures" type="number" min="1" max="100" value="20" /></label>
-        <label class="ligne-reglage"><input id="banc-revanche" type="checkbox" checked /> Revanche (chaque ouverture jouée des deux couleurs)</label>
-        <label class="ligne-reglage">Coups au hasard dans le livre (référence) <input id="banc-hasard" type="number" min="0" max="20" value="6" /></label>
+        <div class="banc-mode-parties">
+          <label class="ligne-reglage" title="Décochée : la référence ne prend dans le livre que ses coups au hasard (pour varier les ouvertures), ensuite elle cherche elle-même"><input id="banc-livre" type="checkbox" checked /> avec le livre</label>
+          <p class="banc-titre">Les parties</p>
+          <label class="ligne-reglage">Ouvertures <input id="banc-ouvertures" type="number" min="1" max="100" value="20" /></label>
+          <label class="ligne-reglage"><input id="banc-revanche" type="checkbox" checked /> Revanche (chaque ouverture jouée des deux couleurs)</label>
+          <label class="ligne-reglage">Coups au hasard dans le livre (référence) <input id="banc-hasard" type="number" min="0" max="20" value="6" /></label>
+          <label class="ligne-reglage" title="Après chaque partie gagnée : en remontant depuis la fin, la plus ancienne position d'où le gagnant force la victoire (3 tours au plus), devient un puzzle"><input id="banc-recolte" type="checkbox" /> Récolter les puzzles des parties</label>
+          <label class="ligne-reglage" title="Un puzzle plus court n'est pas gardé">Tours mini d'un puzzle récolté <input id="banc-recolte-tours-min" type="number" min="1" max="3" value="2" /></label>
+        </div>
+        <div class="banc-mode-puzzles">
+          <p class="banc-titre">Les puzzles</p>
+          <label class="ligne-reglage"><input id="banc-puzzles-kaawa" type="checkbox" checked /> Ceux de KAAWA</label>
+          <label class="ligne-reglage"><input id="banc-puzzles-my" type="checkbox" checked /> Les miens (My, récoltes ajoutées comprises)</label>
+          <label class="ligne-reglage">Tours mini <input id="banc-puzzles-tours-min" type="number" min="1" max="20" value="1" /></label>
+          <label class="ligne-reglage">Tours maxi <input id="banc-puzzles-tours-max" type="number" min="1" max="20" value="4" /></label>
+          <label class="ligne-reglage" title="Décochée : la défense voit 6 demi-coups au plus (le premier coup des puzzles de 4 tours où Blanc gagne en demande 8). Cochée : toujours jusqu'à la fin du puzzle, sans limite de temps — exacte, plus lente"><input id="banc-defense-complete" type="checkbox" /> Défense jusqu'à la fin du puzzle (exacte)</label>
+          <label class="ligne-reglage" title="Chaque puzzle gagné est vérifié par le solveur, comme dans la boîte Puzzles : il ne compte que si chaque coup de l'attaquant gardait la victoire forcée (« Bravo »)"><input id="banc-solveur" type="checkbox" /> Vérifier par le solveur</label>
+        </div>
         <label class="ligne-reglage" title="Pour chaque profil dont le petit champ Niv. est vide">Niveau par défaut <input id="banc-niveau" type="number" min="1" max="8" value="5" /></label>
         <label class="ligne-reglage" title="Pour chaque profil dont le petit champ Réfl. est vide">Réflexion max par défaut (s) <input id="banc-temps" type="number" min="0.5" max="60" step="0.5" value="30" /></label>
-        <label class="ligne-reglage">Parties en même temps <input id="banc-paralleles" type="number" min="1" max="32" /></label>
+        <label class="ligne-reglage">Parties ou puzzles en même temps <input id="banc-paralleles" type="number" min="1" max="32" /></label>
       </div>
     </div>
     <p id="banc-total" class="banc-total"></p>
@@ -1190,6 +1213,8 @@
       <button id="bouton-pause-banc" class="bouton-dialogue" type="button" disabled>Pause</button>
       <button id="bouton-arreter-banc" class="bouton-dialogue" type="button" disabled>Arrêter</button>
       <button id="bouton-exporter-banc" class="bouton-dialogue" type="button" disabled>Exporter</button>
+      <button id="bouton-exporter-recolte-banc" class="bouton-dialogue banc-avec-recolte" type="button" title="Les puzzles récoltés, dans un fichier KAA_PZL au format de KAAWA (Puzzles > Importer le reprend)">Exporter les puzzles</button>
+      <button id="bouton-ajouter-recolte-banc" class="bouton-dialogue banc-avec-recolte" type="button" title="Les puzzles récoltés, ajoutés à vos puzzles My (un nom déjà pris est numéroté)">Ajouter à My</button>
       <button id="bouton-cacher-resultats-banc" class="bouton-dialogue" type="button" disabled title="Cacher le tableau des résultats pour préparer une nouvelle série (il revient au prochain Lancer, Exporter le garde)">Cacher les résultats</button>
       <button id="bouton-fermer-banc" class="bouton-dialogue" type="button">Fermer</button>
     </div>
@@ -1879,9 +1904,12 @@
   <script src="./solveur/kai-plus.js"></script>
   <script src="./interface/kai-plus.js"></script>
   <script src="./moteur/banc-essais.js"></script>
+  <script src="./moteur/banc-puzzles.js"></script>
   <script src="./interface/banc-essais-page.js"></script>
+  <script src="./interface/banc-essais-page-puzzles.js"></script>
   <script src="./interface/banc-essais-partie.js"></script>
   <script src="./interface/banc-essais-suivi.js"></script>
+  <script src="./interface/banc-essais-puzzles.js"></script>
   <script src="./interface/banc-essais-champs.js"></script>
   <script src="./interface/banc-essais-choix.js"></script>
   <script src="./interface/banc-essais.js"></script>
@@ -2385,6 +2413,17 @@
         arreter: document.getElementById('bouton-arreter-banc'),
         exporter: document.getElementById('bouton-exporter-banc'),
         cacherResultats: document.getElementById('bouton-cacher-resultats-banc'),
+        exporterRecolte: document.getElementById('bouton-exporter-recolte-banc'),
+        ajouterRecolte: document.getElementById('bouton-ajouter-recolte-banc'),
+        modes: [...document.querySelectorAll('input[name="banc-mode"]')],
+        recolte: document.getElementById('banc-recolte'),
+        recolteToursMin: document.getElementById('banc-recolte-tours-min'),
+        puzzlesKaawa: document.getElementById('banc-puzzles-kaawa'),
+        puzzlesMy: document.getElementById('banc-puzzles-my'),
+        puzzlesToursMin: document.getElementById('banc-puzzles-tours-min'),
+        puzzlesToursMax: document.getElementById('banc-puzzles-tours-max'),
+        defenseComplete: document.getElementById('banc-defense-complete'),
+        solveur: document.getElementById('banc-solveur'),
         fermer: document.getElementById('bouton-fermer-banc'),
       },
       () => baseNextMove

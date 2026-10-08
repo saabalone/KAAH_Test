@@ -5,7 +5,8 @@
 // reflexion de palier en palier), la reference (de meme), les poids a faire
 // varier, les parties — et leur TOTAL, recalcule a chaque changement (saab :
 // « l'essai se fait tjs sur 80 parties » : c'etait 2 essais × 20 ouvertures ×
-// revanche, mais rien ne le disait).
+// revanche, mais rien ne le disait). Et l'etape 2 : PARTIES (avec ou sans
+// recolte de puzzles, ses tours mini) ou PUZZLES (de KAAWA, My, tours mini et maxi).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : lireMachine (moteur/ia.js),
 // CLES_REGLAGES_IA, LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
@@ -14,12 +15,16 @@
 // lireValeursDuBanc (moteur/banc-essais.js), listerProfilsIA, libelleProfilIA
 // (interface/profils-ia.js), niveauDuBanc, tempsDuBanc, niveauVoisin,
 // tempsVoisin, reglageDeRecherche, NIVEAU_PAR_DEFAUT_BANC, TEMPS_PAR_DEFAUT_BANC
-// (interface/banc-essais-champs.js) viennent de fichiers charges avant celui-ci.
+// (interface/banc-essais-champs.js), puzzlesDuBanc (moteur/banc-puzzles.js),
+// lirePuzzlesDuBanc (interface/banc-essais-puzzles.js) viennent de fichiers
+// charges avant celui-ci.
 
 const REFERENCE_PROPOSEE_BANC = 'Normal v4el';
 const COEURS_LAISSES_AU_RESTE = 1;
 const LIBELLE_CASES_BANC = 'Cases (e5 à a1) ×';
 const LIBELLES_RECHERCHE_CHOIX_BANC = { niveau: 'Niveau', temps: 'Réflexion max (s)' };
+const TOURS_MAX_RECOLTE_BANC = 3; // moteur/banc-puzzles.js, DEMI_COUPS_MAX_RECOLTE
+const entierEntre = (texte, min, max, defaut) => Math.min(max, Math.max(min, Math.round(Number(texte)) || defaut));
 
 // `elements` : les champs de la boite (index.html, #dialogue-banc-essais).
 function creerChoixDuBanc(elements) {
@@ -55,12 +60,26 @@ function creerChoixDuBanc(elements) {
       .filter(([cle, valeurs]) => cle.value && lireValeursDuBanc(valeurs.value).length > 0)
       .map(([cle, valeurs]) => ({ cle: cle.value, valeurs: lireValeursDuBanc(valeurs.value) }));
 
+  const mode = () => elements.modes.find((bouton) => bouton.checked)?.value ?? 'parties';
+
   const parametres = () => ({
+    mode: mode(),
     ouvertures: Math.max(1, Number(elements.ouvertures.value) || 1),
     revanche: elements.revanche.checked,
     livre: elements.livre.checked,
     hasard: Math.max(0, Number(elements.hasard.value) || 0),
+    recolte: { active: elements.recolte.checked, toursMini: entierEntre(elements.recolteToursMin.value, 1, TOURS_MAX_RECOLTE_BANC, 2) },
+    toursMin: entierEntre(elements.puzzlesToursMin.value, 1, 99, 1),
+    toursMax: entierEntre(elements.puzzlesToursMax.value, 1, 99, 99),
+    defenseComplete: elements.defenseComplete.checked,
+    solveur: elements.solveur.checked,
   });
+
+  // Les puzzles a jouer en mode Puzzles : ceux de KAAWA et/ou les miens, entre les tours mini et maxi.
+  const puzzles = () => {
+    const { toursMin, toursMax } = parametres();
+    return puzzlesDuBanc(lirePuzzlesDuBanc({ kaawa: elements.puzzlesKaawa.checked, my: elements.puzzlesMy.checked }), { toursMin, toursMax });
+  };
 
   // La valeur d'origine du parametre choisi dans « Faire varier », pour chaque
   // profil coche (saab, 2026-10-08 : « mets aussi la valeur d'origine qd on
@@ -82,6 +101,12 @@ function creerChoixDuBanc(elements) {
     const { ouvertures, revanche } = parametres();
     const essais = coches.size * variations().reduce((nombre, { valeurs }) => nombre * valeurs.length, 1);
     const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
+    elements.dialogue.classList.toggle('banc-en-puzzles', mode() === 'puzzles');
+    if (mode() === 'puzzles') {
+      const nombre = puzzles().length;
+      elements.total.textContent = `${pluriel(essais, 'essai')} × ${pluriel(nombre, 'puzzle')} = ${pluriel(essais * nombre, 'puzzle')} à jouer`;
+      return;
+    }
     elements.total.textContent = `${pluriel(essais, 'essai')} × ${pluriel(ouvertures, 'ouverture')}${revanche ? ' × 2 (revanche)' : ''} = ${pluriel(essais * ouvertures * (revanche ? 2 : 1), 'partie')}`;
   }
 
@@ -148,6 +173,7 @@ function creerChoixDuBanc(elements) {
   return {
     remplir,
     parametres,
+    puzzles,
     // Les essais : chaque profil coche, avec son niveau et sa reflexion, et ses variantes.
     essais: () => variantesDuBanc(listerProfilsIA().filter((profil) => coches.has(profil.nom)).map((profil) => profilDuBanc(profil, recherches.get(profil.nom))), variations()),
     // La reference, avec son niveau et sa reflexion ; « sans livre » dans son nom si besoin.

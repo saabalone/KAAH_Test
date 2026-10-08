@@ -35,6 +35,7 @@ const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
   etendueCentre: 'ec',
   etendueCases: 'ea',
   etendueReference: 'da',
+  etendueProfondeur: 'ep',
   elagageReponse: 'er',
   elagageSuite: 'es',
   cohesion: 'Coh.',
