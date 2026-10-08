@@ -174,6 +174,7 @@ const FICHIERS_ESSENTIELS = [
   './interface/sons.js',
   './interface/reglages-sons.js',
   './interface/aide.js',
+  './interface/aide-recherche.js',
   './interface/mise-a-jour.js',
   './interface/notes-perso.js',
   './interface/abandon-nulle.js',

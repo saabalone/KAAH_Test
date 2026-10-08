@@ -646,6 +646,13 @@
       </div>
       <button id="bouton-fermer-aide-haut" class="bouton-dialogue bouton-fermer-aide" type="button">Fermer</button>
     </div>
+    <!-- Chercher dans l'Aide (saab, 2026-10-08) : interface/aide-recherche.js. -->
+    <div class="aide-recherche">
+      <input id="champ-recherche-aide" type="search" placeholder="Chercher dans l'Aide" aria-label="Chercher dans l'Aide" />
+      <span id="compte-recherche-aide" class="aide-compte"></span>
+      <button id="bouton-precedent-aide" class="bouton-dialogue" type="button" title="Endroit précédent (Maj+Entrée)">▲</button>
+      <button id="bouton-suivant-aide" class="bouton-dialogue" type="button" title="Endroit suivant (Entrée)">▼</button>
+    </div>
     <div class="aide-corps">
     <details open>
       <summary>Jouer un coup</summary>
@@ -1894,6 +1901,7 @@
   <script src="./interface/sons.js"></script>
   <script src="./interface/reglages-sons.js"></script>
   <script src="./interface/aide.js"></script>
+  <script src="./interface/aide-recherche.js"></script>
   <script src="./interface/mise-a-jour.js"></script>
   <script src="./interface/notes-perso.js"></script>
   <script src="./interface/abandon-nulle.js"></script>
@@ -2480,6 +2488,14 @@
       version: document.getElementById('version-kaah'),
       horsLigne: document.getElementById('hors-ligne-kaah'),
       fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
+      corps: document.querySelector('#dialogue-aide .aide-corps'),
+    });
+    // Chercher dans l'Aide (saab, 2026-10-08) : interface/aide-recherche.js.
+    demarrerRechercheAide({
+      champ: document.getElementById('champ-recherche-aide'),
+      compte: document.getElementById('compte-recherche-aide'),
+      precedent: document.getElementById('bouton-precedent-aide'),
+      suivant: document.getElementById('bouton-suivant-aide'),
       corps: document.querySelector('#dialogue-aide .aide-corps'),
     });
 

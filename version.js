@@ -9,7 +9,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 const PHASE_KAAH_TEST = 32;
-const VERSION_KAAH_TEST = 20;
+const VERSION_KAAH_TEST = 21;
 // Les versions de travail entre deux publications (saab, 2026-10-02 : on ne
 // publie sur KAAH_Test que quand il le dit) : bis, ter... — vide pour publier
 // (preparer-kaah-test.js le refuse sinon). Le nom change quand meme : un

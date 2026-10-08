@@ -3615,6 +3615,46 @@ button,
   overflow-y: scroll; /* barre TOUJOURS visible : on voit qu'on peut defiler */
 }
 
+/* Chercher dans l'Aide (interface/aide-recherche.js) : le champ sous le titre,
+   fixe lui aussi ; les endroits trouves surlignes, le courant en orange. */
+.aide-recherche {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 6px;
+}
+
+.aide-recherche input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--hauteur-commande);
+  box-sizing: border-box;
+}
+
+.aide-recherche .bouton-dialogue {
+  flex: 0 0 auto;
+  min-width: var(--hauteur-commande);
+  min-height: var(--hauteur-commande);
+  margin: 0;
+  padding: 0 6px;
+}
+
+.aide-compte {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #c4c4c4;
+}
+
+mark.aide-trouve {
+  background: #6b5a14;
+  color: inherit;
+}
+
+mark.aide-trouve.aide-trouve-courant {
+  background: #cc6a00;
+  color: #0a0a0a;
+}
+
 .dialogue-aide summary {
   display: flex;
   align-items: center;

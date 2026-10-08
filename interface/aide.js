@@ -139,7 +139,9 @@ function preparerChapitres(corps) {
     const titre = chapitre.querySelector('summary');
     titre.prepend(`${rang + 1}. `);
     chapitre.addEventListener('toggle', () => {
-      if (!chapitre.open) return;
+      // Ouvert par la recherche (interface/aide-recherche.js) : c'est elle qui
+      // amene l'endroit trouve sous les yeux.
+      if (!chapitre.open || chapitre.dataset.ouvertParRecherche) return;
       const ligne = parseFloat(getComputedStyle(corps).lineHeight) || titre.getBoundingClientRect().height;
       const ecart = titre.getBoundingClientRect().top - corps.getBoundingClientRect().top - LIGNES_AU_DESSUS_DU_CHAPITRE * ligne;
       // Les derniers chapitres n'ont pas assez de texte sous eux pour remonter :
