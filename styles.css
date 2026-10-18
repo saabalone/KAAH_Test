@@ -3203,16 +3203,6 @@ button,
   fill: #e4e4e4;
 }
 
-/* Le coup de la machine attend (Entrainement, interface/ia.js) : sa pendule verte, comme
-   tout ce qui attend un clic ; la toucher joue le coup. */
-.bouton-pendule.coup-en-attente .cadre-pendule {
-  fill: var(--vert-demande);
-}
-
-.bouton-pendule.coup-en-attente .pendule-camp {
-  fill: #e4e4e4;
-}
-
 /* La machine reflechit (phase 29, interface/ia.js) : sa pendule respire
    doucement, pour qu'on sache qu'elle cherche (plusieurs secondes au niveau 3)
    et pas que l'appli est figee. */
@@ -5823,6 +5813,9 @@ body.bloque-annuler :is(#nav-annuler, .bouton-annuler-joueur) {
 .tableau-regles-grades td, .tableau-regles-generales td { padding: 3px 3px 5px; }
 .cellule-regle { white-space: nowrap; text-align: center; }
 .tableau-regles-generales td.cellule-regle { width: 1%; text-align: left; }
+/* Les valeurs d'un grade, centrees sous la couleur de sa ceinture (saab, 2026-10-18 ; la regle
+   generale des tableaux, .tableau-historique td, les poussait a droite). */
+.tableau-regles-grades td.cellule-regle { text-align: center; }
 /* Les fleches pour augmenter et diminuer, toujours visibles (saab, 2026-10-14 : « trop
    compliqué sans les flèches » ; un appui prolonge va vite) : dans le tableau des
    reglages, les listes d'une ceinture et les tableaux Ceintures × Variantes / PZL. */
@@ -6423,3 +6416,38 @@ label[title] {
 /* LabAl, partie en cours : le camp qui cherche, vert si son evaluation est positive, rouge si negative. */
 .banc-eval-positive { color: #3fcf7a; font-weight: bold; }
 .banc-eval-negative { color: #e05a5a; font-weight: bold; }
+
+/* Les tableaux de l'Entrainement en lecture seule (KAAH_Test ; saab, 2026-10-18 : « tous les
+   btn de réglage sont inutiles pour les joueurs ... il ne reste que ce qui indique au joueur
+   ce qu'il a à faire ») : ni outils de colonne ou de ligne, ni fleches (les coches des regles
+   restent : elles disent si une regle joue) ;
+   restent les jeux proposes (✓), imposes (📌), les nombres imposes et « Imposés / série ». */
+.seulement-lecture { display: none; }
+.lecture-seule .seulement-lecture { display: inline; }
+.lecture-seule .seulement-modifiable { display: none; }
+.lecture-seule .tableau-ceintures-jeux th .bouton-liste-reglage,
+.lecture-seule [data-cocher-jeu],
+.lecture-seule [data-cocher-type],
+.lecture-seule .actions-type-jeux { display: none; }
+.lecture-seule input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  border: none;
+  background: transparent;
+  color: inherit;
+  opacity: 1;
+  text-align: center;
+}
+.lecture-seule input[type='number']::-webkit-inner-spin-button,
+.lecture-seule input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.lecture-seule input[type='checkbox']:disabled { opacity: 1; }
+
+/* L'historique des versions du profil d'Entrainement : rien pour les joueurs (KAAH_Test). */
+.lecture-seule .historique-entrainement-regles { display: none; }
+
+/* La pause de la machine (Entrainement, interface/ia.js) : orange tant qu'elle reflechit,
+   verte quand son coup attend votre clic. */
+.bouton-pendule.pause-machine-demandee .cadre-pendule { fill: #cc6a00; }
+.bouton-pendule.pause-machine-demandee .pendule-camp { fill: #e4e4e4; }
+.bouton-pendule.coup-en-attente .cadre-pendule { fill: var(--vert-demande); }
+.bouton-pendule.coup-en-attente .pendule-camp { fill: #e4e4e4; }

@@ -39,13 +39,13 @@
 // le coup que l'humain joue ensuite — celui-la ou un autre — recoit la
 // suggestion en commentaire.
 //
-// Le coup qui ATTEND (Entrainement et Ceintures ; saab, 2026-10-14 : « comme IA8 peut
-// être long, si le joueur n'est pas là quand IA a joué, il ne faut pas que la pendule du
-// joueur décompte ») : apres une reflexion d'au moins `attenteDuCoup` secondes, le coup
-// trouve n'est pas joue ; le temps s'arrete et la pendule de la machine passe au vert —
-// la toucher joue le coup, et le temps du joueur part de la. Dans ces parties, la
-// pendule de la machine ne met jamais en pause (« s'il fait par mégarde double clic sur
-// pendule de IA ») : elle ne repond que verte.
+// La PAUSE DE LA MACHINE (Entrainement et Ceinture ; saab, 2026-10-18 : « pas de nombre de
+// pauses limité ni le gros bouton vert, ce n'est pas comme la pause du joueur, c'est juste
+// pour éviter d'attendre que l'IA réponde ; l'IA continue de réfléchir ; sa pause en orange
+// tant qu'elle réfléchit, en vert quand elle a fini, et on clique sa pause pour continuer ») :
+// toucher sa pendule la passe en orange (un second toucher l'annule), elle cherche toujours ;
+// son coup trouve n'est pas joue : le temps s'arrete, sa pendule passe au vert ; la toucher
+// joue le coup et la partie reprend. Sa pendule ne met jamais la partie en pause.
 //
 // Surveillance par un simple coup d'oeil regulier (VERIFICATION_MS) plutot
 // qu'un branchement sur chaque evenement : un coup, une navigation, une pause
@@ -91,10 +91,11 @@ const DELAI_MINIMUM_REPONSE_MS = 600;
 // deja jouee, meme la ou elle avait joue.
 // `aideDuPuzzle(arbre, camp)` (un PZL, index.html) : { coup, plis } — la reponse gardee
 // de la defense, jouee sans chercher, et la profondeur utile (les tours qui restent) —
-// ou null. `attenteDuCoup` : en secondes (voir l'en-tete), ou null — jamais.
-function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations, toujoursEnvisager = false, aideDuPuzzle = () => null, attenteDuCoup = null }) {
+// ou null.
+function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evaluations, toujoursEnvisager = false, aideDuPuzzle = () => null, pauseDeLaMachine = false }) {
   const enMarche = { noir: true, blanc: true };
-  let coupEnAttente = null; // { etat, camp, machine, jouerLeCoup } : il attend le clic sur sa pendule
+  let pauseDemandee = null; // le camp de la machine dont la pause est demandee (orange)
+  let coupEnAttente = null; // { etat, camp, machine, jouerLeCoup } : il attend le clic sur sa pendule (vert)
   // { etat, camp, coupsJoues, suivi, debut, hypothese, arreterTout?, abandonner? }, ou null
   let reflexionEnCours = null;
   let kaiPlus = null; // le worker de KAI++, cree a sa premiere reflexion
@@ -115,10 +116,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
   const estSuspendue = () => debutSuspension !== null;
 
   const pendule = (camp) => svg.querySelector(`#bouton-pendule-${camp}`);
-  evaluations.definirMachines(machines);
-  partie.definirNulleAutomatique(() => Boolean(machines.noir && machines.blanc));
-  partie.definirPauseSansRideau(() => Boolean(machines.noir || machines.blanc));
-
+  // `pauseDeLaMachine` : voir l'en-tete.
+  function demanderLaPause(camp) {
+    pauseDemandee = pauseDemandee === camp ? null : camp;
+    for (const unCamp of ['noir', 'blanc']) pendule(unCamp)?.classList.toggle('pause-machine-demandee', unCamp === pauseDemandee);
+  }
   function lacherLeCoupEnAttente(leJouer) {
     const coup = coupEnAttente;
     coupEnAttente = null;
@@ -127,13 +129,15 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     if (leJouer) coup.jouerLeCoup();
   }
   partie.definirClicSurPendule((camp, enPause) => {
-    if (coupEnAttente && camp === coupEnAttente.camp && !enPause) {
-      lacherLeCoupEnAttente(true);
-      return true;
-    }
-    // La pendule de la machine ne met pas en pause ; en pause (verte), elle reprend.
-    return attenteDuCoup !== null && Boolean(machines[camp]) && !enPause;
+    if (!pauseDeLaMachine || enPause || !machines[camp]) return false;
+    if (coupEnAttente?.camp === camp) lacherLeCoupEnAttente(true);
+    else demanderLaPause(camp);
+    return true;
   });
+  evaluations.definirMachines(machines);
+  partie.definirNulleAutomatique(() => Boolean(machines.noir && machines.blanc));
+  partie.definirPauseSansRideau(() => Boolean(machines.noir || machines.blanc));
+
 
   // Les noms (cadre vert d'une machine) et le tableau de reflexion, montre
   // seulement s'il y a une machine a la table.
@@ -275,7 +279,9 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         if (adverse && !machine.elagage) {
           for (const solution of solutionsDeLAdversaire(etat, sequence, evaluation)) if (!solutions.has(solution.cle)) solutions.set(solution.cle, { ...solution, machine: adverse });
         }
-        if (attenteDuCoup !== null && duree >= attenteDuCoup) {
+        // Sa pause demandee : le coup attend le clic sur sa pendule (voir l'en-tete).
+        if (pauseDemandee === camp) {
+          demanderLaPause(camp);
           coupEnAttente = { etat, camp, machine, jouerLeCoup };
           pendule(camp)?.classList.add('coup-en-attente');
           return partie.suspendreLeTemps(true);
@@ -316,8 +322,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     }
     if (relance && !suitLaRelance(arbre.chemin)) relance = null;
     if (coupEnAttente) {
-      // Il attend tant que la position est la sienne (le temps reste arrete, meme apres
-      // la boite du nom) ; sinon (Annuler, une autre machine) il est oublie.
+      // Il attend tant que la position est la sienne (le temps reste arrete) ; sinon
+      // (Annuler, une autre machine) il est oublie.
       if (positionInchangee(coupEnAttente.etat, 'jeu') && machines[coupEnAttente.camp] === coupEnAttente.machine) return partie.suspendreLeTemps(true);
       lacherLeCoupEnAttente(false);
     }

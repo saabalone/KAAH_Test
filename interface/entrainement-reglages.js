@@ -51,7 +51,7 @@ function demarrerReglagesEntrainement(conteneur, surChangement, { lectureSeule =
 ${htmlDeLaBarreDesReglages({ options, brouillon, exporte, lectureSeule })}
 ${estProfilEntrainementIntegre(profil.nom) ? '<p class="note-reglages">Profil intégré : valider une retouche crée un nouveau profil.</p>' : '<button class="bouton-dialogue" type="button" data-supprimer title="Envoie ce profil et toutes ses versions à la corbeille (bouton Corbeille, en bas), d’où il se restaure">Supprimer ce profil</button>'}
 ${htmlDuTableauDesReglages(valeurs, enColonnes, texteDeRegle)}
-<details class="groupe-regles"><summary>Historique</summary><div class="historique-regles"></div></details>`;
+<details class="groupe-regles historique-entrainement-regles"><summary>Historique</summary><div class="historique-regles"></div></details>`;
     // Les couleurs de chaque regle, remontees au nom du grade (comme les profils IA).
     const couleurs = couleursDesReglages(descriptionDuProfil, profil, brouillon);
     for (const [cle, couleur] of Object.entries(couleurs)) poserCouleurIA(conteneur.querySelector(`[data-ligne="${cle}"]`), couleur);
@@ -61,6 +61,7 @@ ${htmlDuTableauDesReglages(valeurs, enColonnes, texteDeRegle)}
     }
     afficherHistorique(conteneur.querySelector('.historique-regles'), lignesHistorique(descriptionDuProfil, profil), revenirALaVersion);
     // KAAH_Test : tout se lit, rien ne change (les listes s'ouvrent, pour les voir).
+    conteneur.classList.toggle('lecture-seule', lectureSeule); // styles.css, .lecture-seule
     if (lectureSeule) {
       for (const element of conteneur.querySelectorAll('input, select, button:not([data-liste], [data-transposer], [data-ceintures-jeux])')) element.disabled = true;
     }

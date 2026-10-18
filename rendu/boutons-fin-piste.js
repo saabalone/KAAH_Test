@@ -91,9 +91,11 @@ function dessinerBoutonsFinPiste(svg, camp, compte, enHaut) {
 // qu'on regarde une position passee (`actionnable` faux) ; l'abandon de celui qui
 // n'a pas la main. A appeler apres chaque coup (rendu/ligne-joueur.js,
 // actualiserTrait).
-function actualiserBoutonsFinPiste(svg, joueurAuTrait, actionnable) {
+// `permis(camp, action)` : un bouton que la partie interdit (l'Entrainement : la machine
+// n'abandonne ni ne propose nulle, interface/saisie.js) reste inactif.
+function actualiserBoutonsFinPiste(svg, joueurAuTrait, actionnable, permis = () => true) {
   for (const bouton of svg.querySelectorAll('.bouton-fin-piste')) {
-    const possible = actionnable && (bouton.dataset.action === 'nulle' || bouton.dataset.camp === joueurAuTrait);
+    const possible = actionnable && (bouton.dataset.action === 'nulle' || bouton.dataset.camp === joueurAuTrait) && permis(bouton.dataset.camp, bouton.dataset.action);
     bouton.classList.toggle('bouton-fin-piste-inactif', !possible);
   }
 }

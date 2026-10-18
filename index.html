@@ -533,7 +533,7 @@
   <!-- Une liste de jeux du tableau des reglages (interface/entrainement-listes.js). -->
   <dialog id="dialogue-liste-entrainement" class="dialogue dialogue-grand">
     <h2 id="titre-liste-entrainement">Jeux proposés</h2>
-    <p class="note-reglages">Cochez les jeux proposés ; 📌 : imposé (toujours proposé, à réussir dans la série).</p>
+    <p class="note-reglages"><span class="seulement-modifiable">Cochez les jeux proposés ; </span><span class="seulement-lecture">✓ : proposé ; </span>📌 : imposé (toujours proposé, à réussir dans la série).</p>
     <input id="recherche-liste-entrainement" type="search" placeholder="Chercher un nom" autocomplete="off" />
     <label id="ligne-autres-liste-entrainement" class="ligne-reglage"><input id="case-autres-liste-entrainement" type="checkbox" /> Montrer aussi les PZL des autres grades</label>
     <div id="corps-liste-entrainement" class="corps-entrainement"></div>
@@ -550,7 +550,7 @@
        tableau dans sa propre zone de defilement (ses barres restent dans la fenetre). -->
   <dialog id="dialogue-ceintures-jeux" class="dialogue dialogue-grand dialogue-ceintures-jeux">
     <h2 id="titre-ceintures-jeux">Ceintures × Variantes</h2>
-    <p class="note-reglages">La case : le jeu est proposé à cette ceinture ; 📌 : imposé (toujours proposé, à réussir dans la série). Ligne d'un type : ✓ coche tous ses jeux pour la ceinture ; dessous, son nombre imposé (un jeu 📌 du type en fait partie ; au-delà des jeux cochés, ceux du type se cochent). « Imposés / série » en orange : la série s'allonge pour tenir tous les imposés. ⇉ : le jeu pour toutes les ceintures ; ✓ sous une ceinture : tous ses jeux ; ⧉ copie une colonne, 📋 la colle (Maj + 📋 : dans toutes les colonnes jusqu'à celle-ci) ; Maj + clic sur une case : toutes celles entre la précédente et elle ; le nom d'un jeu : son image. Cases pâles (PZL) : un autre grade que celui du PZL. Valider reporte dans le tableau des réglages (en orange, à valider là-bas).</p>
+    <p class="note-reglages"><span class="seulement-modifiable">La case : le jeu est proposé à cette ceinture ; 📌 : imposé (toujours proposé, à réussir dans la série). Ligne d'un type : ✓ coche tous ses jeux pour la ceinture ; dessous, son nombre imposé (un jeu 📌 du type en fait partie ; au-delà des jeux cochés, ceux du type se cochent). « Imposés / série » en orange : la série s'allonge pour tenir tous les imposés. ⇉ : le jeu pour toutes les ceintures ; ✓ sous une ceinture : tous ses jeux ; ⧉ copie une colonne, 📋 la colle (Maj + 📋 : dans toutes les colonnes jusqu'à celle-ci) ; Maj + clic sur une case : toutes celles entre la précédente et elle ; le nom d'un jeu : son image. Cases pâles (PZL) : un autre grade que celui du PZL. Valider reporte dans le tableau des réglages (en orange, à valider là-bas).</span><span class="seulement-lecture">✓ : le jeu est proposé à cette ceinture ; 📌 : imposé (toujours proposé, à réussir dans la série). Sous le nom d'un type, le nombre de ses jeux imposés. « Imposés / série » : les jeux imposés, sur les jeux de la série.</span></p>
     <div class="barre-reglages-entrainement">
       <input id="recherche-ceintures-jeux" type="search" placeholder="Chercher un nom" autocomplete="off" />
       <button id="bouton-prereglage-ceintures-jeux" class="bouton-dialogue" type="button" title="Remplace tout le tableau : chaque ceinture propose tous les PZL des catégories jusqu'à la sienne, avec 1 imposé dans la sienne et 1 de plus à chaque catégorie en dessous (blanche : 1 ; jaune : 1 + 2 ; orange : 1 + 2 + 3...), jamais plus que la catégorie n'a de PZL. Un second clic remet le tableau d'avant.">Préréglage par catégorie</button>
@@ -894,9 +894,9 @@
         <li><b>La série</b> (réglage de départ) : un jeu (une variante, un PZL) à réussir, par une victoire ; une victoire = l'aller <b>et</b> la revanche (en PZL : Noir puis Blanc — avec le camp qui doit gagner, vous attaquez et la machine défend au mieux ; avec l'autre, vous défendez : réussi si vous tenez jusqu'au dernier tour), chaque fois dans une autre orientation. Sur 2 ou 3 jeux (les Dans blanche et rouge), chaque jeu réussi reste acquis ; un jeu imposé garde sa place dans la série.</li>
         <li><b>Rater</b> : une défaite (ou une nulle) est un essai raté sur ce jeu ; ce qui est gagné reste. Au bout de 3 essais ratés, s'il y a eu au moins une nulle, une partie de plus est accordée : une nulle (ou une victoire) la réussit. Sinon, ce jeu repart de zéro (aux Dans blanche et rouge, toute la série) ; au bout de 3 jeux repartis de zéro, on redescend d'une ceinture. Une partie où vous n'avez joué aucun coup ne compte pas.</li>
         <li><b>La confirmation</b> : la série réussie, il faut confirmer <b>chaque ceinture sautée</b> (un jeu gagné, aller et revanche, sur chacune, dans l'ordre qu'on veut) — sans saut, celle d'en dessous. Alors la ceinture visée est obtenue. Après plus de 30 jours (réglable) sans jouer à son grade ou plus haut, ce grade est à reconfirmer aussi ; 3 essais ratés, 3 fois, et l'on redescend.</li>
-        <li><b>La machine et les pendules</b> (Variantes) : la machine est l'IA par défaut (son style, sa version, ses poids) ; jusqu'à la marron, elle joue au niveau du grade (1 à 6) en ne cherchant, à chaque position, que ses meilleurs coups (le niveau + 1 : 2 coups au niveau 1), avec 5:00 sans bonus ; vous, de 15:00 (Bonus +2 s, +2 s par éjection) à 7:00 (Délai 2 s). Aux Dans, la machine joue au niveau 8, sans limite de temps (∞) ni élagage ; votre temps baisse de 5:00 à 2:30. Aux ceintures rouges, vous partez avec 1 puis 2 billes éjectées. Si la machine perd au temps, elle a 1 minute de plus à sa prochaine partie de la même couleur. Quand la machine a réfléchi plus de 10 s (réglable), son coup <b>attend</b> : sa pendule passe au vert et le temps s'arrête ; touchez sa pendule quand vous êtes prêt — le coup se joue et votre temps part.</li>
+        <li><b>La machine et les pendules</b> (Variantes) : la machine est l'IA par défaut (son style, sa version, ses poids) ; jusqu'à la marron, elle joue au niveau du grade (1 à 6) en ne cherchant, à chaque position, que ses meilleurs coups (le niveau + 1 : 2 coups au niveau 1), avec 5:00 sans bonus ; vous, de 15:00 (Bonus +2 s, +2 s par éjection) à 7:00 (Délai 2 s). Aux Dans, la machine joue au niveau 8, sans limite de temps (∞) ni élagage ; votre temps baisse de 5:00 à 2:30. Aux ceintures rouges, vous partez avec 1 puis 2 billes éjectées. Si la machine perd au temps, elle a 1 minute de plus à sa prochaine partie de la même couleur. Pour ne pas attendre la machine pour rien (elle peut réfléchir longtemps aux Dans) : touchez <b>sa pendule</b> — elle passe en <b>orange</b> et la machine continue de chercher ; quand elle a trouvé, sa pendule passe au <b>vert</b>, son coup attend et le temps est arrêté ; touchez-la pour jouer son coup et reprendre (sans limite ; touchée encore en orange, la demande s'annule). <b>Votre pendule</b>, elle, met la partie en pause (le gros bouton).</li>
         <li><b>Les PZL par grade</b> : Mini 2 tours (blanche), 2 tours, Mini 3, 3, Mini 4, 4 tours (marron), puis 5, 6, 7 tours et plus (1er au 3e Dan), puis les plus difficiles avec un temps par puzzle (de 3:00 à 1:00) et, aux rouges, sans Annuler. La pendule des PZL se règle à part de celle des Variantes (son mode Bonus ou Délai, son bonus, son délai). Seulement les PZL à solution unique, sauf si la règle « Aussi les PZL à plusieurs solutions » est cochée ; les PZL douteux (⚠ dans la liste des PZL d'un grade) ne sont jamais proposés d'eux-mêmes.</li>
-        <li><b>Pendant un jeu</b> : le plateau seul (Conseils, Menaces, Séquence, Commentaires, Occurrences et Réglages bloqués ; évaluation et réflexion de la machine cachées), pas d'IA ni de Suggestion pour soi, 3 pauses au plus (« plus que 2 » sur le gros bouton Pause ; seule votre pendule met en pause, jamais celle de la machine), la navigation grisée jusqu'à la fin (pas de branche pour chercher la solution), et Annuler une seule fois par coup, comme dans toutes les parties.</li>
+        <li><b>Pendant un jeu</b> : le plateau seul (Conseils, Menaces, Séquence, Commentaires, Occurrences et Réglages bloqués ; évaluation et réflexion de la machine cachées), pas d'IA ni de Suggestion pour soi, 3 pauses au plus (« plus que 2 » sur le gros bouton Pause ; seule votre pendule met en pause, celle de la machine fait attendre son coup), la navigation grisée jusqu'à la fin (pas de branche pour chercher la solution), et Annuler une seule fois par coup, comme dans toutes les parties.</li>
         <li><b>À la fin d'un jeu</b> : la boîte Options s'ouvre avec le résultat et la suite — <b>Continuer</b> (la revanche, ou le même jeu s'il lui faut encore des victoires) ou <b>Rejouer</b> (après un essai raté), <b>Autre jeu</b>, <b>Quitter</b>.</li>
         <li><b>L'historique</b> : chaque jeu, le plus récent en haut — ✓ ou ✗, la date, le mode, la ceinture, le sens, votre temps et le titre de la partie ; choisissez le joueur en haut.</li>
         <li><b>Le tableau des réglages</b> : toutes les règles du profil actif, une colonne par grade (<b>Transposer</b> : une ligne par grade) ; chaque case (sa coche et sa valeur) est entourée de la couleur de la ceinture, un point par Dan dessous. Les listes <b>Variantes</b> et <b>PZL</b> d'un grade disent les jeux proposés (📌 : imposé), classés par type — les huit types de variantes de KAAWA ; pour les PZL, leur catégorie : Mini-PZL ou PZL, et leurs tours (2, 3, 4, puis 5, 6, 7 et plus) —, chaque type avec son nombre <b>imposés</b> dans la série, et <b>tirés</b> combien la machine en tire au hasard. <b>Ceintures × Variantes</b> et <b>Ceintures × PZL</b> montrent toutes ces listes en un seul tableau (une ligne par jeu, une colonne par ceinture), pour cocher ou imposer sans ouvrir chaque ceinture. Dans <b>Ceintures × PZL</b>, <b>Préréglage par catégorie</b> remplit tout le tableau : chaque ceinture propose les PZL des catégories jusqu'à la sienne, 1 imposé dans la sienne et 1 de plus à chaque catégorie en dessous. Un jeu 📌 compte dans le nombre imposé de son type ; ce nombre ne dépasse jamais les jeux cochés du type ; et une série a toujours au moins autant de jeux qu'il y en a d'imposés. Une retouche est orange jusqu'à <b>Valider</b> (vert : changée à la dernière validation, jaune : à une plus ancienne) ; l'<b>Historique</b> garde les versions. Dans KAAH_Test, le tableau se lit sans se changer.</li>
@@ -3183,6 +3183,9 @@
           ? 'bouton-mes-parties'
           : 'bouton-nouvelle-partie';
     document.getElementById(boutonPositionDepartActif).classList.add('bouton-actif');
+    // Un jeu d'Entrainement / Ceinture : l'icone ceinture aussi (saab, 2026-10-18 : « il faut
+    // les 2, ceinture et Variante/PZL »).
+    if (entrainementEnCours) document.getElementById('bouton-entrainement').classList.add('bouton-actif');
 
     const elementBandeauPuzzle = document.getElementById('bandeau-puzzle');
 
@@ -4446,8 +4449,8 @@
         partie,
         machines,
         aideDuPuzzle,
-        // L'Entrainement : le coup de la machine attend le joueur apres une longue reflexion.
-        attenteDuCoup: entrainementEnCours ? reglagesDeLEntrainement().attenteDuCoupS : null,
+        // L'Entrainement : la pause de la machine (toucher sa pendule, interface/ia.js).
+        pauseDeLaMachine: Boolean(entrainementEnCours),
         toujoursEnvisager: essai,
         obtenirBase: () => baseNextMove,
         svg,
@@ -4487,6 +4490,9 @@
       if (entrainementEnCours) {
         partie.definirPauseSansRideau(() => false);
         partie.definirLimiteDesPauses(reglagesDeLEntrainement().pausesMax);
+        // Seul son propre Abandonner : la machine n'abandonne pas, et une nulle se
+        // proposerait a soi-meme (c'est le joueur qui repondrait pour la machine).
+        partie.definirFinPermise((camp, action) => camp === entrainementEnCours.campDuJoueur && action === 'abandon');
         // Saab, 2026-10-10 : « pas de Br en mode Entraînement/Ceinture » tant que le
         // jeu n'est pas fini (interface/saisie.js).
         partie.definirNavigationBloquee(() => !entrainementNote);

@@ -37,7 +37,7 @@ function lignesDeTypeDesCeintures(type, jeux, listes) {
     const quota = type.cle === '' ? '' : `<br><input class="nombre-reglage" type="number" min="0" max="${siens.length}" step="1" data-quota="${type.cle}" data-grade="${grade}" value="${liste.quotas[type.cle] ?? 0}" title="Combien de jeux de ce type sont imposés dans la série de cette ceinture (un jeu 📌 de ce type en fait partie). Au-delà des jeux cochés, tous ceux du type se cochent." />`;
     return `<td><button class="bouton-liste-reglage" type="button" data-cocher-type="${type.cle}" data-grade="${grade}" title="Cocher (ou décocher) tous les jeux affichés de ce type pour cette ceinture">✓</button>${quota}</td>`;
   });
-  return `<tr class="titre-type-jeux-ceintures"><td class="nom-grade">${echapperCeinturesJeux(type.libelle)} (${siens.length})${type.cle === '' ? '' : '<br><span class="note-reglages">✓ tous · imposés</span>'}</td>${cases.join('')}</tr>${siens.map((jeu) => ligneDeJeuDesCeintures(jeu, type, listes)).join('')}`;
+  return `<tr class="titre-type-jeux-ceintures"><td class="nom-grade">${echapperCeinturesJeux(type.libelle)} (${siens.length})${type.cle === '' ? '' : '<br><span class="note-reglages"><span class="seulement-modifiable">✓ tous · </span>imposés</span>'}</td>${cases.join('')}</tr>${siens.map((jeu) => ligneDeJeuDesCeintures(jeu, type, listes)).join('')}`;
 }
 
 // Tout le tableau. `titre` : « Variante » ou « PZL » ; `types` : [{ cle, libelle }].

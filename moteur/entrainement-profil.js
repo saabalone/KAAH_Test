@@ -51,9 +51,6 @@ const GROUPES_REGLES_ENTRAINEMENT = [
       ['bloquerReglages', 'Réglages bloqués', 'case', true, true],
       ['cacherEvaluation', 'Évaluation et réflexion de la machine cachées', 'case', true, true],
       ['interdireIA', 'Pas d’IA ni de Suggestion pour soi', 'case', true, true],
-      // Saab, 2026-10-14 : la machine d'un Dan peut chercher longtemps ; son coup trouve
-      // attend que le joueur revienne et touche sa pendule (interface/ia.js).
-      ['attenteDuCoup', 'Le coup de la machine attend votre clic sur sa pendule (verte) quand elle a réfléchi plus de n secondes ; votre temps ne part qu’à ce clic (décochée : il se joue tout de suite)', 'nombre', D_ENTRAINEMENT.attenteDuCoupS, true],
     ],
   },
   {

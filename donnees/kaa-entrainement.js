@@ -24,7 +24,6 @@ const KAA_ENTRAINEMENT_SAAB = {
     "bloquerReglages": true,
     "cacherEvaluation": true,
     "interdireIA": true,
-    "attenteDuCoup": 10,
     "supplementIA": 60,
     "reflexionPzl": 60,
     "pzlSansElagage": true,

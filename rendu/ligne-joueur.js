@@ -223,7 +223,7 @@ function actualiserNomJoueur(svg, camp, nombreEjecteesDeCeCamp) {
 // "Nulle".
 // `actionnable` : la partie est vivante sur la position regardee (les boutons d'abandon
 // et de nulle sont alors utilisables).
-function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false, optionsFin = false) {
+function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false, optionsFin = false, finPermise = () => true) {
   for (const camp of ['noir', 'blanc']) {
     const groupe = svg.querySelector(`#nom-${camp}`);
     const estAuTrait = joueurAuTrait === camp;
@@ -247,5 +247,5 @@ function actualiserTrait(svg, joueurAuTrait, tour, gagnant, actionnable = false,
     ecrireSiChange(groupe.querySelector('.nom-tour-options'), suffixe);
     disposerLigneNom(groupe);
   }
-  actualiserBoutonsFinPiste(svg, joueurAuTrait, actionnable);
+  actualiserBoutonsFinPiste(svg, joueurAuTrait, actionnable, finPermise);
 }

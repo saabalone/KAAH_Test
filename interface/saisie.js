@@ -210,6 +210,7 @@ function demarrerPartie(
   let coupsPossibles = [];
   let perteAuTemps = null; // { camp, chemin } | null — voir l'en-tete du fichier
   let perdantsAnnonces = []; // les camps qui doivent perdre (un PZL), avant la fin
+  let finPermise = () => true; // (camp, action) : un bouton Abandonner / Nulle permis
 
   // Une position peut etre SANS SUITE sans que le moteur le sache : un
   // puzzle dont le nombre de tours est depasse, par exemple — le plateau,
@@ -439,7 +440,7 @@ function demarrerPartie(
     // n'ont pas de data-notation.
     const penduleTouchee = evenement.target.closest('.bouton-pendule, #pause-plateau');
     if (penduleTouchee) {
-      // Les machines peuvent prendre le clic (un coup qui attend, interface/ia.js).
+      // La pendule de la machine peut prendre le clic (sa pause, interface/ia.js).
       const camp = /^bouton-pendule-(noir|blanc)$/.exec(penduleTouchee.id)?.[1] ?? null;
       if (!clicSurPendule(camp, pendules.estEnPauseManuelle())) basculerPause();
       return;
@@ -492,7 +493,7 @@ function demarrerPartie(
   // Le nombre de pauses permises (l'Entrainement, phase 36 : 3 ; sinon sans limite).
   let pausesMax = Infinity;
   // clicSurPendule(camp, enPause) : vrai si le clic sur la pendule de `camp` est pris
-  // ailleurs (interface/ia.js) — il ne bascule alors pas la pause.
+  // ailleurs (la pause de la machine, interface/ia.js) — il ne bascule alors pas la pause.
   let clicSurPendule = () => false;
   function basculerPause() {
     const pauseDemandee = !pendules.estEnPauseManuelle();
@@ -902,7 +903,7 @@ function demarrerPartie(
     // Le tour du coup A JOUER (le suivant), pas celui du coup qui vient d'etre joue
     // (saab, 2026-10-10 : « Tour 1 pour Noir, Tour 1 pour Blanc, et encore Tour 1
     // pour Noir au lieu de Tour 2 »).
-    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length + 1), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre) || optionARefaire());
+    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length + 1), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre) || optionARefaire(), finPermise);
     actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Coordonnees sur les billes du camp au trait (phase 19bis) : `null`
     // une fois la partie terminee, `.bille-null` ne correspond alors a
@@ -1031,6 +1032,12 @@ function demarrerPartie(
     // dès le départ les billes du perdant en petit » — `camps` : ceux qui doivent perdre.
     definirPerdantsAnnonces: (camps) => {
       perdantsAnnonces = camps;
+      actualiserAffichagePartie();
+    },
+    // Saab, 2026-10-18 : « en entraînement/ceinture, griser Abandonner/Nulle de l'IA, sinon
+    // on peut gagner en la faisant abandonner » — `predicat(camp, action)`.
+    definirFinPermise: (predicat) => {
+      finPermise = predicat;
       actualiserAffichagePartie();
     },
     definirPauseSansRideau: (predicat) => {

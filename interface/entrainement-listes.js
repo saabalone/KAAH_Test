@@ -114,6 +114,7 @@ function demarrerListesEntrainement(elements, variantes, puzzles) {
     bornerLesQuotas();
     for (const element of elements.corps.querySelectorAll('input, button')) element.disabled = lectureSeule;
     for (const bouton of [elements.toutCocher, elements.toutDecocher, elements.valider]) bouton.hidden = lectureSeule;
+    elements.dialogue.classList.toggle('lecture-seule', lectureSeule); // styles.css, .lecture-seule
     filtrer();
     elements.dialogue.showModal();
     return new Promise((resoudre) => {

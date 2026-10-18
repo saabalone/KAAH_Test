@@ -132,6 +132,8 @@ function demarrerCeinturesJeux(elements, variantes, puzzles) {
     for (const element of elements.corps.querySelectorAll('input, button')) element.disabled = lectureSeule;
     elements.valider.hidden = lectureSeule;
     elements.prereglage.hidden = lectureSeule || sorte !== 'pzl';
+    // Pour les joueurs, seulement ce qui dit quoi faire (styles.css, .lecture-seule).
+    elements.dialogue.classList.toggle('lecture-seule', lectureSeule);
     colonnes.remettre();
     elements.dialogue.showModal();
     // La ligne « Imposés / série » se fige juste sous l'en-tete (styles.css) : sa hauteur

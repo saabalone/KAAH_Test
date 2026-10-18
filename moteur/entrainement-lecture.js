@@ -55,7 +55,6 @@ function reglagesDuProfilEntrainement(profil) {
       rattrapageSurNulle: Boolean(r.rattrapageSurNulle),
     },
     pausesMax: r.pauses ?? Infinity,
-    attenteDuCoupS: r.attenteDuCoup ?? null,
     supplementIAApresTemps: r.supplementIA ?? 0,
     options: {
       nulleDefaite: Boolean(r.nulleDefaite),

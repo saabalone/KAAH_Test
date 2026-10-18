@@ -67,15 +67,9 @@ function gradeDeDepart([mode, minutes, niveau, jeuxParSerie = null, handicap = 0
   };
 }
 
-// Au-dela de cette reflexion, le coup de la machine attend le clic du joueur (saab,
-// 2026-10-14 : « si le joueur n'est pas là quand IA a joué, il ne faut pas que la pendule
-// du joueur décompte »).
-const REFLEXION_AVANT_D_ATTENDRE_LE_JOUEUR_S = 10;
-
 const REGLAGES_ENTRAINEMENT_PAR_DEFAUT = Object.freeze({
   serie: REGLES_DE_SERIE_PAR_DEFAUT,
   pausesMax: 3,
-  attenteDuCoupS: REFLEXION_AVANT_D_ATTENDRE_LE_JOUEUR_S,
   supplementIAApresTemps: SECONDES_PAR_MINUTE,
   ceintures: GRADES_DE_DEPART.map(gradeDeDepart),
 });
