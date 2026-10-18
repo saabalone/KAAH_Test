@@ -31,6 +31,9 @@ const LIBELLES_GENRE_RECHERCHE = { jeu: '', hypothese: ' (aurait joué)', sugges
 // Un caractere de l'archive (du texte JSON presque tout en ASCII) pese un octet.
 const OCTETS_PAR_KO = 1024;
 const PART_PRESQUE_PLEINE = 0.9;
+// Au-dela des 3/4 du maximum, Vider passe au rouge (saab, 2026-10-17 : « passer en rouge le
+// btn Vider qd > 75 % max »).
+const PART_A_VIDER = 0.75;
 const DUREE_BOUTON_TOUCHE_MS = 1000;
 const NOTE_ELAGAGE_RECHERCHE = "« ≤ » : écarté par l'élagage, vaut au plus cela. Touchez un coup : sa séquence sur un plateau.";
 
@@ -145,6 +148,7 @@ function demarrerRechercheIA(boite, sequencePrevue) {
     poids.textContent = `${Math.ceil(caracteres / OCTETS_PAR_KO)} Ko (max ${Math.round(TAILLE_ARCHIVE_RECHERCHES_MAX / OCTETS_PAR_KO)})`;
     // Presque pleine : en orange, pour penser a exporter ou vider.
     poids.classList.toggle('reglage-modifie', caracteres >= TAILLE_ARCHIVE_RECHERCHES_MAX * PART_PRESQUE_PLEINE);
+    boite.querySelector('.bouton-vider-recherches').classList.toggle('vider-a-faire', caracteres > TAILLE_ARCHIVE_RECHERCHES_MAX * PART_A_VIDER);
   }
   boite.querySelector('.bouton-vider-recherches').addEventListener('click', (evenement) => {
     evenement.preventDefault();

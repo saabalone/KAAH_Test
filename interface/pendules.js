@@ -285,9 +285,10 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
     actualiserAlerte(elementsAffichage.blanc, source, source.tempsBlanc);
     // Le libelle dit les reglages de la partie, sauf quand c'est un chrono
     // d'analyse (ou son instantane) qui s'affiche.
-    const libelle = horloge !== 'partie' && source.mode === 'chrono' ? libellePendule(chronoAnalyse) : libellePendule(pendules);
+    // Chaque camp ses reglages (phase 36, moteur/pendules.js : camps).
+    const libelle = (camp) => (horloge !== 'partie' && source.mode === 'chrono' ? libellePendule(chronoAnalyse, camp) : libellePendule(pendules, camp));
     for (const camp of ['noir', 'blanc']) {
-      if (elementsLibelles[camp]) ecrireSiChange(elementsLibelles[camp], libelle);
+      if (elementsLibelles[camp]) ecrireSiChange(elementsLibelles[camp], libelle(camp));
       const enCours = camp === joueurAuTrait && horloge !== null ? horlogeDuCoup().dureeCoupEnCours : 0;
       if (elementsCumuls[camp]) ecrireSiChange(elementsCumuls[camp], formaterDuree(cumulDuChemin[camp] + enCours));
     }
@@ -327,8 +328,10 @@ function demarrerPendules(reglagesPendules, elementsAffichage, surDefaite, temps
   };
 }
 
-// m:ss (ex. 5:07), comme l'affichage des pendules de KAAWA.
+// m:ss (ex. 5:07), comme l'affichage des pendules de KAAWA ; ∞ pour un temps sans
+// limite (moteur/pendules.js, estUnTempsSansLimite).
 function formaterDuree(secondes) {
+  if (estUnTempsSansLimite(secondes)) return '∞';
   const total = Math.max(0, Math.round(secondes));
   const minutes = Math.floor(total / 60);
   const reste = total % 60;

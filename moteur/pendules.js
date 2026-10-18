@@ -37,15 +37,42 @@
 // ce que le CALCUL regarde) pour que Bonus et Délai, deux `mode: 'pendule'`
 // aux yeux du calcul, restent distinguables pour le LABEL (libellePendule
 // plus bas) meme quand leurs deux chiffres sont a zero.
+// « Sans limite » (phase 36, les Dans de l'Entrainement : la machine n'a pas de
+// limite de temps) : une journee, qu'aucune partie n'atteint ; reconnu tant qu'il
+// en reste plus de la moitie (l'affichage ecrit alors ∞).
+const TEMPS_SANS_LIMITE_S = 24 * 60 * 60;
+function estUnTempsSansLimite(secondes) {
+  return secondes > TEMPS_SANS_LIMITE_S / 2;
+}
+
+// Les reglages de `camp` (phase 36, l'Entrainement : la machine et le joueur
+// n'ont pas le meme temps) : ceux de `reglages`, sauf ce que `reglages.camps[camp]`
+// change.
+const CLES_REGLAGES_DU_CAMP = ['tempsInitial', 'bonusParCoup', 'bonusParEjection', 'delai'];
+function reglagesDuCamp(reglages, camp) {
+  return Object.fromEntries(CLES_REGLAGES_DU_CAMP.map((cle) => [cle, reglages.camps?.[camp]?.[cle] ?? reglages[cle] ?? 0]));
+}
+
+// Les bonus et le delai de chaque camp, portes par les pendules.
+function bonusDesCamps(reglages) {
+  const deCamp = (camp) => {
+    const { bonusParCoup, bonusParEjection, delai } = reglagesDuCamp(reglages, camp);
+    return { bonusParCoup, bonusParEjection, delai };
+  };
+  return { noir: deCamp('noir'), blanc: deCamp('blanc') };
+}
+
 function creerPendules(reglages) {
-  const tempsDepart = reglages.mode === 'chrono' ? 0 : reglages.tempsInitial;
+  const chrono = reglages.mode === 'chrono';
+  const camps = bonusDesCamps(reglages);
   return {
     mode: reglages.mode,
     modeChoisi: reglages.modeChoisi,
-    tempsNoir: tempsDepart,
-    tempsBlanc: tempsDepart,
+    tempsNoir: chrono ? 0 : reglagesDuCamp(reglages, 'noir').tempsInitial,
+    tempsBlanc: chrono ? 0 : reglagesDuCamp(reglages, 'blanc').tempsInitial,
+    camps,
     delai: reglages.delai ?? 0,
-    delaiRestant: reglages.delai ?? 0,
+    delaiRestant: camps.noir.delai, // Noir joue toujours en premier
     bonusParCoup: reglages.bonusParCoup ?? 0,
     bonusParEjection: reglages.bonusParEjection ?? 0,
     perdantParTemps: null,
@@ -88,13 +115,15 @@ function ecoulerTemps(pendules, joueurAuTrait, secondes) {
 function appliquerBonusDeCoup(pendules, joueurQuiAJoue, ejection) {
   const cle = joueurQuiAJoue === 'noir' ? 'tempsNoir' : 'tempsBlanc';
   const cleAdverse = joueurQuiAJoue === 'noir' ? 'tempsBlanc' : 'tempsNoir';
-  const fin = { delaiRestant: pendules.delai, dureeDernierCoup: pendules.dureeCoupEnCours, dureeCoupEnCours: 0 };
+  const camps = pendules.camps ?? bonusDesCamps(pendules);
+  const adverse = joueurQuiAJoue === 'noir' ? 'blanc' : 'noir';
+  const fin = { delaiRestant: camps[adverse].delai, dureeDernierCoup: pendules.dureeCoupEnCours, dureeCoupEnCours: 0 };
 
   if (pendules.mode === 'chrono') {
     return { ...pendules, [cleAdverse]: 0, ...fin };
   }
 
-  const bonus = pendules.bonusParCoup + (ejection ? pendules.bonusParEjection : 0);
+  const bonus = camps[joueurQuiAJoue].bonusParCoup + (ejection ? camps[joueurQuiAJoue].bonusParEjection : 0);
   return { ...pendules, [cle]: pendules[cle] + bonus, ...fin };
 }
 
@@ -124,6 +153,7 @@ function changerModePendules(pendules, nouveauxReglages) {
     ...temps,
     mode: nouveauxReglages.mode,
     modeChoisi: nouveauxReglages.modeChoisi,
+    camps: bonusDesCamps(nouveauxReglages),
     delai: nouveauxReglages.delai ?? 0,
     delaiRestant: nouveauxReglages.delai ?? 0,
     bonusParCoup: nouveauxReglages.bonusParCoup ?? 0,
@@ -138,12 +168,14 @@ function changerModePendules(pendules, nouveauxReglages) {
 // diverger, PLAN.md, phase 22bis, test 3). Un terme a zero (Coup+0,
 // Éject+0) n'est pas ecrit (correctif, saab : "ça fera moins lourd") — un
 // coup ou une ejection qui n'ajoute rien n'a rien a annoncer.
-function libellePendule(pendules) {
-  if (pendules.modeChoisi === 'delai') return `Délai | Coup+${pendules.delai}s`;
+// `camp` : celui dont la pendule porte ce libelle (phase 36 : chacun ses reglages).
+function libellePendule(pendules, camp = 'noir') {
+  const siens = pendules.camps?.[camp] ?? pendules;
+  if (pendules.modeChoisi === 'delai') return `Délai | Coup+${siens.delai}s`;
   if (pendules.modeChoisi === 'bonus') {
     const termes = [];
-    if (pendules.bonusParCoup !== 0) termes.push(`Coup+${pendules.bonusParCoup}`);
-    if (pendules.bonusParEjection !== 0) termes.push(`Éject+${pendules.bonusParEjection}`);
+    if (siens.bonusParCoup !== 0) termes.push(`Coup+${siens.bonusParCoup}`);
+    if (siens.bonusParEjection !== 0) termes.push(`Éject+${siens.bonusParEjection}`);
     return termes.length > 0 ? `Bonus | ${termes.join(' ')}` : 'Bonus';
   }
   return 'Chrono';

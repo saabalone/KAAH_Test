@@ -22,6 +22,11 @@
 
 const BILLES_MAX_PAR_CAMP = 14;
 
+// Les types que KAAH corrige a la lecture, le fichier de KAAWA ne se modifiant jamais
+// (saab, 2026-10-10 : « Marguerite Allemande est du même type que mBelge (elle est juste
+// rapprochée du centre), donc Sous-groupes offensifs » — KAAWA ne lui en donne aucun).
+const TYPES_CORRIGES_DES_VARIANTES = { 'Marguerite Allemande': ['sub_group_off'] };
+
 // Les notations d'un seul camp dans une demi-position compressee
 // ("a12b123..."), sans le chiffre d'ejections en tete — meme analyse que
 // moteur.lirePosition, mais SANS fusionner les doublons : juste apres,
@@ -65,7 +70,9 @@ function erreurDePosition(texte) {
 // construire un tableau a moitie faux en silence.
 // `estMy` : les positions creees soi-meme (phase 23bis, moteur/positions-my.js),
 // rangees dans leur categorie « My ». `entree` garde l'original tel quel : c'est
-// de lui que « Modifier » repart, champ par champ.
+// de lui que « Modifier » repart, champ par champ. Les types corriges
+// (TYPES_CORRIGES_DES_VARIANTES) ne valent que pour les variantes de KAAWA : une
+// position « My » garde ceux que son auteur lui a donnes.
 function lireVariantes(donnees, estMy = false) {
   return (donnees.content ?? []).map((entree) => {
     const erreur = erreurDePosition(entree.pos);
@@ -77,7 +84,7 @@ function lireVariantes(donnees, estMy = false) {
       createur: entree.creator ?? '',
       equilibre: entree.equilibre === 'True',
       handi: entree.handi_score === 'True' || entree.handi_bille === 'True',
-      types: Object.entries(entree.Type ?? {}).filter(([, valeur]) => valeur === 'True').map(([cle]) => cle),
+      types: (!estMy && TYPES_CORRIGES_DES_VARIANTES[entree.variant_name]) || Object.entries(entree.Type ?? {}).filter(([, valeur]) => valeur === 'True').map(([cle]) => cle),
       my: estMy,
       entree,
     };

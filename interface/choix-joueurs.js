@@ -50,7 +50,7 @@ const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,
   moteur: MOTEUR_PROPOSE_IA, // le dernier moteur choisi, meme redevenu humain
   niveau: NIVEAU_PROPOSE_IA,
-  profil: MACHINE_PAR_DEFAUT.profil,
+  profil: nomDuProfilIAParDefaut(), // interface/profils-ia.js
   reflexionMax: MACHINE_PAR_DEFAUT.reflexionMax,
   livre: MACHINE_PAR_DEFAUT.livre,
 };

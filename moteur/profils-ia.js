@@ -65,8 +65,13 @@ const PROFILS_IA_INTEGRES = Object.keys(STYLES_IA).flatMap((style) =>
 // dans la VERSION DE TRAVAIL seulement (interface/profils-ia.js) : ils portent des
 // ajouts pas encore publies (ec, ea, ep, ef). v4 : v5el_v3 + ec 20, ea 0,5, ep 1
 // (37 parties sur 40 contre v4el) ; v5 : v4 + ef 5 (20 des 21 puzzles jamais
-// resolus, 25 parties sur 40 contre v4 sans livre).
+// resolus, 25 parties sur 40 contre v4 sans livre) ; v6 : v5 + fn 6 (« fais avec
+// fn6 » : au niveau 8, ef ne laisse plus finir la profondeur en 30 s).
 const POIDS_NORMAL_V5EL_V4 = { gain: 1000, perte: 1000, centre: 10, cohesion: 10, bordSoi: 15, bordAdverse: 15, sumito32: 21, sumito31: 12, sumito21: 7, menaceEjection: 100, fourchette: 0, gainScore: 100, perteScore: 100, compacite: 100, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22, piege: 60, sumitoVide: -20, etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1 };
+// L'issue d'une retouche du banc qui n'a pas gagne, a la fin de son nom (interface/banc-essais-reglage.js).
+const ISSUES_DU_BANC = ['=', '-'];
+// L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut).
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v7';
 const PROFILS_IA_DE_TRAVAIL = [
   {
     nom: 'Normal v5el_v4',
@@ -86,6 +91,36 @@ const PROFILS_IA_DE_TRAVAIL = [
     poids: { ...POIDS_NORMAL_V5EL_V4, elagageFin: 5 },
     description: "Profil de saab (2026-10-08) : Normal v5el_v4, plus l'élagage coupé dès 5 billes éjectées d'un camp (ef 5) — il voit les combinaisons forcées de fin de partie : 20 des 21 puzzles qu'aucun profil ne résolvait, 25 parties sur 40 contre v5el_v4.",
   },
+  {
+    nom: 'Normal v5el_v6',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    poids: { ...POIDS_NORMAL_V5EL_V4, elagageFin: 5, elagageFinNiveau: 6 },
+    description: "Profil de saab (2026-10-08) : Normal v5el_v5, mais l'élagage coupé en fin de partie (ef 5) jusqu'au niveau 6 seulement (fn 6) : aux niveaux 7 et 8, la recherche sans élagage ne finit plus en 30 s. Niveaux 1 à 6 : comme v5el_v5 ; 7 et 8 : comme v5el_v4.",
+  },
+  // Saab, 2026-10-18 : « je viens de tester v5ElP4_v2 qui gagne largement v5ElP4, donc mettre
+  // Normal v5ElP4_v2 par défaut comme IA » — ses reglages, ceux de son LabAl du 18/10 03:59
+  // (v5ElP4 retouche : gf 15, pf 15, cohesion 10 ; 18 parties sur 20, 2 nulles). Son 2e jeu
+  // de poids de sa famille : son nom s'affiche en _v2 (moteur/noms-ia.js).
+  {
+    nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    numeroDePoids: 2,
+    poids: {
+      gain: 100, gainScore: 50, gainFibonacci: 15, perte: 100, perteScore: 50, perteFibonacci: 15,
+      sumito32: 3, sumito31: 2, sumito21: 1, sumitoVide: -2, menaceEjection: 20, fourchette: 2, piege: 0,
+      piegeProgressifAdverse: 2, piegeProgressifMien: 2, piegeGagnantAdverse: 500, piegeGagnantMien: 500,
+      compacite: 20, cohesion: 10, bordSoi: 15, bordAdverse: 15,
+      centre: 10, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22,
+      etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1, elagageFin: 5, elagageFinNiveau: 6,
+    },
+    description: "Profil de saab (2026-10-18), l'IA par défaut : son v5ElP4 avec le gain et la perte progressifs à 15 (gf, pf) et la cohésion à 10 — 18 parties sur 20 contre v5ElP4 (2 nulles), au niveau 8 sans limite de temps.",
+  },
 ];
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
@@ -99,14 +134,22 @@ function lireProfilIA(brut) {
   // L'indice d'un profil de l'utilisateur (interface/profils-ia.js), repris
   // dans le nom de ses machines (moteur/ia.js, nomDeLaMachine).
   const indice = Number.isInteger(brut.indice) && brut.indice > 0 ? { indice: brut.indice } : {};
+  // Son jeu de poids dans sa famille (moteur/noms-ia.js, le _v de son nom), et son nom
+  // d'avant ces noms (saab, 2026-10-16 : garde pour l'infobulle).
+  const noms = {
+    ...(Number.isInteger(brut.numeroDePoids) && brut.numeroDePoids > 0 ? { numeroDePoids: brut.numeroDePoids } : {}),
+    ...(typeof brut.ancienNom === 'string' && brut.ancienNom !== '' ? { ancienNom: brut.ancienNom } : {}),
+    // Une retouche du banc gardee a cote (saab, 2026-10-18) : « = » a egalite, « - » perdue.
+    ...(ISSUES_DU_BANC.includes(brut.issueDuBanc) ? { issueDuBanc: brut.issueDuBanc } : {}),
+  };
   // Ce qu'il cherche a faire (voir DESCRIPTIONS_STYLES_IA) : hors de l'historique.
   const description = typeof brut.description === 'string' ? brut.description.trim().slice(0, DESCRIPTION_PROFIL_IA_MAX) : '';
   // Qui l'a exporte (voir nomDuProfilImporte).
   const auteur = typeof brut.auteur === 'string' ? brut.auteur.replace(CARACTERES_HORS_AUTEUR, '').slice(0, AUTEUR_PROFIL_IA_MAX) : '';
   const lu = lireHistoriqueIA(brut);
-  if (!lu) return { nom, ...valeursReglagesIA(brut), ...indice, description, auteur };
+  if (!lu) return { nom, ...valeursReglagesIA(brut), ...indice, ...noms, description, auteur };
   const courante = lu.historique.find((version) => version.numero === lu.courante);
-  return { nom, ...valeursReglagesIA(courante), historique: lu.historique, courante: lu.courante, ...indice, description, auteur };
+  return { nom, ...valeursReglagesIA(courante), historique: lu.historique, courante: lu.courante, ...indice, ...noms, description, auteur };
 }
 
 // L'indice d'un nouveau profil de l'utilisateur (repris dans le nom de ses
@@ -136,5 +179,20 @@ function nomDuProfilImporte(nom, auteur, nomsPris, moi = '') {
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
 // `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
 function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, poids: profil.poids, reflexionMax, livre });
+  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, reflexionMax, livre });
+}
+
+// Les profils dans l'ordre (saab, 2026-10-16 : « mets ces profils dans l'ordre Agr/Nor/Def
+// avec leur version et Pn, pour bien voir lesquels on n'a pas retouchés ») : le style
+// (Agressif, Normal, Défensif), la version, sans puis avec elagage, le profil de base
+// avant ceux qu'on en a faits ; puis (moteur/noms-ia.js) leurs ajouts (Pn) et leur jeu
+// de poids (_v) — une famille reste ensemble —, enfin leur numero et leur version.
+const STYLES_DANS_L_ORDRE_IA = Object.keys(STYLES_IA);
+function profilsIADansLOrdre(profils) {
+  const cle = (profil) => [STYLES_DANS_L_ORDRE_IA.indexOf(profil.style), profil.version, profil.elagage, profil.numeroDesAjouts ?? 0, profil.numeroDePoids ?? 1, profil.indice ?? 0, profil.courante ?? 0];
+  return [...profils].sort((a, b) => {
+    const [cleA, cleB] = [cle(a), cle(b)];
+    const rang = cleA.findIndex((valeur, i) => valeur !== cleB[i]);
+    return rang >= 0 ? cleA[rang] - cleB[rang] : a.nom.localeCompare(b.nom, 'fr', { numeric: true });
+  });
 }

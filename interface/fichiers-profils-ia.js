@@ -41,8 +41,9 @@ function retenirNomAuteurIA(nom) {
 function brancherFichiersProfilsIA(elements, { profilActuel, nomActuel, brouillonAbandonne, choisir }) {
   elements.nouveau.addEventListener('click', () => {
     if (!brouillonAbandonne()) return;
-    // Une copie est un autre profil : un nouvel indice (enregistrerProfilIA).
-    const { indice, ...copie } = profilActuel();
+    // Une copie est un autre profil : un nouvel indice et un nouveau numero de poids
+    // (enregistrerProfilIA) ; pas d'ancien nom.
+    const { indice, numeroDePoids, ancienNom, ...copie } = profilActuel();
     const profil = demarrerHistoriqueIA({ ...copie, nom: nomNouveauProfilIA() }, formaterDateKAAWA(new Date()), `copie de ${nomActuel()}`);
     enregistrerProfilIA(profil);
     choisir(profil.nom);
@@ -76,7 +77,10 @@ function brancherFichiersProfilsIA(elements, { profilActuel, nomActuel, brouillo
       const profil = lireProfilIA(donnees);
       if (!profil) return refuser();
       profil.nom = nomDuProfilImporte(profil.nom, profil.auteur, listerProfilsIA().map((existant) => existant.nom), lireNomAuteurIA());
-      delete profil.indice; // celui d'un autre appareil : il en recoit un d'ici
+      // L'indice et le numero de poids d'un autre appareil : il en recoit d'ici (ses Pn
+      // aussi, d'apres le registre d'ici : moteur/noms-ia.js).
+      delete profil.indice;
+      delete profil.numeroDePoids;
       enregistrerProfilIA(profil);
       choisir(profil.nom);
     }, refuser);

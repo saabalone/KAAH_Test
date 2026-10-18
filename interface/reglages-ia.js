@@ -11,17 +11,13 @@
 // a une plus ancienne ; la boite Historique IA (interface/historique-ia.js)
 // montre toutes les versions et permet d'y revenir. Les profils integres ne
 // changent jamais : valider une retouche de l'un d'eux cree un profil
-// Normal_v2, dont l'historique part de lui. Le nom d'un profil suit sa version
-// courante (saab, 2026-10-02 et 03) : Normal_v3, et son indice si ce nom est
-// deja pris (Normal_v2_(P4)). Abandonner oublie le brouillon.
+// nouveau, dont l'historique part de lui. Le nom d'un profil suit ses reglages (saab,
+// 2026-10-16, moteur/noms-ia.js : Normal v5ElP2_v3). Abandonner oublie le brouillon.
 // L'essai (interface/essai-ia.js) montre, sans rien enregistrer, ce que les
 // poids affiches font jouer sur la position du plateau.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CLES_POIDS_IA
-// (moteur/ia-evaluation.js), CLES_POIDS_IA_V2 (moteur/ia-evaluation-v2.js),
-// CLES_POIDS_IA_V3 (moteur/ia-evaluation-v3.js), CLES_POIDS_IA_V4 (moteur/ia-evaluation-v4.js), CLES_POIDS_IA_V5 (moteur/ia-evaluation-v5.js),
-// CLES_OPTIONS_IA, POIDS_PROPOSES_OPTIONS_IA (moteur/ia-ajouts.js),
-// NOMS_STYLES_IA, POIDS_DES_VERSIONS_IA (moteur/ia.js), lireProfilIA (moteur/profils-ia.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : NOMS_STYLES_IA (moteur/ia.js),
+// lireProfilIA (moteur/profils-ia.js),
 // demarrerHistoriqueIA, validerVersionIA, choisirVersionIA, memesReglagesIA
 // (moteur/historique-profil-ia.js), couleursDesReglagesIA, couleurLaPlusForte,
 // couleurDuProfilIA (moteur/couleurs-profil-ia.js), listerProfilsIA,
@@ -32,6 +28,7 @@
 // (interface/historique-ia.js), formaterDateKAAWA (interface/sauvegarde.js),
 // brancherFichiersProfilsIA (interface/fichiers-profils-ia.js) viennent de
 // fichiers charges avant celui-ci.
+// Les champs des poids : creerLesChampsDesPoidsIA (interface/reglages-ia-poids.js).
 
 // La version « 2el » (saab, 2026-10-02 et 03) : la 2, avec un elagage
 // (moteur/ia-recherche.js, meilleursCoupsIA) — SUFFIXE_ELAGAGE_IA et le nombre
@@ -47,7 +44,6 @@ const CLASSES_RUBRIQUE_IA = { dernier: 'rubrique-valide-dernier', ancien: 'rubri
 // `poids-ia-<cle>` ; ceux de la version 2 (sumitos, phase 33) et de la 3 (les
 // cases, compacite, score : saab 2026-10-03) ne se montrent qu'avec elles.
 function demarrerReglagesIA(elements) {
-  const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_IA];
   // Le dernier profil montre, ou celui du joueur regarde (interface/profils-ia.js,
   // lireProfilIAMontre) — jamais toujours Normal (saab, 2026-10-07).
   let nomActuel = lireProfilIAMontre() ?? NOMS_STYLES_IA.normal;
@@ -58,52 +54,12 @@ function demarrerReglagesIA(elements) {
   // retouches dans l'ordre avec les siennes.
   let retouchesPrecedentes = [];
   let surRetouche = () => {};
-  const champPoids = (cle) => document.getElementById(`poids-ia-${cle}`);
-  const champDe = (cle) => ({ version: elements.version, style: elements.style, elagage: elements.elagage, livre: elements.livre })[cle] ?? champPoids(cle);
-  const ligneDe = (cle) => champDe(cle).closest('label');
-  const estUnAjout = (cle) => CLES_OPTIONS_IA.includes(cle);
+  // Les champs des poids (interface/reglages-ia-poids.js).
+  const { ligneDe, afficherValeurs, lireValeurs } = creerLesChampsDesPoidsIA(elements, () => retoucher());
 
-  // Une case devant chaque poids (saab, 2026-10-07 : « ce qui permettrait de le
-  // supprimer plutot que de le regler a 0, c'est bcp plus simple ») : decochee,
-  // le poids vaut 0 — ou, pour un ajout (le sumito vide), le profil ne l'a plus.
-  // Recochee : la valeur d'avant, sinon celle du style.
-  const cases = Object.fromEntries(
-    CLES_POIDS.map((cle) => {
-      const coche = document.createElement('input');
-      coche.type = 'checkbox';
-      coche.className = 'coche-poids';
-      coche.title = estUnAjout(cle) ? 'Mettre ou enlever cet ajout' : 'Décochée : ce poids ne compte plus (0)';
-      ligneDe(cle).prepend(coche);
-      return [cle, coche];
-    })
-  );
-  const valeursAvantDecoche = {};
-  function valeurProposee(cle) {
-    const style = elements.style.value;
-    const version = Number.parseInt(elements.version.value, 10);
-    const proposee = estUnAjout(cle) ? POIDS_PROPOSES_OPTIONS_IA[style]?.[cle] : POIDS_DES_VERSIONS_IA[version]?.styles[style]?.[cle];
-    return valeursAvantDecoche[cle] || proposee || Number(champPoids(cle).step) || 1;
-  }
 
   const profilActuel = () => trouverProfilIA(nomActuel);
 
-  function afficherValeurs(valeurs) {
-    elements.style.value = valeurs.style;
-    // L'elagage se choisit avec la version (« 2el ») ; son nombre, seulement alors.
-    elements.version.value = `${valeurs.version}${valeurs.elagage > 0 ? SUFFIXE_ELAGAGE_IA : ''}`;
-    ligneDe('elagage').hidden = !(valeurs.elagage > 0);
-    elements.elagage.value = valeurs.elagage;
-    elements.livre.checked = valeurs.livre;
-    for (const cle of CLES_POIDS) {
-      const present = cle in valeurs.poids;
-      // Un ajout se montre toujours (sa case le met) ; un poids, avec sa version.
-      ligneDe(cle).hidden = !present && !estUnAjout(cle);
-      cases[cle].checked = present && valeurs.poids[cle] !== 0;
-      champPoids(cle).disabled = !cases[cle].checked;
-      if (present) champPoids(cle).value = valeurs.poids[cle];
-      else if (estUnAjout(cle)) champPoids(cle).value = valeurProposee(cle);
-    }
-  }
 
   // Chaque reglage (sa ligne et son chiffre), puis, de la valeur jusqu'a son
   // fichier (saab, 2026-10-02) : le nom du profil, la liste des profils,
@@ -123,7 +79,7 @@ function demarrerReglagesIA(elements) {
   }
 
   function remplir() {
-    const profils = listerProfilsIA();
+    const profils = listerProfilsIADansLOrdre(); // l'ordre de Profils IA compares
     // Un joueur regarde depuis (sa boite) : son profil, sauf retouche en cours.
     const voulu = lireProfilIAMontre();
     if (brouillon === null && voulu && voulu !== nomActuel && profils.some((profil) => profil.nom === voulu)) {
@@ -136,10 +92,13 @@ function demarrerReglagesIA(elements) {
         const option = document.createElement('option');
         option.value = profil.nom;
         option.textContent = libelleProfilIA(profil);
+        option.title = infobulleDuProfilIA(profil);
+        marquerSiProfilParDefaut(option, profil.nom);
         return option;
       })
     );
     elements.select.value = nomActuel;
+    suivreLeProfilParDefaut(elements.select);
     const profil = profilActuel();
     afficherValeurs(brouillon ?? profil);
     marquerCouleurs();
@@ -178,18 +137,7 @@ function demarrerReglagesIA(elements) {
   // profil (lireProfilIA) — changer de version garde les poids communs, ceux
   // qui manquent prennent la valeur du style.
   function retoucher() {
-    const choix = elements.version.value;
-    const elague = choix.endsWith(SUFFIXE_ELAGAGE_IA);
-    const valeurs = lireProfilIA({
-      nom: nomActuel,
-      style: elements.style.value,
-      version: Number.parseInt(choix, 10),
-      livre: elements.livre.checked,
-      elagage: !elague ? 0 : ligneDe('elagage').hidden ? ELAGAGE_PAR_DEFAUT_IA : Math.max(1, Math.round(Number(elements.elagage.value)) || ELAGAGE_PAR_DEFAUT_IA),
-      poids: Object.fromEntries(
-        CLES_POIDS.filter((cle) => !ligneDe(cle).hidden && (cases[cle].checked || !estUnAjout(cle))).map((cle) => [cle, cases[cle].checked ? Number(champPoids(cle).value) : 0])
-      ),
-    });
+    const valeurs = lireProfilIA({ nom: nomActuel, ...lireValeurs() });
     retouchesPrecedentes.push(brouillon);
     surRetouche();
     brouillon = memesReglagesIA(valeurs, profilActuel()) ? null : valeurs;
@@ -200,36 +148,12 @@ function demarrerReglagesIA(elements) {
   elements.style.addEventListener('change', retoucher);
   elements.version.addEventListener('change', retoucher);
   elements.livre.addEventListener('change', retoucher);
-  for (const cle of CLES_POIDS) {
-    cases[cle].addEventListener('change', () => {
-      if (cases[cle].checked) champPoids(cle).value = valeurProposee(cle);
-      else valeursAvantDecoche[cle] = Number(champPoids(cle).value);
-      retoucher();
-    });
-  }
-  for (const champ of [...CLES_POIDS.map(champPoids), elements.elagage]) {
-    champ.addEventListener('change', retoucher);
-    // Les boutons - et + (saab, 2026-09-30), comme ceux des tailles d'Affichage.
-    for (const bouton of champ.parentElement.querySelectorAll('[data-pas]')) {
-      bouton.addEventListener('click', () => {
-        if (Number(bouton.dataset.pas) > 0) champ.stepUp();
-        else champ.stepDown();
-        champ.dispatchEvent(new Event('change'));
-      });
-    }
-  }
 
   elements.valider.addEventListener('click', () => {
     if (brouillon === null) return;
-    const date = formaterDateKAAWA(new Date());
-    let profil = profilActuel();
-    // Un profil integre ne change jamais : sa retouche validee en devient un nouveau,
-    // qui garde son nom de base (saab, 2026-10-03 : « Normal devient Normal_v2 »).
-    if (estProfilIAIntegre(profil.nom)) profil = demarrerHistoriqueIA({ ...profil }, date, `depuis ${profil.nom}`);
-    const ancienNom = profil.nom;
-    profil = validerVersionIA(profil, brouillon, date);
-    // Le nom suit la version (saab, 2026-10-02 et 03) : Normal_v3.
-    choisir(enregistrerSousLeNomDeSaVersion(ancienNom, profil));
+    // Le nom suit la version (saab, 2026-10-02 et 03) : Normal_v3 ; un profil integre en
+    // devient un nouveau (interface/profils-ia.js).
+    choisir(validerUneRetoucheDuProfilIA(profilActuel(), brouillon, formaterDateKAAWA(new Date())));
   });
 
   elements.abandonner.addEventListener('click', () => choisir(nomActuel));

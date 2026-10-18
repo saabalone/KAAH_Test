@@ -45,7 +45,9 @@ const CODE_DU_WORKER_SOLVEUR = `
 // Si le worker ne peut pas demarrer (navigateur trop ancien, memoire
 // refusee), chaque demande repond "ERREUR SOLVEUR_INDISPONIBLE" plutot que de
 // faire planter quoi que ce soit.
-function creerSolveur() {
+// `limites` (le banc d'essais, pour remonter plus loin dans une partie) : d'autres
+// limites de temps que celles de l'exe, en secondes.
+function creerSolveur({ limiteDepart = LIMITE_RECHERCHE_DEPART_S, limiteParCoup = LIMITE_PAR_COUP_S } = {}) {
   let worker = null;
   let prochainNumero = 1;
   const enAttente = new Map();
@@ -85,8 +87,8 @@ function creerSolveur() {
           noirGagne,
           toursMaximum,
           coups,
-          limiteDepart: LIMITE_RECHERCHE_DEPART_S,
-          limiteParCoup: LIMITE_PAR_COUP_S,
+          limiteDepart,
+          limiteParCoup,
         });
       } catch {
         toutAbandonner('SOLVEUR_INDISPONIBLE');

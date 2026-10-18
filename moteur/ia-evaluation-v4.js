@@ -15,8 +15,9 @@
 // versNotation (plateau.js), BILLES_MAX_PAR_COUP, couleurAdverse (regles.js),
 // couleursDuPlateau (partie.js), CASES_VOISINES_IA, INDEX_DIRECTION_OPPOSEE,
 // STYLES_IA_V2 (ia-evaluation-v2.js), evaluerPosition, evaluerPositionV2,
-// evaluerPositionV3, STYLES_IA_V3, COORDONNEES_DES_CASES_IA, distanceAxiale
-// (ia-evaluation-v3.js) viennent de fichiers charges avant celui-ci.
+// evaluerPositionV3, STYLES_IA_V3, COORDONNEES_DES_CASES_IA, distanceAxiale,
+// sommeProgressiveDuScore (ia-evaluation-v3.js), ejectionsDe (ia-evaluation.js),
+// EJECTIONS_POUR_GAGNER (partie.js) viennent de fichiers charges avant celui-ci.
 
 const CLES_POIDS_IA_V4 = ['piege'];
 const STYLES_IA_V4 = {
@@ -78,9 +79,24 @@ function billesBloquees(couleurs, camp) {
 
 // Le terme du piege pour `camp` (le camp de l'IA) : les billes adverses
 // bloquees moins les siennes.
+// Les ajouts du piege (saab, 2026-10-16 : « pour la fin de partie, le plus important est
+// le piège, donc piège Fibonacci, et même piège gagnant pour la (ou les) dernière bille ...
+// la même chose, en négatif, pour mes billes piégées ») :
+//   - Ppa, Ppm : progressif — la k-ieme bille piegee (adverse, ou a soi) vaut F(k) fois le
+//     premier terme (1, 2, 3, 5, 8 : sommeProgressiveDuScore, ia-evaluation-v3.js) a la
+//     place du Piege lineaire ;
+//   - Pga, Pgm : gagnant — quand l'ejection suivante finit la partie (5 billes deja
+//     perdues par ce camp), chaque bille piegee de ce camp vaut ce poids en plus.
+const DERNIERE_BILLE_AVANT_LA_FIN = EJECTIONS_POUR_GAGNER - 1;
+const partDuPiege = (lineaire, progressif, piegees) => (progressif ? progressif * sommeProgressiveDuScore(piegees) : lineaire * piegees);
+const partDuPiegeGagnant = (gagnant, piegees, perdues) => (gagnant && perdues >= DERNIERE_BILLE_AVANT_LA_FIN ? gagnant * piegees : 0);
+
 function termeDuPiegeIA(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
-  return poids.piege * (billesBloquees(couleurs, couleurAdverse(camp)) - billesBloquees(couleurs, camp));
+  const lui = couleurAdverse(camp);
+  const [siennes, miennes] = [billesBloquees(couleurs, lui), billesBloquees(couleurs, camp)];
+  const progressif = partDuPiege(poids.piege, poids.piegeProgressifAdverse, siennes) - partDuPiege(poids.piege, poids.piegeProgressifMien, miennes);
+  return progressif + partDuPiegeGagnant(poids.piegeGagnantAdverse, siennes, ejectionsDe(etat, lui)) - partDuPiegeGagnant(poids.piegeGagnantMien, miennes, ejectionsDe(etat, camp));
 }
 
 // La valeur de `etat` pour `camp`, version 4 (le meme ordre des operations que

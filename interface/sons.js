@@ -55,6 +55,10 @@ const REGLAGES_SONS = [
   { cle: 'sound.occ_change', libelle: 'Occ change', fichier: 'occ_change' },
   { cle: 'sound.occ_draw', libelle: 'Occ draw', fichier: 'occ_draw' },
   { cle: 'sound.time_alert', libelle: 'Alerte temps', fichier: 'time_alert' },
+  // Le retour au toucher (interface/retour-toucher.js), qui n'existe pas dans
+  // KAAWA ; la vibration ne depend pas du Son global (`independant`).
+  { cle: 'sound.touch_click', libelle: 'Clic (ordinateur)' },
+  { cle: 'touch.vibrate', libelle: 'Vibration (tél.)', independant: true },
 ];
 
 // Tout est actif par defaut, comme dans KAAWA.

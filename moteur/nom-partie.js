@@ -124,8 +124,12 @@ function elementsDuTitre(donnees) {
 // Le nom complet d'une partie — voir l'en-tete du fichier.
 function nomDeFichierKAAWA(donnees) {
   const e = elementsDuTitre(donnees);
-  const base = `${e.date}, ${e.evenement}, ${e.variante}, ${e.joueurs}, ${e.score}tr${e.tours} ${e.vainqueur}, ${e.statut}`;
+  const suite = `${e.variante}, ${e.joueurs}, ${e.score}tr${e.tours} ${e.vainqueur}, ${e.statut}`;
+  // Une partie revue du banc d'essais (saab, 2026-10-15) : son prefixe
+  // (LabAl_2610150200_32) redit l'evenement et la date, il les remplace ; Es et Br
+  // le suivent (LabAl_2610150200_32_Br quand on y a essaye un coup).
+  if (e.prefixe.startsWith(`${e.evenement}_${e.date}`)) return `${e.prefixe}${e.essai ? '_Es' : ''}${e.branches ? '_Br' : ''}, ${suite}`;
   // Le prefixe de l'expediteur tout devant (facile a trier, saab 2026-10-06),
   // puis Es_ (copie d'essai des poids IA, saab 2026-10-01), puis Br_.
-  return `${e.prefixe ? `${e.prefixe}_` : ''}${e.essai ? 'Es_' : ''}${e.branches ? 'Br_' : ''}${base}`;
+  return `${e.prefixe ? `${e.prefixe}_` : ''}${e.essai ? 'Es_' : ''}${e.branches ? 'Br_' : ''}${e.date}, ${e.evenement}, ${suite}`;
 }

@@ -47,7 +47,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition,
 // ecrirePosition, creerArbre, remplacerNoeud, jouerDansArbre,
 // marquerStatutFin, marquerPendulesSnapshot, marquerCommentaire, marquerReflexionIA,
-// couleurAdverse (moteur/regles.js),
+// couleurAdverse (moteur/regles.js), reglagesDuCamp (moteur/pendules.js),
 // marquerFlecheDernierCoup, noeudA, cheminsEgaux,
 // lireCoupNacre, ecrireCoupNacreSansAmbiguite, coupsDesignesPar
 // (moteur/notation.js et moteur/arbre.js),
@@ -146,6 +146,21 @@ function noeudVersDonnees(noeud, chemin, metadonnees) {
 // reglagesPendules (voir moteur.creerPendules), finDePartie: null |
 // { chemin, camp } (le camp qui a perdu au temps, voir l'en-tete du
 // fichier), pendulesActuelles (l'instantane en direct, pour Chrono) }.
+// Les reglages de pendule relus dans `Timer` (le format de KAAWA) : ceux de Noir
+// (p1_), et ceux de Blanc (p2_) a part — phase 36, chacun les siens. Le mode
+// choisi n'est pas dans le fichier, meme chez KAAWA : Bonus.
+function reglagesPendulesDuFichier(timer) {
+  const s = timer.settings;
+  return {
+    mode: timer.mode,
+    modeChoisi: 'bonus',
+    tempsInitial: s.p1_initial,
+    bonusParCoup: s.p1_bonus,
+    bonusParEjection: s.p1_bonus_eject,
+    camps: { blanc: { tempsInitial: s.p2_initial ?? s.p1_initial, bonusParCoup: s.p2_bonus ?? s.p1_bonus, bonusParEjection: s.p2_bonus_eject ?? s.p1_bonus_eject } },
+  };
+}
+
 function arbreVersDonnees(arbre, metadonnees) {
   const cheminResultat = finDeLaPartie(arbre) ?? arbre.cheminOrigine;
   const origine = noeudA(arbre, cheminResultat);
@@ -157,6 +172,8 @@ function arbreVersDonnees(arbre, metadonnees) {
     durees.push(dureeArrondie(noeudOrigine.pendulesSnapshot?.dureeDernierCoup ?? 0));
   }
   const pendulesActuelles = metadonnees.pendulesActuelles ?? { tempsNoir: 0, tempsBlanc: 0 };
+  const noir = reglagesDuCamp(metadonnees.reglagesPendules, 'noir');
+  const blanc = reglagesDuCamp(metadonnees.reglagesPendules, 'blanc');
 
   return {
     Date: metadonnees.date,
@@ -174,13 +191,14 @@ function arbreVersDonnees(arbre, metadonnees) {
       // l'est) ; la duree de chaque coup de la ligne reellement jouee, comme
       // KAAWA l'ecrit (phase 30).
       durations: durees,
+      // Chaque camp les siens (phase 36, moteur/pendules.js, reglagesDuCamp) : p1_ Noir, p2_ Blanc.
       settings: {
-        p1_initial: metadonnees.reglagesPendules.tempsInitial,
-        p2_initial: metadonnees.reglagesPendules.tempsInitial,
-        p1_bonus: metadonnees.reglagesPendules.bonusParCoup ?? 0,
-        p2_bonus: metadonnees.reglagesPendules.bonusParCoup ?? 0,
-        p1_bonus_eject: metadonnees.reglagesPendules.bonusParEjection ?? 0,
-        p2_bonus_eject: metadonnees.reglagesPendules.bonusParEjection ?? 0,
+        p1_initial: noir.tempsInitial,
+        p2_initial: blanc.tempsInitial,
+        p1_bonus: noir.bonusParCoup,
+        p2_bonus: blanc.bonusParCoup,
+        p1_bonus_eject: noir.bonusParEjection,
+        p2_bonus_eject: blanc.bonusParEjection,
       },
     },
     Chrono: { total_p1_remaining: pendulesActuelles.tempsNoir, total_p2_remaining: pendulesActuelles.tempsBlanc },

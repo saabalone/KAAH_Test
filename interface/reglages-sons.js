@@ -21,9 +21,9 @@ function demarrerReglagesSons(elements, sons) {
 
   function afficher() {
     elements.liste.replaceChildren();
-    for (const { cle, libelle } of REGLAGES_SONS) {
+    for (const { cle, libelle, independant } of REGLAGES_SONS) {
       const ligne = document.createElement('label');
-      ligne.className = 'ligne-reglage';
+      ligne.className = independant ? 'ligne-reglage reglage-independant' : 'ligne-reglage';
       const case_ = document.createElement('input');
       case_.type = 'checkbox';
       case_.checked = sons.lire(cle);

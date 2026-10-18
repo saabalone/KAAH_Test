@@ -15,8 +15,16 @@
 //   - ep : la profondeur de l'etendue, en coups (absente : 4) — saab, 2026-10-08 ;
 //   - ef : l'elagage coupe en fin de partie (KAI++ seulement) : des qu'un camp a
 //     ef billes ejectees, plus d'elagage — saab, 2026-10-08 (les puzzles jamais
-//     resolus l'etaient presque tous sans elagage).
-// `terme` : il a sa colonne (Essai, panneaux) ; da et ep n'en ont pas, ils changent ec et ea.
+//     resolus l'etaient presque tous sans elagage) ;
+//   - fn : ef seulement jusqu'a ce niveau (0 : a tous) — saab, 2026-10-08 : au
+//     niveau 8, sans elagage en fin de partie, la profondeur 8 ne finit plus en 30 s ;
+//   - gf, pf : le gain et la perte selon le score, progressifs (1, 2, 3, 5, 8 fois le
+//     premier terme pour les ejections 1 a 5) plutot que lineaires — saab, 2026-10-14
+//     (moteur/ia-evaluation-v3.js, version 3 et plus) ;
+//   - Ppa, Ppm : le piege progressif, des billes adverses et des siennes (1, 2, 3, 5, 8
+//     fois le premier terme) ; Pga, Pgm : le piege gagnant, quand l'ejection suivante
+//     finit la partie — saab, 2026-10-16 (moteur/ia-evaluation-v4.js, version 4 et plus).
+// `terme` : il a sa colonne (Essai, panneaux) ; da, ep, gf, pf et ceux du piege n'en ont pas, ils changent d'autres termes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide
@@ -24,16 +32,29 @@
 // charges avant celui-ci.
 
 const OPTIONS_IA = [
-  { cle: 'sumitoVide', suffixe: 'sv', terme: true },
-  { cle: 'etendueCentre', suffixe: 'ec', terme: true },
-  { cle: 'etendueCases', suffixe: 'ea', terme: true },
-  { cle: 'etendueReference', suffixe: 'da', terme: false },
-  { cle: 'elagageReponse', suffixe: 'er', terme: false },
-  { cle: 'elagageSuite', suffixe: 'es', terme: false },
-  { cle: 'etendueProfondeur', suffixe: 'ep', terme: false },
-  { cle: 'elagageFin', suffixe: 'ef', terme: false },
+  { cle: 'sumitoVide', suffixe: 'Sv', terme: true },
+  { cle: 'etendueCentre', suffixe: 'Ec', terme: true },
+  { cle: 'etendueCases', suffixe: 'Ea', terme: true },
+  { cle: 'etendueReference', suffixe: 'Da', terme: false },
+  { cle: 'elagageReponse', suffixe: 'Er', terme: false },
+  { cle: 'elagageSuite', suffixe: 'Es', terme: false },
+  { cle: 'etendueProfondeur', suffixe: 'Ep', terme: false },
+  { cle: 'elagageFin', suffixe: 'Ef', terme: false },
+  { cle: 'elagageFinNiveau', suffixe: 'Fn', terme: false },
+  { cle: 'gainFibonacci', suffixe: 'Gf', terme: false },
+  { cle: 'perteFibonacci', suffixe: 'Pf', terme: false },
+  { cle: 'piegeProgressifAdverse', suffixe: 'Ppa', terme: false },
+  { cle: 'piegeProgressifMien', suffixe: 'Ppm', terme: false },
+  { cle: 'piegeGagnantAdverse', suffixe: 'Pga', terme: false },
+  { cle: 'piegeGagnantMien', suffixe: 'Pgm', terme: false },
 ];
+// Chaque suffixe avec sa majuscule (saab, 2026-10-16 : « v5elecef est un peu confus, il
+// vaudrait mieux repérer chaque suffixe par une majuscule, v5ElEcEf »).
 const CLES_OPTIONS_IA = OPTIONS_IA.map((option) => option.cle);
+
+// Le code du jeu d'ajouts d'un profil (« SvEcEf ») ; '' sans ajout. Son numero Pn :
+// moteur/noms-ia.js.
+const codeDesAjouts = (poids) => OPTIONS_IA.filter((option) => option.cle in poids).map((option) => option.suffixe).join('');
 const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((option) => option.cle);
 
 // Le poids propose quand on coche un ajout (une base, saab : « ceux par defaut
@@ -41,16 +62,24 @@ const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((
 // version 2 ; une case de l'etendue vaut le Centre du style ; la moitie de la
 // valeur d'une case ; 14 billes de reference (1 au debut de la partie) ; les
 // premiers coups classes apres la reponse adverse et son propre coup suivant ;
-// l'etendue sur 4 coups, comme sans ep ; plus d'elagage des 4 billes ejectees d'un camp.
+// l'etendue sur 4 coups, comme sans ep ; plus d'elagage des 4 billes ejectees d'un
+// camp ; jusqu'au niveau 6 (au niveau 6, la profondeur finit encore en 30 s).
 const PART_DES_CASES_ETENDUE = 0.5;
 const BILLES_DE_REFERENCE_ETENDUE = 14;
 const DISTANCE_ELAGAGE_PAR_REPONSE = 3;
 const DISTANCE_ELAGAGE_SUITE = 2;
 const EJECTIONS_SANS_ELAGAGE_PROPOSEES = 4;
+const NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE = 6;
+// Le premier terme du score progressif (saab : « le 1er terme Fb, +10 »).
+const PREMIER_TERME_DU_SCORE_PROGRESSIF = 10;
+// Le premier terme du piege progressif, et ce que vaut une bille piegee quand sa perte
+// finirait la partie (une base a regler, saab : « ceux par défaut sont juste une base »).
+const PREMIER_TERME_DU_PIEGE_PROGRESSIF = 20;
+const PIEGE_GAGNANT_PROPOSE = 500;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE },
   ])
 );
 

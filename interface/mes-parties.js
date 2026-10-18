@@ -456,5 +456,14 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     }
   }
 
-  return { ouvrirPourConfirmationReprise, positionDeDepartPrevisualisee };
+  // Rouvre la partie `id` (l'historique des joueurs, phase 35 : « Voir » un
+  // record) ; faux si elle n'est plus dans la liste.
+  function chargerPartie(id) {
+    const entree = listerPartiesEnregistrees().find((e) => e.id === id);
+    if (!entree) return false;
+    confirmer(entree);
+    return true;
+  }
+
+  return { ouvrirPourConfirmationReprise, positionDeDepartPrevisualisee, chargerPartie };
 }

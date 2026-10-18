@@ -11,47 +11,19 @@
 // CLES_CASES_IA_V3 (moteur/ia-evaluation-v3.js), CLES_OPTIONS_IA (moteur/ia-ajouts.js), lignesComparaisonIA,
 // couleurLaPlusForte (moteur/couleurs-profil-ia.js), listerProfilsIA, libelleProfilIA
 // (interface/profils-ia.js), poserCouleurIA (interface/couleurs-ia.js),
-// COLONNES_ESSAI_IA (interface/essai-ia.js) viennent de fichiers charges avant
-// celui-ci, ou ne servent qu'une fois la page chargee.
+// COLONNES_ESSAI_IA (interface/essai-ia.js), profilsIADansLOrdre (moteur/profils-ia.js),
+// suffixeDeVersionIA (moteur/ia.js), numeroDesAjoutsDe, infobulleDuProfilIA (interface/profils-ia.js), groupeDuReglage (moteur/ia-groupes.js),
+// colorerSelonLeGroupe, groupesQuiCommencent (interface/groupes-ia.js),
+// ABREVIATIONS_STYLES_COMPARAISON_IA, ABREVIATIONS_COLONNES_COMPARAISON_IA, celluleComparaison,
+// classeDeColonneComparaisonIA, creerLesColonnesDeLaComparaison (interface/comparaison-ia-colonnes.js)
+// viennent de fichiers charges avant celui-ci, ou ne servent qu'une fois la page chargee.
+//
+// Saab, 2026-10-16 : « figer la colonne Profil IA, qu'on puisse faire défiler les autres
+// colonnes » (styles.css, comparaison-fige) ; « mettre aussi dans l'infobulle le nom
+// complet du profil avec ses suffixes » ; les profils dans l'ordre Agr/Nor/Def
+// (profilsIADansLOrdre) ; les reglages dans l'ordre et la couleur de leur groupe, sous une
+// ligne qui nomme les groupes.
 
-// Saab, 2026-10-03 : « Style, abreger par Agr/Nor/Déf ».
-const ABREVIATIONS_STYLES_COMPARAISON_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Déf' };
-// Les cases de la version 3 qu'on peut replier (saab : « plie on aura e5 et a1 »).
-const CASES_TOUJOURS_VISIBLES_IA = ['caseE5', 'caseA1'];
-const CASES_REPLIABLES_IA = CLES_CASES_IA_V3.filter((cle) => !CASES_TOUJOURS_VISIBLES_IA.includes(cle));
-// Des en-tetes courts (saab, 2026-10-07 : « les colonnes doivent etre ajustees
-// sur la valeur, pas sur l'en-tete : mettre des abreviations, et l'infobulle du
-// nom complet ») ; le nom complet : LIBELLES_REGLAGES_IA.
-const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
-  version: 'V.',
-  livre: 'Liv.',
-  elagage: 'Él.',
-  style: 'Sty.',
-  gain: 'Gain',
-  gainScore: 'sc.G',
-  perte: 'Perte',
-  perteScore: 'sc.P',
-  centre: 'Ctr',
-  etendueCentre: 'ec',
-  etendueCases: 'ea',
-  etendueReference: 'da',
-  etendueProfondeur: 'ep',
-  elagageReponse: 'er',
-  elagageSuite: 'es',
-  elagageFin: 'ef',
-  cohesion: 'Coh.',
-  compacite: 'Cmp.',
-  bordSoi: 'B.m',
-  bordAdverse: 'B.a',
-  sumito: 'Sum.',
-  sumito32: '3/2',
-  sumito31: '3/1',
-  sumito21: '2/1',
-  sumitoVide: 'sv',
-  menaceEjection: 'Men.',
-  fourchette: 'Fch.',
-  piege: 'Pièg.',
-};
 // Les profils coches remontent en tete (saab, 2026-10-08 : « des fichiers
 // eloignes ne sont pas bien comparables : soit les faire remonter, soit coche
 // de ceux qu'on veut ») ; CET appareil retient les coches.
@@ -73,23 +45,14 @@ function retenirCochesComparaisonIA(coches) {
   }
 }
 
-// Une colonne retrecie a la main reste lisible.
-const LARGEUR_MIN_COLONNE_PX = 24;
-
 // `elements` : { bouton, dialogue, tableau, fermer } ; `choisir(nom)` : le
 // profil touche, dans Reglages.
 function demarrerComparaisonIA(elements, choisir) {
   const { tableau } = elements;
-  // Les largeurs choisies a la main, par colonne, gardees d'une ouverture a l'autre.
-  const largeurs = new Map();
+  const { titreDeColonne, appliquerLargeurs, ajusterLargeurDuTableau, figerLesColonnesDuProfil } = creerLesColonnesDeLaComparaison(tableau);
   let casesPliees = false;
-
-  const cellule = (balise, texte, classe) => {
-    const element = document.createElement(balise);
-    element.textContent = texte;
-    if (classe) element.className = classe;
-    return element;
-  };
+  const cellule = celluleComparaison;
+  const classeDeColonne = classeDeColonneComparaisonIA;
 
   // « Ce qu'il cherche », plie par defaut (saab, 2026-10-03 : « pour voir
   // qu'une ligne par colonne, afin de mieux pouvoir comparer ») : une ligne
@@ -111,75 +74,12 @@ function demarrerComparaisonIA(elements, choisir) {
     ajusterLargeurDuTableau();
   }
 
-  // Varier la largeur des colonnes (saab, 2026-10-03) : tirer le bord droit
-  // d'un titre. La premiere fois, toutes les largeurs sont figees telles
-  // qu'affichees (largeurs fixes : le texte trop long est coupé).
-  const titres = () => [...tableau.querySelectorAll('th[data-colonne]')];
-  const estVisible = (titre) => getComputedStyle(titre).display !== 'none';
-
-  function ajusterLargeurDuTableau() {
-    if (!tableau.classList.contains('largeurs-fixees')) return;
-    const total = titres()
-      .filter(estVisible)
-      .reduce((somme, titre) => somme + (largeurs.get(titre.dataset.colonne) ?? titre.getBoundingClientRect().width), 0);
-    tableau.style.width = `${total}px`;
-  }
-
-  function appliquerLargeurs() {
-    if (largeurs.size === 0) return;
-    for (const titre of titres()) {
-      const largeur = largeurs.get(titre.dataset.colonne);
-      if (largeur) titre.style.width = `${largeur}px`;
-    }
-    tableau.classList.add('largeurs-fixees');
-    ajusterLargeurDuTableau();
-  }
-
-  // Les colonnes repliees comprises : depliees un instant, pour les mesurer.
-  function figerLargeurs() {
-    const plis = ['cases-pliees'].filter((pli) => tableau.classList.contains(pli));
-    tableau.classList.remove(...plis);
-    for (const titre of titres()) if (!largeurs.has(titre.dataset.colonne)) largeurs.set(titre.dataset.colonne, titre.getBoundingClientRect().width);
-    tableau.classList.add(...plis);
-    appliquerLargeurs();
-  }
-
-  function poignee(titre) {
-    const element = cellule('span', '', 'poignee-colonne');
-    element.title = 'Tirer pour élargir ou rétrécir la colonne';
-    element.addEventListener('click', (evenement) => evenement.stopPropagation());
-    element.addEventListener('pointerdown', (evenement) => {
-      evenement.preventDefault();
-      evenement.stopPropagation();
-      figerLargeurs();
-      const depart = evenement.clientX;
-      const largeurDeDepart = largeurs.get(titre.dataset.colonne);
-      element.setPointerCapture(evenement.pointerId);
-      const suivre = (deplacement) => {
-        largeurs.set(titre.dataset.colonne, Math.max(LARGEUR_MIN_COLONNE_PX, largeurDeDepart + deplacement.clientX - depart));
-        appliquerLargeurs();
-      };
-      element.addEventListener('pointermove', suivre);
-      element.addEventListener('pointerup', () => element.removeEventListener('pointermove', suivre), { once: true });
-    });
-    return element;
-  }
-
-  function titreDeColonne(colonne, texte, classe) {
-    const titre = cellule('th', texte, classe);
-    titre.dataset.colonne = colonne;
-    titre.append(poignee(titre));
-    return titre;
-  }
-
-  // Les ajouts (sv, ec, ea, da) : caches hors d'une version de travail (styles.css, poids-ajout).
-  const classeDeColonne = (cle) => (CASES_REPLIABLES_IA.includes(cle) ? 'colonne-case-repliable' : CLES_OPTIONS_IA.includes(cle) ? 'poids-ajout' : '');
-
   function remplir() {
     const colonnes = { ...LIBELLES_REGLAGES_IA, ...COLONNES_ESSAI_IA, ...ABREVIATIONS_COLONNES_COMPARAISON_IA };
     const coches = lireCochesComparaisonIA();
-    const tousLesProfils = listerProfilsIA();
-    const profils = [...tousLesProfils.filter((profil) => coches.has(profil.nom)), ...tousLesProfils.filter((profil) => !coches.has(profil.nom))];
+    // Avec leur Pn, pour l'ordre (une famille reste ensemble, moteur/profils-ia.js).
+    const tousLesProfils = listerProfilsIA().map((profil) => ({ ...profil, numeroDesAjouts: numeroDesAjoutsDe(profil.poids) }));
+    const profils = profilsIADansLOrdre(tousLesProfils.filter((profil) => coches.has(profil.nom))).concat(profilsIADansLOrdre(tousLesProfils.filter((profil) => !coches.has(profil.nom))));
     const entete = document.createElement('tr');
     const titreDescription = titreDeColonne('description', "▸ Ce qu'il cherche", 'comparaison-titre-pliable');
     titreDescription.title = 'Toucher pour déplier ou replier les descriptions';
@@ -187,18 +87,29 @@ function demarrerComparaisonIA(elements, choisir) {
     tableau.classList.add('descriptions-pliees');
     tableau.classList.toggle('cases-pliees', casesPliees);
     const titresReglages = CLES_REGLAGES_IA.map((cle) => {
-      const titre = titreDeColonne(cle, colonnes[cle], classeDeColonne(cle));
-      titre.title = LIBELLES_REGLAGES_IA[cle];
+      const titre = colorerSelonLeGroupe(titreDeColonne(cle, colonnes[cle], classeDeColonne(cle)), groupeDuReglage(cle));
+      titre.title = groupeDuReglage(cle) ? `${LIBELLES_REGLAGES_IA[cle]} (${groupeDuReglage(cle).libelle})` : LIBELLES_REGLAGES_IA[cle];
       return titre;
     });
+    // La ligne des groupes, au-dessus : le nom de chacun sur sa premiere colonne.
+    const groupes = document.createElement('tr');
+    groupes.className = 'comparaison-groupes';
+    const debuts = groupesQuiCommencent(CLES_REGLAGES_IA, groupeDuReglage);
+    groupes.append(
+      cellule('th', '', 'comparaison-coche'),
+      cellule('th', '', 'comparaison-profil'),
+      cellule('th', ''),
+      cellule('th', ''),
+      ...CLES_REGLAGES_IA.map((cle, rang) => colorerSelonLeGroupe(cellule('th', debuts[rang]?.libelle ?? '', classeDeColonne(cle)), debuts[rang]))
+    );
     const titreCentre = titresReglages[CLES_REGLAGES_IA.indexOf('centre')];
     titreCentre.firstChild.textContent = titreDuCentre();
     titreCentre.classList.add('comparaison-titre-pliable');
     titreCentre.title = 'Toucher pour montrer ou cacher les cases d4 à a2 de la version 3 (e5 et a1 restent)';
     titreCentre.addEventListener('click', () => basculerCases(titreCentre));
-    const titreCoche = cellule('th', '✓');
+    const titreCoche = cellule('th', '✓', 'comparaison-coche');
     titreCoche.title = 'Cochez les profils à comparer : ils remontent en tête';
-    entete.append(titreCoche, titreDeColonne('date', 'Date'), titreDeColonne('profil', 'Profil IA', 'comparaison-profil'), titreDescription, ...titresReglages);
+    entete.append(titreCoche, titreDeColonne('profil', 'Profil IA', 'comparaison-profil'), titreDeColonne('date', 'Date'), titreDescription, ...titresReglages);
     const lignes = lignesComparaisonIA(profils).map((ligne, rang) => {
       const tr = document.createElement('tr');
       const description = cellule('td', ligne.description, 'comparaison-description');
@@ -214,12 +125,15 @@ function demarrerComparaisonIA(elements, choisir) {
         retenirCochesComparaisonIA(coches);
         remplir();
       });
-      const caseCoche = cellule('td', '');
+      const caseCoche = cellule('td', '', 'comparaison-coche');
       caseCoche.append(coche);
+      const nom = cellule('td', libelleProfilIA(profils[rang]), 'comparaison-profil');
+      marquerSiProfilParDefaut(nom, profils[rang].nom);
+      nom.title = `${infobulleDuProfilIA(profils[rang])}\n\nToucher : le choisir dans Réglages`;
       tr.append(
         caseCoche,
+        nom,
         cellule('td', libelleDateHistoriqueIA(ligne.date)),
-        cellule('td', libelleProfilIA(profils[rang]), 'comparaison-profil'),
         description,
         ...CLES_REGLAGES_IA.map((cle) => {
           const texte = cle === 'style' ? ABREVIATIONS_STYLES_COMPARAISON_IA[profils[rang].style] : ligne.reglages[cle].texte;
@@ -230,7 +144,7 @@ function demarrerComparaisonIA(elements, choisir) {
       );
       // Le nom prend la plus forte de ses couleurs, comme partout (de la valeur au fichier).
       if (coche.checked) tr.classList.add('profil-coche-comparaison');
-      poserCouleurIA(tr.children[2], couleurLaPlusForte(Object.values(ligne.reglages).map((reglage) => reglage.couleur)));
+      poserCouleurIA(nom, couleurLaPlusForte(Object.values(ligne.reglages).map((reglage) => reglage.couleur)));
       tr.title = 'Toucher pour choisir ce profil dans Réglages';
       tr.addEventListener('click', () => {
         elements.dialogue.close();
@@ -238,13 +152,14 @@ function demarrerComparaisonIA(elements, choisir) {
       });
       return tr;
     });
-    tableau.replaceChildren(entete, ...lignes);
+    tableau.replaceChildren(groupes, entete, ...lignes);
     appliquerLargeurs();
+    figerLesColonnesDuProfil();
   }
 
   elements.bouton.addEventListener('click', () => {
-    remplir();
     elements.dialogue.showModal();
+    remplir(); // ouverte d'abord : les largeurs a figer se mesurent
   });
   elements.fermer.addEventListener('click', () => elements.dialogue.close());
 }

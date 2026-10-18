@@ -15,6 +15,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_REGLAGES_IA,
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js) viennent de fichiers
 // charges avant celui-ci.
+// Les groupes de l'evaluation (saab, 2026-10-16) : groupeDuReglage (moteur/ia-groupes.js), groupesQuiCommencent, htmlDuTitreDeGroupe, styleDuGroupe (interface/groupes-ia.js),
+// qui ne servent qu'une fois la page chargee.
 
 const echapperBanc = (texte) => String(texte).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 // Une espace insecable : « 35 / 40 » et « 6,8 s » ne se coupent pas.
@@ -56,13 +58,16 @@ function reglagesCompletsDuBanc(reference, essais) {
   const profils = [reference, ...essais];
   const titres = [`Référence : ${reference.nom}`, ...essais.map((essai, rang) => `${rang + 1}. ${essai.nom}`)];
   const largeur = largeurCommune(titres, cles.flatMap((cle) => profils.map((profil) => texte(valeurDe(profil, cle)))));
-  const lignes = cles.map((cle) => {
+  // Groupe apres groupe, sous le nom de chacun (saab, 2026-10-16, interface/groupes-ia.js).
+  const debuts = groupesQuiCommencent(cles, groupeDuReglage);
+  const lignes = cles.map((cle, rang) => {
     const deLaReference = valeurDe(reference, cle);
     const cellules = essais.map((essai) => {
       const valeur = valeurDe(essai, cle);
       return `<td class="${valeur !== deLaReference ? 'banc-change' : ''}">${texte(valeur)}</td>`;
     });
-    return `<tr><th>${echapperBanc(LIBELLES_RECHERCHE_BANC[cle] ?? LIBELLES_REGLAGES_IA[cle] ?? cle)}</th><td>${texte(deLaReference)}</td>${cellules.join('')}</tr>`;
+    const titre = debuts[rang] ? htmlDuTitreDeGroupe(debuts[rang], 2 + essais.length) : '';
+    return `${titre}<tr><th${styleDuGroupe(groupeDuReglage(cle))}>${echapperBanc(LIBELLES_RECHERCHE_BANC[cle] ?? LIBELLES_REGLAGES_IA[cle] ?? cle)}</th><td>${texte(deLaReference)}</td>${cellules.join('')}</tr>`;
   });
   return `<table class="banc-tableau banc-reglages-complets"><tr><th>Réglage</th>${titres.map((titre, rang) => enteteBanc(titre, largeur, rang === 0 ? 'banc-reference' : '')).join('')}</tr>${lignes.join('')}</table>`;
 }
@@ -74,7 +79,10 @@ function resumeHtmlDuBanc(essais, resume, parametres) {
   const largeur = largeurCommune(titres, valeurs.flat());
   const lignes = essais.map((essai, rang) => {
     const r = resume[rang];
-    const classe = r.jouees === 0 ? '' : r.gagnees * 2 > r.jouees ? 'banc-mieux' : r.gagnees * 2 < r.jouees - r.nulles ? 'banc-moins' : '';
+    // Nulles enlevees (saab, 2026-10-17 : « mettre l'essai en vert si le nb de gagnant est >
+    // à la réf qd on enlève les Nulles ») : vert s'il gagne plus que la reference, orange moins.
+    const decidees = r.jouees - r.nulles;
+    const classe = decidees === 0 ? '' : r.gagnees * 2 > decidees ? 'banc-mieux' : r.gagnees * 2 < decidees ? 'banc-moins' : '';
     const [gagnees, ...autres] = valeurs[rang];
     return `<tr class="${classe}"><td>${rang + 1}. ${echapperBanc(essai.nom)}</td><td><b>${gagnees}</b></td>${autres.map((valeur) => `<td>${valeur}</td>`).join('')}</tr>`;
   });
@@ -82,7 +90,7 @@ function resumeHtmlDuBanc(essais, resume, parametres) {
 }
 
 function partiesHtmlDuBanc(essais, parties) {
-  const triees = [...parties].sort((a, b) => a.essai - b.essai || a.ouverture - b.ouverture || Number(b.referenceNoir) - Number(a.referenceNoir));
+  const triees = [...parties].sort((a, b) => a.numero - b.numero);
   const essaiNoir = (p) => !p.referenceNoir;
   const gagnee = (p) => (p.fin === 'noir' && essaiNoir(p)) || (p.fin === 'blanc' && !essaiNoir(p));
   const gagnant = (p) => (p.fin.startsWith('nulle') ? p.fin : gagnee(p) ? `essai (${essaiNoir(p) ? 'Noir' : 'Blanc'})` : `référence (${essaiNoir(p) ? 'Blanc' : 'Noir'})`);
@@ -93,27 +101,33 @@ function partiesHtmlDuBanc(essais, parties) {
     const coups = p.coups
       .map((coup, i) => {
         const parLaReference = (i % 2 === 0) === p.referenceNoir;
-        const texte = p.livre[i] ? `<span class="${parLaReference ? 'banc-livre-actif' : 'banc-livre'}">${coup}</span>` : coup;
+        const livre = p.livre[i] ? `<span class="${parLaReference ? 'banc-livre-actif' : 'banc-livre'}">${coup}</span>` : coup;
+        // Un coup qui redonne une position deja vue (saab, 2026-10-15) : en bleu, son Occ en exposant.
+        const occ = p.occurrences?.[i] ?? 1;
+        const texte = occ > 1 ? `<span class="banc-occ">${coup}<sup>${occ}</sup></span>` : livre;
         return i % 2 === 0 ? `<span class="banc-tour">${i / 2 + 1}.</span>${texte}` : texte;
       })
       .join(' ');
-    return `<tr><td>${p.numero}</td><td>${p.essai + 1}. ${echapperBanc(essais[p.essai].nom)}</td><td>${p.ouverture}</td><td>${essaiNoir(p) ? 'Noir' : 'Blanc'}</td><td>${texteGagnant}</td><td>${p.score}</td><td>${p.tours}</td><td class="banc-coups">${coups}</td></tr>`;
+    // L'essai en Blanc : la ligne en blanc ; en Noir : en gris (saab, 2026-10-18). Touchee, elle
+    // se regarde sur le petit plateau (interface/banc-essais-regarder.js).
+    return `<tr class="${essaiNoir(p) ? 'banc-essai-noir' : 'banc-essai-blanc'}" data-partie-banc="${p.numero}"><td>${p.numero}</td><td>${p.essai + 1}. ${echapperBanc(essais[p.essai].nom)}</td><td>${p.variante ? `${echapperBanc(p.variante)}, ` : ''}${p.ouverture}</td><td>${essaiNoir(p) ? 'Noir' : 'Blanc'}</td><td>${texteGagnant}</td><td>${p.score}</td><td>${p.tours}</td><td class="banc-coups">${coups}</td></tr>`;
   });
   return `<table class="banc-tableau"><tr><th>N°</th><th>Essai</th>${titres.map((titre) => enteteBanc(titre, largeur)).join('')}<th>Séquence</th></tr>${lignes.join('')}</table>`;
 }
 
 // Le contenu : { reference, essais, parties, resume, parametres, recoltes ({
-// entrees, ecartes } ; null : pas de recolte ; interface/banc-essais-page-puzzles.js,
+// entrees } ; null : pas de recolte ; interface/banc-essais-page-puzzles.js,
 // recolteHtml) }.
 function contenuDuBanc({ reference, essais, parties, resume, parametres, recoltes = null }) {
   const { ouvertures, revanche, hasard, livre } = parametres;
   const livreDeLaReference = livre
     ? `La référence se sert du livre (ses ${hasard} premiers coups au hasard parmi ceux du livre)`
     : `La référence <b>sans le livre</b> (seulement ses ${hasard} premiers coups au hasard parmi ceux du livre, pour varier les ouvertures)`;
-  return `<p class="note-reglages">KAI++ (niveau et réflexion de chacun dans les réglages complets), Marguerite belge, ${ouvertures} ouvertures${revanche ? ' × revanche' : ''}. ${livreDeLaReference}, l'essai jamais.</p>
+  const variantes = parametres.variantes?.length ? parametres.variantes.map((variante) => variante.nom).join(', ') : 'Marguerite belge';
+  return `<p class="note-reglages">KAI++ (niveau et réflexion de chacun dans les réglages complets), ${echapperBanc(variantes)}, ${ouvertures} ouvertures${revanche ? ' × revanche' : ''}. ${livreDeLaReference}, l'essai jamais.</p>
 <h3>Les réglages complets (en orange : ce qui diffère de la référence)</h3>${reglagesCompletsDuBanc(reference, essais)}
 <h3>Résumé</h3>${resumeHtmlDuBanc(essais, resume, parametres)}
-<h3>Les parties</h3><p class="note-reglages">Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre.</p>${partiesHtmlDuBanc(essais, parties)}${recoltes ? recolteHtml(recoltes.entrees, parametres.recolte.toursMini, recoltes.ecartes) : ''}`;
+<h3>Les parties</h3><p class="note-reglages">L'essai en Blanc : la ligne en blanc ; en Noir : en gris. Dans KAAH, toucher une partie la montre sur le petit plateau et dans le Graphique (orange : regardée ; violet : déjà vue). Un coup du livre en <span class="banc-livre-actif">orange</span> quand la référence le joue, en <span class="banc-livre">vert</span> quand l'essai le joue sans le livre ; en <span class="banc-occ">bleu</span> un coup qui redonne une position déjà vue, avec son Occ (le nombre de fois qu'elle est venue ; ${SEUIL_NULLE_PAR_DEFAUT} : nulle).</p>${partiesHtmlDuBanc(essais, parties)}${recoltes ? recolteHtml(recoltes.entrees, parametres.recolte) : ''}`;
 }
 
 // La page exportee, lisible seule (ses couleurs comprises) : `html`, le contenu
@@ -124,8 +138,10 @@ table { border-collapse: collapse; } th, td { padding: 2px 6px; border-bottom: 1
 th { color: #9a9a9a; font-weight: normal; vertical-align: bottom; } th.banc-reference { color: #d9b62b; font-weight: bold; } .banc-change { color: #e0832a; font-weight: bold; }
 .banc-mieux td:first-child { color: #3fcf7a; } .banc-moins td:first-child { color: #e0832a; } .banc-essai { color: #3fcf7a; }
 .banc-coups { font-family: monospace; font-size: 12px; max-width: 900px; } .banc-tour { color: #7a7a7a; margin-left: 4px; }
-.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }`;
+.banc-essai-noir td { color: #8c8c8c; } .banc-essai-blanc td { color: #ffffff; }
+.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-occ { color: #5aa0ff; } .banc-occ sup { font-size: 9px; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }`;
 
-function pageDuBanc(html, titre) {
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${echapperBanc(titre)}</title><style>${STYLE_PAGE_BANC}</style></head><body><h1>${echapperBanc(titre)}</h1>${html}</body></html>`;
+// `donnees` : le bloc des parties, pour les revoir (moteur/banc-fichiers.js), ou ''.
+function pageDuBanc(html, titre, donnees = '') {
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${echapperBanc(titre)}</title><style>${STYLE_PAGE_BANC}</style></head><body><h1>${echapperBanc(titre)}</h1>${html}${donnees}</body></html>`;
 }

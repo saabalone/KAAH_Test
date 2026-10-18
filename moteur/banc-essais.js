@@ -9,8 +9,9 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleursDuPlateau,
 // appliquerCoup (partie.js), ecrirePosition (notation.js), lireCoupNacre
-// (notation.js), obtenirConseils (next-move.js), SEUIL_NULLE_PAR_DEFAUT
-// (nulle.js), coupDuLivre (ia.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js) viennent de fichiers charges avant celui-ci.
+// (notation.js), obtenirConseils (next-move.js), SEUIL_NULLE_PAR_DEFAUT,
+// compterOccurrences (nulle.js), coupDuLivre (ia.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), GROUPES_DE_L_EVALUATION_IA,
+// multiplierUnGroupe (ia-groupes.js) viennent de fichiers charges avant celui-ci.
 
 // 150 tours : au-dela, nulle (une partie entre machines qui tourne en rond).
 const COUPS_MAX_BANC = 300;
@@ -18,19 +19,22 @@ const GRAINE_PREMIERE_OUVERTURE = 1000;
 const PAS_DES_GRAINES = 7919;
 
 // « 0, 40, 60 » -> [0, 40, 60] ; « sans » -> null (enlever le poids, un ajout) ;
-// la virgule decimale francaise est comprise (« 0,5 ; 1 »).
+// la virgule decimale francaise est comprise (« 0,5 ; 1 ») ; « 60 % » -> 0,6 (un groupe ×).
 function lireValeursDuBanc(texte) {
   const morceaux = String(texte).includes(';') ? String(texte).split(';') : String(texte).split(/,(?!\d)|,\s+/);
   return morceaux
     .map((morceau) => morceau.trim().toLowerCase())
     .filter(Boolean)
-    .map((morceau) => (morceau === 'sans' ? null : Number(morceau.replace(',', '.'))))
+    .map((morceau) => (morceau === 'sans' ? null : /%$/.test(morceau) ? Number(morceau.replace('%', '').trim().replace(',', '.')) / 100 : Number(morceau.replace(',', '.'))))
     .filter((valeur) => valeur === null || Number.isFinite(valeur));
 }
 
 // « Cases (e5 a a1) × » (saab, 2026-10-08 : « comment on fait si on veut changer
 // e5 a a1 qui en fait 9 ? ») : les 9 cases multipliees ensemble.
 const CLE_CASES_BANC = 'cases';
+// « Attaque × » ... (saab, 2026-10-14 : « pouvoir donner un pourcentage sur chaque groupe ») :
+// tous les poids d'un groupe de l'evaluation (moteur/ia-groupes.js) multiplies ensemble.
+const PREFIXE_GROUPE_BANC = 'groupe:';
 // Le niveau et la reflexion (en secondes) de chaque profil (saab, 2026-10-08 :
 // « choisir des niveaux et tps de reflexion differents pour chaque fichier »).
 const REGLAGES_DE_RECHERCHE_BANC = ['niveau', 'temps'];
@@ -53,7 +57,9 @@ function variantesDuBanc(profils, variations) {
         else if (REGLAGES_DE_RECHERCHE_BANC.includes(cle)) {
           if (valeur !== null) recherche[cle] = valeur;
         }
-        else if (cle === CLE_CASES_BANC) {
+        else if (cle.startsWith(PREFIXE_GROUPE_BANC)) {
+          if (valeur !== null) Object.assign(poids, multiplierUnGroupe(poids, cle.slice(PREFIXE_GROUPE_BANC.length), valeur));
+        } else if (cle === CLE_CASES_BANC) {
           for (const caseIA of CLES_CASES_IA_V3.filter((caseIA) => caseIA in poids)) {
             if (valeur === null) delete poids[caseIA];
             else poids[caseIA] *= valeur;
@@ -62,22 +68,30 @@ function variantesDuBanc(profils, variations) {
         else poids[cle] = valeur;
       }
       const texte = (valeur) => String(valeur).replace('.', ','); // la virgule decimale francaise
-      const libelle = (cle, valeur) => (valeur === null ? `${cle} sans` : cle === CLE_CASES_BANC ? `${cle} ×${texte(valeur)}` : `${cle} ${texte(valeur)}`);
+      const libelleDuGroupe = (cle) => GROUPES_DE_L_EVALUATION_IA.find((groupe) => `${PREFIXE_GROUPE_BANC}${groupe.cle}` === cle)?.libelle;
+      // Chaque reglage abrege (moteur/noms-ia.js : ScGain 80, E5 +30, Sv sans).
+      const libelle = (cle, valeur) =>
+        libelleDuGroupe(cle) && valeur !== null ? `${libelleDuGroupe(cle)} ×${texte(valeur)}` : cle === CLE_CASES_BANC ? `${cle} ${valeur === null ? 'sans' : `×${texte(valeur)}`}` : `${abreviationDuReglageIA(cle)} ${valeur === null ? 'sans' : valeurAbregeeDuReglageIA(cle, valeur)}`;
       const nom = `${profil.nom} · ${combinaison.map(([cle, valeur]) => libelle(cle, valeur)).join(' · ')}`;
       return { ...profil, ...recherche, nom, elagage, poids };
     })
   );
 }
 
-// Les parties a jouer : par essai, une par ouverture (et sa revanche) —
-// { numero (a partir de 1), essai, ouverture, graine, referenceNoir }. Meme ouverture, meme graine, d'un
-// essai a l'autre : on compare les essais sur les memes debuts.
-function partiesDuBanc(nombreDEssais, { ouvertures, revanche }) {
+// Les parties a jouer : par essai, par variante, une par ouverture (et sa revanche) —
+// { numero (a partir de 1), essai, variante (son nom, ou null : la position de depart du
+// banc), position (son texte), ouverture, graine, referenceNoir }. Meme ouverture, meme
+// graine, d'un essai et d'une variante a l'autre : on compare sur les memes debuts.
+// `variantes` : [{ nom, position }] (saab, 2026-10-14 : « pouvoir choisir une ou
+// plusieurs ou toutes Variantes/PZL dans les tests entre IA »).
+function partiesDuBanc(nombreDEssais, { ouvertures, revanche, variantes = [null] }) {
   const parties = [];
   for (let essai = 0; essai < nombreDEssais; essai++) {
-    for (let ouverture = 1; ouverture <= ouvertures; ouverture++) {
-      const graine = GRAINE_PREMIERE_OUVERTURE + (ouverture - 1) * PAS_DES_GRAINES;
-      for (const referenceNoir of revanche ? [true, false] : [true]) parties.push({ numero: parties.length + 1, essai, ouverture, graine, referenceNoir });
+    for (const variante of variantes.length ? variantes : [null]) {
+      for (let ouverture = 1; ouverture <= ouvertures; ouverture++) {
+        const graine = GRAINE_PREMIERE_OUVERTURE + (ouverture - 1) * PAS_DES_GRAINES;
+        for (const referenceNoir of revanche ? [true, false] : [true]) parties.push({ numero: parties.length + 1, essai, variante: variante?.nom ?? null, position: variante?.position, ouverture, graine, referenceNoir });
+      }
     }
   }
   return parties;
@@ -128,10 +142,15 @@ function dansLeLivre(livre, etat, coup) {
 function finDeLaPartieDuBanc(etat, historique, nombreDeCoups) {
   if (etat.vainqueur) return etat.vainqueur;
   const derniere = historique.at(-1);
-  if (derniere !== undefined && historique.filter((position) => position === derniere).length >= SEUIL_NULLE_PAR_DEFAUT) return 'nulle (répétition)';
+  if (derniere !== undefined && compterOccurrences(historique, derniere) >= SEUIL_NULLE_PAR_DEFAUT) return 'nulle (répétition)';
   if (nombreDeCoups >= COUPS_MAX_BANC) return 'nulle (limite)';
   return null;
 }
+
+// L'Occ de chaque coup (moteur/nulle.js) : combien de fois la position qu'il donne est
+// deja venue, elle comprise — 2 et plus, une repetition ; SEUIL_NULLE_PAR_DEFAUT, la
+// nulle. `historique` : les positions ecrites, celle de depart comprise.
+const occurrencesDesCoups = (historique) => historique.slice(1).map((position, rang) => compterOccurrences(historique.slice(0, rang + 2), position));
 
 // Par essai : { jouees, gagnees, enNoir, enBlanc, nulles, tours, secondes } —
 // `parties` : [{ essai, referenceNoir, fin, tours, secondesEssai }].

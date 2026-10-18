@@ -18,55 +18,20 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : essaiDesCoups,
 // valeursDesCases, detailDeLEvaluation, termesDuProfil (moteur/essai-ia.js), etatsDeLaSequence
 // (moteur/sequence-prevue.js), choisirCoupIA, libelleEvaluation,
-// MACHINE_PAR_DEFAUT (moteur/ia.js), VALEUR_VICTOIRE_IA (moteur/ia-evaluation.js),
+// MACHINE_PAR_DEFAUT (moteur/ia.js), COLONNES_ESSAI_IA, texteValeurEssai, ligneDeTableau
+// (interface/essai-ia-colonnes.js),
 // LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js), numeroDeTour
 // (moteur/arbre.js), NOM_CAMP (rendu/ejections.js), DUREE_TRANCHE_MS,
 // MILLISECONDES_PAR_SECONDE (interface/ia-reflexion.js), doublerBoutonsPlateau
 // (interface/disposition.js) viennent de fichiers
 // charges avant celui-ci.
+// Les groupes de l'evaluation (saab, 2026-10-16) : groupeDuTerme (moteur/ia-groupes.js), colorerSelonLeGroupe (interface/groupes-ia.js),
+// qui ne servent qu'une fois la page chargee.
 
-const COLONNES_ESSAI_IA = {
-  gain: 'Gain',
-  // « sc. Gain » (saab, 2026-10-04) : une colonne retrecie se distingue encore de Gain.
-  gainScore: 'sc. Gain',
-  perte: 'Perte',
-  perteScore: 'sc. Perte',
-  centre: 'Centre',
-  etendueCentre: 'Étend.',
-  etendueCases: 'Étend. c.',
-  cohesion: 'Cohés.',
-  compacite: 'Compac.',
-  cases: 'Cases',
-  bordSoi: 'Bord m.',
-  bordAdverse: 'Bord a.',
-  sumito: 'Sumito',
-  sumito32: 'Sum. 3/2',
-  sumito31: 'Sum. 3/1',
-  sumito21: 'Sum. 2/1',
-  sumitoVide: 'Sum. vide',
-  menaceEjection: 'Menace',
-  fourchette: 'Fourch.',
-  piege: 'Piège',
-};
 const NIVEAU_RECHERCHE_ESSAI = 3;
 const VERIFICATION_POSITION_ESSAI_MS = 300;
 const DECIMALES_DUREE_ESSAI = 1;
 
-function texteValeurEssai(valeur) {
-  if (Math.abs(valeur) >= VALEUR_VICTOIRE_IA / 2) return valeur > 0 ? 'Gagne' : 'Perd';
-  const arrondi = Math.round(valeur);
-  return arrondi > 0 ? `+${arrondi}` : arrondi === 0 ? '·' : String(arrondi);
-}
-
-function ligneDeTableau(cellules, balise = 'td') {
-  const tr = document.createElement('tr');
-  for (const contenu of cellules) {
-    const cellule = document.createElement(balise);
-    cellule.textContent = contenu;
-    tr.appendChild(cellule);
-  }
-  return tr;
-}
 
 // `elements` : { boite (<details>), position (<p>), niveau3 (<p>), cases
 // (<table>), coups (<table>), creer (bouton « Créer Es_ »), navigation (les
@@ -105,7 +70,8 @@ function demarrerEssaiIA(elements, obtenirEtat, creerEssai) {
     const cles = termesDuProfil(version, poids);
     const essai = essaiDesCoups(etat, poids, version);
     const entete = ligneDeTableau(['#', 'Coup', 'Niv. 3', 'Niv. 2', 'Niv. 1', ...cles.map((cle) => COLONNES_ESSAI_IA[cle])], 'th');
-    cles.forEach((cle, rang) => (entete.children[rang + 5].title = LIBELLES_REGLAGES_IA[cle]));
+    // Chaque terme de la couleur de son groupe (saab, 2026-10-16, interface/groupes-ia.js).
+    cles.forEach((cle, rang) => colorerSelonLeGroupe(entete.children[rang + 5], groupeDuTerme(cle)).setAttribute('title', `${LIBELLES_REGLAGES_IA[cle]} (${groupeDuTerme(cle)?.libelle ?? ''})`));
     const actuelle = ligneDeTableau(['', 'Position', '', '', '', ...cles.map((cle) => texteValeurEssai(essai.detail[cle] ?? 0))]);
     actuelle.className = 'essai-position-actuelle';
     actuelle.title = 'Les termes de la position actuelle ; en dessous, ce que chaque coup y ajoute';

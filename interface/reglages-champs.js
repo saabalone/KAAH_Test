@@ -137,7 +137,8 @@ function brancherChampsReglages(dialogue, surApercu, surFinDeGeste) {
     // Les boutons - et + d'une taille (saab, 2026-09-30) : un pas, dans les bornes,
     // comme une saisie au clavier.
     for (const bouton of champ.parentElement.querySelectorAll('[data-pas]')) {
-      bouton.addEventListener('click', () => {
+      // Un appui prolonge enchaine les pas (interface/appui-prolonge.js).
+      brancherAppuiProlonge(bouton, () => {
         if (Number(bouton.dataset.pas) > 0) champ.stepUp();
         else champ.stepDown();
         champ.dispatchEvent(new Event('change'));

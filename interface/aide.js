@@ -13,7 +13,8 @@
 // Second travail (saab, Opera : "rien n'indique que c'est installe") : dire, sous
 // la version, si KAAH marche SANS internet sur cet appareil — ou pourquoi pas.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js).
+// Pas d'import ni d'export (voir moteur/plateau.js) : aererLeTexte, colorerLesCouleurs
+// (interface/aide-texte.js) viennent d'un fichier charge avant celui-ci.
 
 // Le refus du navigateur a l'enregistrement du service worker (index.html), s'il
 // y en a eu un : sa raison, affichee telle quelle.
@@ -41,68 +42,6 @@ async function etatHorsLigne() {
   const cachePret = (await window.caches.keys()).some((nom) => nom.startsWith('kaah-'));
   if (navigator.serviceWorker.controller && cachePret) return 'prêt ✓ (KAAH marche sans internet sur cet appareil).';
   return 'installé, actif à la prochaine ouverture de KAAH.';
-}
-
-// L'Aide aeree (saab, 2026-10-02 : « trop dense, va a la ligne plus souvent, a
-// chaque ponctuation ») : un retour a la ligne apres chaque fin de phrase (. !
-// ?, suivie d'une majuscule, d'un chiffre ou d'un guillemet) et apres « : » et
-// « ; » — jamais apres une virgule, qui decouperait les listes ; une ligne trop
-// longue se replie d'elle-meme a un espace. Fait ici, a l'affichage : le texte
-// de l'Aide (index.html) reste ecrit d'un seul tenant.
-const COUPURE_DE_L_AIDE = /([.!?](?=\s+[\p{Lu}\d«(])|[:;](?=\s+\S))\s+/gu;
-
-function aererLeTexte(conteneur) {
-  const parcours = document.createTreeWalker(conteneur, NodeFilter.SHOW_TEXT, {
-    acceptNode: (noeud) => (noeud.parentElement.closest('summary') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
-  });
-  const textes = [];
-  while (parcours.nextNode()) textes.push(parcours.currentNode);
-  for (const noeud of textes) {
-    const morceaux = noeud.textContent.split(COUPURE_DE_L_AIDE);
-    if (morceaux.length === 1) continue;
-    // split garde la ponctuation capturee : texte, ponctuation, texte, ...
-    const contenu = [];
-    for (let i = 0; i < morceaux.length; i += 2) {
-      contenu.push(document.createTextNode(morceaux[i] + (morceaux[i + 1] ?? '')));
-      if (i + 1 < morceaux.length) contenu.push(document.createElement('br'));
-    }
-    noeud.replaceWith(...contenu);
-  }
-}
-
-// Les noms de couleur de l'Aide ecrits DANS leur couleur (saab, 2026-10-01) ;
-// noir et blanc, illisibles ainsi sur le fond sombre, dans un cadre de leur
-// couleur, le mot de la couleur opposee. Au feminin et au pluriel aussi.
-const COULEURS_DE_L_AIDE = [
-  [/^vert(e|s|es)?$/i, 'mot-vert'],
-  [/^oranges?$/i, 'mot-orange'],
-  [/^jaunes?$/i, 'mot-jaune'],
-  [/^rouges?$/i, 'mot-rouge'],
-  [/^bleu(e|s|es)?$/i, 'mot-bleu'],
-  [/^gris(e|es)?$/i, 'mot-gris'],
-  [/^noir(e|s|es)?$/i, 'mot-noir'],
-  [/^blanc(he|s|hes)?$/i, 'mot-blanc'],
-];
-const MOTS_DE_COULEUR = /(\p{L}+)/gu;
-
-function colorerLesCouleurs(conteneur) {
-  const parcours = document.createTreeWalker(conteneur, NodeFilter.SHOW_TEXT);
-  const textes = [];
-  while (parcours.nextNode()) textes.push(parcours.currentNode);
-  for (const noeud of textes) {
-    const morceaux = noeud.textContent.split(MOTS_DE_COULEUR);
-    if (!morceaux.some((mot) => COULEURS_DE_L_AIDE.some(([motif]) => motif.test(mot)))) continue;
-    noeud.replaceWith(
-      ...morceaux.map((mot) => {
-        const couleur = COULEURS_DE_L_AIDE.find(([motif]) => motif.test(mot));
-        if (!couleur) return document.createTextNode(mot);
-        const span = document.createElement('span');
-        span.className = couleur[1];
-        span.textContent = mot;
-        return span;
-      })
-    );
-  }
 }
 
 // L'Aide s'ouvre au lancement de KAAH (saab, 2026-10-01), jamais quand KAAH
@@ -154,12 +93,39 @@ function preparerChapitres(corps) {
   });
 }
 
+// L'en-tete qui se replie (saab, 2026-10-10 : « au 1er clic ça se replie sur version,
+// comme ça ça ne prendra pas de place pour lire les rubriques » ; 2026-10-11 : « il faut
+// replier pour voir Hors ligne aussi, comme ça on sait si ça fonctionne ») : a chaque
+// ouverture, toutes ses lignes (la version, le hors-ligne, ordinateur ou telephone, les
+// modes) ; le premier clic dans la boite, ou qu'il soit, n'en laisse que les
+// `lignesGardees` (la version et le hors-ligne) — les toucher ensuite montre les autres
+// ou les replie. Renvoie deplier(), a appeler a chaque ouverture.
+function preparerLEnteteQuiSeReplie(dialogue, lignesGardees) {
+  const entete = lignesGardees[0].parentElement;
+  let premierClic = true;
+  dialogue.addEventListener(
+    'click',
+    (evenement) => {
+      if (premierClic) entete.classList.add('aide-entete-repliee');
+      else if (lignesGardees.includes(evenement.target)) entete.classList.toggle('aide-entete-repliee');
+      premierClic = false;
+    },
+    // Avant le chapitre touche : il se place d'apres la hauteur de l'en-tete deja replie.
+    true
+  );
+  return function deplier() {
+    premierClic = true;
+    entete.classList.remove('aide-entete-repliee');
+  };
+}
+
 // `elements` : { bouton, dialogue, version, horsLigne, fermer, corps } —
 // `fermer` est une LISTE de boutons (en haut et en bas de la boite).
 function demarrerAide(elements) {
   aererLeTexte(elements.corps);
   colorerLesCouleurs(elements.corps);
   preparerChapitres(elements.corps);
+  const deplierLEntete = preparerLEnteteQuiSeReplie(elements.dialogue, [elements.version, elements.horsLigne]);
   function afficherHorsLigne() {
     elements.horsLigne.textContent = 'Hors ligne : vérification...';
     etatHorsLigne()
@@ -185,7 +151,10 @@ function demarrerAide(elements) {
   function ouvrir() {
     afficherVersion();
     afficherHorsLigne();
-    if (!elements.dialogue.open) elements.dialogue.showModal();
+    if (!elements.dialogue.open) {
+      deplierLEntete();
+      elements.dialogue.showModal();
+    }
   }
 
   elements.bouton.addEventListener('click', ouvrir);

@@ -79,6 +79,7 @@ function demarrerFiltreParties(panneau, surChangement) {
   effacer.type = 'button';
   effacer.className = 'bouton-dialogue';
   effacer.textContent = 'Effacer le filtre';
+  effacer.title = 'Vide tous les champs du filtre : toutes les parties se remontrent';
   effacer.addEventListener('click', () => {
     reinitialiser();
     surChangement();

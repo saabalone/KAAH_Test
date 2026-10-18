@@ -1,22 +1,24 @@
-// L'etape 2 du banc d'essais (saab, 2026-10-08) avec KAI++ : JOUER un puzzle (le
+// L'etape 2 du banc d'essais (saab, 2026-10-08) : JOUER un puzzle avec KAI++ (le
 // profil essaye attaque, la reference defend) et RECOLTER le puzzle d'une partie
-// gagnee. Les regles (quels puzzles, la recolte, les noms) : moteur/banc-puzzles.js.
+// gagnee avec le solveur. Les regles (quels puzzles, la recolte, les noms) : moteur/banc-puzzles.js.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ecrirePosition
-// (moteur/notation.js), appliquerCoup (moteur/partie.js), couleurAdverse
-// (moteur/regles.js), lireReponseSolveur (moteur/solveur.js), etatDuPuzzle, lirePuzzles (moteur/puzzles.js), KAA_PZL_KAA
+// (moteur/notation.js), appliquerCoup (moteur/partie.js), lireReponseSolveur (moteur/solveur.js), etatDuPuzzle, lirePuzzles (moteur/puzzles.js), KAA_PZL_KAA
 // (donnees/kaa-puzzles.js), listerEntreesMy (interface/positions-my.js), poidsEnTexte,
 // lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence (moteur/ia.js),
-// VALEUR_VICTOIRE_IA (moteur/ia-recherche.js), demiCoupsDuPuzzle,
-// recolteDeLaPartie, DEMI_COUPS_MAX_RECOLTE (moteur/banc-puzzles.js),
+// demiCoupsDuPuzzle, recolteDeLaPartie, premiersCoupsGagnants, entreeAvecSolutions,
+// entreeDuPuzzleRecolte, estReversible, nomReversible (moteur/banc-puzzles.js), lirePosition, couleursDuPlateau,
+// ecrireCoupNacreSansAmbiguite (moteur/notation.js), tousLesCoupsLegaux (moteur/regles.js),
 // MILLISECONDES_PAR_SECONDE_BANC (interface/banc-essais-partie.js) viennent de
-// fichiers charges avant celui-ci.
+// fichiers charges avant celui-ci ; telechargerTexte (interface/fichiers.js), fichierPositionsMy
+// (moteur/positions-my.js), importerEntreesMy (interface/positions-my.js) servent une fois
+// la page chargee.
 
 // La defense voit jusqu'a 6 demi-coups, sans elagage (la meilleure qu'elle
 // trouve), comme dans les essais du 07/10 sur les puzzles.
 const DEMI_COUPS_MAX_DEFENSE_PUZZLE = 6;
 const GRAINE_DES_PUZZLES = 1; // le meme coup a chaque essai, a egalite
-const RECHERCHE_SANS_LIMITE_MS = 1e9; // la recolte doit etre exacte
+const RECHERCHE_SANS_LIMITE_MS = 1e9; // la defense complete doit etre exacte
 
 // Les puzzles qu'on peut jouer : ceux de KAAWA (donnees/kaa-puzzles.js, tels
 // quels) et/ou les miens (My, interface/positions-my.js) — relus a chaque fois :
@@ -62,7 +64,7 @@ async function jouerUnPuzzleDuBanc(tache, essai, defense, kai, controle, suivi =
         poids: poidsEnTexte(reglage.poids),
         version: reglage.version,
         graine: GRAINE_DES_PUZZLES,
-        dureeMs: defend && defenseComplete ? RECHERCHE_SANS_LIMITE_MS : reglage.temps * MILLISECONDES_PAR_SECONDE_BANC,
+        dureeMs: defend && defenseComplete ? RECHERCHE_SANS_LIMITE_MS : dureeDeReflexionDuBancMs(reglage.temps),
         historique: historique.join('\n'),
         elagage: defend ? 0 : essai.elagage,
       },
@@ -86,36 +88,6 @@ async function jouerUnPuzzleDuBanc(tache, essai, defense, kai, controle, suivi =
   return fin(false);
 }
 
-// Le puzzle d'une partie gagnee (moteur/banc-puzzles.js, recolteDeLaPartie) :
-// chaque position est cherchee exactement par KAI++ (sans elagage, 6 demi-coups),
-// avec les poids de la reference. Renvoie { etat, plis, tours } ou null.
-function recolterLaPartie(partie, reference, kai, toursMini, suivi = () => {}) {
-  if (partie.fin !== 'noir' && partie.fin !== 'blanc') return Promise.resolve(null);
-  suivi({ etape: 'récolte du puzzle…' });
-  const victoireForcee = async (etat) => {
-    const reponse = lireReponseKaiPlus(
-      await kai.chercher(
-        {
-          position: ecrirePosition(etat),
-          joueurNoir: etat.joueurAuTrait === 'noir',
-          profondeur: DEMI_COUPS_MAX_RECOLTE,
-          poids: poidsEnTexte(reference.poids),
-          version: reference.version,
-          graine: GRAINE_DES_PUZZLES,
-          dureeMs: RECHERCHE_SANS_LIMITE_MS,
-          historique: '',
-          elagage: 0,
-        },
-        () => {}
-      )
-    );
-    if (!reponse || Math.abs(reponse.evaluation) < VALEUR_VICTOIRE_IA / 2) return null;
-    // L'evaluation est celle du camp au trait.
-    return { camp: reponse.evaluation > 0 ? etat.joueurAuTrait : couleurAdverse(etat.joueurAuTrait), plis: VALEUR_VICTOIRE_IA - Math.abs(reponse.evaluation) };
-  };
-  return recolteDeLaPartie(partie.etats, partie.fin, victoireForcee, toursMini);
-}
-
 // La verification d'un puzzle gagne par le solveur (interface/solveur.js, comme
 // la boite Puzzles) : 'valide' (« Bravo »), 'invalide' (gagne, mais un coup de
 // l'attaquant laissait echapper la victoire forcee), 'indetermine' (trop long)
@@ -126,21 +98,91 @@ async function verifierParLeSolveur(solveur, resultat) {
   return lireReponseSolveur(reponse).verdict;
 }
 
-// Le puzzle d'une partie, CONFIRME par le solveur (saab, 2026-10-08 : « ajoute
-// aussi la verif par le solver ») : le solveur de KAAWA compte une position
-// repetee comme une echappee de la defense, pas KAI++ (qui suit la regle de la
-// partie : nulle a la 3e fois). Un puzzle trouve par KAI++ peut donc demander un
-// tour de plus au solveur, ou aucun. `fabriquer(etat, tours)` : son entree KAAWA
-// (moteur/banc-puzzles.js, entreeDuPuzzleRecolte). Renvoie { entree, tours },
-// { ecarte: true } si le solveur ne le confirme pas, ou null (rien a recolter).
-async function puzzleDeLaPartie(partie, reference, kai, solveur, toursMini, suivi, fabriquer) {
-  const trouve = await recolterLaPartie(partie, reference, kai, toursMini, suivi);
-  if (!trouve) return null;
-  suivi({ etape: 'vérification du puzzle par le solveur…' });
-  for (const tours of [trouve.tours, trouve.tours + 1]) {
-    const entree = fabriquer(trouve.etat, tours);
+// Le puzzle d'une partie gagnee (saab, 2026-10-08 : « chercher les pzl sur les
+// fins de parties en remontant ») : chaque position, en remontant, est prouvee par
+// le solveur de KAAWA (moteur/banc-puzzles.js, recolteDeLaPartie) — exactement
+// ses regles, une position repetee comptant comme une echappee de la defense.
+// `fabriquer(etat, tours)` : l'entree KAAWA (moteur/banc-puzzles.js,
+// entreeDuPuzzleRecolte). Renvoie { entree, tours } ou null.
+async function puzzleDeLaPartie(partie, solveur, { toursMini, toursMaxi, reversibles = false }, suivi, fabriquer) {
+  if (partie.fin !== 'noir' && partie.fin !== 'blanc') return null;
+  suivi({ etape: 'récolte du puzzle (solveur)…' });
+  const victoireForcee = async (etat, tours) => {
+    const entree = fabriquer(etat, tours); // camps inverses si Blanc est au trait : Noir commence
     const { reponse } = await solveur.verifier({ position: entree.pos, noirGagne: entree.winner === 'Noir', toursMaximum: tours, coups: [] });
-    if (lireReponseSolveur(reponse).verdict === 'valide') return { entree, tours };
+    return lireReponseSolveur(reponse).verdict === 'valide';
+  };
+  const trouve = await recolteDeLaPartie(partie.etats, partie.fin, victoireForcee, { toursMini, toursMaxi });
+  if (!trouve) return null;
+  const entree = fabriquer(trouve.etat, trouve.tours);
+  return { entree: await entreeCompletee(entree, trouve.tours, solveur, suivi, reversibles), tours: trouve.tours };
+}
+
+// Les coups legaux de `camp` dans `etat` : texte Nacre (minuscules) -> l'etat apres le coup.
+function coupsEcritsDuCamp(etat, camp) {
+  const couleurs = couleursDuPlateau(etat.plateau);
+  const coups = new Map();
+  for (const coup of tousLesCoupsLegaux(couleurs, camp)) {
+    const texte = ecrireCoupNacreSansAmbiguite(couleurs, camp, coup).toLowerCase();
+    if (!coups.has(texte)) coups.set(texte, appliquerCoup({ ...etat, joueurAuTrait: camp }, coup).etat);
   }
-  return { ecarte: true };
+  return coups;
+}
+
+// Le nombre de solutions et les debuts de solution d'un puzzle recolte (saab,
+// 2026-10-10 : « il manque le nb de sol » ; moteur/banc-puzzles.js, entreeAvecSolutions) :
+// chaque coup legal de Noir, verifie par le solveur (sa table est encore chaude). Noir
+// gagne : ses premiers coups gagnants. Blanc gagne (2026-10-11 : « le nb de sol perdantes
+// pour Noir, xtr6y1 ») : les premiers coups de Noir que le solveur accepte (la meilleure
+// defense), puis les reponses gagnantes de Blanc a chacun.
+//
+// `reversibles` (saab, 2026-10-16 : « dans Recherche de PZL, il faudrait tester aussi
+// quand le joueur gagne si le joueur peut perdre s'il sort de la solution ») : chaque
+// ecart du gagnant a son premier coup — Noir qui gagne : ses coups qui ne sont pas des
+// solutions ; Blanc qui gagne : ses reponses non gagnantes aux defenses de Noir —, le
+// perdant force-t-il alors la victoire dans les memes tours ? Oui pour un seul : le nom
+// le dit (« _rév », moteur/banc-puzzles.js). Long : un appel au solveur par ecart.
+async function entreeCompletee(entree, tours, solveur, suivi, reversibles = false) {
+  suivi({ etape: 'solutions au premier coup (solveur)…' });
+  const noirGagne = entree.winner === 'Noir';
+  const verdict = async (coups) => lireReponseSolveur((await solveur.verifier({ position: entree.pos, noirGagne, toursMaximum: tours, coups })).reponse).verdict;
+  const premiers = coupsEcritsDuCamp(lirePosition(entree.pos), 'noir');
+  const { solutions, sures } = await premiersCoupsGagnants([...premiers.keys()], (coup) => verdict([coup]));
+  const reponses = {};
+  const ecarts = noirGagne ? [...premiers].filter(([coup]) => !solutions.includes(coup)).map(([, etat]) => etat) : [];
+  let toutesSures = sures;
+  for (const coup of noirGagne ? [] : solutions) {
+    const reponsesDeBlanc = coupsEcritsDuCamp(premiers.get(coup), 'blanc');
+    const suite = await premiersCoupsGagnants([...reponsesDeBlanc.keys()], (reponse) => verdict([coup, reponse]));
+    reponses[coup] = suite.solutions;
+    toutesSures &&= suite.sures;
+    ecarts.push(...[...reponsesDeBlanc].filter(([reponse]) => !suite.solutions.includes(reponse)).map(([, etat]) => etat));
+  }
+  const completee = entreeAvecSolutions(entree, { solutions, sures: toutesSures, reponses });
+  if (!reversibles || completee === entree) return completee;
+  suivi({ etape: `réversible ? ${ecarts.length} écarts du gagnant (solveur)…` });
+  const perdant = noirGagne ? 'blanc' : 'noir';
+  const perdantForceLaVictoire = async (etat) => {
+    // Le perdant au trait : camps inverses s'il est Blanc (Noir commence), comme une recolte.
+    const sienne = entreeDuPuzzleRecolte({ etat, gagnant: perdant, tours, numero: 0, date: '', createur: '' });
+    return lireReponseSolveur((await solveur.verifier({ position: sienne.pos, noirGagne: sienne.winner === 'Noir', toursMaximum: tours, coups: [] })).reponse).verdict === 'valide';
+  };
+  return (await estReversible(ecarts, perdantForceLaVictoire)) ? { ...completee, PZL_name: nomReversible(completee.PZL_name) } : completee;
+}
+
+// Les boutons de la RECOLTE (extrait d'interface/banc-essais.js, regle des 200 lignes) :
+// les puzzles recoltes au format de KAAWA (Puzzles > Importer les reprend), ou ajoutes a
+// My. `recolte()` : { entrees, date, ajoutee }, celle du banc en cours.
+function brancherLaRecolteDuBanc(elements, recolte) {
+  elements.exporterRecolte.addEventListener('click', () => {
+    telechargerTexte(fichierPositionsMy(recolte().entrees.map(({ entree }) => entree)), `KAA_PZL_banc_${recolte().date}.json`, 'application/json');
+  });
+  elements.ajouterRecolte.addEventListener('click', () => {
+    const renommees = importerEntreesMy('puzzles', recolte().entrees.map(({ entree }) => entree));
+    if (renommees === null) return window.alert("Le navigateur a refusé d'enregistrer les puzzles (stockage plein ?).");
+    recolte().ajoutee = true;
+    elements.ajouterRecolte.disabled = true;
+    const renommes = renommees.length ? ` (${renommees.length} renommés : nom déjà pris)` : '';
+    window.alert(`${recolte().entrees.length} puzzles ajoutés à My${renommes}.`);
+  });
 }

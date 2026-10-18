@@ -3203,6 +3203,16 @@ button,
   fill: #e4e4e4;
 }
 
+/* Le coup de la machine attend (Entrainement, interface/ia.js) : sa pendule verte, comme
+   tout ce qui attend un clic ; la toucher joue le coup. */
+.bouton-pendule.coup-en-attente .cadre-pendule {
+  fill: var(--vert-demande);
+}
+
+.bouton-pendule.coup-en-attente .pendule-camp {
+  fill: #e4e4e4;
+}
+
 /* La machine reflechit (phase 29, interface/ia.js) : sa pendule respire
    doucement, pour qu'on sache qu'elle cherche (plusieurs secondes au niveau 3)
    et pas que l'appli est figee. */
@@ -3681,6 +3691,27 @@ mark.aide-trouve.aide-trouve-courant {
   font-size: 12px;
 }
 
+/* Les modes Entrainement et Ceinture, en vert (saab, 2026-10-10). */
+.aide-modes {
+  color: #45b862;
+}
+
+/* L'en-tete replie au premier clic (interface/aide.js) : la version et le hors-ligne
+   restent ; ils se touchent pour revoir les autres lignes (la marque verte le dit). */
+.aide-entete-repliee #hors-ligne-kaah ~ .aide-version {
+  display: none;
+}
+
+#version-kaah,
+#hors-ligne-kaah {
+  cursor: pointer;
+}
+
+.aide-entete-repliee #hors-ligne-kaah::after {
+  content: ' ▸ …';
+  color: #45b862;
+}
+
 .dialogue-aide .aide-corps > details > summary {
   color: #45b862;
 }
@@ -3796,7 +3827,7 @@ mark.aide-trouve.aide-trouve-courant {
   height: 22px;
 }
 
-.reglages-inactifs .ligne-reglage:not(:first-child) {
+.reglages-inactifs .ligne-reglage:not(:first-child):not(.reglage-independant) {
   opacity: 0.4;
 }
 
@@ -4310,7 +4341,8 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 
 /* « en commentaire » decochee : entouree de vert, pour rappeler qu'on peut la
    cocher (saab, 2026-10-08) — le vert de ce qui attend un geste. */
-.case-reflexion-commentaire:not(:checked) {
+.case-reflexion-commentaire:not(:checked),
+.case-garder-recherches:not(:checked) {
   outline: 2px solid #45b862;
   outline-offset: 1px;
 }
@@ -4431,6 +4463,10 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   gap: 2px 6px;
   max-width: 260px;
   margin: 0 auto 6px;
+  /* Une longue partie (LabAl) : les coups defilent, les boutons restent visibles (saab, 2026-10-18). */
+  max-height: 7.5em;
+  overflow-y: auto;
+  position: relative; /* les coups s'y reperent (interface/sequence-prevue.js) */
 }
 
 /* Un bouton sans effet (rien a valider, deja au bout de la sequence) le dit. */
@@ -4926,6 +4962,30 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
   background: #1e1e1e;
   color: #9a9a9a;
   font-weight: normal;
+}
+
+/* La coche et le Profil IA figes a gauche (saab, 2026-10-16) ; leur fond cache ce qui
+   defile dessous (left : interface/comparaison-ia.js). */
+.tableau-comparaison-ia .comparaison-coche,
+.tableau-comparaison-ia .comparaison-profil {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #1e1e1e;
+}
+
+.tableau-comparaison-ia th.comparaison-coche,
+.tableau-comparaison-ia th.comparaison-profil {
+  z-index: 3;
+}
+
+.tableau-comparaison-ia th {
+  z-index: 2;
+}
+
+.tableau-comparaison-ia tr.comparaison-groupes th {
+  font-weight: bold;
+  border-bottom: none;
 }
 
 .tableau-comparaison-ia .comparaison-description {
@@ -5543,6 +5603,15 @@ body:not(.version-de-travail) .aide-ajouts {
   color: #e0832a;
 }
 
+/* Un coup qui redonne une position deja vue, son Occ en exposant (interface/banc-essais-page.js). */
+.banc-occ {
+  color: #5aa0ff;
+}
+
+.banc-occ sup {
+  font-size: 9px;
+}
+
 .banc-change {
   font-weight: bold;
 }
@@ -5568,3 +5637,789 @@ body:not(.version-de-travail) .aide-ajouts {
 .bouton-interdit {
   opacity: 0.4;
 }
+
+/* Historique des joueurs (phase 35, interface/historique-joueurs.js). */
+.contenu-historique { max-height: 60vh; overflow: auto; }
+.contenu-historique h3 { margin: 6px 0; }
+.contenu-historique h4 { margin: 10px 0 4px; color: #d9b62b; }
+.tableau-historique { border-collapse: collapse; width: 100%; font-size: 13px; }
+.tableau-historique th, .tableau-historique td { padding: 3px 6px; border-bottom: 1px solid #3a3a3a; text-align: right; }
+.tableau-historique th:first-child, .tableau-historique td:first-child { text-align: left; }
+.tableau-historique th { color: #9a9a9a; font-weight: normal; }
+.historique-records td { text-align: left; }
+.historique-joueur { cursor: pointer; height: var(--hauteur-ligne-liste); }
+.historique-joueur:hover { background: rgba(255, 255, 255, 0.06); }
+.historique-g { color: #3fcf7a; }
+.historique-p { color: #e05a5a; }
+
+/* Les noms deja donnes, sous le champ de la boite du nom (interface/noms-connus.js). */
+.noms-connus { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+
+/* L'Entrainement (phase 36, interface/entrainement.js). */
+.ligne-onglets-entrainement { display: flex; gap: 6px; margin: 6px 0; }
+.ceinture { display: inline-block; width: 26px; height: 10px; border-radius: 3px; border: 1px solid #777; vertical-align: middle; }
+.tableau-ceintures td { text-align: left; }
+.ceinture-visee td { background: rgba(217, 182, 43, 0.12); }
+.boutons-jeu { white-space: nowrap; }
+.boutons-jeu .bouton-dialogue { margin-left: 4px; }
+.jeu-fait { opacity: 0.6; }
+
+/* L'Entrainement : le plateau seul (saab, 2026-10-08 : « bloquer aussi les btn
+   Conseils, Menaces, Séquences, Commentaire, en fait il n'a que la fenêtre
+   plateau »). Le bandeau du puzzle reste : il dit ou on en est. */
+body.bloque-conseils #bouton-conseils,
+body.bloque-menaces #bouton-menaces,
+body.bloque-sequence #bouton-sequence,
+body.bloque-commentaires #bouton-commentaires,
+body.bloque-occurrences #bouton-occurrences,
+body.bloque-reglages #bouton-reglages,
+body.mode-entrainement #bouton-correspondance {
+  pointer-events: none;
+  opacity: 0.3;
+}
+body.bloque-conseils :is(#panneau-conseils, #fleches-conseils),
+body.bloque-menaces #fleches-menaces,
+body.bloque-sequence #arbre-panneau,
+body.bloque-occurrences #panneau-occurrences,
+body.cacher-evaluation :is(#reflexion-ia, .cadre-evaluation) {
+  display: none !important;
+}
+
+/* Le nom obligatoire (boite du nom, interface/noms-joueurs.js). */
+.message-nom-obligatoire { color: #e0832a; font-size: 13px; margin: 4px 0; }
+
+/* Les reglages de l'Entrainement (interface/entrainement-reglages.js). */
+.reglages-entrainement { margin: 6px 0; }
+.reglages-entrainement summary { cursor: pointer; color: #d9b62b; min-height: var(--hauteur-commande); line-height: var(--hauteur-commande); }
+.defilement-horizontal { overflow-x: auto; }
+.tableau-reglages-ceintures .nombre-reglage { width: 4.5em; }
+.tableau-reglages-ceintures td { text-align: left; }
+.reglages-entrainement .nombre-reglage { width: 5em; }
+/* Les regles du profil d'Entrainement (interface/entrainement-reglages.js). */
+.groupe-regles { margin: 4px 0; }
+.groupe-regles summary { cursor: pointer; min-height: var(--hauteur-commande); line-height: var(--hauteur-commande); }
+.ligne-regle-entrainement { display: flex; align-items: center; gap: 6px; min-height: var(--hauteur-commande); }
+.ligne-regle-entrainement .libelle-regle { flex: 1; }
+.ligne-regle-entrainement .sans-coche { display: inline-block; width: 18px; }
+.historique-regles { max-height: 30vh; overflow: auto; }
+
+/* La boite Entrainement : une seule zone defile (saab, 2026-10-09). */
+.dialogue-grand .corps-entrainement {
+  flex: 1 1 auto;
+  flex-shrink: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Les noms connus (interface/noms-connus.js) : une colonne a droite sous le champ,
+   repliee sur le premier nom, depliee au toucher du champ, et qui defile. */
+.liste-noms-connus {
+  display: block;
+  width: 60%;
+  margin: 2px 0 4px auto;
+  max-height: 30vh;
+  overflow-y: auto;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+}
+.liste-noms-connus.liste-repliee .ligne-nom-connu:not(:first-child) {
+  display: none;
+}
+.ligne-nom-connu {
+  cursor: pointer;
+  min-height: var(--hauteur-ligne-liste);
+  font-size: 14px;
+  padding-left: 2px;
+}
+.ligne-nom-connu:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* L'icone ceinture, un peu plus grande que les autres. */
+.icone-ceinture svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+/* Annuler interdit par le grade (l'Entrainement, ceintures rouges). */
+body.bloque-annuler :is(#nav-annuler, .bouton-annuler-joueur) {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Les pastilles des Dans (interface/entrainement.js, classesDeLaCeinture) : la noire
+   et ses barrettes dorees (une par Dan, jusqu'a 5), la blanche et rouge a rayures,
+   la rouge. */
+.ceinture-noire { position: relative; }
+.ceinture-noire::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  bottom: 1px;
+  width: calc(var(--barrettes) * 4px);
+  background: repeating-linear-gradient(90deg, #d9b62b 0 2px, transparent 2px 4px);
+}
+.ceinture-dan-1 { --barrettes: 1; }
+.ceinture-dan-2 { --barrettes: 2; }
+.ceinture-dan-3 { --barrettes: 3; }
+.ceinture-dan-4 { --barrettes: 4; }
+.ceinture-dan-5 { --barrettes: 5; }
+.ceinture.ceinture-blanche-rouge {
+  background: repeating-linear-gradient(90deg, #f2f2f2 0 5px, #d22f2f 5px 10px) !important;
+}
+
+.case-proprietaire { font-size: 12px; }
+
+/* Noir et Blanc differents (interface/pendules-mode.js) : la colonne de Blanc et
+   les titres Noir / Blanc, seulement avec la case. */
+.champ-pendule-blanc,
+.entete-pendules-par-camp {
+  display: none;
+}
+.pendules-par-camp .champ-pendule-blanc {
+  display: inline-block;
+  margin-left: 6px;
+}
+.pendules-par-camp .entete-pendules-par-camp {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+.pendules-par-camp .entete-pendules-par-camp span {
+  width: 70px; /* la largeur des champs, .ligne-nombre-pendule input */
+  text-align: center;
+}
+/* Avec la colonne de Blanc : le libelle, le champ de Noir, celui de Blanc, alignes. */
+.pendules-par-camp .ligne-nombre-pendule,
+.pendules-par-camp .entete-pendules-par-camp {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px;
+  column-gap: 8px;
+}
+.pendules-par-camp .entete-pendules-par-camp span:first-child {
+  grid-column: 2;
+}
+.pendules-par-camp .champ-pendule-blanc {
+  margin-left: 0;
+}
+
+
+.message-fin-entrainement { color: #e4e4e4; font-weight: bold; }
+
+/* Un rond de l'icone Entrainement ne se montre qu'avec une couleur (interface/entrainement.js). */
+#bouton-entrainement .rond-ceinture:not(.rond-visible) { display: none; }
+
+/* Le tableau des reglages de l'Entrainement (interface/entrainement-reglages.js) : une
+   grande boite, une case par reglage (saab, 2026-10-10 : les valeurs a la largeur de
+   « 999 », les en-tetes sur 2 lignes, la colonne Grade figee, la coche et sa valeur en
+   un groupe entoure de la couleur de la ceinture, un point par Dan sur son trait du bas). */
+.dialogue-tableau-entrainement { max-width: min(98vw, 1200px); width: 98vw; }
+.tableau-regles-grades th { font-size: 11px; line-height: 1.15; white-space: nowrap; text-align: center; vertical-align: bottom; }
+.tableau-regles-grades td, .tableau-regles-generales td { padding: 3px 3px 5px; }
+.cellule-regle { white-space: nowrap; text-align: center; }
+.tableau-regles-generales td.cellule-regle { width: 1%; text-align: left; }
+/* Les fleches pour augmenter et diminuer, toujours visibles (saab, 2026-10-14 : « trop
+   compliqué sans les flèches » ; un appui prolonge va vite) : dans le tableau des
+   reglages, les listes d'une ceinture et les tableaux Ceintures × Variantes / PZL. */
+/* La largeur de « 999 » et ses fleches (saab, 2026-10-15 : « ajuster tous les champs sur
+   999 + flèches, ce qui revient à 9999 en tout ») ; les nombres de jeux sur « 99 ». */
+.cellule-regle .nombre-reglage {
+  width: calc(3ch + 20px);
+  padding: 0 2px;
+  text-align: right;
+}
+.cellule-regle .nombre-reglage::-webkit-inner-spin-button,
+.quota-type .nombre-reglage::-webkit-inner-spin-button,
+.tableau-ceintures-jeux .nombre-reglage::-webkit-inner-spin-button { opacity: 1; }
+.cellule-regle select { max-width: 5.5em; font-size: 10px; padding: 0 1px; }
+.cellule-regle.reglage-court .nombre-reglage { width: calc(2ch + 20px); }
+.groupe-regle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 3px;
+  border: 2px solid var(--couleur-grade, #666);
+  border-radius: 5px;
+}
+/* La noire sur fond sombre : un liseré clair (comme l'icone). */
+.grade-noire .groupe-regle { box-shadow: 0 0 0 1px #8a8a8a; }
+.grade-blanche-rouge .groupe-regle { border-image: repeating-linear-gradient(45deg, #f2f2f2 0 4px, #d22f2f 4px 8px) 2; }
+.points-dan {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+}
+.points-dan i { display: block; width: 5px; height: 5px; border-radius: 50%; background: #d9b62b; box-shadow: 0 0 0 1px #1e1e1e; }
+.grade-blanche-rouge .points-dan i, .grade-rouge .points-dan i { background: #f2f2f2; }
+.bouton-liste-reglage { font-size: 11px; min-height: 22px; white-space: nowrap; padding: 0 4px; }
+.nom-grade { white-space: nowrap; text-align: left; }
+.tableau-regles-grades .nom-grade { position: sticky; left: 0; z-index: 2; background: #1e1e1e; }
+.titre-groupe-regles th { color: #d9b62b; text-align: left; padding-top: 8px; }
+.tableau-regles-generales .libelle-regle { font-size: 12px; text-align: left; }
+.nom-ceinture { display: inline-block; vertical-align: middle; line-height: 1.1; }
+.dan-ceinture { font-size: 11px; color: #bbb; }
+
+/* La boite Entrainement / Ceinture (interface/entrainement.js) : le choix du mode, les
+   jeux proposes sous la ceinture ouverte, leur image et leurs deux sens. */
+.bouton-mode-entrainement { width: 100%; font-size: 16px; margin-top: 8px; }
+.ligne-onglets-entrainement { flex-wrap: wrap; }
+.ligne-propositions > td { background: rgba(217, 182, 43, 0.07); }
+.consigne-entrainement { font-size: 13px; margin: 2px 0 6px; }
+.jeux-proposes { display: flex; flex-wrap: wrap; gap: 4px; }
+.bouton-jeu-propose { font-size: 13px; }
+.choix-jeu-entrainement { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.apercu-entrainement { width: 180px; height: 180px; }
+.sens-jeu-entrainement { display: flex; flex-direction: column; gap: 6px; }
+.resultat-reussi { color: #3fbf5a; font-weight: bold; }
+.resultat-rate { color: #e04848; font-weight: bold; }
+.titre-jeu-historique { font-size: 11px; word-break: break-all; }
+/* La liste des jeux d'un grade (interface/entrainement-listes.js). */
+.ligne-liste-jeu { display: flex; align-items: center; gap: 8px; min-height: var(--hauteur-ligne-liste); font-size: 13px; }
+.ligne-liste-jeu .case-inclus { flex: 1; }
+.ligne-liste-jeu[hidden] { display: none; }
+
+/* L'onglet de l'Entrainement en cours : orange, comme tout ce qui est actif (saab). */
+.onglet-entrainement.actif { background: #cc6a00; color: #fff; border-color: #cc6a00; }
+.bouton-visee { min-height: var(--hauteur-commande); }
+
+/* L'Aide : le titre du chapitre qu'on lit reste en haut (saab, 2026-10-09 : « figer
+   la rubrique qu'on lit pour éviter de scroller si on veut sortir »). */
+.dialogue-aide .aide-corps details[open] > summary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #1a1a1a;
+}
+/* Le jeu touche et la ceinture choisie : orange, comme tout ce qui est actif (saab). */
+.bouton-jeu-propose.bouton-actif, .tableau-ceintures [data-ouvrir].bouton-actif { background: #cc6a00; color: #fff; border-color: #cc6a00; }
+.sens-jeu-entrainement .bouton-dialogue:disabled, .jeux-proposes .bouton-dialogue:disabled { opacity: 0.45; }
+
+/* Le bouton Test (interface/apercu-test.js) : jamais dans le vrai KAAH_Test ; orange
+   pendant l'apercu. */
+body:not(.version-locale) .bouton-version-locale { display: none; }
+#bouton-apercu-test.bouton-actif { background: #cc6a00; color: #fff; }
+
+/* Le tableau des grades : sa propre zone, a la hauteur de la fenetre, pour que ses
+   deux barres de defilement restent visibles (saab, 2026-10-10 : « on voit la barre
+   de défilement, elle est hors fenêtre ») ; l'en-tete reste en haut, la colonne
+   Grade a gauche. */
+.dialogue-tableau-entrainement .defilement-horizontal {
+  overflow: auto;
+  max-height: calc(100dvh - 150px);
+}
+.tableau-regles-grades tr:first-child th { position: sticky; top: 0; z-index: 3; background: #1e1e1e; }
+.tableau-regles-grades tr:first-child th.nom-grade { left: 0; z-index: 4; }
+/* Les types d'une liste de jeux, chacun avec son nombre impose (saab, 2026-10-10). */
+.section-type-jeux { margin-bottom: 6px; }
+.titre-type-jeux { display: flex; justify-content: space-between; align-items: center; color: #d9b62b; font-size: 13px; border-bottom: 1px solid #3a3a3a; margin: 4px 0 2px; }
+.quota-type { font-size: 12px; color: #ddd; }
+.quota-type .nombre-reglage { width: calc(3ch + 26px); }
+.section-type-jeux[hidden] { display: none; }
+
+/* Le tableau des grades TRANSPOSE (interface/entrainement-tableau.js) : une colonne par
+   grade, pas plus large que son mot le plus long ; le Dan en derniere ligne. */
+.tableau-regles-transpose th.grade-en-colonne { white-space: normal; width: 1%; vertical-align: bottom; line-height: 1.15; }
+.tableau-regles-transpose td.nom-grade { font-size: 12px; }
+
+/* Le tableau des reglages : le profil, Valider, Abandonner et Transposer restent en haut
+   quand on defile (saab, 2026-10-11 : « figer les btn Valider/Abandonner, car chaque
+   fois on les cherche »). Le tableau des grades laisse la place de cette barre. */
+.barre-reglages-entrainement {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  background: #1a1a1a;
+  border-bottom: 1px solid #3a3a3a;
+}
+.dialogue-tableau-entrainement .defilement-horizontal { max-height: calc(100dvh - 215px); }
+
+/* Les tableaux Ceintures × Variantes et × PZL (interface/entrainement-ceintures-jeux.js) : sa
+   propre zone de defilement a la hauteur de la fenetre (ses barres restent visibles),
+   les ceintures figees en haut, le nom de la variante a gauche. */
+.dialogue-ceintures-jeux { max-width: min(98vw, 1000px); width: 98vw; }
+.zone-ceintures-jeux { overflow: auto; max-height: calc(100dvh - 275px); min-height: 160px; }
+.tableau-ceintures-jeux th, .tableau-ceintures-jeux td { padding: 0 3px; text-align: center; white-space: nowrap; height: var(--hauteur-ligne-liste); }
+.tableau-ceintures-jeux tr:first-child th { position: sticky; top: 0; z-index: 3; background: #1e1e1e; line-height: 1.15; vertical-align: bottom; }
+.tableau-ceintures-jeux .nom-grade { position: sticky; left: 0; z-index: 2; background: #1e1e1e; text-align: left; font-size: 13px; }
+.tableau-ceintures-jeux tr:first-child th.nom-grade { z-index: 4; }
+.tableau-ceintures-jeux tr[hidden] { display: none; }
+.tableau-ceintures-jeux .nombre-reglage { width: calc(2ch + 26px); padding: 0 2px; }
+/* Le nom d'un jeu se touche : son image, posee par-dessus le tableau (interface/
+   entrainement-ceintures-jeux.js) ; la toucher la referme. */
+.nom-jeu-ceintures { cursor: pointer; text-decoration: underline dotted #777; }
+/* Coller ne se montre qu'une colonne copiee (interface/entrainement-ceintures-jeux-colonnes.js). */
+.tableau-ceintures-jeux [data-coller-grade] { display: none; }
+.tableau-ceintures-jeux.colonne-copiee [data-coller-grade], .colonne-copiee [data-coller-grade] { display: inline-block; }
+.dialogue-ceintures-jeux { position: relative; }
+.image-ceintures-jeux { position: absolute; right: 26px; bottom: 26px; z-index: 8; width: 210px; padding: 4px; background: #1a1a1a; border: 2px solid #cc6a00; border-radius: 8px; cursor: pointer; text-align: center; }
+.image-ceintures-jeux[hidden] { display: none; }
+.image-ceintures-jeux svg { width: 200px; height: 200px; }
+.titre-type-jeux-ceintures td { border-top: 1px solid #5a5a5a; padding-top: 3px; padding-bottom: 3px; line-height: 1.1; }
+.tableau-ceintures-jeux .titre-type-jeux-ceintures .bouton-liste-reglage { min-height: 18px; margin-bottom: 2px; }
+.titre-type-jeux-ceintures .nom-grade { color: #d9b62b; }
+/* Un nom de PZL est long : il passe a la ligne plutot que d'elargir la colonne figee. */
+.tableau-ceintures-jeux td.nom-grade { white-space: normal; overflow-wrap: anywhere; min-width: 150px; max-width: 215px; line-height: 1.15; }
+/* En PZL : la case d'un autre grade que celui du PZL, pale. */
+.tableau-ceintures-jeux td.hors-grade input { opacity: 0.35; }
+.tableau-ceintures-jeux td.hors-grade input:checked { opacity: 1; }
+/* Les jeux imposes dans la serie de chaque ceinture ; orange : plus que la serie n'en avait. */
+/* « Imposés / série » reste en haut, sous les ceintures (saab, 2026-10-15 : « qu'on voie
+   toujours ce total ») ; --hauteur-entete-ceintures : la hauteur de l'en-tete, posee a
+   l'ouverture (interface/entrainement-ceintures-jeux.js). */
+.ligne-imposes-serie td { font-size: 12px; color: #bbb; position: sticky; top: var(--hauteur-entete-ceintures, 56px); z-index: 3; background: #262626; border-bottom: 1px solid #5a5a5a; }
+.ligne-imposes-serie td.nom-grade { z-index: 4; }
+.ligne-imposes-serie td.trop-d-imposes { color: #ff9a2e; font-weight: bold; }
+/* Le 📌 d'une case : pale tant que la variante n'est pas imposee. */
+.epingle { appearance: none; -webkit-appearance: none; margin: 0 0 0 2px; width: 18px; height: 18px; vertical-align: middle; cursor: pointer; }
+.epingle::before { content: '📌'; font-size: 13px; opacity: 0.22; filter: grayscale(1); }
+.epingle:checked::before { opacity: 1; filter: none; }
+.epingle:disabled { cursor: default; }
+
+/* Le tableau des reglages (saab, 2026-10-14) : un groupe de reglages sur deux sur fond
+   gris ; un reglage de l'autre mode de pendule (Bonus ou Délai), pale et inactif. */
+.tableau-regles-grades .fond-gris, .tableau-regles-grades .nom-grade.fond-gris { background: #444; }
+.tableau-regles-grades .hors-mode { opacity: 0.4; }
+
+/* Le choix des variantes et des PZL du banc (interface/banc-essais-jeux.js) : une liste
+   repliable, a sa hauteur. */
+.banc-choix-jeux summary { cursor: pointer; color: #d9b62b; }
+.banc-choix-jeux-barre { display: flex; gap: 4px; align-items: center; margin: 2px 0; }
+.banc-choix-jeux-liste { max-height: 220px; overflow-y: auto; border: 1px solid #3a3a3a; padding: 2px 4px; }
+.banc-choix-jeux-liste label[hidden] { display: none; }
+
+/* Regler l'essai (interface/banc-essais-reglage.js) : ses fleches toujours visibles. */
+.banc-reglage-essai .nombre-reglage { width: calc(4ch + 22px); }
+.banc-reglage-essai .nombre-reglage::-webkit-inner-spin-button { opacity: 1; }
+.banc-reglage-essai tr.banc-change td, .banc-reglage-essai tr.banc-change th { color: #e0832a; }
+
+/* Revoir un fichier du banc (interface/banc-essais-revoir.js) : les parties deja vues. */
+.partie-labalone-vue td { color: #3fcf7a; }
+
+/* Les groupes de l'evaluation a l'ecran (interface/groupes-ia.js) : leur titre, et le
+   filet de leur couleur devant chaque reglage (le texte garde la couleur de validation). */
+.titre-groupe-ia {
+  margin: 6px 0 0;
+  font-weight: bold;
+}
+.ligne-groupe-ia {
+  border-left: 3px solid var(--couleur-groupe-ia);
+  padding-left: 4px;
+}
+.ligne-titre-groupe-ia th {
+  text-align: left;
+  font-weight: bold;
+  padding-top: 4px;
+}
+
+/* La reflexion de l'IA dans Conseils (interface/conseil-ia.js) : une ligne serree. */
+.ligne-conseil-ia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin-bottom: 4px;
+}
+
+.ligne-conseil-ia select {
+  max-width: 12em;
+}
+
+.ligne-conseil-ia input[type='number'] {
+  width: 3.5em;
+}
+
+.ligne-conseil-ia .bouton-dialogue {
+  margin: 0;
+  padding: 0 8px;
+}
+
+/* Le graphique des 4 groupes (interface/graphique-groupes.js) : un panneau de la colonne
+   de droite, comme Conseils (jamais par-dessus le plateau). Sur ordinateur, plus large que
+   la Sequence, et son coin en bas a droite l'elargit (resize). */
+#panneau-graphique-groupes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 12px/1.2 sans-serif;
+  border-top: 1px solid #3a3a3a;
+}
+
+#panneau-graphique-groupes[hidden] {
+  display: none;
+}
+
+/* Le face-a-face n'en a pas besoin (saab, 2026-10-16) : la colonne y tourne. */
+body.face-a-face #panneau-graphique-groupes,
+body.face-a-face .tableau-barres-groupes {
+  display: none;
+}
+
+.poignee-largeur-graphique {
+  display: none;
+}
+
+/* Ordinateur : toute la largeur de la colonne, que sa poignee de gauche elargit aux depens
+   du plateau (--largeur-sequence) ; son coin en bas a droite l'allonge. Telephone : un
+   apercu seulement (saab, 2026-10-16 : « inutile de surcharger sur tél ») — les courbes,
+   sans les barres. */
+@media (min-width: 700px) {
+  #panneau-graphique-groupes {
+    position: relative;
+    resize: vertical;
+    overflow: auto;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  body:not(.face-a-face) .poignee-largeur-graphique {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 8px;
+    cursor: ew-resize;
+    touch-action: none;
+    z-index: 2;
+  }
+
+  body:not(.face-a-face) .poignee-largeur-graphique:hover,
+  body:not(.face-a-face) .poignee-largeur-graphique:active {
+    background: #3a3a3a;
+  }
+}
+
+@media (max-width: 699px) {
+  #bouton-barres-graphique-groupes,
+  .tableau-barres-groupes {
+    display: none;
+  }
+}
+
+.entete-graphique-groupes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.entete-graphique-groupes h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.entete-graphique-groupes .bouton-dialogue {
+  margin: 0;
+  padding: 0 8px;
+}
+
+.entete-graphique-groupes input[type='number'] {
+  width: 4em;
+}
+
+#coup-graphique-groupes {
+  width: 100%;
+}
+
+.zone-graphique-groupes {
+  position: relative;
+}
+
+.graphique-groupes {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #1e1e1e;
+  border: 1px solid #3a3a3a;
+  cursor: pointer;
+}
+
+/* Sous les courbes ; detachees (tirees par leur poignee), au-dessus de tout, ou l'on veut. */
+.tableau-barres-groupes {
+  padding: 2px 6px 6px;
+  font: 11px/1.2 sans-serif;
+  color: #e4e4e4;
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.tableau-barres-groupes.barres-detachees {
+  position: fixed;
+  z-index: 60;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.entete-barres-groupes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.entete-barres-groupes .bouton-dialogue {
+  margin: 0 0 0 auto;
+  padding: 0 6px;
+  min-height: 0;
+  height: 20px;
+}
+
+.entete-barres-groupes .bouton-dialogue + .bouton-dialogue {
+  margin-left: 0;
+}
+
+.tableau-barres-groupes[hidden] {
+  display: none;
+}
+
+.poignee-barres-groupes {
+  cursor: move;
+  user-select: none;
+  color: #9a9a9a;
+  touch-action: none;
+}
+
+.barres-groupes {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.barre-groupe {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.total-barre-groupe {
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+/* Un terme : son libelle et sa valeur a gauche, son morceau de barre a droite. */
+.morceau-barre-groupe {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.morceau-barre-groupe span {
+  align-self: center;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.morceau-barre-groupe b {
+  width: 14px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+/* Un terme negatif (une perte, un bord a soi) : hachure. */
+.morceau-barre-groupe b.morceau-negatif {
+  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.55) 0 3px, transparent 3px 6px);
+}
+
+/* L'occupation du stockage (interface/sauvegarde-complete.js) : une cle par ligne. */
+.occupation-stockage { white-space: pre-line; }
+
+/* Les couleurs des boutons d'action, partout (saab, 2026-10-14 et 15) : VERT, ce qui reste
+   a faire pour ne rien perdre (Valider quand une retouche attend, Exporter quand un essai
+   est fini) et Fermer, qui ne perd rien ; ROUGE, ce qui peut effacer des donnees
+   (Abandonner, Vider, Supprimer, Arreter un essai) et un Fermer qui oublierait des
+   changements (.bouton-danger) ; ORANGE, deja exporte. */
+.bouton-dialogue.bouton-a-faire:not(:disabled) { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }
+button[id^='bouton-fermer'], #bouton-annuler-liste-entrainement { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }
+.bouton-dialogue.bouton-danger,
+.bouton-dialogue[data-abandonner]:not(:disabled), #bouton-abandonner-profil-ia:not(:disabled),
+button[id^='bouton-vider']:not(:disabled), button[id^='bouton-supprimer']:not(:disabled), .bouton-dialogue[data-supprimer],
+#bouton-confirmer-suppression, #bouton-arreter-banc:not(:disabled) { background: #7c2424; border-color: #9c3a3a; color: #fff; }
+.bouton-dialogue.deja-exporte { background: #cc6a00; border-color: #cc6a00; color: #fff; }
+/* Un bouton bascule allume (ce qu'il montre est affiche) : orange ; eteint : vert (bouton-a-faire). */
+.bouton-dialogue.bouton-allume { background: #cc6a00; border-color: #cc6a00; color: #fff; }
+/* Lancer, tant que la serie finie n'est pas exportee (interface/banc-essais.js). */
+.bouton-dialogue.bouton-grise { opacity: 0.45; }
+
+/* Ce qui n'existe que dans une version de travail (jamais dans KAAH_Test, ni dans son apercu). */
+body:not(.version-de-travail) .seulement-version-de-travail { display: none; }
+.actions-type-jeux { display: flex; align-items: center; gap: 6px; }
+
+/* Les mises a la ligne d'un message de confirmation (« \n », ex. l'installation) se voient. */
+#message-confirmation {
+  white-space: pre-line;
+}
+
+/* L'en-tete de Conseils : le titre, puis Fermer a droite (interface/next-move.js). */
+.entete-conseils {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.entete-conseils .bouton-dialogue {
+  margin: 0;
+  padding: 0 8px;
+}
+
+/* Le petit plateau des sequences : une fenetre qui ne bloque rien, au-dessus de la page
+   (interface/sequence-prevue.js) ; son titre la deplace. */
+#dialogue-sequence-prevue {
+  position: fixed;
+  z-index: 55;
+}
+
+#titre-sequence-prevue {
+  cursor: move;
+  user-select: none;
+}
+
+/* L'infobulle au doigt (interface/infobulle-tactile.js) : au-dessus de tout. */
+.infobulle-tactile {
+  position: fixed;
+  z-index: 100;
+  max-width: min(90vw, 360px);
+  padding: 6px 8px;
+  background: #fffbe0;
+  color: #1a1a1a;
+  font: 13px/1.3 sans-serif;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.infobulle-tactile[hidden] {
+  display: none;
+}
+
+/* Un appui long montre l'infobulle : pas le menu du navigateur par-dessus (iOS). */
+button[title],
+label[title] {
+  -webkit-touch-callout: none;
+}
+
+/* Vider les recherches : en rouge quand elles passent les 3/4 du maximum (saab, 2026-10-17),
+   interface/recherche-ia.js. */
+.bouton-vider-recherches.vider-a-faire {
+  background: #7c2424;
+  border-color: #c03a3a;
+  color: #fff;
+}
+
+/* Une confirmation qui n'efface rien (l'alerte des ceintures) : en vert, pas en rouge. */
+#bouton-confirmer-suppression.confirmation-verte {
+  background: var(--vert-demande);
+  border-color: var(--vert-demande);
+  color: #fff;
+}
+
+/* Les nouveaux PZL a valider, sur la plus haute ceinture reussie (interface/entrainement-nouveaux.js). */
+.nouveaux-pzl {
+  color: #e0832a;
+  font-weight: bold;
+}
+
+/* Ce qu'on apprend a la ceinture ouverte (interface/objectifs-ceintures.js). */
+.objectif-ceinture {
+  margin: 2px 0 4px;
+  font-size: 0.9em;
+}
+
+/* Le bouton de taille des billes d'un PZL, sous son bandeau (index.html). */
+#bouton-taille-billes-pzl {
+  align-self: flex-start;
+  min-height: var(--hauteur-commande);
+  padding: 0 8px;
+}
+#bouton-taille-billes-pzl[hidden] {
+  display: none;
+}
+
+/* Bonus / Délai du Tableau des reglages d'Entrainement : un bouton qui bascule. */
+.bouton-mode-reglage {
+  min-height: calc(var(--hauteur-commande) - 6px);
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+/* La ceinture ouverte de l'Entrainement (saab, 2026-10-17 : « mettre le focus sur la
+   couleur de ceinture et de son texte, et figer pour avoir le valider visible qd on fait
+   défiler les jeux ») : sa ligne, pastille agrandie et nom en gras, reste en haut de la
+   zone qui defile ; l'image du jeu touche et ses boutons Noir / Blanc restent en bas. */
+.ceinture-visee td {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(rgba(217, 182, 43, 0.18), rgba(217, 182, 43, 0.18)), #1a1a1a;
+}
+.ceinture-visee .ceinture {
+  width: 34px;
+  height: 14px;
+  box-shadow: 0 0 0 2px #cc6a00;
+}
+.ceinture-visee .nom-ceinture {
+  font-weight: bold;
+  color: #f2d23c;
+}
+.ligne-propositions .choix-jeu-entrainement {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding: 4px 0;
+  background: linear-gradient(rgba(217, 182, 43, 0.07), rgba(217, 182, 43, 0.07)), #1a1a1a;
+  border-top: 1px solid #cc6a00;
+}
+
+/* Le tableau des noms des profils IA (interface/noms-profils-ia-tableau.js). */
+#tableau-noms-profils-ia td { white-space: nowrap; }
+#tableau-noms-profils-ia .nom-actuel-ia { font-weight: bold; }
+
+/* La langue (interface/langue.js) : ce qui ne se montre qu'en anglais, le bouton Fra/Eng. */
+.seulement-en-anglais { display: none; }
+.en-anglais .seulement-en-anglais { display: flex; }
+.aide-a-traduire { flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0; color: #e0832a; font-size: 13px; }
+.boutons-entete-aide { display: flex; gap: 6px; align-items: flex-start; }
+#bouton-langue-chargement { margin: 0 0 6px; }
+
+/* LabAl : l'essai en Blanc en blanc, en Noir en gris (interface/banc-essais-page.js) ; une
+   partie se touche pour la regarder — orange : regardee, violet : deja vue
+   (interface/banc-essais-regarder.js). */
+.banc-essai-noir td { color: #8c8c8c; }
+.banc-essai-blanc td { color: #ffffff; }
+#banc-resultats tr[data-partie-banc], .banc-ligne-en-cours { cursor: pointer; }
+#banc-resultats tr[data-partie-banc]:hover td { background: rgba(255, 255, 255, 0.05); }
+#banc-resultats tr.banc-regardee td:nth-child(2) { color: #e0832a; font-weight: bold; }
+#banc-resultats tr.banc-vue td:nth-child(2) { color: #b070e0; }
+
+/* Les parties en cours de LabAl : la couleur du camp de l'essai, comme dans le tableau. */
+.banc-ligne-en-cours.banc-essai-noir { color: #8c8c8c; }
+.banc-ligne-en-cours.banc-essai-blanc { color: #ffffff; }
+.banc-ligne-en-cours.banc-regardee .banc-nom-en-cours { color: #e0832a; font-weight: bold; }
+.banc-ligne-en-cours.banc-vue .banc-nom-en-cours { color: #b070e0; }
+
+/* LabAl : ce qu'est devenue la retouche de l'essai, en fin de serie (interface/banc-essais-reglage.js). */
+.banc-validation-auto { color: #e0832a; font-weight: bold; }
+
+/* L'IA par defaut, en orange partout ou un profil se montre (interface/noms-profils-ia.js,
+   marquerSiProfilParDefaut) : avant les couleurs de ses reglages. */
+.profil-ia-par-defaut, option.profil-ia-par-defaut, select.profil-ia-par-defaut { color: #e0832a !important; font-weight: bold; }
+
+/* LabAl, partie en cours : le camp qui cherche, vert si son evaluation est positive, rouge si negative. */
+.banc-eval-positive { color: #3fcf7a; font-weight: bold; }
+.banc-eval-negative { color: #e05a5a; font-weight: bold; }

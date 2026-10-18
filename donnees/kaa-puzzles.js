@@ -11,7 +11,7 @@
 const KAA_PZL_KAA = {
   "content": [
     {
-      "PZL_name": "Mini_PZL_E_0001, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0001, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f4g5h5_5b1h4i6",
       "creator": "©saab",
@@ -22,7 +22,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0002, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0002, (-5-5)xtr2x1",
       "date": "",
       "pos": "5g56h7_5b1i67",
       "creator": "©saab",
@@ -30,10 +30,15 @@ const KAA_PZL_KAA = {
       "winner": "Noir",
       "nb tour": "2",
       "move1 sol ": "1",
-      "original_type": "pzl"
+      "original_type": "pzl",
+      "sol": "",
+      "sol_starts": "1.h7h6/i6h5",
+      "permut_resolues": [
+        5
+      ]
     },
     {
-      "PZL_name": "Mini_PZL_E_0003, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0003, (-5-5)xtr2x1",
       "date": "",
       "pos": "5g5h57_5b1i68",
       "creator": "©saab",
@@ -44,7 +49,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0004, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0004, (-5-5)xtr2x1",
       "date": "",
       "pos": "5h8i78_5b1h459",
       "creator": "©saab",
@@ -55,7 +60,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0005, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0005, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f56g5_5b1g3489",
       "creator": "©saab",
@@ -66,7 +71,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0006, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0006, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f7g6h67_5b1i7",
       "creator": "©saab",
@@ -77,7 +82,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0007, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0007, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f7g67h8_5b1h7i8",
       "creator": "©saab",
@@ -88,7 +93,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0008, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0008, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f3g45h6_5b1i6",
       "creator": "©saab",
@@ -99,7 +104,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0009, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0009, (-5-5)xtr2x1",
       "date": "",
       "pos": "5g5h456_5b1i6",
       "creator": "©saab",
@@ -110,7 +115,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0010, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0010, (-5-5)xtr2x1",
       "date": "",
       "pos": "5h67i8_5b1i59",
       "creator": "©saab",
@@ -123,7 +128,7 @@ const KAA_PZL_KAA = {
       "sol_starts": "1.h7i6 2.i6i9"
     },
     {
-      "PZL_name": "Mini_PZL_E_0011, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0011, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f5g5h78_5b1h45i6",
       "creator": "©saab",
@@ -134,7 +139,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0012, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0012, (-5-5)xtr2x1",
       "date": "",
       "pos": "5e6f7g7h7_5b1h6i68",
       "creator": "©saab",
@@ -145,7 +150,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0013, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0013, (-5-5)xtr2x1",
       "date": "",
       "pos": "5g56h57_5b1i6",
       "creator": "©saab",
@@ -156,7 +161,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0014, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0014, (-5-5)xtr2x1",
       "date": "",
       "pos": "5e4f5g5h6_5b1h7i68",
       "creator": "©saab",
@@ -167,7 +172,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_PZL_E_0015, (-5-5)xtr2x",
+      "PZL_name": "Mini_PZL_E_0015, (-5-5)xtr2x1",
       "date": "",
       "pos": "5f3g458h7i59_5b1h49i68",
       "creator": "©saab",
@@ -365,7 +370,7 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Mini_Pzl_M_0014, (-5-5)xtr3x1",
+      "PZL_name": "Mini_Pzl_M_0014, (-5-5)xtr4x1",
       "date": "",
       "pos": "5h68i7_5b1f4g5h45i59",
       "creator": "©saab",
@@ -488,7 +493,7 @@ const KAA_PZL_KAA = {
     {
       "PZL_name": "Mini_Pzl_M_0025, (-5-5)xtr3x1",
       "date": "",
-      "pos": "5e5f6g6h67i9_5b1g578h5i7",
+      "pos": "5e5f6g6h78i9_5b1g578h5i7",
       "creator": "©saab",
       "type": "Mini_PZL_M",
       "winner": "Noir",
@@ -741,7 +746,7 @@ const KAA_PZL_KAA = {
     {
       "PZL_name": "Pzl_E_0016, (-5-5)xtr2x1",
       "date": "",
-      "pos": "5a1c34d4e346f47_5b1d2e5f56g48h49",
+      "pos": "5a1c34d3e346f47_5b1d2e5f56g48h49",
       "creator": "©saab",
       "type": "PZL_E",
       "winner": "Noir",
@@ -928,7 +933,7 @@ const KAA_PZL_KAA = {
     {
       "PZL_name": "Pzl_M_0001, (-3-5)xtr3x1",
       "date": "",
-      "pos": "3b4c4d567e5f4567g6_4a3b23d234e346",
+      "pos": "3b4c4d567e5f4567g6_5a3b23d234e346",
       "creator": "©saab",
       "type": "PZL_M",
       "winner": "Noir",
@@ -939,7 +944,7 @@ const KAA_PZL_KAA = {
     {
       "PZL_name": "Pzl_M_0002, (-5-5)xtr3x1",
       "date": "",
-      "pos": "5c4d456e45f56g6_5a12b2c123d23e3",
+      "pos": "5b4c456d45e56f6_5a12b2c123d23e3",
       "creator": "©saab",
       "type": "PZL_M",
       "winner": "Noir",
@@ -1047,12 +1052,12 @@ const KAA_PZL_KAA = {
       "original_type": "pzl"
     },
     {
-      "PZL_name": "Pzl_M_0012, (-5-5)xtr3y1",
+      "PZL_name": "Pzl_M_0012, (-5-5)xtr3x1",
       "date": "",
       "pos": "5d4e5f345g478i8_5e23f68g35h589",
       "creator": "©saab",
       "type": "PZL_M",
-      "winner": "Blanc",
+      "winner": "Noir",
       "nb tour": "",
       "move1 sol ": "1",
       "original_type": "pzl"

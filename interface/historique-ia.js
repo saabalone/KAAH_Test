@@ -5,8 +5,9 @@
 // (interface/reglages-ia.js). Les lignes viennent de
 // moteur/historique-profil-ia.js (lignesHistoriqueIA).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : lignesHistoriqueIA,
-// libelleDateHistoriqueIA (moteur/historique-profil-ia.js) viennent de
+// Pas d'import ni d'export (voir moteur/plateau.js) : lignesHistoriqueIA
+// (moteur/historique-profil-ia.js), libelleDateHistorique
+// (moteur/historique-reglages.js) viennent de
 // fichiers charges avant celui-ci.
 
 const DECALAGE_BRANCHE_HISTORIQUE_PX = 14;
@@ -15,7 +16,12 @@ const MARGE_LIGNE_HISTORIQUE_PX = 4;
 // `conteneur` : la liste ; `profil` : le profil montre (un profil integre n'a
 // pas d'historique) ; `choisir(numero)` : revenir a cette version.
 function afficherHistoriqueIA(conteneur, profil, choisir) {
-  const lignes = lignesHistoriqueIA(profil);
+  afficherHistorique(conteneur, lignesHistoriqueIA(profil), choisir);
+}
+
+// La meme boite pour tout reglage a versions (les profils d'Entrainement aussi) :
+// `lignes` : moteur/historique-reglages.js, lignesHistorique.
+function afficherHistorique(conteneur, lignes, choisir) {
   if (lignes.length === 0) {
     const vide = document.createElement('p');
     vide.className = 'note-reglages';
@@ -32,7 +38,7 @@ function afficherHistoriqueIA(conteneur, profil, choisir) {
       bouton.classList.toggle('hors-du-chemin', !ligne.surLeChemin);
       bouton.style.paddingLeft = `${ligne.niveau * DECALAGE_BRANCHE_HISTORIQUE_PX + MARGE_LIGNE_HISTORIQUE_PX}px`;
       const quoi = ligne.differences.length > 0 ? ligne.differences.join(', ') : ligne.note;
-      bouton.textContent = [`v${ligne.numero}`, libelleDateHistoriqueIA(ligne.date), quoi].filter(Boolean).join(' · ');
+      bouton.textContent = [`v${ligne.numero}`, libelleDateHistorique(ligne.date), quoi].filter(Boolean).join(' · ');
       bouton.title = ligne.courante ? 'Version courante' : 'Revenir à cette version';
       bouton.addEventListener('click', () => choisir(ligne.numero));
       return bouton;

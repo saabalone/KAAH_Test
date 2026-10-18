@@ -97,6 +97,7 @@ function creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, e
     repli.type = 'button';
     repli.className = 'bouton-repli-commentaire';
     repli.textContent = etat.cheminsReplies.has(cle) ? '▶' : '▼'; // les memes que la Sequence (rendu/arbre-ligne.js)
+    repli.title = etat.cheminsReplies.has(cle) ? 'Déplier cette branche' : 'Replier cette branche';
     repli.addEventListener('click', () => rappels.surClicRepli(cle));
     ligne.appendChild(repli);
   } else {

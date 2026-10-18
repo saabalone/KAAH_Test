@@ -104,7 +104,10 @@ function dessinerPendule(svg, camp, { x, y }) {
 // `numeroDePause` s'ecrit sous le "||" (saab : "celui qui est parti verra si
 // le compteur n'a pas change") : la meme pause qu'en partant, ou une autre
 // prise entre-temps.
-function afficherPause(svg, numeroDePause) {
+// `restantes` (l'Entrainement, phase 36 ; saab : « 3 pauses maxi ... indiquer en
+// plus sur gros btn Pause » ; « mettre plus que 2 ») : les pauses qui restent, ou
+// null sans limite.
+function afficherPause(svg, numeroDePause, restantes = null) {
   if (svg.querySelector('#pause-plateau')) return;
 
   const [xMin, yMin, largeur, hauteur] = svg.getAttribute('viewBox').split(' ').map(Number);
@@ -146,7 +149,7 @@ function afficherPause(svg, numeroDePause) {
     'dominant-baseline': 'middle',
     class: 'numero-pause',
   });
-  numero.textContent = `Pause n° ${numeroDePause}`;
+  numero.textContent = restantes === null ? `Pause n° ${numeroDePause}` : `Pause n° ${numeroDePause} · ${restantes > 0 ? `plus que ${restantes}` : "plus aucune"}`;
   groupe.appendChild(numero);
 
   svg.appendChild(groupe);

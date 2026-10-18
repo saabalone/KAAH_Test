@@ -104,14 +104,29 @@ function compaciteDuCamp(etat, camp) {
 // faites : 0 + 1 + ... + (ejections - 1) fois le poids du score.
 const rangsAuDelaDuPremier = (ejections) => (ejections * (ejections - 1)) / 2;
 
+// Les ajouts gf et pf (saab, 2026-10-14 : « l'augmentation linéaire des ScoreGain ...
+// plutôt progressive (un peu comme Fibonacci) : pour l'éject 1 on aura +10, 2 = +20, 3 =
+// +30, 4 = +50, 5 = +80 ; pouvoir régler le 1er terme ») : la k-ieme ejection rapporte (ou
+// coute) F(k) fois le premier terme, avec F = 1, 2, 3, 5, 8... ; en tout, apres
+// `ejections` : la somme des F. Ils remplacent le Gain (la Perte) selon le score lineaire.
+function sommeProgressiveDuScore(ejections) {
+  let [avant, terme, somme] = [1, 1, 0];
+  for (let k = 1; k <= ejections; k++) {
+    somme += terme;
+    [avant, terme] = [terme, k === 1 ? 2 : avant + terme];
+  }
+  return somme;
+}
+const termeDuScore = (lineaire, progressif, ejections) => (progressif ? progressif * sommeProgressiveDuScore(ejections) : lineaire * rangsAuDelaDuPremier(ejections));
+
 // Les termes ajoutes par la version 3 (le detail de l'Essai les montre a part).
 function termesDeLaVersion3(etat, camp, poids) {
   const lui = couleurAdverse(camp);
   return {
     cases: termeDesCasesIA(etat, camp, poids),
     compacite: poids.compacite * (compaciteDuCamp(etat, lui) - compaciteDuCamp(etat, camp)),
-    gainScore: poids.gainScore * rangsAuDelaDuPremier(ejectionsDe(etat, lui)),
-    perteScore: -poids.perteScore * rangsAuDelaDuPremier(ejectionsDe(etat, camp)),
+    gainScore: termeDuScore(poids.gainScore, poids.gainFibonacci, ejectionsDe(etat, lui)),
+    perteScore: -termeDuScore(poids.perteScore, poids.perteFibonacci, ejectionsDe(etat, camp)),
   };
 }
 

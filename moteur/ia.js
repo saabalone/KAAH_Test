@@ -74,8 +74,11 @@ const VERSION_IA = 1;
 // L'elagage propose (saab, 2026-10-02 : « par ex. Elag = 10 ») : celui des
 // profils integres « … v2el » et le premier propose dans Reglages.
 const ELAGAGE_PAR_DEFAUT_IA = 10;
-// « el » pour elaguer (saab, 2026-10-03 : remplace le « b » de « v2b »).
+// « el » pour elaguer (saab, 2026-10-03 : remplace le « b » de « v2b ») : le nom des
+// profils integres (Normal v5el) et la liste des versions de Reglages ; « El » dans les
+// noms affiches et ceux des machines (saab, 2026-10-16 : une majuscule par suffixe).
 const SUFFIXE_ELAGAGE_IA = 'el';
+const SUFFIXE_ELAGAGE_NOM_IA = 'El';
 const VERSIONS_IA = [1, 2, 3, 4, 5];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
@@ -142,6 +145,8 @@ function lireMachine(brut) {
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
     // La version de son profil (moteur/historique-profil-ia.js), au-dela de la 1re.
     ...(Number.isInteger(brut.versionProfil) && brut.versionProfil > PREMIERE_VERSION_DU_PROFIL_IA ? { versionProfil: brut.versionProfil } : {}),
+    // Les numeros de son nom (saab, 2026-10-16, moteur/noms-ia.js) : Pn, _v, _h.
+    ...Object.fromEntries(['numeroDesAjouts', 'numeroDePoids', 'versionHistorique'].filter((cle) => Number.isInteger(brut[cle]) && brut[cle] > 0).map((cle) => [cle, brut[cle]])),
   };
 }
 
@@ -169,20 +174,29 @@ function formaterTempsReflexion(secondes) {
   return reste === 0 ? `${entier}s` : `${entier}s${reste}`;
 }
 
+// « v4El10Sv » : la version, l'elagage et les ajouts en clair (saab, 2026-10-07 : les
+// ajouts en suffixe, apres l'elagage) — l'infobulle d'un profil montre ce que son Pn cache.
+function suffixeDeVersionIA({ version, elagage, poids }) {
+  return `v${version}${elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${elagage}` : ''}${codeDesAjouts(poids)}`;
+}
+
 // Le nom que prend le camp d'une machine (saab) : KAI, son niveau, son style en
 // trois lettres, son temps de reflexion — ex. KAI2_Nor_5s, KAI3_Agr_1s2 ; la
-// version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ;
-// un profil de l'utilisateur, son indice (KAI2_Nor_5s_P3, saab 2026-10-01 : deux
-// machines qui ne different que par le profil se distinguent dans le titre) ;
-// un elagage, « el » et le nombre de coups gardes (KAI2_Nor_5s_v2el10) ; un
-// profil retouche, la version du profil qu'elle joue (saab, 2026-10-04 : « on
-// n'a pas joue sur le meme profil et rien ne l'indique ») : KAI++7_Nor_30s_v4el10_v2_P1.
+// version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ; un
+// elagage, « El » et le nombre de coups gardes (KAI2_Nor_5s_v2El10). Saab, 2026-10-16 :
+// les ajouts par leur numero Pn (moteur/noms-ia.js) — en clair s'il n'en a pas
+// (SvEc) — puis le numero du jeu de poids de sa famille (_v3) et, pour une ancienne
+// version de son profil, son numero dans l'historique (_h4) : KAI++8_Nor_30s_v5El10P2_v3.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
-  // Les ajouts en suffixe, apres l'elagage (saab, 2026-10-07 : KAI++7_Nor_30s_v4el10sv).
-  const ajouts = OPTIONS_IA.filter((option) => option.cle in machine.poids).map((option) => option.suffixe).join('');
-  const version = machine.version > VERSION_IA || machine.elagage || ajouts ? `_v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_IA}${machine.elagage}` : ''}${ajouts}` : '';
-  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${machine.versionProfil ? `_v${machine.versionProfil}` : ''}${machine.indiceProfil ? `_P${machine.indiceProfil}` : ''}`;
+  const code = codeDesAjouts(machine.poids);
+  const ajouts = code && machine.numeroDesAjouts ? `P${machine.numeroDesAjouts}` : code;
+  const tete = `v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${machine.elagage}` : ''}${ajouts}`;
+  // La version 1 sans elagage ni ajout : le nom la tait.
+  const version = tete !== `v${VERSION_IA}` ? `_${tete}` : '';
+  const poids = machine.numeroDePoids > 1 ? `_v${machine.numeroDePoids}` : '';
+  const historique = machine.versionHistorique ? `_h${machine.versionHistorique}` : '';
+  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${poids}${historique}`;
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la

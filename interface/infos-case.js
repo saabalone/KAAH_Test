@@ -107,7 +107,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
     return zoneDuChoixBille(
       [
         ['Termes', TOUS_LES_TERMES_IA.map((terme) => [`terme-${terme}`, COLONNES_ESSAI_IA[terme], coche(`terme-${terme}`)])],
-        ['Profils IA (en plus de la machine)', listerProfilsIA().map((profil) => [`profil:${profil.nom}`, libelleProfilIA(profil), choix.profils.includes(profil.nom)])],
+        ['Profils IA (en plus de la machine)', listerProfilsIADansLOrdre().map((profil) => [`profil:${profil.nom}`, libelleProfilIA(profil), choix.profils.includes(profil.nom)])],
         ['Mesures', Object.entries(LIGNES_MESURES_BILLE).map(([cle, [libelle]]) => [cle, libelle, coche(cle)])],
         ['Au survol', Object.entries(CHAMPS_SURVOL_CASE).map(([cle, libelle]) => [`survol-${cle}`, libelle, coche(`survol-${cle}`)])],
       ],

@@ -11,6 +11,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : LIBELLES_REGLAGES_IA (moteur/historique-profil-ia.js),
 // NOM_CAMP (rendu/ejections.js), COLONNES_ESSAI_IA (interface/essai-ia.js)
 // viennent de fichiers charges avant celui-ci.
+// Les groupes de l'evaluation (saab, 2026-10-16) : groupeDuTerme (moteur/ia-groupes.js), groupesQuiCommencent, ligneDeTitreDeGroupe, colorerSelonLeGroupe (interface/groupes-ia.js),
+// qui ne servent qu'une fois la page chargee.
 
 const plurielPanneau = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
 // « 0 » et jamais « -0 » ; « ? » pour un calcul impossible (jamais un faux 0).
@@ -40,7 +42,7 @@ function texteDuPiege(piege) {
 
 // Les mesures d'une bille : [libelle, explication, texte d'un detail].
 const LIGNES_MESURES_BILLE = {
-  classe: ['Case', 'Sa case distincte (rotations et miroirs) et ses pas vers le centre', (d) => `${d.classe} (${d.pas} pas)`],
+  classe: ['Case', 'Sa case distincte (rotations et miroirs), ses pas vers le centre, le poids de la case (version 3 et plus) et sa valeur totale (Centre × pas + poids), pour le profil de la machine', (d) => `${d.classe} (${d.pas} pas) · poids ${signePanneau(d.poidsDeLaCase)} · valeur ${signePanneau(d.valeurDeLaCase)}`],
   voisines: ['Voisines', 'Ses billes amies voisines', (d) => String(d.voisines)],
   distanceMoyenne: ['Distance', 'Sa distance moyenne, en coups, aux autres billes de son camp', (d) => nombrePanneau(d.distanceMoyenne)],
   attaquant: ['Adversaire', 'La bille adverse la plus proche, en coups', (d) => (d.attaquant === null ? '—' : plurielPanneau(d.attaquant, 'coup'))],
@@ -131,13 +133,16 @@ function tableauDesTermes(colonnes, termes, choix, aire = false) {
   };
   const cellules = ({ detail, poids, actif }, terme) =>
     enOrange(actif, aire ? [celluleDeTerme(detail.termes, terme, null), celluleDeTerme(detail.apport, terme, poids)] : [celluleDeTerme(detail.termes, terme, poids)]);
-  for (const terme of termes) {
-    if (choix[`terme-${terme}`] === false) continue;
+  // Groupe apres groupe, sous le nom de chacun, chaque terme de sa couleur (saab, 2026-10-16).
+  const montres = termes.filter((terme) => choix[`terme-${terme}`] !== false);
+  const debuts = groupesQuiCommencent(montres, groupeDuTerme);
+  montres.forEach((terme, rang) => {
+    if (debuts[rang]) tableau.append(ligneDeTitreDeGroupe(debuts[rang], 1 + colonnes.length * (aire ? 2 : 1)));
     const ligne = document.createElement('tr');
     ligne.title = LIBELLES_REGLAGES_IA[terme];
-    ligne.append(celluleBille('th', COLONNES_ESSAI_IA[terme]), ...colonnes.flatMap((colonne) => cellules(colonne, terme)));
+    ligne.append(colorerSelonLeGroupe(celluleBille('th', COLONNES_ESSAI_IA[terme]), groupeDuTerme(terme)), ...colonnes.flatMap((colonne) => cellules(colonne, terme)));
     tableau.append(ligne);
-  }
+  });
   const total = document.createElement('tr');
   total.className = 'ligne-total-bille';
   total.title = 'La somme des termes';

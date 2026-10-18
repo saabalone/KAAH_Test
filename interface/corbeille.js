@@ -62,6 +62,7 @@ function entreesDuGenre(genre) {
 
 // Remet une entree restauree dans SA liste d'origine, selon son genre.
 function remettreEnPlace(entree) {
+  if (entree.genre === GENRE_CORBEILLE_PROFILS_ENTRAINEMENT) return restaurerProfilEntrainement(entree.donnees);
   return entree.genre === 'parties'
     ? ecrirePartiesEnregistrees([...listerPartiesEnregistrees(), entree.donnees])
     : ajouterEntreeMy(entree.genre, entree.donnees);
@@ -85,7 +86,8 @@ function viderLeGenreStocke(genre) {
 
 // --- Dialogue "Corbeille" -------------------------------------------------------
 
-const TITRE_CORBEILLE = { variantes: 'Corbeille — Variantes My', puzzles: 'Corbeille — Puzzles My', parties: 'Corbeille — Mes parties' };
+// (GENRE_CORBEILLE_PROFILS_ENTRAINEMENT, restaurerProfilEntrainement : interface/profils-entrainement.js.)
+const TITRE_CORBEILLE = { variantes: 'Corbeille — Variantes My', puzzles: 'Corbeille — Puzzles My', parties: 'Corbeille — Mes parties', 'profils-entrainement': 'Corbeille — Profils d’Entraînement' };
 
 // Le nom affiche d'une entree, quel que soit son genre. Protege par
 // try/catch comme les autres listes (interface/mes-parties.js, nomAffiche) :
@@ -95,6 +97,7 @@ function nomAfficheCorbeille({ genre, donnees }) {
   try {
     if (genre === 'variantes') return donnees.variant_name;
     if (genre === 'puzzles') return donnees.PZL_name;
+    if (genre === GENRE_CORBEILLE_PROFILS_ENTRAINEMENT) return donnees.nom;
     return nomDeFichierKAAWA(donnees.donnees);
   } catch {
     return '(illisible)';

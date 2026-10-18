@@ -64,6 +64,11 @@ function simplifierNom(texte) {
 // revanche) ou de KAAWA ("Player_1").
 const NOM_PAR_DEFAUT = /^(joueur|player)(\d+)r?$/;
 
+// Un joueur qui n'a pas choisi de nom (moteur/historique-joueurs.js ne le suit pas).
+function estUnNomParDefaut(nom) {
+  return NOM_PAR_DEFAUT.test(simplifierNom(String(nom)));
+}
+
 function nomCorrespond(nom, choix) {
   const simple = simplifierNom(nom);
   const cherche = simplifierNom(choix);

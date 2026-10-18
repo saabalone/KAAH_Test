@@ -23,6 +23,7 @@ function colorerListeProfilsIA(select, couleurDe = null) {
   const couleur = (nom) => (!profils.has(nom) ? null : couleurDe ? couleurDe(nom) : couleurDuProfilIA(profils.get(nom)));
   for (const option of select.options) poserCouleurIA(option, couleur(option.value));
   poserCouleurIA(select, couleur(select.value));
+  suivreLeProfilParDefaut(select); // interface/noms-profils-ia.js
 }
 
 // Le nom d'une machine (KAI2_Nor_5s), l'abreviation de son style (saab :

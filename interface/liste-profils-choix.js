@@ -18,10 +18,12 @@ const SEPARATEUR_VERSION_PROFIL = '#v';
 const TOUS_LES_STYLES_IA = '';
 
 // Le profil d'une valeur de la liste, a la version choisie ; null s'il n'existe plus.
+// Avec son Pn ; une ancienne version : son numero d'historique (le _h du nom de sa machine).
 function profilDuChoix(valeur) {
   const [nom, numero] = String(valeur).split(SEPARATEUR_VERSION_PROFIL);
   const profil = trouverProfilIA(nom);
-  return profil && numero ? choisirVersionIA(profil, Number(numero)) : profil;
+  if (!profil) return null;
+  return numero && Number(numero) !== profil.courante ? profilPourUneMachine(choisirVersionIA(profil, Number(numero)), Number(numero)) : profilPourUneMachine(profil);
 }
 
 // La valeur de la liste pour une machine deja en jeu : son profil, a la version
@@ -46,13 +48,18 @@ function optionDeProfil(valeur, texte) {
 function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
   const options = [];
   if (profilGarde && !trouverProfilIA(profilGarde)) options.push(optionDeProfil(profilGarde, profilGarde));
-  for (const profil of listerProfilsIA()) {
+  // Dans l'ordre de Profils IA compares (interface/noms-profils-ia.js).
+  for (const profil of listerProfilsIADansLOrdre()) {
     if (filtreStyle !== TOUS_LES_STYLES_IA && profil.style !== filtreStyle) continue;
-    options.push(optionDeProfil(profil.nom, libelleProfilIA(profil)));
+    const option = optionDeProfil(profil.nom, libelleProfilIA(profil));
+    option.title = infobulleDuProfilIA(profil);
+    marquerSiProfilParDefaut(option, profil.nom);
+    options.push(option);
     const anciennes = (profil.historique ?? []).filter((version) => version.numero !== profil.courante).sort((a, b) => b.numero - a.numero);
     for (const version of anciennes) {
       const date = version.date ? ` · ${libelleDateHistoriqueIA(version.date)}` : '';
-      options.push(optionDeProfil(`${profil.nom}${SEPARATEUR_VERSION_PROFIL}${version.numero}`, `   ↳ v${version.numero}${date}`));
+      // « h » : l'historique (le _h du nom de sa machine), jamais le _v des jeux de poids.
+      options.push(optionDeProfil(`${profil.nom}${SEPARATEUR_VERSION_PROFIL}${version.numero}`, `   ↳ h${version.numero}${date}`));
     }
   }
   select.replaceChildren(...options);

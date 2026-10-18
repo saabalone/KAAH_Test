@@ -139,3 +139,24 @@ function verificationAnticipeeDue(branches, coupsJoues, decalageDuGagnant) {
   if (branches.length === 0) return coupsDuGagnant.length >= (decalageDuGagnant === 0 ? 2 : 1);
   return verifierSolutionPuzzle(branches, coupsDuGagnant).ecartAuCoup !== null;
 }
+
+// La reponse du PERDANT gardee dans le cache, quand tous les coups joues (Noir
+// d'abord) suivent une de ses branches et que c'est a lui de jouer — la machine qui
+// defend un PZL la joue sans chercher (saab, 2026-10-10 : « si je reste dans la
+// solution ... il doit avoir la sol en mémoire »). null sinon : hors de toute branche,
+// reponse pas gardee a ce tour, ou defense deja sortie de la branche.
+function reponseDuPerdantEnCache(solStarts, coupsJoues, campGagnant) {
+  const decalage = campGagnant === 'blanc' ? 1 : 0;
+  if (coupsJoues.length % 2 === decalage) return null; // au gagnant de jouer
+  const gagnant = coupsJoues.filter((_, rang) => rang % 2 === decalage);
+  const perdant = coupsJoues.filter((_, rang) => rang % 2 !== decalage);
+  for (const texte of String(solStarts).split('|')) {
+    const tours = lireBrancheSolution(texte, decalage);
+    const enAccord = tours.every(
+      ([tour, coupGagnant, coupPerdant]) => (tour > gagnant.length || gagnant[tour - 1] === coupGagnant) && (tour > perdant.length || perdant[tour - 1] === coupPerdant)
+    );
+    const reponse = tours.find(([tour]) => tour === perdant.length + 1)?.[2] ?? null;
+    if (enAccord && reponse) return reponse;
+  }
+  return null;
+}

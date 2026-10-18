@@ -18,15 +18,16 @@
 // evaluationDeLaVersion, termesDeLaVersion3, classeDeLaCaseIA,
 // valeurTotaleDeLaCase, VERSION_DES_CASES_IA (ia-evaluation-v3.js),
 // termeDuPiegeIA (ia-evaluation-v4.js), CLES_TERMES_OPTIONS_IA, termesDesAjouts
-// (ia-ajouts.js) viennent de fichiers charges avant celui-ci.
+// (ia-ajouts.js), GROUPES_DE_L_EVALUATION_IA (ia-groupes.js) viennent de fichiers charges
+// avant celui-ci.
 
 // Les 9 cases qu'aucune rotation ni aucun miroir ne ramene l'une sur l'autre,
 // du centre au bord (saab : « e5/d4/c34/b23/a123 »).
 const CASES_DISTINCTES_IA = ['e5', 'd4', 'c3', 'c4', 'b2', 'b3', 'a1', 'a2', 'a3'];
 
-// Les termes de chaque version, dans l'ordre des colonnes (Essai, tableau 1er
-// coup) : ceux de la version 3 suivent celui qu'ils completent ; « cases » est
-// le terme des 9 cases (ia-evaluation-v3.js).
+// Les termes de chaque version ; « cases » est le terme des 9 cases
+// (ia-evaluation-v3.js). Leur ordre (Essai, tableau 1er coup, panneaux) : celui des
+// groupes de l'evaluation (saab, 2026-10-16, moteur/ia-groupes.js).
 const TERMES_DES_VERSIONS_IA = {
   1: ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse'],
   2: ['gain', 'perte', 'centre', 'cohesion', 'bordSoi', 'bordAdverse', 'sumito', 'menaceEjection', 'fourchette'],
@@ -38,16 +39,13 @@ const TERMES_DES_VERSIONS_IA = {
 const VERSION_DU_PIEGE_IA = 4;
 const VERSION_DES_SORTES_DE_SUMITO_IA = 5;
 
-function termesDeLaVersion(version) {
-  return TERMES_DES_VERSIONS_IA[version] ?? TERMES_DES_VERSIONS_IA[1];
-}
+// Tous les termes, groupe apres groupe (les ajouts compris).
+const TERMES_DANS_L_ORDRE_IA = GROUPES_DE_L_EVALUATION_IA.flatMap((groupe) => groupe.termes);
 
-// Les termes de plusieurs profils a la fois (cote a cote, interface/
-// panneau-bille.js) : chacun une fois, dans l'ordre des colonnes — le Sumito
-// unique juste avant ceux de chaque sorte, puis le sumito vide.
-// Les ajouts (moteur/ia-ajouts.js) suivent le terme qu'ils completent.
-const AJOUTS_APRES_LE_TERME_IA = { centre: ['etendueCentre'], cases: ['etendueCases'], sumito21: ['sumitoVide'] };
-const TERMES_DANS_L_ORDRE_IA = TERMES_DES_VERSIONS_IA[5].flatMap((terme) => [...(terme === 'sumito32' ? ['sumito'] : []), terme, ...(AJOUTS_APRES_LE_TERME_IA[terme] ?? [])]);
+function termesDeLaVersion(version) {
+  const siens = TERMES_DES_VERSIONS_IA[version] ?? TERMES_DES_VERSIONS_IA[1];
+  return TERMES_DANS_L_ORDRE_IA.filter((terme) => siens.includes(terme));
+}
 
 // Ceux d'un profil : sa version, plus ses ajouts (le sumito vide, s'il en a le poids).
 function termesDuProfil(version, poids) {

@@ -14,7 +14,7 @@
 // couleurAdverse (regles.js), couleursDuPlateau (partie.js), VOISINS_DES_CASES
 // (ia-evaluation.js), sumitosDuCamp, CASES_VOISINES_IA (ia-evaluation-v2.js),
 // CLASSE_DES_CASES_IA, PAS_DES_CASES_IA, COORDONNEES_DES_CASES_IA,
-// distanceAxiale (ia-evaluation-v3.js), detailDeLEvaluation, termesDuProfil
+// distanceAxiale, valeurTotaleDeLaCase, VERSION_DES_CASES_IA (ia-evaluation-v3.js), detailDeLEvaluation, termesDuProfil
 // (essai-ia.js), sortieDeLaZone (sortie-bille.js), billeBloqueeVersLeCentre
 // (ia-evaluation-v4.js) viennent de fichiers charges avant celui-ci.
 
@@ -73,6 +73,10 @@ function detailDeLaBille(etat, notation, poids, version) {
     camp,
     classe: cle.slice('case'.length).toLowerCase(),
     pas,
+    // Le poids de sa case (version 3 et plus) et sa valeur totale, Centre compris (saab,
+    // 2026-10-16 : « au clic droit sur une bille, afficher le poids de la case »).
+    poidsDeLaCase: version >= VERSION_DES_CASES_IA ? poids[cle] ?? 0 : 0,
+    valeurDeLaCase: valeurTotaleDeLaCase(poids, version, cle),
     voisines,
     distanceMoyenne: siennes.length === 0 ? 0 : siennes.reduce((somme, bille) => somme + distanceEntre(notation, bille), 0) / siennes.length,
     attaquant: plusProche(notation, adverses),

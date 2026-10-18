@@ -65,12 +65,11 @@ function contenuDesPuzzles({ reference, essais, resultats, resume, parametres })
 }
 
 // Les puzzles recoltes dans les parties : [{ entree (KAAWA), numero, tours }] ;
-// `ecartes` : ceux que le solveur n'a pas confirmes.
-function recolteHtml(recoltes, toursMini, ecartes = 0) {
-  const sansCeux = ecartes ? ` — ${ecartes} écarté${ecartes > 1 ? 's' : ''} : le solveur n'y trouve pas de victoire forcée (il compte une position répétée comme une échappée de la défense)` : '';
-  const auMoins = `au moins ${toursMini} tour${toursMini > 1 ? 's' : ''}`;
-  if (recoltes.length === 0) return `<h3>Puzzles récoltés</h3><p class="note-reglages">Aucun pour l'instant (${auMoins})${sansCeux}.</p>`;
-  const lignes = recoltes.map(({ entree, numero, tours }) => `<tr><td>${echapperBanc(entree.PZL_name)}</td><td>${tours}</td><td>${entree.winner}</td><td>${numero}</td><td class="banc-coups">${echapperBanc(entree.pos)}</td></tr>`);
-  return `<h3>Puzzles récoltés (${recoltes.length}, ${auMoins})</h3><p class="note-reglages">Chacun confirmé par le solveur, parfois avec un tour de plus${sansCeux}. « Exporter les puzzles » les télécharge au format de KAAWA ; « Ajouter à My » les range avec vos puzzles.</p>
-<table class="banc-tableau"><tr><th>Nom</th><th>Tours</th><th>Gagnant</th><th>Partie n°</th><th>Position</th></tr>${lignes.join('')}</table>`;
+// `{ toursMini, toursMaxi }` : ce qu'on cherchait.
+function recolteHtml(recoltes, { toursMini, toursMaxi }) {
+  const cherche = `de ${toursMini} à ${toursMaxi} tours`;
+  if (recoltes.length === 0) return `<h3>Puzzles récoltés</h3><p class="note-reglages">Aucun pour l'instant (${cherche}).</p>`;
+  const lignes = recoltes.map(({ entree, numero, tours }) => `<tr><td>${echapperBanc(entree.PZL_name)}</td><td>${tours}</td><td>${entree.winner}</td><td>${echapperBanc(entree['move1 sol '] || '?')}</td><td class="banc-coups">${echapperBanc(entree.sol_starts ?? '')}</td><td>${numero}</td><td class="banc-coups">${echapperBanc(entree.pos)}</td></tr>`);
+  return `<h3>Puzzles récoltés (${recoltes.length}, ${cherche})</h3><p class="note-reglages">Chacun prouvé par le solveur de KAAWA, au plus court. « Exporter les puzzles » les télécharge au format de KAAWA ; « Ajouter à My » les range avec vos puzzles.</p>
+<table class="banc-tableau"><tr><th>Nom</th><th>Tours</th><th>Gagnant</th><th title="Les premiers coups de Noir que le solveur accepte : gagnants s'il gagne, la meilleure défense si Blanc gagne (? : pas tous jugés à temps)">Nb sol.</th><th title="Au format de KAAWA. Quand Blanc gagne, « 1.h4g4/a1a2 » se lit : Noir joue a1a2 (après la barre), Blanc répond h4g4">Début de solution (Blanc gagne : réponse de Blanc / coup de Noir)</th><th>Partie n°</th><th>Position</th></tr>${lignes.join('')}</table>`;
 }

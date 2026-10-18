@@ -59,20 +59,9 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : obtenirConseils
 // vient de moteur/next-move.js, dessinerFlechesConseils/
-// effacerFlechesConseils de rendu/conseils.js — tous charges avant celui-
-// ci dans index.html.
+// effacerFlechesConseils de rendu/conseils.js, ligneDeConseil, flechesDesConseils
+// d'interface/next-move-lignes.js — tous charges avant celui-ci dans index.html.
 
-// La couleur de dominance d'un conseil, reprise de KAAWA
-// (kaa_tab_manager_ClO_Co.py, C_GREEN/C_RED/C_BLUE) : victoires,
-// defaites ou nulles, celle qui l'emporte donne sa couleur ; une egalite
-// (y compris 0-0-0, aucune partie jouee depuis ce coup) reste neutre.
-function classeDominanceConseil(conseil) {
-  const { victoires, defaites, nulles } = conseil;
-  if (victoires > defaites && victoires > nulles) return 'victoire';
-  if (defaites > victoires && defaites > nulles) return 'defaite';
-  if (nulles > victoires && nulles > defaites) return 'nulle';
-  return 'egalite';
-}
 
 // `svg` est le plateau PRINCIPAL (les fleches s'y dessinent directement,
 // jamais sur un plateau a part comme l'apercu des Variantes). `elements` :
@@ -88,7 +77,8 @@ function classeDominanceConseil(conseil) {
 // `surCoupChoisi(coupTexte)` est appele quand une ligne est confirmee (un
 // second clic sur la meme ligne) : a l'appelant de jouer ce coup (voir
 // index.html, qui sait traduire un texte Nacre en coup reel).
-function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoupChoisi) {
+// `surApercu(coup)` : un coup mis en avant (saab, 2026-10-16 : le voir dans les 4 groupes).
+function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoupChoisi, surApercu = () => {}) {
   let previsualise = null;
   let conseilsActuels = [];
   // Voir l'en-tete du fichier : deux drapeaux independants, jamais un
@@ -108,6 +98,15 @@ function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoup
     const { joueurAuTrait } = obtenirEtatActuel();
     if (joueurAuTrait === 'noir') actifNoir = !actifNoir;
     else actifBlanc = !actifBlanc;
+    actualiser();
+  });
+
+  // Fermer (saab, 2026-10-16 : « mettre Fermer sur Conseil, sinon on ne peut pas bien voir
+  // Réflexion ») : eteint le camp au trait, comme un second clic sur l'ampoule.
+  elements.fermer?.addEventListener('click', () => {
+    const { joueurAuTrait } = obtenirEtatActuel();
+    if (joueurAuTrait === 'noir') actifNoir = false;
+    else actifBlanc = false;
     actualiser();
   });
 
@@ -165,26 +164,10 @@ function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoup
     }
   }
 
-  // 4 colonnes : Coup, Gagne, Nul, Perdu — cet ORDRE precis (Nul avant
-  // Perdu) demande par saab, "qui montre plus une regression" que l'ordre
-  // habituel W/L/D. Le coup est colore comme sa fleche (meme dominance
-  // victoires/nulles/defaites) ; les 3 chiffres, eux, gardent chacun sa
-  // PROPRE couleur fixe (vert/bleu/rouge), jamais celle de la dominance.
+  // La ligne d'un conseil (interface/next-move-lignes.js) : le premier clic le met en
+  // avant, le second le joue.
   function creerLigne(conseil) {
-    const ligne = document.createElement('div');
-    ligne.className =
-      conseil === previsualise ? 'ligne-liste ligne-conseil ligne-variante-previsualisee' : 'ligne-liste ligne-conseil';
-
-    const texte = document.createElement('span');
-    texte.className = `ligne-liste-texte texte-conseil-${classeDominanceConseil(conseil)}`;
-    texte.textContent = conseil.coup;
-    ligne.appendChild(texte);
-
-    ligne.appendChild(creerValeur(conseil.victoires, 'valeur-gagne'));
-    ligne.appendChild(creerValeur(conseil.nulles, 'valeur-nul'));
-    ligne.appendChild(creerValeur(conseil.defaites, 'valeur-perdu'));
-
-    ligne.addEventListener('click', () => {
+    return ligneDeConseil(conseil, conseil === previsualise, () => {
       if (previsualise === conseil) {
         // Le panneau reste ouvert : jouer declenche actualiser() (voir
         // index.html, surChangement), qui remplace aussitot la liste par
@@ -200,25 +183,12 @@ function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoup
       previsualise = conseil;
       rafraichirListe();
       rafraichirFleches();
+      surApercu(conseil.coup);
     });
-
-    return ligne;
   }
 
-  function creerValeur(nombre, classe) {
-    const valeur = document.createElement('span');
-    valeur.className = classe;
-    valeur.textContent = nombre;
-    return valeur;
-  }
-
-  // Toutes les suggestions restent translucides en toile de fond (pour
-  // bientot voir les coordonnees des cases a travers), et celle qu'on
-  // vient de choisir passe en opaque par-dessus — dessinee en dernier,
-  // donc peinte au-dessus des autres.
-  //
-  // Jamais par-dessus le grand bouton rond de pause (signale par saab) :
-  // #pause-plateau, une fois affiche, est ajoute APRES coup dans le meme
+  // Les fleches (interface/next-move-lignes.js, flechesDesConseils). Jamais par-dessus le
+  // grand bouton rond de pause (signale par saab) : #pause-plateau, une fois affiche, est ajoute APRES coup dans le meme
   // <svg> (voir interface/saisie.js) — sans cette garde, une fleche
   // dessinee ensuite (Conseils ouvert pendant une pause) se peindrait
   // par-dessus lui et revelerait une information de position que la
@@ -229,27 +199,7 @@ function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoup
       return;
     }
 
-    const fleches = [];
-
-    const maxVictoires = Math.max(0, ...conseilsActuels.map((c) => c.victoires));
-    const maxDefaites = Math.max(0, ...conseilsActuels.map((c) => c.defaites));
-    for (const conseil of conseilsActuels) {
-      if (conseil === previsualise) continue; // celle-la se dessine a part, opaque, plus bas
-      fleches.push({
-        coup: conseil.coup,
-        classe: classeDominanceConseil(conseil),
-        dominante: (conseil.victoires === maxVictoires && maxVictoires > 0) || (conseil.defaites === maxDefaites && maxDefaites > 0),
-        translucide: true,
-      });
-    }
-
-    if (previsualise) {
-      // Meme couleur que dans la toile de fond (signale par saab) :
-      // la dominance du coup, jamais une couleur "apercu" a part.
-      fleches.push({ coup: previsualise.coup, classe: classeDominanceConseil(previsualise) });
-    }
-
-    dessinerFlechesConseils(svg, fleches);
+    dessinerFlechesConseils(svg, flechesDesConseils(conseilsActuels, previsualise));
   }
 
   return { actualiser };

@@ -209,6 +209,7 @@ function demarrerPartie(
   let selection = null;
   let coupsPossibles = [];
   let perteAuTemps = null; // { camp, chemin } | null — voir l'en-tete du fichier
+  let perdantsAnnonces = []; // les camps qui doivent perdre (un PZL), avant la fin
 
   // Une position peut etre SANS SUITE sans que le moteur le sache : un
   // puzzle dont le nombre de tours est depasse, par exemple — le plateau,
@@ -236,6 +237,15 @@ function demarrerPartie(
   // pas. terminerApercuPermutation() reaffiche l'etat REEL, exactement comme
   // apres une navigation (memes fonctions que `naviguer`, sans transformer `arbre`).
   let apercuPermutationActif = false;
+  // Le DROIT A L'ERREUR (KAAWA, _last_move_can_be_removed) : sur la ligne
+  // reellement jouee, une seule annulation par coup joue — saab, 2026-10-10 :
+  // « si on veut rejouer des coups précédents on fait une Br ». Pose a chaque coup
+  // nouveau, consomme par Annuler ; faux au chargement, comme KAAWA.
+  let droitALErreur = false;
+  // L'Entrainement (phase 36 ; saab, 2026-10-10 : « ne pas activer la barre de
+  // Navig tant qu'un PZL n'est pas terminé, sinon on peut faire des Br ») : pas
+  // de navigation tant que le jeu n'est pas fini.
+  let navigationBloquee = () => false;
   // Declare ICI, avant tout affichage : le premier actualiserAffichagePartie de
   // l'initialisation le lit deja.
 
@@ -427,8 +437,11 @@ function demarrerPartie(
     // grand bouton rond qui masque le plateau pendant la pause (voir
     // basculerPause plus bas) — jamais une case ou une bille, ces trois-la
     // n'ont pas de data-notation.
-    if (evenement.target.closest('.bouton-pendule, #pause-plateau')) {
-      basculerPause();
+    const penduleTouchee = evenement.target.closest('.bouton-pendule, #pause-plateau');
+    if (penduleTouchee) {
+      // Les machines peuvent prendre le clic (un coup qui attend, interface/ia.js).
+      const camp = /^bouton-pendule-(noir|blanc)$/.exec(penduleTouchee.id)?.[1] ?? null;
+      if (!clicSurPendule(camp, pendules.estEnPauseManuelle())) basculerPause();
       return;
     }
     // Garde explicite, pas seulement visuelle : le grand bouton rond
@@ -476,18 +489,31 @@ function demarrerPartie(
   // (saab, 2026-10-02 : « sinon on ne voit plus pour etudier ») : les pendules
   // vertes suffisent a la signaler.
   let pauseSansRideau = () => false;
+  // Le nombre de pauses permises (l'Entrainement, phase 36 : 3 ; sinon sans limite).
+  let pausesMax = Infinity;
+  // clicSurPendule(camp, enPause) : vrai si le clic sur la pendule de `camp` est pris
+  // ailleurs (interface/ia.js) — il ne bascule alors pas la pause.
+  let clicSurPendule = () => false;
   function basculerPause() {
+    const pauseDemandee = !pendules.estEnPauseManuelle();
+    if (pauseDemandee && nombreDePauses >= pausesMax) {
+      window.alert(`Plus de pause : ${pausesMax} au plus par partie ou puzzle en Entraînement.`);
+      return;
+    }
     if (!pendules.basculerPauseManuelle()) return;
-    if (pendules.estEnPauseManuelle() && !pauseSansRideau()) afficherPause(svg, ++nombreDePauses);
+    const limitee = Number.isFinite(pausesMax);
+    if (limitee && pauseDemandee && pendules.estEnPauseManuelle()) nombreDePauses++;
+    if (pendules.estEnPauseManuelle() && !pauseSansRideau()) afficherPause(svg, limitee ? nombreDePauses : ++nombreDePauses, limitee ? pausesMax - nombreDePauses : null);
     else masquerPause(svg);
   }
 
-  elementsNavigation.debut.addEventListener('click', () => naviguer(allerALaRacine));
-  elementsNavigation.precedent.addEventListener('click', () => naviguer(reculerDansArbre));
+  elementsNavigation.debut.addEventListener('click', () => navigationBloquee() || naviguer(allerALaRacine));
+  elementsNavigation.precedent.addEventListener('click', () => navigationBloquee() || naviguer(reculerDansArbre));
   // "Coup suivant" : un embranchement (plusieurs enfants) demande TOUJOURS
   // a l'utilisateur de choisir (signale par saab, comme KAAWA -
   // action_next_move) — un seul pas, pas de suite automatique.
   elementsNavigation.suivant.addEventListener('click', () => {
+    if (navigationBloquee()) return;
     const enfants = noeudCourant(arbre).enfants;
     if (enfants.length > 1) {
       ouvrirChoixBranche(arbre.chemin, (index) => naviguer((a) => avancerVersEnfant(a, index)));
@@ -502,6 +528,7 @@ function demarrerPartie(
   // avec popup, puis continue").
   elementsNavigation.fin.addEventListener('click', avancerJusquauBoutEnDemandant);
   function avancerJusquauBoutEnDemandant() {
+    if (navigationBloquee()) return;
     naviguer(avancerJusquauProchainChoix);
     const enfants = noeudCourant(arbre).enfants;
     if (enfants.length > 1) {
@@ -515,7 +542,7 @@ function demarrerPartie(
   // Lecture de la sequence (phase 31, saab) : « Coup suivant » repete, qui
   // s'arrete a un embranchement pour demander la branche, puis reprend.
   const lecture = demarrerLectureSequence(elementsNavigation.lecture, {
-    peutAvancer: () => noeudCourant(arbre).enfants.length > 0,
+    peutAvancer: () => noeudCourant(arbre).enfants.length > 0 && !navigationBloquee(),
     avancer: () => {
       if (noeudCourant(arbre).enfants.length > 1) {
         ouvrirChoixBranche(arbre.chemin, (index) => {
@@ -562,15 +589,24 @@ function demarrerPartie(
   // Entre deux machines (phase 32, interface/ia.js), la nulle par repetition
   // est acceptee sans poser la question (saab) ; entre humains, jamais.
   let nulleAutomatique = () => false;
+  function peutAnnuler() {
+    if (suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin)) return false;
+    return droitALErreur || !noeudCourant(arbre).estOrigine;
+  }
   elementsNavigation.annuler.addEventListener('click', () => {
-    if (suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin)) return;
-    demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () =>
+    if (!peutAnnuler()) return;
+    demanderConfirmation('Annuler le dernier coup ? Cette action est irréversible.', () => {
+      const surLaLigneJouee = noeudCourant(arbre).estOrigine;
       naviguer((a) => {
         const apres = supprimerBranche(a, a.chemin);
         const encore = annulationEnDouble(apres) && peutSupprimerNoeud(apres, apres.chemin);
         return encore ? supprimerBranche(apres, apres.chemin) : apres;
-      })
-    );
+      });
+      if (surLaLigneJouee) {
+        droitALErreur = false;
+        actualiserBoutonsNavigation();
+      }
+    });
   });
   // Le bouton Annuler de chaque joueur, sur sa ligne (rendu/ligne-joueur.js,
   // saab 2026-10-02) : le meme geste que le bouton Annuler, garde cache.
@@ -676,7 +712,10 @@ function demarrerPartie(
     // La racine n'est reconstruite que si un noeud a vraiment ete cree
     // (voir moteur.jouerDansArbre) : rejouer un coup deja explore garde la
     // meme racine et ne doit donc pas ecraser sa date d'origine.
-    if (arbre.racine !== arbreAvant.racine) sequence.enregistrerDate(arbre.chemin);
+    if (arbre.racine !== arbreAvant.racine) {
+      sequence.enregistrerDate(arbre.chemin);
+      droitALErreur = true;
+    }
     animerDeplacements(svg, resultat.deplacements);
     const ejection = resultat.deplacements.some((d) => d.ejectee);
     // KAAWA : le son d'ejection REMPLACE celui du coup, jamais les deux.
@@ -749,6 +788,7 @@ function demarrerPartie(
   // Debut/Fin/Annuler, sequentiels et etrangers a cet historique (voir
   // moteur/historique-navigation.js).
   function sauterVersNoeud(chemin) {
+    if (navigationBloquee()) return;
     historiqueNavigation = enregistrerSaut(historiqueNavigation, arbre.chemin, chemin);
     naviguer((a) => allerAuNoeud(a, chemin));
     actualiserBoutonsHistoriqueNavigation();
@@ -772,6 +812,7 @@ function demarrerPartie(
   // zero plutot que de planter : ce n'est qu'une commodite de navigation,
   // jamais une donnee de la partie a preserver a tout prix.
   function rejouerHistoriqueNavigation(deplacement) {
+    if (navigationBloquee()) return;
     const nouveau = deplacement(historiqueNavigation);
     if (nouveau === historiqueNavigation) return; // deja a la limite, rien a faire
     const chemin = cheminActuelHistorique(nouveau);
@@ -858,7 +899,10 @@ function demarrerPartie(
     // sans suite (puzzle perdu).
     abandonNulle.reinitialiser();
     signalerCampAuTrait(etat.joueurAuTrait);
-    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre) || optionARefaire());
+    // Le tour du coup A JOUER (le suivant), pas celui du coup qui vient d'etre joue
+    // (saab, 2026-10-10 : « Tour 1 pour Noir, Tour 1 pour Blanc, et encore Tour 1
+    // pour Noir au lieu de Tour 2 »).
+    actualiserTrait(svg, joueurAuTrait, numeroDeTour(arbre.chemin.length + 1), gagnant, estPointVivant() && !sansSuite(), optionsDeFinDisponibles(arbre) || optionARefaire());
     actualiserPistesEjection(svg, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Coordonnees sur les billes du camp au trait (phase 19bis) : `null`
     // une fois la partie terminee, `.bille-null` ne correspond alors a
@@ -879,8 +923,10 @@ function demarrerPartie(
     // sur la racine (aucun coup n'y a mene) : rien n'est alors dessine.
     actualiserFlecheDernierCoup(svg, noeudCourant(arbre).flecheDernierCoup);
     // Phase 30 (saab) : les billes des perdants de la sequence regardee prennent
-    // la taille d'un trou (moteur/bilan-sequence.js, rendu/plateau-svg.js).
-    actualiserBillesDesPerdants(svg, perdantsDeLaSequence(arbre));
+    // la taille d'un trou (moteur/bilan-sequence.js, rendu/plateau-svg.js) ; avant la
+    // fin, ceux qu'on connait deja (un PZL : definirPerdantsAnnonces).
+    const perdants = perdantsDeLaSequence(arbre);
+    actualiserBillesDesPerdants(svg, perdants.length ? perdants : perdantsAnnonces);
   }
 
   // Grise les boutons qui ne peuvent rien faire (deja au tout debut ou a
@@ -894,11 +940,14 @@ function demarrerPartie(
     // Annuler est destructif (voir plus haut) : grise aussi sur un coup
     // d'origine deja depasse, que la securite de moteur.peutSupprimerNoeud
     // interdirait de toute facon de supprimer.
-    elementsNavigation.annuler.disabled = suppressionsInterdites || !peutSupprimerNoeud(arbre, arbre.chemin);
+    elementsNavigation.annuler.disabled = !peutAnnuler();
     for (const bouton of svg.querySelectorAll('.bouton-annuler-joueur')) bouton.classList.toggle('bouton-annuler-inactif', elementsNavigation.annuler.disabled);
     elementsNavigation.suivant.disabled = alaFin;
     elementsNavigation.fin.disabled = alaFin;
     elementsNavigation.lecture.disabled = alaFin;
+    if (navigationBloquee()) {
+      for (const bouton of [elementsNavigation.debut, elementsNavigation.precedent, elementsNavigation.suivant, elementsNavigation.fin, elementsNavigation.lecture]) bouton.disabled = true;
+    }
   }
 
   // Joue un coup ecrit en notation Nacre (ex. "a1d4") plutot que par des
@@ -978,9 +1027,27 @@ function demarrerPartie(
     definirAnnulationEnDouble: (predicat) => {
       annulationEnDouble = predicat;
     },
+    // Saab, 2026-10-17 : « comme on sait qui doit gagner/perdre sur les PZL, il faut mettre
+    // dès le départ les billes du perdant en petit » — `camps` : ceux qui doivent perdre.
+    definirPerdantsAnnonces: (camps) => {
+      perdantsAnnonces = camps;
+      actualiserAffichagePartie();
+    },
     definirPauseSansRideau: (predicat) => {
       pauseSansRideau = predicat;
     },
+    definirLimiteDesPauses: (nombre) => {
+      pausesMax = nombre;
+    },
+    definirClicSurPendule: (fonction) => {
+      clicSurPendule = fonction;
+    },
+    definirNavigationBloquee: (predicat) => {
+      navigationBloquee = predicat;
+      actualiserBoutonsNavigation();
+    },
+    // Apres la fin d'un jeu d'Entrainement : les boutons se rouvrent.
+    actualiserNavigation: () => actualiserBoutonsNavigation(),
     definirNulleAutomatique: (predicat) => {
       nulleAutomatique = predicat;
     },

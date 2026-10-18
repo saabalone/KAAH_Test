@@ -12,6 +12,11 @@
 const POSITION_DEPART_BANC = '0a12b123c23g78h789i89_0a45b456c56g45h456i56'; // la Marguerite belge
 const GRAINE_MAX_BANC = 1e9;
 const MILLISECONDES_PAR_SECONDE_BANC = 1000;
+// La reflexion d'un profil du banc, pour KAI++ : ses secondes, ou sans limite
+// (TEMPS_SANS_LIMITE_BANC, interface/banc-essais-champs.js ; RECHERCHE_SANS_LIMITE_MS,
+// interface/banc-essais-puzzles.js).
+const dureeDeReflexionDuBancMs = (temps) => (temps === TEMPS_SANS_LIMITE_BANC ? RECHERCHE_SANS_LIMITE_MS : temps * MILLISECONDES_PAR_SECONDE_BANC);
+const scoreDuBanc = (etat) => `-${etat.billesEjecteesNoires}-${etat.billesEjecteesBlanches}`;
 
 // Une partie : la reference contre l'essai, jouee par KAI++ (`kai`,
 // interface/kai-plus.js), chacun a son niveau et sa reflexion (`reglage.niveau`,
@@ -19,14 +24,16 @@ const MILLISECONDES_PAR_SECONDE_BANC = 1000;
 // { arret, pause, reprendre } (la boite : Pause, Arreter) ; `suivi` (saab,
 // 2026-10-08 : « il faudrait voir qu'il cherche, sinon on croit que c'est
 // bloque ») recoit a chaque coup cherche { coup, camp ('référence' | 'essai'),
-// debut (ms) }, puis a chaque profondeur finie { profondeur, evaluation }.
+// debut (ms), score (« -2-3 », saab 2026-10-14 : « ajouter le score en cours ») },
+// puis a chaque profondeur finie { profondeur, evaluation }.
 // Renvoie la partie (`tache` et { fin, etats (chaque position, la derniere
-// comprise), coups, livre, tours, score, secondesEssai }) ou null si elle a ete
-// arretee.
+// comprise), coups, livre, occurrences (l'Occ de chaque coup, moteur/banc-essais.js),
+// tours, score, secondesEssai }) ou null si elle a ete arretee.
 async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, base, controle, suivi = () => {}) {
   const livre = base?.size > 0 ? base : null;
   const hasard = hasardDuBanc(tache.graine);
-  let etat = { ...lirePosition(POSITION_DEPART_BANC), joueurAuTrait: 'noir' };
+  // `tache.position` : une autre position de depart (les variantes des ceintures des IA).
+  let etat = { ...lirePosition(tache.position ?? POSITION_DEPART_BANC), joueurAuTrait: 'noir' };
   const historique = [ecrirePosition(etat)];
   const etats = [etat]; // pour la recolte des puzzles (interface/banc-essais-puzzles.js)
   const coups = [];
@@ -42,7 +49,7 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     if (reglage === reference) coupsDeLaReference++;
     if (!coup) {
       const debut = performance.now();
-      suivi({ coup: coups.length + 1, camp: reglage === reference ? 'référence' : 'essai', debut, profondeur: null, evaluation: null });
+      suivi({ coup: coups.length + 1, camp: reglage === reference ? 'référence' : 'essai', debut, score: scoreDuBanc(etat), profondeur: null, evaluation: null });
       const texte = await kai.chercher({
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
@@ -50,7 +57,7 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
         poids: poidsEnTexte(reglage.poids),
         version: reglage.version,
         graine: Math.floor(hasard() * GRAINE_MAX_BANC),
-        dureeMs: reglage.temps * MILLISECONDES_PAR_SECONDE_BANC,
+        dureeMs: dureeDeReflexionDuBancMs(reglage.temps),
         historique: historique.join('\n'),
         elagage: reglage.elagage,
       }, (progres) => {
@@ -64,10 +71,11 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     }
     dansLivre.push(dansLeLivre(livre, etat, coup));
     coups.push(textesDeLaSequence(etat, [coup])[0]);
+    suivi({ coupsJoues: [...coups] }); // pour la regarder en cours (interface/banc-essais-regarder.js)
     etat = appliquerCoup(etat, coup).etat;
     historique.push(ecrirePosition(etat));
     etats.push(etat);
     fin = finDeLaPartieDuBanc(etat, historique, coups.length);
   }
-  return { ...tache, fin, etats, coups, livre: dansLivre, tours: Math.ceil(coups.length / 2), score: `-${etat.billesEjecteesNoires}-${etat.billesEjecteesBlanches}`, secondesEssai };
+  return { ...tache, fin, etats, coups, livre: dansLivre, occurrences: occurrencesDesCoups(historique), tours: Math.ceil(coups.length / 2), score: scoreDuBanc(etat), secondesEssai };
 }

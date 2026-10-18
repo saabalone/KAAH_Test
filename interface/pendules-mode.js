@@ -18,8 +18,13 @@
 // Echap ou un clic en dehors — jamais `null`, voir plus bas), a eux de
 // decider quoi en faire.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : ce fichier se charge
-// comme un script classique, dans l'ordre liste par index.html.
+// Noir et Blanc differents (saab, 2026-10-09 : « mettre des coches pour chaque
+// joueur dans Pendule, pour régler différemment chacune, par défaut les 2
+// identiques ») : une case ouvre une seconde colonne de champs, ceux de Blanc
+// (moteur/pendules.js, `camps`) ; le mode reste commun.
+//
+// Pas d'import ni d'export (voir moteur/plateau.js) : reglagesDuCamp
+// (moteur/pendules.js) vient d'un fichier charge avant celui-ci.
 
 // Valeur par defaut d'un champ numerique laisse vide ou invalide : jamais
 // NaN dans un reglage (romprait le calcul des pendules, moteur/pendules.js).
@@ -38,7 +43,9 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 
 // `elements` : { dialogue, boutonChrono, boutonBonus, boutonDelai,
 // sectionTemps, sectionBonus, sectionDelai, tempsInitial, bonusParCoup,
-// bonusParEjection, delaiParCoup, annuler, valider, fermer }.
+// bonusParEjection, delaiParCoup, campsDifferents (la case), blanc ({ tempsInitial,
+// bonusParCoup, bonusParEjection, delaiParCoup } : les champs de Blanc), annuler,
+// valider, fermer }.
 //
 // Fermer LA BOITE (Valider, Fermer, ou un clic en dehors — interface/
 // fermeture-dialogues.js) applique toujours les reglages AFFICHES, jamais
@@ -72,6 +79,18 @@ function demarrerChoixModePendules(elements, choixJoueurs) {
     elements.sectionBonus.hidden = modeChoisi !== 'bonus';
     elements.sectionDelai.hidden = modeChoisi !== 'delai';
   }
+
+  // Les champs de Blanc ne se montrent qu'avec la case ; la cocher part de
+  // reglages identiques (ceux de Noir).
+  function montrerLesCamps() {
+    elements.dialogue.classList.toggle('pendules-par-camp', elements.campsDifferents.checked);
+  }
+  elements.campsDifferents.addEventListener('change', () => {
+    if (elements.campsDifferents.checked) {
+      for (const cle of ['tempsInitial', 'bonusParCoup', 'bonusParEjection', 'delaiParCoup']) elements.blanc[cle].value = elements[cle].value;
+    }
+    montrerLesCamps();
+  });
 
   // Un CLIC sur un bouton de mode (par opposition au pre-remplissage
   // initial de `ouvrir`, plus bas) recharge des valeurs par defaut
@@ -111,37 +130,42 @@ function demarrerChoixModePendules(elements, choixJoueurs) {
     resoudre = null;
   });
 
-  function construireReglages() {
-    if (modeChoisi === 'chrono') return { mode: 'chrono', modeChoisi: 'chrono', tempsInitial: 0, bonusParCoup: 0, bonusParEjection: 0, delai: 0 };
-    const tempsInitial = nombrePositifOuDefaut(elements.tempsInitial.value, TEMPS_INITIAL_PAR_DEFAUT);
-    if (modeChoisi === 'delai') {
-      return {
-        mode: 'pendule',
-        modeChoisi: 'delai',
-        tempsInitial,
-        bonusParCoup: 0,
-        bonusParEjection: 0,
-        delai: nombrePositifOuDefaut(elements.delaiParCoup.value, DELAI_PAR_COUP_PAR_DEFAUT),
-      };
-    }
+  // Les reglages d'un camp, lus dans ses champs (`champs` : ceux de Noir, ou
+  // `elements.blanc`).
+  function reglagesDesChamps(champs) {
+    const tempsInitial = nombrePositifOuDefaut(champs.tempsInitial.value, TEMPS_INITIAL_PAR_DEFAUT);
+    if (modeChoisi === 'delai') return { tempsInitial, bonusParCoup: 0, bonusParEjection: 0, delai: nombrePositifOuDefaut(champs.delaiParCoup.value, DELAI_PAR_COUP_PAR_DEFAUT) };
     return {
-      mode: 'pendule',
-      modeChoisi: 'bonus',
       tempsInitial,
-      bonusParCoup: nombrePositifOuDefaut(elements.bonusParCoup.value, BONUS_PAR_COUP_PAR_DEFAUT),
-      bonusParEjection: nombrePositifOuDefaut(elements.bonusParEjection.value, BONUS_PAR_EJECTION_PAR_DEFAUT),
+      bonusParCoup: nombrePositifOuDefaut(champs.bonusParCoup.value, BONUS_PAR_COUP_PAR_DEFAUT),
+      bonusParEjection: nombrePositifOuDefaut(champs.bonusParEjection.value, BONUS_PAR_EJECTION_PAR_DEFAUT),
       delai: 0,
     };
+  }
+
+  function construireReglages() {
+    if (modeChoisi === 'chrono') return { mode: 'chrono', modeChoisi: 'chrono', tempsInitial: 0, bonusParCoup: 0, bonusParEjection: 0, delai: 0 };
+    const reglages = { mode: 'pendule', modeChoisi, ...reglagesDesChamps(elements) };
+    return elements.campsDifferents.checked ? { ...reglages, camps: { blanc: reglagesDesChamps(elements.blanc) } } : reglages;
   }
 
   // Remplit les champs depuis `valeurs` : au premier affichage (`ouvrir`) et
   // sur Annuler, qui y revient.
   function appliquerValeurs(valeurs) {
     choisirMode(valeurs.modeChoisi ?? 'bonus');
-    elements.tempsInitial.value = valeurs.tempsInitial || TEMPS_INITIAL_PAR_DEFAUT;
-    elements.bonusParCoup.value = valeurs.bonusParCoup ?? BONUS_PAR_COUP_PAR_DEFAUT;
-    elements.bonusParEjection.value = valeurs.bonusParEjection ?? BONUS_PAR_EJECTION_PAR_DEFAUT;
-    elements.delaiParCoup.value = valeurs.delai || DELAI_PAR_COUP_PAR_DEFAUT;
+    const remplir = (champs, camp) => {
+      champs.tempsInitial.value = camp.tempsInitial || TEMPS_INITIAL_PAR_DEFAUT;
+      champs.bonusParCoup.value = camp.bonusParCoup ?? BONUS_PAR_COUP_PAR_DEFAUT;
+      champs.bonusParEjection.value = camp.bonusParEjection ?? BONUS_PAR_EJECTION_PAR_DEFAUT;
+      champs.delaiParCoup.value = camp.delai || DELAI_PAR_COUP_PAR_DEFAUT;
+    };
+    const noir = reglagesDuCamp(valeurs, 'noir');
+    const blanc = reglagesDuCamp(valeurs, 'blanc');
+    remplir(elements, noir);
+    remplir(elements.blanc, blanc);
+    // Coches seulement si les deux camps different deja.
+    elements.campsDifferents.checked = JSON.stringify(noir) !== JSON.stringify(blanc);
+    montrerLesCamps();
   }
 
   // Ouvre le popup pre-rempli avec `valeurs` (REGLAGES_PENDULES_PAR_DEFAUT ou

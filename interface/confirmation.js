@@ -70,11 +70,15 @@ function demarrerConfirmation(elements) {
   // #bouton-nouvelle-partie), garder "Supprimer" partout aurait ete faux.
   // `refus` (facultatif, phase 23bis) : { texte, surRefus } — pour une vraie
   // question a deux reponses (« Mini PZL » / « Garder PZL »), ou le refus fait
-  // lui aussi quelque chose. Par defaut, "Refuser" ne fait que fermer.
-  function demander(message, surConfirmation, texteConfirmer, refus = {}) {
+  // lui aussi quelque chose. Par defaut, "Refuser" ne fait que fermer ; `refus.danger` : le
+  // refus en rouge. `confirmerVert` : la confirmation n'efface rien, elle est en vert (ce
+  // qui attend un geste) — l'alerte des ceintures, interface/alerte-ceintures.js.
+  function demander(message, surConfirmation, texteConfirmer, refus = {}, { confirmerVert = false } = {}) {
     elements.message.textContent = message;
     elements.confirmer.textContent = texteConfirmer ?? 'Supprimer';
     elements.refuser.textContent = refus.texte ?? 'Refuser';
+    elements.confirmer.classList.toggle('confirmation-verte', confirmerVert);
+    elements.refuser.classList.toggle('bouton-danger', Boolean(refus.danger));
     rappelEnCours = surConfirmation;
     rappelDeRefus = refus.surRefus ?? null;
     elements.dialogue.showModal();

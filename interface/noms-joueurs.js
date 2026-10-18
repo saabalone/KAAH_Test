@@ -34,7 +34,8 @@
 // poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
 // valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
-// ROLE_HUMAIN (interface/choix-joueurs.js) viennent de fichiers charges avant celui-ci,
+// ROLE_HUMAIN (interface/choix-joueurs.js), afficherNomsConnus, retenirNomConnu
+// (interface/noms-connus.js), estUnNomParDefaut (moteur/filtre-parties.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
 // Corrige le champ a chaque frappe. Un espace tape devient "_" tout de suite
@@ -57,7 +58,8 @@ function brancherSaisieNomJoueur(champ) {
   champ.addEventListener('compositionend', appliquer);
 }
 
-// `elements` : { dialogue, titre, champ, valider, fermer, marcheMachine, boutonIA, suggestion,
+// `elements` : { dialogue, titre, champ, nomsConnus (interface/noms-connus.js),
+// messageNom (le nom est obligatoire), valider, fermer, marcheMachine, boutonIA, suggestion,
 // choixIA (le choix d'un camp, interface/choix-joueurs.js), descriptionMachine,
 // poidsMachine (<table>) }. `nomsParDefaut` : { noir, blanc }. Renvoie
 // { definirCommandeMachines } : la partie y branche celle des machines
@@ -189,10 +191,11 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.dialogue.close();
   });
 
-  svg.addEventListener('click', (evenement) => {
-    const cadre = evenement.target.closest('.nom-fond');
-    if (!cadre) return;
-    campEnCours = cadre.closest('.nom-joueur').dataset.camp;
+  // Ouvre la boite du nom de `camp` (un clic sur son cadre, ou la page quand il
+  // manque un nom : interface/nom-obligatoire.js).
+  function ouvrir(camp) {
+    campEnCours = camp;
+    elements.messageNom.hidden = true;
     elements.champ.value = joueurs[campEnCours];
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
     elements.titre.textContent = `Joueur ${NOM_CAMP[campEnCours]}`;
@@ -201,9 +204,14 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     nomSuitLeChoix = !enJeu || joueurs[campEnCours] === nomDeLaMachine(enJeu);
     nomPropose = joueurs[campEnCours];
     afficherMachine();
+    afficherNomsConnus(elements.nomsConnus, elements.champ);
     commandeMachines?.suspendre(true);
     elements.dialogue.showModal();
     elements.champ.select();
+  }
+  svg.addEventListener('click', (evenement) => {
+    const cadre = evenement.target.closest('.nom-fond');
+    if (cadre) ouvrir(cadre.closest('.nom-joueur').dataset.camp);
   });
 
   // Une autre machine (ou une machine a la place d'un humain, ou l'inverse) :
@@ -214,12 +222,19 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const apres = commandeMachines ? machineChoisie() : avant;
     const machineChangee = JSON.stringify(apres) !== JSON.stringify(avant);
     let nom = nomJoueurAutorise(elements.champ.value) || nomsParDefaut[campEnCours];
+    // Saab, 2026-10-08 : « nom obligatoire tout le temps » — un humain donne le sien.
+    if (!apres && estUnNomParDefaut(nom)) {
+      elements.messageNom.hidden = false;
+      elements.champ.focus();
+      return;
+    }
     if (machineChangee) {
       const nomGarde = nom !== joueurs[campEnCours] || (avant && joueurs[campEnCours] !== nomDeLaMachine(avant));
       if (!nomGarde) nom = apres ? nomDeLaMachine(apres) : nomsParDefaut[campEnCours];
       commandeMachines.definirMachine(campEnCours, apres);
     }
     elements.dialogue.close();
+    retenirNomConnu(nom);
     const nomChange = nom !== joueurs[campEnCours];
     if (nomChange) {
       joueurs[campEnCours] = nom;
@@ -240,5 +255,6 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     definirCommandeMachines: (commande) => {
       commandeMachines = commande;
     },
+    ouvrir,
   };
 }

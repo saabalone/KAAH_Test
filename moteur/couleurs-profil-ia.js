@@ -6,35 +6,17 @@
 // son fichier ») : le profil, et la machine qui joue avec lui, prennent la
 // plus forte. Pur.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CLES_REGLAGES_IA,
-// valeurReglageIA, memesReglagesIA, cheminDeVersionIA, choisirVersionIA
+// Pas d'import ni d'export (voir moteur/plateau.js) : couleursDesReglages,
+// couleurLaPlusForte (historique-reglages.js), CLES_REGLAGES_IA,
+// valeurReglageIA, memesReglagesIA, DESCRIPTION_REGLAGES_IA, choisirVersionIA
 // (historique-profil-ia.js), PROFILS_IA_INTEGRES (profils-ia.js),
 // nomDuProfilIntegre (ia.js), CLES_CASES_IA_V3, valeurTotaleDeLaCase
 // (ia-evaluation-v3.js) viennent de fichiers charges avant celui-ci.
 
-// De la plus forte a la plus faible.
-const COULEURS_IA_DE_LA_PLUS_FORTE = ['modifie', 'dernier', 'ancien'];
-
-function couleurLaPlusForte(couleurs) {
-  const presentes = new Set(couleurs);
-  return COULEURS_IA_DE_LA_PLUS_FORTE.find((couleur) => presentes.has(couleur)) ?? null;
-}
-
-// La couleur de chaque reglage : 'modifie', 'dernier', 'ancien' ou null.
-// `brouillon` : les valeurs des champs, null s'il n'y a aucune retouche en cours.
-function couleursDesReglagesIA(profil, brouillon) {
-  const chemin = cheminDeVersionIA(profil);
-  const courante = chemin.at(-1);
-  const changeA = (cle, rang) => valeurReglageIA(chemin[rang], cle) !== valeurReglageIA(chemin[rang - 1], cle);
-  return Object.fromEntries(
-    CLES_REGLAGES_IA.map((cle) => {
-      if (brouillon && valeurReglageIA(brouillon, cle) !== valeurReglageIA(courante, cle)) return [cle, 'modifie'];
-      if (chemin.length > 1 && changeA(cle, chemin.length - 1)) return [cle, 'dernier'];
-      for (let rang = 1; rang < chemin.length - 1; rang++) if (changeA(cle, rang)) return [cle, 'ancien'];
-      return [cle, null];
-    })
-  );
-}
+// La couleur de chaque reglage : 'modifie', 'dernier', 'ancien' ou null — le
+// moteur commun (moteur/historique-reglages.js, couleursDesReglages, avec
+// couleurLaPlusForte). `brouillon` : les valeurs des champs, null sans retouche.
+const couleursDesReglagesIA = (profil, brouillon) => couleursDesReglages(DESCRIPTION_REGLAGES_IA, profil, brouillon);
 
 function couleurDuProfilIA(profil, brouillon = null) {
   return couleurLaPlusForte(Object.values(couleursDesReglagesIA(profil, brouillon)));
