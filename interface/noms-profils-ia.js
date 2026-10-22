@@ -11,7 +11,8 @@
 // sert qu'une fois la page chargee.
 
 // Le registre des Pn (moteur/noms-ia.js) : jeu d'ajouts -> numero, sur cet appareil
-// (« Exporter tout » l'emporte, comme toute donnee « kaah- »).
+// (« Exporter tout » l'emporte, comme toute donnee « kaah- ») ; ceux des profils integres
+// sont fixes, les memes partout (NUMEROS_FIXES_DES_AJOUTS).
 const CLE_NUMEROS_DES_AJOUTS = 'kaah-numeros-des-ajouts';
 
 function lireRegistreDesAjouts() {
@@ -72,8 +73,15 @@ function infobulleDuProfilIA(profil) {
 // orange l'IA par défaut, partout » ; en marron depuis le 2026-10-22, l'orange disant deja
 // « retouche » ; styles.css, .profil-ia-par-defaut) : `nom`, le nom
 // du profil de l'element (une valeur de liste « nom#v3 » : son profil).
+// Sur telephone, une liste deroulante n'a pas de couleurs (saab, 2026-10-22 : « sur tél le choix
+// n'a pas de couleur donc impossible de savoir laquelle c'est ») : l'option le dit aussi en mots.
+const MARQUE_DU_PROFIL_PAR_DEFAUT = ' (défaut)';
 function marquerSiProfilParDefaut(element, nom) {
-  element.classList.toggle('profil-ia-par-defaut', String(nom).split('#v')[0] === nomDuProfilIAParDefaut());
+  const parDefaut = String(nom).split('#v')[0] === nomDuProfilIAParDefaut();
+  element.classList.toggle('profil-ia-par-defaut', parDefaut);
+  if (element.tagName !== 'OPTION') return;
+  const texte = element.textContent.replace(MARQUE_DU_PROFIL_PAR_DEFAUT, '');
+  element.textContent = parDefaut ? `${texte}${MARQUE_DU_PROFIL_PAR_DEFAUT}` : texte;
 }
 
 // Une liste de profils : fermee, elle est marron quand l'IA par defaut y est choisie.

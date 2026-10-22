@@ -16,12 +16,28 @@
 // SUFFIXE_ELAGAGE_NOM_IA (moteur/ia.js), OPTIONS_IA (moteur/ia-ajouts.js) viennent de
 // fichiers charges avant celui-ci.
 
-// Le registre avec le jeu d'ajouts `code`, et son numero : le sien s'il en a deja un, le
-// suivant sinon ; sans ajout (''), pas de numero.
+// Les Pn FIXES des jeux d'ajouts des profils integres (saab, 2026-10-22 : « Dans Travail c'est
+// Normal v5ElP5, dans _Test c'est Normal v5ElP1 » ; « oui, sinon impossible de comparer ») : les
+// memes sur tous les appareils — ceux de l'appareil de saab (P4, P5 de ses essais), dans l'ordre
+// ou ils sont apparus. Un nouveau jeu d'ajouts d'un profil integre prend ici le suivant
+// (tests/profils-ia.test.js le verifie).
+const NUMEROS_FIXES_DES_AJOUTS = Object.freeze({
+  SvEcEaEp: 1,
+  SvEcEaEpEf: 2,
+  SvEcEaEpEfFn: 3,
+  SvEcEaEpEfFnGfPfPpaPpmPgaPgm: 4,
+  SvEcEaEpEfFnGfPfPpaPpmPgaPgmBpBmpBpb: 5,
+});
+const NUMEROS_PRIS_D_OFFICE = Object.values(NUMEROS_FIXES_DES_AJOUTS);
+
+// Le registre avec le jeu d'ajouts `code`, et son numero : le fixe s'il en a un, sinon le sien
+// s'il en a deja un (et qu'il n'est pas un numero fixe), le suivant libre sinon ; sans ajout
+// (''), pas de numero.
 function registreAvecLesAjouts(registre, code) {
   if (code === '') return { registre, numero: null };
-  if (registre[code]) return { registre, numero: registre[code] };
-  const numero = Math.max(0, ...Object.values(registre)) + 1;
+  if (NUMEROS_FIXES_DES_AJOUTS[code]) return { registre, numero: NUMEROS_FIXES_DES_AJOUTS[code] };
+  if (registre[code] && !NUMEROS_PRIS_D_OFFICE.includes(registre[code])) return { registre, numero: registre[code] };
+  const numero = Math.max(0, ...NUMEROS_PRIS_D_OFFICE, ...Object.values(registre)) + 1;
   return { registre: { ...registre, [code]: numero }, numero };
 }
 

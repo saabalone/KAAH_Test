@@ -45,7 +45,6 @@ function etatEnModeCeinture(parcours, grade, regles, aConfirmer) {
   // Le grade acquis peut etre a reconfirmer (une pause trop longue) : avant « obtenue ».
   if (parcours.aConfirmer && parcours.confirmees.includes(grade)) return '✓ confirmée';
   if (!aConfirmer.includes(grade)) {
-    if (grade === 0 && parcours.ceinture === 0) return 'ceinture de départ';
     if (grade <= parcours.ceinture) return '✓ obtenue';
   }
   if (aConfirmer.includes(grade)) return `<button class="bouton-dialogue bouton-visee" type="button" data-ouvrir="${grade}" title="${parcours.aFaireEnConfirmation?.[grade] ? 'Ses jeux imposés pas gagnés à la ceinture visée confirment la série : touchez pour les voir' : 'Une victoire ici confirme la série : touchez pour choisir le jeu'}">À confirmer</button>`;

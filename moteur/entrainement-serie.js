@@ -3,8 +3,10 @@
 // propose les jeux, lance les parties et range les parcours (un par joueur).
 //
 // LA REGLE :
-//   - on a une ceinture (la blanche au depart) et on en vise une plus haute — la
-//     suivante, ou plus loin (« on peut sauter des niveaux ») ;
+//   - on a une ceinture (aucune au depart : la blanche se gagne aussi — saab, 2026-10-22 :
+//     « change la Blanche qu'on puisse la tester ») et on en vise une plus haute — la
+//     suivante, ou plus loin (« on peut sauter des niveaux ») ; une fois obtenue, la
+//     blanche ne se perd plus ;
 //   - une VICTOIRE = un jeu gagne a l'aller ET a la revanche (couleurs echangees,
 //     ou Attaque puis Defense en PZL) ; un jeu est REUSSI a `victoiresParJeu`
 //     victoires, et le reste (« on garde v1 comme réussie ») ; la serie est complete
@@ -58,10 +60,24 @@ const SENS_DU_JEU = ['aller', 'revanche'];
 // plus haut), fixes eux aussi ; `jeuxConfirmes` : { ceinture : ceux deja gagnes }.
 const SERIE_A_ZERO = Object.freeze({ enCours: {}, valides: [], reinitialisations: 0, aConfirmer: false, confirmees: [], enConfirmation: {}, aConfirmerCeintures: [], aReconfirmer: false, aFaireEnConfirmation: {}, jeuxConfirmes: {} });
 
+// Pas encore de ceinture (au depart) : la blanche est la premiere a viser.
+const SANS_CEINTURE = -1;
+const CEINTURE_BLANCHE = 0;
+
 // `precedente` (le petit rond de l'icone) : la ceinture d'avant la derniere obtenue
-// ou perdue, null au depart.
+// ou perdue, null au depart (ou sans ceinture avant).
 function parcoursNeuf() {
-  return { ceinture: 0, cible: 1, ...SERIE_A_ZERO, gagnes: {}, precedente: null };
+  return { ceinture: SANS_CEINTURE, cible: CEINTURE_BLANCHE, ...SERIE_A_ZERO, gagnes: {}, precedente: null };
+}
+
+// Un parcours d'avant le 2026-10-22 partait de la blanche donnee : s'il n'a rien commence
+// au-dela (la jaune visee, aucune serie, aucun jeu gagne, jamais redescendu), il repart
+// sans ceinture — la blanche a gagner ; sinon il reste tel quel.
+function parcoursAJour(parcours) {
+  const entier = complet(parcours);
+  const blancheDonnee = entier.ceinture === CEINTURE_BLANCHE && entier.cible === CEINTURE_BLANCHE + 1 && entier.precedente === null;
+  const rienCommence = Object.keys(entier.enCours).length === 0 && entier.valides.length === 0 && !entier.aConfirmer && Object.keys(entier.gagnes ?? {}).length === 0;
+  return blancheDonnee && rienCommence ? { ...parcours, ceinture: SANS_CEINTURE, cible: CEINTURE_BLANCHE } : parcours;
 }
 
 // Un parcours enregistre avant le 2026-10-10 n'a pas tous les champs.
@@ -75,7 +91,8 @@ function viserCeinture(parcours, cible) {
 
 // Les ceintures a confirmer encore : les sautees, ou celle d'en dessous.
 function ceinturesSauteesOuDessous({ ceinture, cible }) {
-  return cible === ceinture + 1 ? [ceinture] : Array.from({ length: cible - ceinture - 1 }, (_, i) => ceinture + 1 + i);
+  const toutes = cible === ceinture + 1 ? [ceinture] : Array.from({ length: cible - ceinture - 1 }, (_, i) => ceinture + 1 + i);
+  return toutes.filter((grade) => grade !== SANS_CEINTURE); // sans ceinture : rien en dessous
 }
 function ceinturesAConfirmer(parcours) {
   const entier = complet(parcours);
@@ -109,7 +126,7 @@ function ajouterGagne(gagnes, ceinture, nom) {
 function ceintureObtenue(parcours, gagnes, confirmee) {
   const obtenue = parcours.cible;
   return {
-    parcours: { ...parcours, ceinture: obtenue, cible: obtenue === CEINTURE_LA_PLUS_HAUTE ? null : obtenue + 1, ...SERIE_A_ZERO, gagnes, precedente: confirmee ? obtenue - 1 : parcours.ceinture },
+    parcours: { ...parcours, ceinture: obtenue, cible: obtenue === CEINTURE_LA_PLUS_HAUTE ? null : obtenue + 1, ...SERIE_A_ZERO, gagnes, precedente: confirmee ? obtenue - 1 : parcours.ceinture === SANS_CEINTURE ? null : parcours.ceinture },
     evenement: 'ceinture',
   };
 }
@@ -118,8 +135,10 @@ function ceintureObtenue(parcours, gagnes, confirmee) {
 function reinitialiser(parcours, garde, regles) {
   const reinitialisations = parcours.reinitialisations + 1;
   if (reinitialisations >= regles.reinitialisationsAvantDeRedescendre) {
-    const redescendue = Math.max(0, parcours.ceinture - 1);
-    return { parcours: { ...parcours, ceinture: redescendue, cible: redescendue + 1, ...SERIE_A_ZERO, precedente: parcours.ceinture }, evenement: 'regression' };
+    // La blanche obtenue ne se perd plus ; sans ceinture, on ne descend pas plus bas.
+    const redescendue = parcours.ceinture <= CEINTURE_BLANCHE ? parcours.ceinture : parcours.ceinture - 1;
+    const precedente = redescendue === parcours.ceinture ? parcours.precedente : parcours.ceinture;
+    return { parcours: { ...parcours, ceinture: redescendue, cible: redescendue + 1, ...SERIE_A_ZERO, precedente }, evenement: 'regression' };
   }
   const suite = regles.reinitialiserTousLesJeux ? { ...parcours, ...SERIE_A_ZERO } : { ...parcours, ...garde };
   return { parcours: { ...suite, reinitialisations }, evenement: 'jeu reinitialise' };

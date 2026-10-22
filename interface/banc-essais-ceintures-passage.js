@@ -75,14 +75,14 @@ async function passerLesCeintures(candidat, sorte, jeux, kai, controle, suivi, s
 
 // Tout tester : la serie de chaque grade, de `gradeLePlusHaut` jusqu'a la blanche, que
 // celle du dessus soit reussie ou ratee. `surJeu({ ceinture, journal, grades })` apres
-// chaque jeu. Renvoie { ceinture (la plus haute reussie, la blanche sinon), raison,
+// chaque jeu. Renvoie { ceinture (la plus haute reussie, SANS_CEINTURE sinon), raison,
 // journal, grades ([{ grade, issue : 'réussie' | 'ratée' | 'pas de jeu' }]) }.
 // `gradeLePlusBas` : pour ne tester qu'une partie des grades (plusieurs calculs a la fois).
 async function testerLesCeintures(candidat, sorte, jeux, kai, controle, suivi, surJeu, gradeLePlusHaut, gradeLePlusBas = 0) {
   const jouerLeSuivant = joueurDesCeintures(candidat, sorte, jeux, kai, controle, suivi);
   const journal = [];
   const grades = [];
-  const plusHaute = () => Math.max(0, ...grades.filter(({ issue }) => issue === 'réussie').map(({ grade }) => grade));
+  const plusHaute = () => Math.max(SANS_CEINTURE, ...grades.filter(({ issue }) => issue === 'réussie').map(({ grade }) => grade));
   for (let grade = gradeLePlusHaut; grade >= gradeLePlusBas; grade--) {
     let parcours = parcoursPourTester(grade);
     let issue = null;

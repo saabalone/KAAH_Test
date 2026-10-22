@@ -31,6 +31,10 @@ const CEINTURES = Object.freeze([
 ]);
 const CEINTURE_LA_PLUS_HAUTE = CEINTURES.length - 1;
 const PREMIER_DAN = CEINTURES.findIndex((ceinture) => ceinture.dan === 1);
+// Pas encore de ceinture (au depart, moteur/entrainement-serie.js : SANS_CEINTURE) : comment
+// elle s'affiche — l'icone, le banc des ceintures.
+const AUCUNE_CEINTURE = Object.freeze({ nom: 'Aucune', couleur: '#5a5a5a' });
+const ceintureDuGrade = (grade) => CEINTURES[grade] ?? AUCUNE_CEINTURE;
 
 // PZL : les tours, et un « Mini » (moins de billes) avant le puzzle entier, a
 // tours egaux ; puis 5, 6, 7 tours et plus : du 1er au 3e Dan.

@@ -73,12 +73,20 @@ function livreDuProfil(nom) {
   return livreParDefaut() && (profilDuChoix(nom)?.livre ?? true);
 }
 
+// Un profil retenu qui etait l'IA par defaut suit l'IA par defaut quand elle change (saab,
+// 2026-10-22 : « au chargement elles ne sont pas par défaut dans les champs des boites, il faut
+// aller les chercher ») ; un choix retenu avant ce reglage aussi, une fois. Un autre profil reste.
+function profilQuiSuitLeDefaut(retenu) {
+  if (!retenu || (retenu.profilParDefaut !== undefined && retenu.profil !== retenu.profilParDefaut)) return {};
+  return { profil: nomDuProfilIAParDefaut(), filtreStyle: undefined };
+}
+
 function lireDerniersJoueurs() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_DERNIERS_JOUEURS) ?? 'null');
     // Un choix retenu avant KAI++ disait seulement { machine: vrai|faux }.
     const role = (retenu) => roleChoisi(retenu?.role ?? (retenu?.machine ? MOTEUR_PROPOSE_IA : ROLE_HUMAIN));
-    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA }]));
+    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA, ...profilQuiSuitLeDefaut(brut?.[camp]) }]));
   } catch {
     return { noir: { ...CHOIX_JOUEUR_PAR_DEFAUT }, blanc: { ...CHOIX_JOUEUR_PAR_DEFAUT } };
   }
@@ -86,7 +94,9 @@ function lireDerniersJoueurs() {
 
 function retenirDerniersJoueurs(choix) {
   try {
-    window.localStorage.setItem(CLE_DERNIERS_JOUEURS, JSON.stringify(choix));
+    // Avec l'IA par defaut du moment (profilQuiSuitLeDefaut).
+    const retenus = Object.fromEntries(Object.entries(choix).map(([camp, siens]) => [camp, { ...siens, profilParDefaut: nomDuProfilIAParDefaut() }]));
+    window.localStorage.setItem(CLE_DERNIERS_JOUEURS, JSON.stringify(retenus));
   } catch {
     // Tant pis : la boite reviendra simplement sur deux humains.
   }

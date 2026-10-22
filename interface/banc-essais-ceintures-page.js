@@ -7,7 +7,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : passerLesCeintures, testerLesCeintures
 // (interface/banc-essais-ceintures-passage.js),
 // LIBELLES_SORTES_DU_PASSAGE, SENS_DU_PASSAGE, CLE_CEINTURES_DES_IA
-// (interface/banc-essais-ceintures.js), CEINTURES (moteur/entrainement.js),
+// (interface/banc-essais-ceintures.js), CEINTURES, ceintureDuGrade (moteur/entrainement.js), SANS_CEINTURE
+// (moteur/entrainement-serie.js),
 // nomDeLaCeinture (interface/entrainement-ceintures.js), profilEntrainementActif
 // (interface/profils-entrainement.js), echapperBanc (interface/banc-essais-page.js),
 // formaterDateKAAWA (interface/sauvegarde.js), nomDuFichierDesCeintures
@@ -34,7 +35,7 @@ function etatDuPassageHtml(passage) {
   const etat = `<span class="note-reglages">${passage.raison ? `${jeux}, arrêt : ${passage.raison}` : `en cours, ${jeux}`}</span>`;
   // Tout tester : chaque grade et l'issue de sa serie, du plus haut au plus bas.
   const grades = (passage.grades ?? []).map(({ grade, issue }) => `<span class="${issue === 'réussie' ? 'resultat-reussi' : issue === 'ratée' ? 'resultat-rate' : 'note-reglages'}">${issue === 'réussie' ? '✓' : issue === 'ratée' ? '✗' : '…'} ${echapperBanc(CEINTURES[grade].nom)}${issue === 'réussie' || issue === 'ratée' ? '' : ` (${issue})`}</span>`);
-  return `${nomDeLaCeinture(CEINTURES[passage.ceinture])}<br>${etat}${grades.length ? `<br>${grades.join('<br>')}` : ''}`;
+  return `${nomDeLaCeinture(ceintureDuGrade(passage.ceinture))}<br>${etat}${grades.length ? `<br>${grades.join('<br>')}` : ''}`;
 }
 
 function journalDuPassageHtml(passage, nom) {
@@ -50,7 +51,7 @@ function journalDuPassageHtml(passage, nom) {
 function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDepart = null, toutTester = false) {
   const LA_JAUNE = 1;
   const taches = essais.flatMap((_, essai) => sortes.map((sorte) => ({ essai, sorte })));
-  const passages = taches.map((tache) => ({ ...tache, ceinture: 0, journal: [], raison: null, commence: false }));
+  const passages = taches.map((tache) => ({ ...tache, ceinture: SANS_CEINTURE, journal: [], raison: null, commence: false }));
   const serie = { taches, unite: 'passages', fait: () => passages.filter((passage) => passage.raison).length };
   serie.jouer = async (tache, kai, suivi) => {
     const passage = passages[taches.indexOf(tache)];
@@ -71,7 +72,7 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
   serie.nomDuFichier = (date) =>
     nomDuFichierDesCeintures({
       date,
-      passages: passages.map((passage) => ({ machine: nomDeMachineDuBanc(essais[passage.essai]), sorte: passage.sorte, ceinture: CEINTURES[passage.ceinture], visee: CEINTURES[cibleDeDepart ?? Math.min(passage.ceinture + 1, CEINTURES.length - 1)] })),
+      passages: passages.map((passage) => ({ machine: nomDeMachineDuBanc(essais[passage.essai]), sorte: passage.sorte, ceinture: ceintureDuGrade(passage.ceinture), visee: CEINTURES[cibleDeDepart ?? Math.min(passage.ceinture + 1, CEINTURES.length - 1)] })),
     });
   serie.rendu = () => {
     const lignes = essais.map((candidat, essai) => {
@@ -85,7 +86,7 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
 <table class="banc-tableau"><tr><th>Profil</th><th>Niv.</th><th>Réfl.</th><th>Variantes</th><th>PZL</th></tr>${lignes.join('')}</table>
 <h3>Les jeux</h3>${journaux.join('') || '<p class="note-reglages">Aucun jeu fini pour l’instant.</p>'}`;
     }
-    return `<p class="note-reglages">Chaque profil part de la blanche et suit les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} » contre la machine de chaque grade ; le passage s'arrête à sa première régression (ou au sommet, ou faute de jeu), et sa plus haute ceinture lui est attribuée.${depart} La machine d'un grade prend ses coups dans le livre, comme contre un joueur ; entre IA, une partie nulle se rejoue (3 essais) et, si elle le reste, compte comme réussie. Sans pendule : chaque IA réfléchit sa réflexion max.</p>
+    return `<p class="note-reglages">Chaque profil part sans ceinture (la blanche à gagner d'abord) et suit les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} » contre la machine de chaque grade ; le passage s'arrête à sa première régression (ou au sommet, ou faute de jeu), et sa plus haute ceinture lui est attribuée.${depart} La machine d'un grade prend ses coups dans le livre, comme contre un joueur ; entre IA, une partie nulle se rejoue (3 essais) et, si elle le reste, compte comme réussie. Sans pendule : chaque IA réfléchit sa réflexion max.</p>
 <table class="banc-tableau"><tr><th>Profil</th><th>Niv.</th><th>Réfl.</th><th>Variantes</th><th>PZL</th></tr>${lignes.join('')}</table>
 <h3>Les jeux</h3>${journaux.join('') || '<p class="note-reglages">Aucun jeu fini pour l’instant.</p>'}`;
   };

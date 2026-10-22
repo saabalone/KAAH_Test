@@ -12,7 +12,7 @@
 // (moteur/historique-reglages.js), CLES_POIDS_IA_V2
 // (ia-evaluation-v2.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), CLES_POIDS_IA_V5
 // (ia-evaluation-v5.js), NOMS_STYLES_IA, lireMachine (ia.js),
-// REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA (ia-groupes.js) viennent de fichiers charges avant
+// REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA, groupeDuReglage (ia-groupes.js) viennent de fichiers charges avant
 // celui-ci.
 
 // Ce qu'une version retient, dans l'ordre ou Reglages le montre.
@@ -101,9 +101,19 @@ function texteReglageIA(cle, valeur) {
 
 // Ses reglages, un par ligne, ceux qu'il a seulement (saab, 2026-10-18 : « avoir les
 // réglages en une colonne au survol des profils IA ») : « Gain : 800 ».
+// Chaque groupe sous son titre (saab, 2026-10-22 : « au survol du menu des profils IA, il n'y a
+// pas non plus le code couleur des groupes » — une infobulle n'a pas de couleurs ; moteur/ia-groupes.js).
 function lignesDesReglagesIA(profil) {
   const valeurs = valeursReglagesIA(profil);
-  return CLES_REGLAGES_IA.filter((cle) => valeurReglageIA(valeurs, cle) !== undefined).map((cle) => `${LIBELLES_REGLAGES_IA[cle]} : ${texteReglageIA(cle, valeurReglageIA(valeurs, cle))}`);
+  const lignes = [];
+  let groupeEnCours = null;
+  for (const cle of CLES_REGLAGES_IA.filter((autre) => valeurReglageIA(valeurs, autre) !== undefined)) {
+    const groupe = groupeDuReglage(cle);
+    if (groupe && groupe !== groupeEnCours) lignes.push(`── ${groupe.libelle} ──`);
+    groupeEnCours = groupe;
+    lignes.push(`${LIBELLES_REGLAGES_IA[cle]} : ${texteReglageIA(cle, valeurReglageIA(valeurs, cle))}`);
+  }
+  return lignes;
 }
 
 // Ce qu'un profil IA retient, pour le moteur commun des versions.

@@ -62,7 +62,10 @@ async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, es
 
 // Un PZL du grade : l'IA en Noir a l'aller, en Blanc a la revanche — elle attaque avec le
 // camp gagnant, defend sinon (moteur/entrainement.js, attaqueDansLePuzzle) ; la machine ne cherche que les tours qui restent, sans elagage (comme
-// contre un joueur), l'IA avec ses propres reglages. Renvoie { reussi (moteur,
+// contre un joueur), l'IA avec ses propres reglages, mais elle non plus pas plus loin que les
+// tours qui restent — comme la machine d'une partie face a un PZL (interface/ia.js, aide.plis).
+// Saab, 2026-10-22 : KAI++8 « échoue sur PZL_E_0005 » : a 8 demi-coups, l'elagage jette a la
+// racine le gain en 3 (d4b4) et elle joue un gain en 5, trop tard pour le PZL. Renvoie { reussi (moteur,
 // issueDuPuzzle), issue } ou null (arretee).
 async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, controle, suivi) {
   let etat = puzzle.position;
@@ -75,7 +78,7 @@ async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, contr
     const iaAuTrait = etat.joueurAuTrait === campDuSens(jeu.sens);
     const coupsDuGagnant = coups.filter((_, rang) => rang % 2 === (puzzle.campGagnant === 'blanc' ? 1 : 0)).length;
     const plis = Math.min(NIVEAU_MAX_DES_PUZZLES, plisUtilesDuPuzzle(puzzle.toursMaximum, coupsDuGagnant, attaque));
-    const reglage = iaAuTrait ? candidat : reglageDuBancPourLaMachine(machineDesCeintures({ niveau: plis, elagage: options.pzlSansElagage ? 0 : ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE, reflexionMax: options.reflexionPzl, livre: false }));
+    const reglage = iaAuTrait ? { ...candidat, niveau: Math.min(candidat.niveau, plis) } : reglageDuBancPourLaMachine(machineDesCeintures({ niveau: plis, elagage: options.pzlSansElagage ? 0 : ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE, reflexionMax: options.reflexionPzl, livre: false }));
     suivi({ coup: coups.length + 1, camp: iaAuTrait ? 'essai' : 'machine', debut: performance.now(), profondeur: null, evaluation: null });
     const texte = await kai.chercher({
       position: ecrirePosition(etat),

@@ -5,7 +5,7 @@
 // celles d'avant (moteur/entrainement-serie.js, precedente). Verte, sans ronds, sans
 // proprietaire.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES (moteur/entrainement.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, ceintureDuGrade (moteur/entrainement.js),
 // proprietaireDeLAppareil (interface/noms-connus.js), parcoursDuJoueur
 // (interface/entrainement-partie.js) viennent de fichiers charges avant celui-ci.
 
@@ -35,8 +35,9 @@ function colorerIconeEntrainement(bouton) {
   }
   const libelle = (sorte) => {
     const ceinture = CEINTURES[parcours[sorte].ceinture];
+    if (!ceinture) return 'sans ceinture'; // pas encore la blanche (moteur/entrainement-serie.js)
     return ceinture.dan ? ceinture.nom : `ceinture ${ceinture.nom.toLowerCase()}`;
   };
-  bouton.style.setProperty('--couleur-ceinture', CEINTURES[Math.min(parcours.variantes.ceinture, parcours.pzl.ceinture)].couleur);
+  bouton.style.setProperty('--couleur-ceinture', ceintureDuGrade(Math.min(parcours.variantes.ceinture, parcours.pzl.ceinture)).couleur);
   bouton.title = `Entraînement / Ceinture — ${nom} : ${libelle('variantes')} en Variantes, ${libelle('pzl')} en PZL`;
 }

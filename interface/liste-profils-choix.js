@@ -11,7 +11,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : NOMS_STYLES_IA
 // (moteur/ia.js), choisirVersionIA, libelleDateHistoriqueIA
 // (moteur/historique-profil-ia.js), listerProfilsIA, trouverProfilIA,
-// libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA
+// libelleProfilIA, nomDuProfilIAParDefaut (interface/profils-ia.js), colorerListeProfilsIA
 // (interface/couleurs-ia.js) viennent de fichiers charges avant celui-ci.
 
 const SEPARATEUR_VERSION_PROFIL = '#v';
@@ -44,7 +44,8 @@ function optionDeProfil(valeur, texte) {
 // Remplit `select` : les profils du style `filtreStyle` (tous si vide), chacun
 // suivi de ses anciennes versions ; `profilGarde`, un profil qui n'existe plus
 // (celui d'une machine deja en jeu), en tete. Renvoie la valeur choisie :
-// `voulue` si elle est dans la liste, sinon la premiere.
+// `voulue` si elle est dans la liste, sinon l'IA par defaut (saab, 2026-10-22 : « au chargement
+// elles ne sont pas par défaut dans les champs des boites »), sinon la premiere.
 function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
   const options = [];
   if (profilGarde && !trouverProfilIA(profilGarde)) options.push(optionDeProfil(profilGarde, profilGarde));
@@ -64,7 +65,8 @@ function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
   }
   select.replaceChildren(...options);
   const valeurs = options.map((option) => option.value);
-  select.value = valeurs.includes(voulue) ? voulue : (valeurs[0] ?? NOMS_STYLES_IA.normal);
+  const parDefaut = nomDuProfilIAParDefaut();
+  select.value = valeurs.includes(voulue) ? voulue : valeurs.includes(parDefaut) ? parDefaut : (valeurs[0] ?? NOMS_STYLES_IA.normal);
   colorerListeProfilsIA(select);
   return select.value;
 }

@@ -14,7 +14,7 @@
 // ceinture ; en PZL SANS elagage (la meilleure defense, ou la meilleure attaque quand
 // le joueur defend), assez profond pour voir la fin du puzzle.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : parcoursNeuf,
+// Pas d'import ni d'export (voir moteur/plateau.js) : parcoursNeuf, parcoursAJour,
 // apresUnResultat, tirerPropositions (moteur/entrainement-serie.js),
 // pendulesDeLaCeinture, pendulesDuPuzzle, positionAvecHandicap (moteur/entrainement-reglages.js),
 // campDuSens, attaqueDansLePuzzle (moteur/entrainement.js),
@@ -79,7 +79,8 @@ function ajouterSupplementDeLaMachine(joueur, camp, secondes) {
 // Un parcours enregistre avant le 2026-10-10 recoit les champs qui lui manquent (saab :
 // la boite ne s'ouvrait plus avec ses parcours d'essai).
 function parcoursDuJoueur(joueur, sorte) {
-  return { ...parcoursNeuf(), ...lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {})[joueur]?.[sorte] };
+  // Un parcours d'avant le 2026-10-22 encore a la blanche donnee repart sans ceinture (parcoursAJour).
+  return parcoursAJour({ ...parcoursNeuf(), ...lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {})[joueur]?.[sorte] });
 }
 function enregistrerParcours(joueur, sorte, parcours) {
   const tous = lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {});
