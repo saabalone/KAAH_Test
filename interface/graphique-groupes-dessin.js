@@ -27,8 +27,12 @@ const nombreArrondi = (valeur) => String(Math.round(valeur));
 // Les courbes de `courbes[debut..fin]` (`fenetre`), le coup `rang` marque ; l'axe vertical
 // de `bas` a `haut` (toute la ligne : il ne bouge pas quand la fenetre defile).
 // `debutProjete` : le rang de la premiere position d'une sequence proposee (ce qui suit
-// sa position de depart se dessine en pointille), ou null.
-function svgDesCourbes(courbes, rang, { debut, fin }, { bas, haut, enPourcentage, debutProjete = null }) {
+// sa position de depart se dessine en pointille), ou null. `ejections` : [{ rang, camp }] (moteur/
+// ia-groupes.js, ejectionsDeLaLigne), un trait pointille vertical chacune (saab, 2026-10-21) — vert
+// quand l'adversaire de `camp` (celui du graphique) perd une bille, rouge quand c'est `camp`.
+const COULEUR_EJECTION_GAGNEE = '#3fcf7a';
+const COULEUR_EJECTION_PERDUE = '#e04848';
+function svgDesCourbes(courbes, rang, { debut, fin }, { bas, haut, enPourcentage, debutProjete = null, ejections = [], camp = null }) {
   const etendue = haut - bas || 1;
   const largeurUtile = LARGEUR_GRAPHIQUE - MARGE_GAUCHE_GRAPHIQUE - MARGE_GRAPHIQUE;
   const hauteurUtile = HAUTEUR_GRAPHIQUE - 2 * MARGE_GRAPHIQUE;
@@ -49,9 +53,17 @@ function svgDesCourbes(courbes, rang, { debut, fin }, { bas, haut, enPourcentage
     const coupure = debutProjete === null ? points.length : Math.min(points.length, Math.max(0, debutProjete - debut));
     return `${trait(points.slice(0, coupure), false)}${trait(points.slice(Math.max(0, coupure - 1)), coupure < points.length)}${ronds}`;
   });
+  const traitsDesEjections = ejections
+    .filter((ejection) => ejection.rang >= debut && ejection.rang <= fin)
+    .map(({ rang: rangEjection, camp: perdant }) => {
+      const couleur = perdant === camp ? COULEUR_EJECTION_PERDUE : COULEUR_EJECTION_GAGNEE;
+      const qui = perdant === 'noir' ? 'Noir' : 'Blanc';
+      return `<line x1="${x(rangEjection)}" x2="${x(rangEjection)}" y1="${MARGE_GRAPHIQUE / 2}" y2="${HAUTEUR_GRAPHIQUE - MARGE_GRAPHIQUE / 2}" stroke="${couleur}" stroke-width="1.5" stroke-dasharray="4 4"><title>Coup ${rangEjection} : ${qui} perd une bille</title></line>`;
+    })
+    .join('');
   const repere = `<line x1="${x(rang)}" x2="${x(rang)}" y1="${MARGE_GRAPHIQUE / 2}" y2="${HAUTEUR_GRAPHIQUE - MARGE_GRAPHIQUE / 2}" stroke="#cc6a00" stroke-width="2" />`;
   const coups = [debut, fin].map((coup, i) => `<text x="${x(coup)}" y="${HAUTEUR_GRAPHIQUE - 3}" fill="#aaa" font-size="11" text-anchor="${i === 0 ? 'start' : 'end'}">coup ${coup}</text>`).join('');
-  return `<svg viewBox="0 0 ${LARGEUR_GRAPHIQUE} ${HAUTEUR_GRAPHIQUE}" class="graphique-groupes">${graduations.join('')}${zero}${lignes.join('')}${repere}${coups}</svg>`;
+  return `<svg viewBox="0 0 ${LARGEUR_GRAPHIQUE} ${HAUTEUR_GRAPHIQUE}" class="graphique-groupes">${graduations.join('')}${zero}${traitsDesEjections}${lignes.join('')}${repere}${coups}</svg>`;
 }
 
 // Le rang du coup sous l'abscisse `fraction` (0 : bord gauche du dessin, 1 : bord droit).

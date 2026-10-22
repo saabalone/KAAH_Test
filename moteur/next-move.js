@@ -140,3 +140,20 @@ function obtenirConseils(base, texteBrutPosition, joueurAuTrait) {
     return [];
   }
 }
+
+// Les conseils VUS DU CAMP AU TRAIT (saab, 2026-10-22 : « dans le banc tu tirais aussi des coups
+// perdants d'ouverture, il vaudrait mieux choisir les verts et gris, pas les rouges ») : la base
+// compte les parties gagnees par Noir (nb_W) et par Blanc (nb_L), comme KAAWA (mesure sur ses coups
+// qui ejectent la 6e bille, moteur/parties-base-coups.js) ; quand Blanc joue, ses victoires sont
+// donc les defaites de la base. Ici, victoires et defaites sont toujours celles du camp au trait,
+// et les coups tries par ses victoires : le panneau (« Gagné, Nul, Perdu »), le livre des
+// machines (moteur/ia.js) et le banc (moteur/banc-essais.js) les lisent ainsi.
+function conseilsDuCampAuTrait(base, texteBrutPosition, joueurAuTrait) {
+  const conseils = obtenirConseils(base, texteBrutPosition, joueurAuTrait);
+  const vus = joueurAuTrait === 'blanc' ? conseils.map((conseil) => ({ ...conseil, victoires: conseil.defaites, defaites: conseil.victoires })) : conseils;
+  return [...vus].sort((a, b) => b.victoires - a.victoires);
+}
+
+// Un coup vert ou gris (interface/next-move-lignes.js, classeDominanceConseil) : ses victoires au
+// moins autant que ses defaites et ses nulles — jamais un coup rouge (perdant) ni bleu (nul).
+const coupGagnantOuEgal = ({ victoires, defaites, nulles }) => victoires >= defaites && victoires >= nulles;

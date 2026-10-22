@@ -9,9 +9,10 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 const PHASE_KAAH_TEST = 32;
-const VERSION_KAAH_TEST = 26;
+const VERSION_KAAH_TEST = 27;
 // Les versions de travail entre deux publications (saab, 2026-10-02 : on ne
-// publie sur KAAH_Test que quand il le dit) : bis, ter... — vide pour publier
+// publie sur KAAH_Test que quand il le dit) : .2, .3... (saab, 2026-10-22, au lieu de
+// bis, ter...) — vide pour publier
 // (preparer-kaah-test.js le refuse sinon). Le nom change quand meme : un
 // service worker local voit la nouveaute.
 const SUFFIXE_VERSION_KAAH_TEST = '';

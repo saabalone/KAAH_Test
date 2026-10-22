@@ -60,7 +60,7 @@ function titreSurDeuxLignes(nom, reglage) {
   if (reglage !== '') th.append(document.createElement('br'), reglage);
   return th;
 }
-const texteDuTempsMax = (secondes) => (Number.isFinite(secondes) ? `${String(secondes).replace('.', ',')} s` : undefined);
+const texteDuTempsMax = (secondes) => (secondes === REFLEXION_SANS_LIMITE_S ? '∞' : Number.isFinite(secondes) ? `${String(secondes).replace('.', ',')} s` : undefined);
 
 function enteteDeLaRecherche(cles, { poids, reflexionMax }) {
   const tr = document.createElement('tr');

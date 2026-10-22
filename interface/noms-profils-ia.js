@@ -68,14 +68,15 @@ function infobulleDuProfilIA(profil) {
   return `${libelleProfilIA(profil)} = ${profil.style === 'agressif' ? 'Agr' : profil.style === 'defensif' ? 'Def' : 'Nor'} ${suffixeDeVersionIA(profil)}${ancien}\n\n${lignesDesReglagesIA(profil).join('\n')}`;
 }
 
-// L'IA par defaut en orange, partout ou un profil se montre (saab, 2026-10-18 : « mettre en
-// orange l'IA par défaut, partout » ; styles.css, .profil-ia-par-defaut) : `nom`, le nom
+// L'IA par defaut en couleur, partout ou un profil se montre (saab, 2026-10-18 : « mettre en
+// orange l'IA par défaut, partout » ; en marron depuis le 2026-10-22, l'orange disant deja
+// « retouche » ; styles.css, .profil-ia-par-defaut) : `nom`, le nom
 // du profil de l'element (une valeur de liste « nom#v3 » : son profil).
 function marquerSiProfilParDefaut(element, nom) {
   element.classList.toggle('profil-ia-par-defaut', String(nom).split('#v')[0] === nomDuProfilIAParDefaut());
 }
 
-// Une liste de profils : fermee, elle est orange quand l'IA par defaut y est choisie.
+// Une liste de profils : fermee, elle est marron quand l'IA par defaut y est choisie.
 function suivreLeProfilParDefaut(select) {
   marquerSiProfilParDefaut(select, select.value);
   if (select.dataset.suitLeProfilParDefaut) return;

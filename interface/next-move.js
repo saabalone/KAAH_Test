@@ -57,7 +57,7 @@
 // rouge), jamais celle de la dominance du coup — deux echelles de couleur
 // differentes, cote a cote (signale par saab).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : obtenirConseils
+// Pas d'import ni d'export (voir moteur/plateau.js) : conseilsDuCampAuTrait
 // vient de moteur/next-move.js, dessinerFlechesConseils/
 // effacerFlechesConseils de rendu/conseils.js, ligneDeConseil, flechesDesConseils
 // d'interface/next-move-lignes.js — tous charges avant celui-ci dans index.html.
@@ -146,7 +146,7 @@ function demarrerConseils(svg, elements, obtenirBase, obtenirEtatActuel, surCoup
 
     elements.panneau.hidden = false;
     elements.bouton.classList.add('bouton-actif');
-    conseilsActuels = obtenirConseils(obtenirBase(), position, joueurAuTrait);
+    conseilsActuels = conseilsDuCampAuTrait(obtenirBase(), position, joueurAuTrait);
     rafraichirListe();
     rafraichirFleches();
   }

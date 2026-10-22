@@ -4791,6 +4791,11 @@ select option:not(.reglage-modifie, .reglage-valide-dernier, .reglage-valide-anc
   fill: #ffe14d;
 }
 
+/* Une valeur par defaut (interface/nom-machine-couleurs.js) : le marron, eclairci. */
+.nom-joueur .nom-texte .nom-style-defaut {
+  fill: #f0c48e;
+}
+
 /* Les noms des colonnes restent en haut quand le tableau defile (saab,
    2026-10-02 : « figer les noms des colonnes Reflexion / 1er coup ») : le fond
    du tableau sous eux, pour que les lignes passent dessous sans se melanger. */
@@ -5355,12 +5360,6 @@ svg.dessin-aire {
 
 .conseil-temps-niveau.conseil-trop-court {
   color: #e0832a;
-}
-
-.note-moteur-choix {
-  margin: 2px 0;
-  color: #cc6a00;
-  font-size: 12px;
 }
 
 /* La case devant chaque poids d'un profil IA (saab, 2026-10-07 ;
@@ -6409,9 +6408,16 @@ label[title] {
 /* LabAl : ce qu'est devenue la retouche de l'essai, en fin de serie (interface/banc-essais-reglage.js). */
 .banc-validation-auto { color: #e0832a; font-weight: bold; }
 
-/* L'IA par defaut, en orange partout ou un profil se montre (interface/noms-profils-ia.js,
-   marquerSiProfilParDefaut) : avant les couleurs de ses reglages. */
-.profil-ia-par-defaut, option.profil-ia-par-defaut, select.profil-ia-par-defaut { color: #e0832a !important; font-weight: bold; }
+/* Les valeurs PAR DEFAUT en marron (saab, 2026-10-22 : l'orange dit deja « retouche pas
+   encore validee », le jaune « validee il y a longtemps », le violet est aux branches) :
+   l'IA par defaut partout ou un profil se montre (interface/noms-profils-ia.js,
+   marquerSiProfilParDefaut), avant les couleurs de ses reglages ; la reflexion et
+   l'elagage d'une machine (interface/choix-joueurs.js) ; les morceaux de son nom
+   (interface/nom-machine-couleurs.js). */
+.profil-ia-par-defaut, option.profil-ia-par-defaut, select.profil-ia-par-defaut { color: #c8925c !important; font-weight: bold; }
+input.valeur-par-defaut, input.valeur-par-defaut::placeholder, span.valeur-par-defaut { color: #c8925c; font-weight: bold; }
+/* « ∞ » (sans limite), le champ de reflexion vide : bien lisible, pas en gris pale. */
+.choix-reflexion-max::placeholder { color: #ddd; opacity: 1; font-weight: bold; }
 
 /* LabAl, partie en cours : le camp qui cherche, vert si son evaluation est positive, rouge si negative. */
 .banc-eval-positive { color: #3fcf7a; font-weight: bold; }
@@ -6451,3 +6457,25 @@ label[title] {
 .bouton-pendule.pause-machine-demandee .pendule-camp { fill: #e4e4e4; }
 .bouton-pendule.coup-en-attente .cadre-pendule { fill: var(--vert-demande); }
 .bouton-pendule.coup-en-attente .pendule-camp { fill: #e4e4e4; }
+
+/* Deux choix egaux (le camp d'une partie par correspondance) : sans couleur. */
+#bouton-confirmer-suppression.confirmation-neutre { background: #3a3a3a; border-color: #555; color: #e4e4e4; }
+
+/* Valider de Profil IA (saab, 2026-10-21) : sa barre reste visible en bas de Reglages ;
+   orange juste apres la validation (.bouton-valide), meme grise. */
+.barre-valider-profil-ia { position: sticky; bottom: 0; z-index: 3; background: var(--couleur-fond-fenetre, #595959); padding: 4px 0; }
+.bouton-dialogue.bouton-valide { background: #cc6a00; border-color: #cc6a00; color: #fff; opacity: 1; }
+
+/* Le choix des joueurs (saab, 2026-10-21 : « mettre Noir dans un encadré noir et Blanc dans un
+   blanc, et aussi mettre Noir en dessous de Blanc, pour être cohérent avec la position sur le
+   plateau ») : Blanc en haut, Noir en bas, comme leurs billes ; le nom du camp sur sa couleur. */
+.section-adversaire:not([hidden]) { display: flex; flex-direction: column; }
+.section-adversaire > .choix-joueur[data-camp='blanc'] { order: 1; }
+.section-adversaire > .choix-joueur[data-camp='noir'] { order: 2; border-top: 1px solid #3a3a3a; margin-top: 6px; }
+.section-adversaire > .choix-joueur + .choix-joueur[data-camp='blanc'] { border-top: none; margin-top: 0; }
+.choix-joueur[data-camp] > .ligne-choix-machine:first-child > span { box-sizing: border-box; padding: 2px 8px; border-radius: 4px; text-align: center; font-weight: bold; }
+.choix-joueur[data-camp='noir'] > .ligne-choix-machine:first-child > span { background: #111; color: #f2f2f2; border: 1px solid #888; }
+.choix-joueur[data-camp='blanc'] > .ligne-choix-machine:first-child > span { background: #f2f2f2; color: #111; border: 1px solid #888; }
+
+/* Fermer des panneaux d'une bille et de l'aire (saab, 2026-10-21) : en vert, comme les autres Fermer. */
+.entete-panneau-bille .bouton-fermer-panneau { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }

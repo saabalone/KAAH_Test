@@ -70,15 +70,21 @@ function demarrerConfirmation(elements) {
   // #bouton-nouvelle-partie), garder "Supprimer" partout aurait ete faux.
   // `refus` (facultatif, phase 23bis) : { texte, surRefus } — pour une vraie
   // question a deux reponses (« Mini PZL » / « Garder PZL »), ou le refus fait
-  // lui aussi quelque chose. Par defaut, "Refuser" ne fait que fermer ; `refus.danger` : le
-  // refus en rouge. `confirmerVert` : la confirmation n'efface rien, elle est en vert (ce
-  // qui attend un geste) — l'alerte des ceintures, interface/alerte-ceintures.js.
-  function demander(message, surConfirmation, texteConfirmer, refus = {}, { confirmerVert = false } = {}) {
+  // lui aussi quelque chose. Par defaut, "Refuser" ne fait que fermer.
+  // Les couleurs (saab, 2026-10-19 : « toujours mettre en vert les boutons qui demandent une
+  // validation sans danger, et en rouge ce qui peut être dangereux : chargement si on n'a pas
+  // de crédit, effacement de données ») : par defaut la confirmation est dangereuse (rouge)
+  // et le refus, sans danger, en vert ; `confirmerVert` : la confirmation n'efface rien
+  // (vert), le refus reste neutre ; `refus.danger` : le refus en rouge ; `neutre` : deux
+  // choix egaux, sans couleur.
+  function demander(message, surConfirmation, texteConfirmer, refus = {}, { confirmerVert = false, neutre = false } = {}) {
     elements.message.textContent = message;
     elements.confirmer.textContent = texteConfirmer ?? 'Supprimer';
     elements.refuser.textContent = refus.texte ?? 'Refuser';
-    elements.confirmer.classList.toggle('confirmation-verte', confirmerVert);
-    elements.refuser.classList.toggle('bouton-danger', Boolean(refus.danger));
+    elements.confirmer.classList.toggle('confirmation-verte', confirmerVert && !neutre);
+    elements.confirmer.classList.toggle('confirmation-neutre', neutre);
+    elements.refuser.classList.toggle('bouton-danger', Boolean(refus.danger) && !neutre);
+    elements.refuser.classList.toggle('bouton-a-faire', !confirmerVert && !refus.danger && !neutre);
     rappelEnCours = surConfirmation;
     rappelDeRefus = refus.surRefus ?? null;
     elements.dialogue.showModal();

@@ -76,6 +76,11 @@ function demarrerReglagesIA(elements) {
     elements.rubrique.classList.toggle('rubrique-modifiee', elements.rubrique.querySelector('.reglage-modifie') !== null);
     for (const [nom, classe] of Object.entries(CLASSES_RUBRIQUE_IA)) elements.rubrique.classList.toggle(classe, duProfil === nom);
     elements.valider.disabled = elements.abandonner.disabled = brouillon === null;
+    // Saab, 2026-10-21 : « le btn Valider de Profil IA ne passe pas en vert qd on modifie, ni en
+    // orange qd validé » — vert tant qu'une retouche attend ; orange juste apres Valider, jusqu'a
+    // la retouche suivante ou un autre profil.
+    elements.valider.classList.toggle('bouton-a-faire', brouillon !== null);
+    if (brouillon !== null) elements.valider.classList.remove('bouton-valide');
   }
 
   function remplir() {
@@ -121,6 +126,7 @@ function demarrerReglagesIA(elements) {
   }
 
   function choisir(nom) {
+    elements.valider.classList.remove('bouton-valide');
     nomActuel = nom;
     brouillon = null;
     retouchesPrecedentes = [];
@@ -154,6 +160,7 @@ function demarrerReglagesIA(elements) {
     // Le nom suit la version (saab, 2026-10-02 et 03) : Normal_v3 ; un profil integre en
     // devient un nouveau (interface/profils-ia.js).
     choisir(validerUneRetoucheDuProfilIA(profilActuel(), brouillon, formaterDateKAAWA(new Date())));
+    elements.valider.classList.add('bouton-valide');
   });
 
   elements.abandonner.addEventListener('click', () => choisir(nomActuel));

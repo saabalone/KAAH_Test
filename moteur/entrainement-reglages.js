@@ -15,8 +15,8 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLES_DE_SERIE_PAR_DEFAUT,
 // CEINTURES (moteur/entrainement.js), TEMPS_SANS_LIMITE_S (moteur/pendules.js),
-// lirePosition, ecrirePosition
-// (moteur/notation.js) viennent de fichiers charges avant celui-ci.
+// lirePosition, ecrirePosition (moteur/notation.js), tousLesCoupsLegaux (moteur/regles.js),
+// couleursDuPlateau, appliquerCoup (moteur/partie.js) viennent de fichiers charges avant celui-ci.
 
 const SECONDES_PAR_MINUTE = 60;
 const TEMPS_DE_LA_MACHINE_S = 5 * SECONDES_PAR_MINUTE;
@@ -109,9 +109,19 @@ function pendulesDuPuzzle(reglages, grade, campDuJoueur) {
 // Le handicap (les ceintures rouges) : le compteur d'ejection du joueur part de
 // `billes` de plus, ses billes restent sur le plateau — comme les variantes
 // « handi_score » de KAAWA (CLAUDE.md : la victoire se lit sur le compteur).
+// Pas de handicap (saab, 2026-10-22) sur une position qui part avec des billes deja ejectees — la
+// Marguerite -5-5 (« ce serait perdu d'avance »), la -4-4 (« trop difficile ») — ni quand une
+// bille est ejectable des le 1er coup (« il faut enlever Handi »).
+function handicapPermis(etat) {
+  if (etat.billesEjecteesNoires > 0 || etat.billesEjecteesBlanches > 0) return false;
+  const ejectees = (apres) => apres.billesEjecteesNoires + apres.billesEjecteesBlanches;
+  return ['noir', 'blanc'].every((camp) => tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), camp).every((coup) => ejectees(appliquerCoup({ ...etat, joueurAuTrait: camp }, coup).etat) === 0));
+}
+
 function positionAvecHandicap(texteBrut, camp, billes) {
   if (!billes) return texteBrut;
   const etat = lirePosition(texteBrut);
+  if (!handicapPermis(etat)) return texteBrut;
   const cle = camp === 'noir' ? 'billesEjecteesNoires' : 'billesEjecteesBlanches';
   return ecrirePosition({ ...etat, [cle]: etat[cle] + billes });
 }

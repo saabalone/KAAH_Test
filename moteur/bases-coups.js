@@ -4,14 +4,17 @@
 // KAA_NEXT_MOVE_REF_*.csv et retient le choix dans le reglage
 // `nextmove.bdd_file` (moteur/reglages.js).
 //
-// KAAH en embarque UNE, la _Fus (moteur/stats-symetriques.js : stats des
-// coups symetriques additionnees), a la place de l'originale de KAAWA ; les
-// autres s'importent (interface/bases-coups.js). Pur : ni DOM, ni stockage.
+// KAAH en embarque UNE : depuis le 2026-10-21 (saab : « faire …_PS_AO_MIGS_ULA_… qui regroupe
+// les 4 et le mettre par défaut pour avoir plus de conseils »), la fusion Multi de la base de
+// KAAWA (PS) et des parties d'ULA, d'abal.online (AO) et de Migs++ — les coups vus dans au moins
+// 2 parties et le 1er coup unique de chaque camp de chaque partie (generer-bases-coups.js) ; avant,
+// la _Fus de KAAWA seule, aujourd'hui KAA_NEXT_MOVE_REF_PS_Best_Stat_Fus.csv. Les autres
+// s'importent (interface/bases-coups.js). Pur : ni DOM, ni stockage.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ce fichier ne depend
 // d'aucun autre.
 
-const NOM_BASE_INTEGREE = 'KAA_NEXT_MOVE_REF_Best_Stat_Fus.csv';
+const NOM_BASE_INTEGREE = 'KAA_NEXT_MOVE_REF_PS_AO_MIGS_ULA_Multi_Best_Stat_Fus.csv';
 const ENTETE_BASE_NEXT_MOVE = 'full_posRef,next_move_Ref,nb_W,nb_L,nb_D';
 const NOMBRE_DE_COLONNES_BASE = 5;
 const MARQUE_BOM = '\uFEFF';

@@ -29,12 +29,14 @@
 // (rendu/ligne-joueur.js), NOM_CAMP (rendu/ejections.js), nomJoueurAutorise
 // (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
 // (moteur/ia.js), memesReglagesIA, CLES_REGLAGES_IA, LIBELLES_REGLAGES_IA
-// (moteur/historique-profil-ia.js), couleursDeLaMachineIA, couleurLaPlusForte
+// (moteur/historique-profil-ia.js), couleursDeLaMachineIA
 // (moteur/couleurs-profil-ia.js), trouverProfilIA, retenirProfilIAMontre (interface/profils-ia.js),
-// poserCouleurIA, nomDeLaMachineColore (interface/couleurs-ia.js),
+// poserCouleurIA (interface/couleurs-ia.js), nomColoreDeLaMachine (interface/nom-machine-couleurs.js), groupeDuReglage
+// (moteur/ia-groupes.js), groupesQuiCommencent, colorerSelonLeGroupe, ligneDeTitreDeGroupe
+// (interface/groupes-ia.js),
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
 // valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
-// ROLE_HUMAIN (interface/choix-joueurs.js), afficherNomsConnus, retenirNomConnu
+// ROLE_HUMAIN, reflexionDuChoix (interface/choix-joueurs.js), afficherNomsConnus, retenirNomConnu
 // (interface/noms-connus.js), estUnNomParDefaut (moteur/filtre-parties.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
@@ -59,7 +61,7 @@ function brancherSaisieNomJoueur(champ) {
 }
 
 // `elements` : { dialogue, titre, champ, nomsConnus (interface/noms-connus.js),
-// messageNom (le nom est obligatoire), valider, fermer, marcheMachine, boutonIA, suggestion,
+// messageNom (le nom est obligatoire), valider (vert quand il attend), fermer (rouge s'il laisse sans nom), marcheMachine, boutonIA, suggestion,
 // choixIA (le choix d'un camp, interface/choix-joueurs.js), descriptionMachine,
 // poidsMachine (<table>) }. `nomsParDefaut` : { noir, blanc }. Renvoie
 // { definirCommandeMachines } : la partie y branche celle des machines
@@ -69,6 +71,8 @@ function brancherSaisieNomJoueur(champ) {
 // `machinePermise()` : faux pendant un puzzle dans la version publiee (saab,
 // 2026-10-08 : « interdire de se servir de l'IA pour les PZL ») — les boutons IA
 // et Suggestion sont alors grises, et les toucher le dit.
+// Le tableau des poids de la machine : le reglage, sa valeur.
+const COLONNES_DES_POIDS_DE_LA_MACHINE = 2;
 const MESSAGE_MACHINE_PUZZLE = "Pas de machine dans les puzzles : à vous de trouver la solution !";
 
 function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true) {
@@ -85,7 +89,10 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const choix = choixIA.lire();
     const enJeu = machineEnJeu();
     if (choix.role === ROLE_HUMAIN) return null;
-    if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: choix.reflexionMax, livre: choix.livre });
+    if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) {
+      const elagage = choix.elagage ?? trouverProfilIA(enJeu.profil)?.elagage ?? enJeu.elagage;
+      return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, elagage });
+    }
     return machineDuChoix(choix);
   }
 
@@ -115,25 +122,30 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     // Reglages s'ouvrira sur ce profil (saab, 2026-10-07 : « faire le focus sur
     // le profil IA du joueur qui demande » ; interface/reglages-ia.js).
     if (profil) retenirProfilIAMontre(profil.nom);
-    const retouche = profil && !memesReglagesIA(profil, machine) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
-    // Les couleurs de ses poids, et celle de son style dans son nom (saab,
-    // 2026-10-02 : de la valeur jusqu'a son fichier).
+    // Un elagage force (la boite le dit deja) n'est pas une retouche du profil.
+    const retouche = profil && !memesReglagesIA(profil, { ...machine, elagage: profil.elagage }) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
+    // Les couleurs de ses poids (saab, 2026-10-02 : de la valeur jusqu'a son fichier) ; son nom
+    // en morceaux colores (interface/nom-machine-couleurs.js).
     const couleurs = couleursDeLaMachineIA(machine, profil);
     elements.descriptionMachine.replaceChildren(
-      ...nomDeLaMachineColore(machine, couleurLaPlusForte(Object.values(couleurs))),
+      ...nomColoreDeLaMachine(machine),
       ` : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`
     );
-    // Dans l'ordre de Reglages, profil IA (saab, 2026-10-07).
+    // Dans l'ordre de Reglages, profil IA (saab, 2026-10-07), groupe apres groupe, chacun sous son
+    // titre et dans sa couleur (saab, 2026-10-21 : « mettre aussi les couleurs des groupes dans IA
+    // joueur » ; interface/groupes-ia.js) ; la ligne garde la couleur de sa validation.
+    const cles = CLES_REGLAGES_IA.filter((cle) => cle in machine.poids);
+    const debuts = groupesQuiCommencent(cles, groupeDuReglage);
     elements.poidsMachine.replaceChildren(
-      ...CLES_REGLAGES_IA.filter((cle) => cle in machine.poids).map((cle) => [cle, machine.poids[cle]]).map(([cle, valeur]) => {
+      ...cles.flatMap((cle, rang) => {
         const tr = document.createElement('tr');
-        const libelle = document.createElement('td');
+        const libelle = colorerSelonLeGroupe(document.createElement('td'), groupeDuReglage(cle));
         const nombre = document.createElement('td');
         libelle.textContent = LIBELLES_REGLAGES_IA[cle];
-        nombre.textContent = valeur;
+        nombre.textContent = machine.poids[cle];
         tr.append(libelle, nombre);
         poserCouleurIA(tr, couleurs[cle]);
-        return tr;
+        return debuts[rang] ? [ligneDeTitreDeGroupe(debuts[rang], COLONNES_DES_POIDS_DE_LA_MACHINE), tr] : [tr];
       })
     );
   }
@@ -148,9 +160,11 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       bouton.title = machinePermise() ? bouton.title.replace(` — ${MESSAGE_MACHINE_PUZZLE}`, '') : `${bouton.title.replace(` — ${MESSAGE_MACHINE_PUZZLE}`, '')} — ${MESSAGE_MACHINE_PUZZLE}`;
     }
     elements.choixIA.hidden = !machine;
+    // Son elagage s'affiche force s'il n'est pas celui de son profil.
+    const elagageDuProfil = machine ? trouverProfilIA(machine.profil)?.elagage ?? 0 : 0;
     choixIA.definir(
       machine
-        ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre }
+        ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre, elagage: machine.elagage === elagageDuProfil ? null : machine.elagage }
         : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) },
       machine?.profil
     );
@@ -208,7 +222,22 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     commandeMachines?.suspendre(true);
     elements.dialogue.showModal();
     elements.champ.select();
+    actualiserLesBoutons();
   }
+  // Les couleurs de la boite (saab, 2026-10-19 : « Valider doit passer en vert dès que j'ai mis
+  // un nom, et Fermer en rouge, car si on n'a pas mis de nom et qu'on ferme, on sera obligé de
+  // revenir ») : Valider vert des que le nom est valable (pas Joueur_1) ou qu'une machine
+  // joue ; Fermer rouge tant que ce joueur humain n'a pas encore de nom enregistre.
+  function actualiserLesBoutons() {
+    const machine = commandeMachines ? machineChoisie() : machineEnJeu();
+    const nom = nomJoueurAutorise(elements.champ.value);
+    elements.valider.classList.toggle('bouton-a-faire', Boolean(machine) || (Boolean(nom) && !estUnNomParDefaut(nom)));
+    elements.fermer.classList.toggle('bouton-danger', !machineEnJeu() && estUnNomParDefaut(joueurs[campEnCours]));
+  }
+  elements.champ.addEventListener('input', actualiserLesBoutons);
+  // Un nom connu touche (interface/noms-connus.js), Humain / IA, un niveau : apres leur effet.
+  for (const evenement of ['click', 'change']) elements.dialogue.addEventListener(evenement, () => setTimeout(actualiserLesBoutons));
+
   svg.addEventListener('click', (evenement) => {
     const cadre = evenement.target.closest('.nom-fond');
     if (cadre) ouvrir(cadre.closest('.nom-joueur').dataset.camp);

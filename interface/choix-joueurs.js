@@ -1,10 +1,9 @@
 // La rubrique « Joueurs » de la boite du debut de partie (phases 29 et 32,
 // choix de saab : dans la boite du mode de pendule, qui s'ouvre deja a chaque
-// nouvelle partie) : Noir et Blanc sont chacun Humain, KAI (la machine en
-// JavaScript) ou KAI++ (la meme en C++, saab 2026-09-30) — machine contre
-// machine possible, pour comparer deux reglages ou deux moteurs —, et chaque
-// machine a son niveau, son profil IA (Reglages, interface/profils-ia.js) et
-// son temps de reflexion maximum (decimales permises : 1,2 s).
+// nouvelle partie) : Noir et Blanc sont chacun Humain ou KAI++ (la machine en C++,
+// saab 2026-09-30) — machine contre machine possible, pour comparer deux reglages —, et
+// chaque machine a son niveau, son profil IA (Reglages, interface/profils-ia.js), son
+// temps de reflexion maximum (decimales permises : 1,2 s) et son elagage.
 //
 // CET appareil retient le dernier choix : la boite revient comme on l'a
 // laissee (on rejoue souvent contre la meme machine).
@@ -15,7 +14,8 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
 // NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
-// brancherConseilDeTemps (interface/conseil-temps-ia.js),
+// REFLEXION_SANS_LIMITE_S (moteur/ia.js), brancherConseilDeTemps (interface/conseil-temps-ia.js),
+// palierVoisin, reflexionProposee (interface/reflexion-machine.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
 // libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA (interface/couleurs-ia.js),
 // lireReglagesActifs (interface/reglages-profils.js), remplirListeProfils,
@@ -25,35 +25,40 @@
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
 const CAMPS_JOUEURS = ['noir', 'blanc'];
 
-// Le choix d'un camp : { role ('humain', 'kai' ou 'kai++'), niveau, profil (son
-// nom, ou une ancienne version : interface/liste-profils-choix.js), filtreStyle
-// (le style montre dans la liste, '' : tous), reflexionMax, livre (le livre
-// d'ouvertures, saab 2026-10-01) }.
+// Le choix d'un camp : { role ('humain' ou 'kai++' ; saab, 2026-10-22 : « supprime btn KAI »),
+// niveau, profil (son nom, ou une ancienne version : interface/liste-profils-choix.js),
+// filtreStyle (le style montre dans la liste, '' : tous), reflexionMax (null : celle
+// proposee pour son niveau, interface/reflexion-machine.js), livre (le livre d'ouvertures,
+// saab 2026-10-01), elagage (null : celui du profil ; saab, 2026-10-22 : « forcer l'El dans
+// la boite IA Joueur ... simple de tester les profils contre AP ») }. KAI, la machine en
+// JavaScript, ne se choisit plus (figee, bien plus lente) : elle joue encore les parties
+// d'avant qui l'avaient.
 const ROLE_HUMAIN = 'humain';
 // Une machine proposee la premiere fois (saab, 2026-10-07 : « mettre KAI++3_Nor
 // v1 par defaut pour les IA Joueur, puis le dernier utilise ») : KAI++, niveau 3,
 // Normal ; ensuite, le dernier choix retenu (lireDerniersJoueurs).
 const MOTEUR_PROPOSE_IA = 'kai++';
 const NIVEAU_PROPOSE_IA = 3;
-const VERSION_MAX_CONSEILLEE_KAI = 2;
-// Les paliers du temps de reflexion des boutons − et + (secondes), dans les
-// bornes de lireMachine (moteur/ia.js).
-const PALIERS_REFLEXION_S = [0.5, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60];
-
-// Le palier au-dessus (sens 1) ou au-dessous (-1) de `valeur`, meme hors palier.
-function palierVoisin(valeur, sens) {
-  if (sens > 0) return PALIERS_REFLEXION_S.find((palier) => palier > valeur) ?? PALIERS_REFLEXION_S.at(-1);
-  return PALIERS_REFLEXION_S.findLast((palier) => palier < valeur) ?? PALIERS_REFLEXION_S[0];
-}
 
 const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,
   moteur: MOTEUR_PROPOSE_IA, // le dernier moteur choisi, meme redevenu humain
   niveau: NIVEAU_PROPOSE_IA,
   profil: nomDuProfilIAParDefaut(), // interface/profils-ia.js
-  reflexionMax: MACHINE_PAR_DEFAUT.reflexionMax,
+  reflexionMax: null,
   livre: MACHINE_PAR_DEFAUT.livre,
+  elagage: null,
 };
+
+// L'elagage d'un choix : le force, sinon celui de son profil.
+const elagageDuChoix = (choix) => choix.elagage ?? profilDuChoix(choix.profil)?.elagage ?? 0;
+// Sa reflexion : la choisie, sinon celle proposee pour son niveau (interface/reflexion-machine.js).
+const reflexionProposeeDuChoix = (choix) => reflexionProposee(choix.niveau, elagageDuChoix(choix) > 0);
+const reflexionDuChoix = (choix) => choix.reflexionMax ?? reflexionProposeeDuChoix(choix);
+// Une reflexion egale a celle proposee redevient « proposee » (null) : elle suivra le niveau.
+const reflexionChoisie = (choix, secondes) => (secondes === reflexionProposeeDuChoix(choix) ? null : secondes);
+// Le seul moteur qui se choisit encore (un choix retenu avec KAI, ou d'avant KAI++).
+const roleChoisi = (role) => (role === ROLE_HUMAIN || role === undefined ? ROLE_HUMAIN : MOTEUR_PROPOSE_IA);
 
 // Le livre d'ouvertures propose par defaut : celui de Reglages (rubrique
 // Machine).
@@ -72,8 +77,8 @@ function lireDerniersJoueurs() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_DERNIERS_JOUEURS) ?? 'null');
     // Un choix retenu avant KAI++ disait seulement { machine: vrai|faux }.
-    const role = (retenu) => retenu?.role ?? (retenu?.machine ? 'kai' : ROLE_HUMAIN);
-    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]) }]));
+    const role = (retenu) => roleChoisi(retenu?.role ?? (retenu?.machine ? MOTEUR_PROPOSE_IA : ROLE_HUMAIN));
+    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA }]));
   } catch {
     return { noir: { ...CHOIX_JOUEUR_PAR_DEFAUT }, blanc: { ...CHOIX_JOUEUR_PAR_DEFAUT } };
   }
@@ -117,23 +122,28 @@ function brancherChoixMachine(element, surChangement) {
   }
 
   function afficher() {
-    const { role, niveau, reflexionMax } = choix;
+    const { role, niveau } = choix;
     for (const bouton of element.querySelectorAll('[data-role]')) bouton.classList.toggle('bouton-actif', bouton.dataset.role === role);
     element.querySelector('.reglages-machine').hidden = role === ROLE_HUMAIN;
     for (const bouton of element.querySelectorAll('[data-niveau]')) {
       bouton.classList.toggle('bouton-actif', Number(bouton.dataset.niveau) === niveau);
     }
-    element.querySelector('.choix-reflexion-max').value = reflexionMax;
+    // Sans limite : le champ vide, « ∞ ». A leur valeur par defaut, en marron (saab,
+    // 2026-10-22 : « (b) en marron ») : la reflexion proposee pour son niveau (elle le
+    // suit), l'elagage de son profil.
+    const reflexion = reflexionDuChoix(choix);
+    champReflexion.value = reflexion === REFLEXION_SANS_LIMITE_S ? '' : reflexion;
+    champReflexion.classList.toggle('valeur-par-defaut', choix.reflexionMax === null);
     element.querySelector('.choix-livre').checked = choix.livre;
+    const champElagage = element.querySelector('.choix-elagage');
+    champElagage.value = choix.elagage ?? '';
+    const duProfil = profilDuChoix(choix.profil)?.elagage ?? 0;
+    // Dans le champ vide : celui du profil.
+    champElagage.placeholder = duProfil ? String(duProfil) : 'sans';
+    champElagage.classList.toggle('valeur-par-defaut', choix.elagage === null);
     // Ce que cherche le profil choisi (saab, 2026-10-03, moteur/profils-ia.js).
     element.querySelector('.description-choix-profil').textContent = profilDuChoix(choix.profil)?.description ?? '';
-    // KAI est fige (seule KAI++ progresse) : une version recente y joue, mais
-    // bien moins loin (saab, 2026-10-07 : « j'avais mis v4el10 sur KAI au lieu
-    // de KAI++ ... sans alerte »).
-    const version = profilDuChoix(choix.profil)?.version ?? VERSION_IA;
-    noteMoteur.hidden = !(role === 'kai' && version > VERSION_MAX_CONSEILLEE_KAI);
-    noteMoteur.textContent = `KAI (JavaScript, figé) joue ce profil v${version}, mais bien plus lentement : il voit moins loin. Pour les versions 3 et plus, prenez plutôt KAI++.`;
-    afficherConseil(reflexionMax);
+    afficherConseil(reflexion);
   }
   // − et + autour du temps de reflexion (saab, 2026-10-07 : sur telephone, le
   // champ n'a pas les petits triangles du PC) : de palier en palier.
@@ -146,19 +156,19 @@ function brancherChoixMachine(element, surChangement) {
     bouton.title = titre;
     bouton.addEventListener('click', (evenement) => {
       evenement.preventDefault();
-      champReflexion.value = palierVoisin(Number(champReflexion.value), sens);
-      changer({ reflexionMax: Number(champReflexion.value) });
+      changer({ reflexionMax: reflexionChoisie(choix, palierVoisin(Number(champReflexion.value), sens)) });
     });
     return bouton;
   };
   champReflexion.before(boutonPalier('−', 'Moins de temps de réflexion', -1));
-  champReflexion.after(boutonPalier('+', 'Plus de temps de réflexion', 1));
-  const noteMoteur = document.createElement('p');
-  noteMoteur.className = 'note-moteur-choix';
-  noteMoteur.hidden = true;
-  element.querySelector('.description-choix-profil').after(noteMoteur);
+  champReflexion.after(boutonPalier('+', 'Plus de temps de réflexion (après 300 s : sans limite, ∞)', 1));
+  champReflexion.placeholder = '∞';
+  // Une frappe : marron tant que c'est la reflexion proposee (vide : ∞, Number('') = 0).
+  champReflexion.addEventListener('input', () => {
+    champReflexion.classList.toggle('valeur-par-defaut', Number(champReflexion.value) === reflexionProposeeDuChoix(choix));
+  });
   // Le temps qu'il faut a ce niveau (interface/conseil-temps-ia.js).
-  const afficherConseil = brancherConseilDeTemps(champReflexion, () => ({ ...choix, elague: (profilDuChoix(choix.profil)?.elagage ?? 0) > 0 }));
+  const afficherConseil = brancherConseilDeTemps(champReflexion, () => ({ ...choix, elague: elagageDuChoix(choix) > 0 }));
 
   const changer = (retouche) => {
     choix = { ...choix, ...retouche };
@@ -175,6 +185,11 @@ function brancherChoixMachine(element, surChangement) {
     changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value) });
   });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
+  // Vide : celui du profil ; garde d'un profil a l'autre (pour les comparer au meme El).
+  element.querySelector('.choix-elagage').addEventListener('change', (evenement) => {
+    const valeur = evenement.target.value.trim();
+    changer({ elagage: valeur === '' ? null : Math.max(0, Math.round(Number(valeur)) || 0) });
+  });
   listeStyles.addEventListener('change', () => {
     const avant = choix.profil;
     choix.filtreStyle = listeStyles.value;
@@ -185,14 +200,16 @@ function brancherChoixMachine(element, surChangement) {
   return {
     definir: (nouveau, profilGarde) => {
       choix = { ...CHOIX_JOUEUR_PAR_DEFAUT, ...nouveau };
+      choix.role = roleChoisi(choix.role);
       choix.filtreStyle ??= styleDuChoix(choix.profil);
       profilGardeEnJeu = profilGarde ?? null;
       remplirProfils();
+      choix.reflexionMax = choix.reflexionMax === null ? null : reflexionChoisie(choix, choix.reflexionMax);
       afficher();
     },
     // Le choix tel qu'affiche, temps de reflexion relu dans son champ.
     lire: () => {
-      choix = { ...choix, reflexionMax: Number(element.querySelector('.choix-reflexion-max').value) };
+      choix = { ...choix, reflexionMax: reflexionChoisie(choix, Number(champReflexion.value)) };
       return { ...choix };
     },
   };
@@ -203,7 +220,8 @@ function brancherChoixMachine(element, surChangement) {
 function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
   const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
-  return machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: choix.reflexionMax, moteur: choix.role, livre: choix.livre });
+  const machine = machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), moteur: choix.role, livre: choix.livre });
+  return choix.elagage === null || choix.elagage === undefined ? machine : { ...machine, elagage: choix.elagage };
 }
 
 // `section` : la rubrique (#section-adversaire), un bloc `.choix-joueur` par
@@ -225,8 +243,8 @@ function demarrerChoixJoueurs(section) {
   function lire() {
     const choix = Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, blocs[camp].lire()]));
     const machines = { noir: machineDuChoix(choix.noir), blanc: machineDuChoix(choix.blanc) };
-    // Le temps de reflexion ramene dans ses bornes (lireMachine).
-    for (const camp of CAMPS_JOUEURS) if (machines[camp]) choix[camp].reflexionMax = machines[camp].reflexionMax;
+    // Le temps de reflexion choisi ramene dans ses bornes (lireMachine) ; celui propose le reste.
+    for (const camp of CAMPS_JOUEURS) if (machines[camp] && choix[camp].reflexionMax !== null) choix[camp].reflexionMax = machines[camp].reflexionMax;
     retenirDerniersJoueurs(choix);
     return machines.noir || machines.blanc ? machines : null;
   }

@@ -86,35 +86,36 @@ function marquerNomMachine(svg, camp, { machine, enMarche = true }) {
 function afficherNomJoueur(svg, camp, nom) {
   const groupe = svg.querySelector(`#nom-${camp}`);
   ecrireSiChange(groupe.querySelector('.nom-texte'), nom);
-  poserStyleDuNom(groupe);
+  poserCouleursDuNom(groupe);
   disposerLigneNom(groupe);
 }
 
-// L'abreviation du style d'une machine dans son nom (KAI2_Nor_5s : « Nor »),
-// dans la couleur de ses reglages (saab, 2026-10-02 ; moteur/couleurs-profil-ia.js) :
-// 'modifie', 'dernier', 'ancien', ou null — rien a colorer, ou un humain.
-// Retenue sur le groupe : un nom change ensuite (afficherNomJoueur) la garde.
-function colorerStyleDuNom(svg, camp, abreviation, couleur) {
+// Le nom d'une machine en morceaux colores (interface/nom-machine-couleurs.js) :
+// [{ texte, couleur }], couleur 'defaut' (marron), 'modifie', 'dernier', 'ancien'
+// (moteur/couleurs-profil-ia.js) ou null ; [] pour un humain. Retenus sur le groupe :
+// un nom change ensuite (afficherNomJoueur) les garde, s'il est toujours le leur.
+function colorerLeNom(svg, camp, morceaux) {
   const groupe = svg.querySelector(`#nom-${camp}`);
-  groupe.dataset.abreviation = couleur ? abreviation : '';
-  groupe.dataset.couleurStyle = couleur ?? '';
-  poserStyleDuNom(groupe);
+  groupe.dataset.morceauxColores = JSON.stringify(morceaux);
+  poserCouleursDuNom(groupe);
 }
 
-// Un <tspan> autour de l'abreviation : meme police, donc meme largeur — le
-// cadre du nom ne bouge pas.
-function poserStyleDuNom(groupe) {
+// Un <tspan> par morceau colore : meme police, donc meme largeur — le cadre du nom
+// ne bouge pas. Un nom tape a la main (pas celui des morceaux) reste sans couleur.
+function poserCouleursDuNom(groupe) {
   const texte = groupe.querySelector('.nom-texte');
   const nom = texte.textContent;
-  const { abreviation, couleurStyle } = groupe.dataset;
-  const debut = abreviation ? nom.indexOf(`_${abreviation}_`) + 1 : 0;
-  if (debut === 0) {
+  const morceaux = JSON.parse(groupe.dataset.morceauxColores || '[]');
+  if (!morceaux.some(({ couleur }) => couleur) || morceaux.map(({ texte: morceau }) => morceau).join('') !== nom) {
     if (texte.children.length > 0) texte.textContent = nom;
     return;
   }
-  const style = creerElementSVG('tspan', { class: `nom-style-${couleurStyle}` });
-  style.textContent = abreviation;
-  texte.replaceChildren(nom.slice(0, debut), style, nom.slice(debut + abreviation.length));
+  texte.replaceChildren(...morceaux.map(({ texte: morceau, couleur }) => {
+    if (!couleur) return morceau;
+    const colore = creerElementSVG('tspan', { class: `nom-style-${couleur}` });
+    colore.textContent = morceau;
+    return colore;
+  }));
 }
 
 // Dimensionne et place les cadres d'apres la largeur REELLE des textes : un

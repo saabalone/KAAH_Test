@@ -38,15 +38,16 @@ const CATEGORIES_VARIANTES = [
 ];
 
 // Les categories de puzzles : « My », puis la valeur du champ `type` de KAAWA.
+// Les Mini-PZL d'abord (saab, 2026-10-19 : « logique, c'est pour apprendre les bases »).
 const CATEGORIES_PUZZLES = [
   { cle: 'tous', libelle: 'Tous' },
   { cle: 'my', libelle: 'My' },
-  { cle: 'PZL_E', libelle: 'Easy' },
-  { cle: 'PZL_M', libelle: 'Medium' },
-  { cle: 'PZL_H', libelle: 'Hard' },
   { cle: 'Mini_PZL_E', libelle: 'Mini Easy' },
   { cle: 'Mini_PZL_M', libelle: 'Mini Medium' },
   { cle: 'Mini_PZL_H', libelle: 'Mini Hard' },
+  { cle: 'PZL_E', libelle: 'Easy' },
+  { cle: 'PZL_M', libelle: 'Medium' },
+  { cle: 'PZL_H', libelle: 'Hard' },
 ];
 
 // Les variantes de la categorie `cle`. « handi » : handi_score OU handi_bille (KAAWA,
@@ -59,8 +60,10 @@ function filtrerVariantes(variantes, cle) {
   return variantes.filter((variante) => variante.types.includes(cle));
 }
 
+const estUnMiniPuzzle = (puzzle) => String(puzzle.categorie ?? '').startsWith('Mini');
 function filtrerPuzzles(puzzles, cle) {
-  if (cle === 'tous') return puzzles;
+  // Tous : les Mini-PZL d'abord, chacun gardant son ordre.
+  if (cle === 'tous') return [...puzzles.filter(estUnMiniPuzzle), ...puzzles.filter((puzzle) => !estUnMiniPuzzle(puzzle))];
   if (cle === 'my') return puzzles.filter((puzzle) => puzzle.my);
   return puzzles.filter((puzzle) => puzzle.categorie === cle);
 }

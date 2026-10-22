@@ -61,9 +61,8 @@
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
 // phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
-// marquerNomMachine, colorerStyleDuNom (rendu/ligne-joueur.js), ABREVIATIONS_STYLES_IA
-// (moteur/ia.js), couleurDeLaMachineIA (moteur/couleurs-profil-ia.js),
-// trouverProfilIA (interface/profils-ia.js), solutionsDeLaSequence, solutionsDeLAdversaire,
+// marquerNomMachine, colorerLeNom (rendu/ligne-joueur.js), morceauxColoresDuNom
+// (interface/nom-machine-couleurs.js), solutionsDeLaSequence, solutionsDeLAdversaire,
 // cleDeSolution (moteur/sequence-prevue.js), noeudA, cheminsEgaux (moteur/arbre.js)
 // viennent de fichiers charges avant celui-ci.
 
@@ -141,12 +140,13 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
 
   // Les noms (cadre vert d'une machine) et le tableau de reflexion, montre
   // seulement s'il y a une machine a la table.
-  // L'abreviation de son style (« Nor ») dans la couleur de ses reglages.
+  // Son nom en morceaux colores : ses valeurs par defaut en marron, son style dans la
+  // couleur de ses reglages (interface/nom-machine-couleurs.js).
   function marquerNoms() {
     for (const camp of ['noir', 'blanc']) {
       const machine = machines[camp];
       marquerNomMachine(svg, camp, { machine: Boolean(machine), enMarche: enMarche[camp] });
-      colorerStyleDuNom(svg, camp, machine ? ABREVIATIONS_STYLES_IA[machine.style] : '', machine ? couleurDeLaMachineIA(machine, trouverProfilIA(machine.profil)) : null);
+      colorerLeNom(svg, camp, machine ? morceauxColoresDuNom(machine) : []);
     }
     montrerTableau();
   }
@@ -301,7 +301,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // recherche qui ne va pas plus loin que le dernier coup de l'attaquant.
     const aide = genre === 'jeu' ? aideDuPuzzle(arbre, camp) : null;
     if (aide?.coup) return jouer({ texte: aide.coup, source: 'solution', profondeur: 0, evaluation: 0, noeuds: 0, sequence: [] });
-    const pourChercher = aide?.plis ? { ...machine, niveau: Math.min(machine.niveau, aide.plis) } : machine;
+    // Hors PZL, une position calme (personne ne peut pousser) : quelques secondes suffisent
+    // (moteur/position-calme.js ; saab, 2026-10-19 : « le bloc fait chercher trop longtemps »).
+    // Sans limite (moteur/ia.js) : un temps qui ne finit jamais avant elle.
+    const sansLimite = { ...machine, reflexionMax: reflexionPourChercher(machine.reflexionMax) };
+    const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
 
     const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };
     if (machine.moteur === 'kai++') {

@@ -56,7 +56,8 @@ function ligneDuProfil(recherche) {
   );
   const entete = [`${MARQUES_CAMPS_EXPORT[recherche.camp] ?? ''} ${echapperHtml(recherche.machine)}`];
   if (recherche.version) entete.push(`IA version ${recherche.version}`);
-  if (Number.isFinite(recherche.reflexionMax)) entete.push(`${String(recherche.reflexionMax).replace('.', ',')} s max`);
+  if (recherche.reflexionMax === REFLEXION_SANS_LIMITE_S) entete.push('réflexion sans limite');
+  else if (Number.isFinite(recherche.reflexionMax)) entete.push(`${String(recherche.reflexionMax).replace('.', ',')} s max`);
   return `<p class="profil">${[...entete, ...reglages].join(' · ')}</p>`;
 }
 

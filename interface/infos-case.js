@@ -55,7 +55,8 @@ const boutonDePanneau = (texte, titre) => {
 
 // `svg` : le plateau ; `obtenirEtat()` : la position affichee ; `poidsPour(camp)` :
 // { nom, poids, version } de la machine qui juge pour ce camp.
-function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
+// `caseSurvolValeur` : la coche de Reglages du champ « valeur » du survol, ou null.
+function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null) {
   let choix = lireChoixInfosCase();
   // La bille touchee ({ notation, camp }) ou l'aire de ce camp ({ camp, cases }) ;
   // et le camp de la comparaison (meme aire), ou null.
@@ -69,8 +70,11 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   const boutonPlateau = boutonDePanneau('Plateau', 'Tout le plateau comme aire, d’un coup');
   boutonPlateau.classList.add('bouton-aire');
   const boutonChoix = boutonDePanneau('⚙', 'Choisir les lignes, les profils IA et les champs du survol');
-  const boutonFermer = boutonDePanneau('×', 'Fermer');
-  const boutonFermerComparaison = boutonDePanneau('×', 'Fermer la comparaison');
+  // Fermer, en toutes lettres et en vert (saab, 2026-10-21 : « mettre un btn Fermer en vert à la
+  // place du btn X, car pas assez visible »).
+  const boutonFermer = boutonDePanneau('Fermer', 'Fermer le panneau');
+  const boutonFermerComparaison = boutonDePanneau('Fermer', 'Fermer la comparaison');
+  for (const bouton of [boutonFermer, boutonFermerComparaison]) bouton.classList.add('bouton-fermer-panneau');
   const comparaison = creerPanneauFlottant([boutonFermerComparaison]);
   const principal = creerPanneauFlottant([boutonAire, boutonPlateau, boutonChoix, boutonFermer], () => {
     if (!comparaison.element.hidden) comparaison.collerA(principal);
@@ -90,7 +94,23 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
   const estUneCase = (notation) => Boolean(notation && COORDONNEES_DES_CASES_IA[notation]);
 
   // Le survol : interface/survol-case.js.
-  const survol = demarrerSurvolCase(svg, obtenirEtat, (cle) => choix[`survol-${cle}`] !== false, () => aire.enCours());
+  const valeurDe = (etat, notation) => {
+    const camp = etat?.plateau[notation]?.couleur;
+    if (!camp) return null;
+    const { poids, version } = poidsPour(camp);
+    return valeurDeLaBille(etat, notation, poids, version);
+  };
+  const survol = demarrerSurvolCase(svg, obtenirEtat, (cle) => choix[`survol-${cle}`] !== false, () => aire.enCours(), valeurDe);
+  // La meme coche dans Reglages (saab, 2026-10-21 : « avec coche dans Réglages et Aire »).
+  const CLE_SURVOL_VALEUR = 'survol-valeur';
+  if (caseSurvolValeur) {
+    caseSurvolValeur.checked = choix[CLE_SURVOL_VALEUR] !== false;
+    caseSurvolValeur.addEventListener('change', () => {
+      choix = { ...choix, [CLE_SURVOL_VALEUR]: caseSurvolValeur.checked };
+      retenirChoixInfosCase(choix);
+      if (!principal.element.hidden) remplir();
+    });
+  }
 
   // ---- Panneaux ----
   // Les profils dont on montre les poids : la machine du camp, puis ceux choisis.
@@ -115,6 +135,7 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour) {
         const nom = cle.startsWith('profil:') ? cle.slice('profil:'.length) : null;
         choix = nom ? { ...choix, profils: coche ? [...choix.profils, nom] : choix.profils.filter((autre) => autre !== nom) } : { ...choix, [cle]: coche };
         retenirChoixInfosCase(choix);
+        if (caseSurvolValeur) caseSurvolValeur.checked = choix[CLE_SURVOL_VALEUR] !== false;
         remplir();
       }
     );

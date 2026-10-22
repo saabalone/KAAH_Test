@@ -70,8 +70,27 @@ const PROFILS_IA_INTEGRES = Object.keys(STYLES_IA).flatMap((style) =>
 const POIDS_NORMAL_V5EL_V4 = { gain: 1000, perte: 1000, centre: 10, cohesion: 10, bordSoi: 15, bordAdverse: 15, sumito32: 21, sumito31: 12, sumito21: 7, menaceEjection: 100, fourchette: 0, gainScore: 100, perteScore: 100, compacite: 100, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22, piege: 60, sumitoVide: -20, etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1 };
 // L'issue d'une retouche du banc qui n'a pas gagne, a la fin de son nom (interface/banc-essais-reglage.js).
 const ISSUES_DU_BANC = ['=', '-'];
-// L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut).
-const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v7';
+// Normal v5ElP4_v2 de saab (2026-10-18 ; « Normal v5el_v7 ») : ses reglages, tires de son LabAl du
+// 18/10 03:59 (v5ElP4 retouche : gf 15, pf 15, cohesion 10 ; 18 parties sur 20, 2 nulles).
+const POIDS_NORMAL_V5EL_V7 = {
+  gain: 100, gainScore: 50, gainFibonacci: 15, perte: 100, perteScore: 50, perteFibonacci: 15,
+  sumito32: 3, sumito31: 2, sumito21: 1, sumitoVide: -2, menaceEjection: 20, fourchette: 2, piege: 0,
+  piegeProgressifAdverse: 2, piegeProgressifMien: 2, piegeGagnantAdverse: 500, piegeGagnantMien: 500,
+  compacite: 20, cohesion: 10, bordSoi: 15, bordAdverse: 15,
+  centre: 10, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22,
+  etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1, elagageFin: 5, elagageFinNiveau: 6,
+};
+// Normal v5ElP4_v3 (« Normal v5el_v8 »), l'IA par defaut du 19 au 20/10, et la base de v9, de
+// l'Agressif et du Defensif.
+const POIDS_NORMAL_V5EL_V8 = { ...POIDS_NORMAL_V5EL_V7, cohesion: 15, gainFibonacci: 20, perteFibonacci: 20, sumito32: 6, sumito31: 4, sumito21: 2 };
+// L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut) :
+// Normal v5ElP5 depuis le 2026-10-22 (saab : « Ok mets le P5 Agr et Nor ») — son P5, qui a battu
+// AP6 ; avant, Normal v5ElP4_v4 (du 20 au 22/10).
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v10';
+// Normal v5ElP4_v4 : la compacite a 50, la base des profils P5.
+const POIDS_NORMAL_V5EL_V9 = { ...POIDS_NORMAL_V5EL_V8, compacite: 50 };
+// Les billes poussables d'ULA (Bp, Bmp, Bpb), comme dans le P5 de saab.
+const BILLES_POUSSABLES_DU_P5 = { billesPoussables: -5, billesMultipoussables: -5, billesPoussablesBord: -7 };
 const PROFILS_IA_DE_TRAVAIL = [
   {
     nom: 'Normal v5el_v4',
@@ -105,21 +124,105 @@ const PROFILS_IA_DE_TRAVAIL = [
   // (v5ElP4 retouche : gf 15, pf 15, cohesion 10 ; 18 parties sur 20, 2 nulles). Son 2e jeu
   // de poids de sa famille : son nom s'affiche en _v2 (moteur/noms-ia.js).
   {
-    nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    nom: 'Normal v5el_v7',
     version: 5,
     livre: true,
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'normal',
     numeroDePoids: 2,
-    poids: {
-      gain: 100, gainScore: 50, gainFibonacci: 15, perte: 100, perteScore: 50, perteFibonacci: 15,
-      sumito32: 3, sumito31: 2, sumito21: 1, sumitoVide: -2, menaceEjection: 20, fourchette: 2, piege: 0,
-      piegeProgressifAdverse: 2, piegeProgressifMien: 2, piegeGagnantAdverse: 500, piegeGagnantMien: 500,
-      compacite: 20, cohesion: 10, bordSoi: 15, bordAdverse: 15,
-      centre: 10, caseE5: 0, caseD4: 0, caseC4: 0, caseC3: 0, caseB4: -15, caseB2: -15, caseA3: -20, caseA2: -20, caseA1: -22,
-      etendueCentre: 20, etendueCases: 0.5, etendueProfondeur: 1, elagageFin: 5, elagageFinNiveau: 6,
-    },
-    description: "Profil de saab (2026-10-18), l'IA par défaut : son v5ElP4 avec le gain et la perte progressifs à 15 (gf, pf) et la cohésion à 10 — 18 parties sur 20 contre v5ElP4 (2 nulles), au niveau 8 sans limite de temps.",
+    poids: POIDS_NORMAL_V5EL_V7,
+    description: "Profil de saab (2026-10-18) : son v5ElP4 avec le gain et la perte progressifs à 15 (gf, pf) et la cohésion à 10 — 18 parties sur 20 contre v5ElP4 (2 nulles), au niveau 8 sans limite de temps.",
+  },
+  // Les reglages cherches au banc en ligne de commande (essais/outils-banc ; saab,
+  // 2026-10-18 : « essayer de trouver de meilleurs réglages pour Normal v5ElP4_v2 ») : v7 +
+  // cohesion 15, gf et pf 20, sumitos x2 — au niveau 8 sans limite, 18 gagnees, 0 perdue,
+  // 2 nulles contre v7, quand v7 contre lui-meme fait 11-4 (le livre de la reference
+  // avantage l'essai).
+  {
+    nom: 'Normal v5el_v8',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    numeroDePoids: 3,
+    poids: POIDS_NORMAL_V5EL_V8,
+    description: "L'IA par défaut du 19 au 20/10/2026 : Normal v5ElP4_v2 avec la cohésion à 15, le gain et la perte progressifs à 20 (gf, pf) et les sumitos doublés — 18 parties gagnées, 0 perdue, 2 nulles contre v5ElP4_v2 au niveau 8 sans limite (v5ElP4_v2 contre elle-même : 11-4).",
+  },
+  // La compacite (saab, 2026-10-20 : « fais le 1 ») : contre AbaPro, apres le coup 20, KAI++ se
+  // dispersait (compacite 3,5 a 4 contre 2,1) ; l'IA par defaut avec la compacite a 50 bat
+  // v5ElP4_v3 12-3 (5 nulles) au niveau 8 sans limite, le livre pour les deux, puis l'Agressif
+  // v5ElP4 17-1 (2 nulles) : l'IA par defaut du 20 au 22/10. Son 4e jeu de poids : _v4.
+  {
+    nom: 'Normal v5el_v9',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    numeroDePoids: 4,
+    poids: POIDS_NORMAL_V5EL_V9,
+    description: "L'IA par défaut du 20 au 22/10/2026 : Normal v5ElP4_v3 avec la compacité à 50 au lieu de 20 — elle reste groupée. Au niveau 8 sans limite, le livre pour les deux camps : 12 parties gagnées, 3 perdues, 5 nulles contre Normal v5ElP4_v3, et 17 gagnées, 1 perdue, 2 nulles contre l'Agressif v5ElP4.",
+  },
+  // Le P5 de saab (2026-10-20 : « avec les nouveaux paramètres Bm, etc, KAI++6 gagne enfin AP6 » ;
+  // 2026-10-22 : « Ok mets le P5 Agr et Nor ») : v9 avec les billes poussables d'ULA. Au niveau 8
+  // sans limite : 8-4 (8 nulles) contre v9, jeu egal contre v9 + cohesion 20 (8-7, 5 nulles).
+  // L'IA par defaut. Le premier jeu de poids de sa famille (P5) : pas de _v.
+  {
+    nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
+    description: "L'IA par défaut (2026-10-22) : Normal v5ElP4_v4 avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7) — le P5 de saab, qui a battu AP6 6-4. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_v4.",
+  },
+  // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
+  // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
+  // — le gain x1,25 fait courir apres les ejections et perd (4-15 au niveau 8), x1,5 aussi (7-10).
+  {
+    nom: 'Agressif v5el_v8',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'agressif',
+    poids: { ...POIDS_NORMAL_V5EL_V8, menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
+    description: "L'Agressif de l'IA par défaut (2026-10-19) : Normal v5ElP4_v3 avec la menace d'éjection à 25, les sumitos à 8, 5, 3 et le bord adverse à 19 — plus de pression, le gain inchangé. 12 parties gagnées, 2 perdues, 6 nulles contre Normal v5ElP4_v3 au niveau 8 sans limite, le livre pour les deux camps.",
+  },
+  // L'Agressif P5 (saab, 2026-10-21 : « il faudrait que je teste KAI++6_Agr_30s_v5El10P5, mais on
+  // ne l'a pas encore fait ») : l'IA par defaut (v9) avec les billes poussables d'ULA (son P5, qui
+  // a battu AP6) et la pression de l'Agr. Au niveau 6 contre P5 : 3-6 (11 nulles), la meilleure
+  // de trois recettes — un style, pas une version plus forte.
+  {
+    nom: 'Agressif v5el_v9',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'agressif',
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
+    description: "L'Agressif P5 (2026-10-21) : l'IA par défaut (Normal v5ElP4_v4) avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7, comme le P5 qui a battu AP6) et la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19). Au niveau 6 contre P5 : 3 gagnées, 6 perdues, 11 nulles.",
+  },
+  // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
+  // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le
+  // livre pour les deux camps, 6 gagnees, 2 perdues, 12 nulles contre elle.
+  {
+    nom: 'Défensif v5el_v8',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'defensif',
+    poids: { ...POIDS_NORMAL_V5EL_V8, cohesion: 20, compacite: 25 },
+    description: "Le Défensif de l'IA par défaut (2026-10-19) : Normal v5ElP4_v3 avec la cohésion à 20 et la compacité à 25 — il serre son bloc. 6 parties gagnées, 2 perdues, 12 nulles contre Normal v5ElP4_v3 au niveau 8 sans limite, le livre pour les deux camps.",
+  },
+  // Le Defensif P5 (saab, 2026-10-22 : « il faudrait aussi la Def ») : P5 (l'IA par defaut) avec la
+  // cohesion a 20 et la compacite a 60. Au niveau 6 contre P5 : 2-0 (18 nulles), il ne perd pas ;
+  // avec la cohesion seule, 3-2 (15 nulles).
+  {
+    nom: 'Défensif v5el_v9',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'defensif',
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, cohesion: 20, compacite: 60 },
+    description: "Le Défensif P5 (2026-10-22) : l'IA par défaut (Normal v5ElP5) avec la cohésion à 20 et la compacité à 60 — il serre son bloc. Au niveau 6 contre Normal v5ElP5 : 2 gagnées, 0 perdue, 18 nulles.",
   },
 ];
 

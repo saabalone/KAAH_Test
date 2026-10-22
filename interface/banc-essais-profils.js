@@ -63,5 +63,5 @@ function nomDeMachineDuBanc(profil) {
   const machine = nomDeLaMachine({ moteur: 'kai++', niveau: profil.niveau, style: profil.style, reflexionMax: profil.temps, version: profil.version, elagage: profil.elagage, poids: profil.poids, numeroDesAjouts: numeroDesAjoutsDe(profil.poids), numeroDePoids: profil.numeroDePoids });
   const variation = profil.nom.includes(' · ') ? `_${profil.nom.slice(profil.nom.indexOf(' · ') + 3).replace(/[^\p{L}\p{N},+-]+/gu, '')}` : '';
   const sansLivre = profil.nom.includes(' sans livre') ? '_sansLivre' : '';
-  return `${profil.temps === TEMPS_SANS_LIMITE_BANC ? machine.replace('_0s', '_inf') : machine}${sansLivre}${variation}`;
+  return `${machine}${sansLivre}${variation}`;
 }

@@ -15,6 +15,11 @@
 //     reinitialisations, on redescend d'une ceinture ;
 //   - puis la CONFIRMATION : une victoire sur chaque ceinture sautee (saab : « il faut
 //     valider toutes les ceintures sautées »), ou, sans saut, sur celle d'en dessous ;
+//     une ceinture a confirmer qui a des jeux imposes (sautee, ou celle d'en dessous) se
+//     confirme par ceux qu'on n'a pas gagnes a la ceinture visee, tous (saab, 2026-10-18 :
+//     « faire jouer seulement celles qui diffèrent ... donc on fait la B » ; « si on saute de
+//     Blanche à Jaune, on devra confirmer tous ceux de Blanche, car Jaune fait les
+//     complémentaires ») — tous deja gagnes : confirmee d'office ;
 //   - apres une pause de plus de `joursAvantReconfirmation` jours sans jouer a son grade
 //     ou plus haut, le grade acquis est a reconfirmer aussi (saab : « il refera Noire 1
 //     dan pour valider Noire 2 Dan ; s'il échoue 3 fois cette paire, il descend »).
@@ -48,8 +53,10 @@ const REGLES_DE_SERIE_PAR_DEFAUT = Object.freeze({
 const MS_PAR_JOUR = 24 * 60 * 60 * 1000;
 const SENS_DU_JEU = ['aller', 'revanche'];
 // `aConfirmerCeintures` : les ceintures a confirmer, fixees quand la serie est complete ;
-// `aReconfirmer` : une pause trop longue, le grade acquis sera a reconfirmer.
-const SERIE_A_ZERO = Object.freeze({ enCours: {}, valides: [], reinitialisations: 0, aConfirmer: false, confirmees: [], enConfirmation: {}, aConfirmerCeintures: [], aReconfirmer: false });
+// `aReconfirmer` : une pause trop longue, le grade acquis sera a reconfirmer ;
+// `aFaireEnConfirmation` : { ceinture a confirmer : les jeux imposes a y gagner } (voir
+// plus haut), fixes eux aussi ; `jeuxConfirmes` : { ceinture : ceux deja gagnes }.
+const SERIE_A_ZERO = Object.freeze({ enCours: {}, valides: [], reinitialisations: 0, aConfirmer: false, confirmees: [], enConfirmation: {}, aConfirmerCeintures: [], aReconfirmer: false, aFaireEnConfirmation: {}, jeuxConfirmes: {} });
 
 // `precedente` (le petit rond de l'icone) : la ceinture d'avant la derniere obtenue
 // ou perdue, null au depart.
@@ -156,21 +163,54 @@ function resultatDeSerie(parcours, nom, sens, gagne, regles) {
   if (suite.valides.length < regles.jeuxParSerie) return { parcours: suite, evenement: 'jeu reussi' };
   const aConfirmer = [...new Set([...(suite.aReconfirmer ? [suite.ceinture] : []), ...(regles.confirmation === false ? [] : ceinturesSauteesOuDessous(suite))])];
   if (aConfirmer.length === 0) return ceintureObtenue(suite, gagnes, false);
-  return { parcours: { ...suite, enCours: {}, aConfirmer: true, aConfirmerCeintures: aConfirmer }, evenement: 'confirmation' };
+  const aFaireEnConfirmation = jeuxDesCeinturesAConfirmer(suite, aConfirmer, gagnes, regles);
+  const confirmation = { ...suite, enCours: {}, aConfirmer: true, aConfirmerCeintures: aConfirmer, aFaireEnConfirmation, confirmees: confirmeesDOffice(aFaireEnConfirmation) };
+  if (ceinturesAConfirmer(confirmation).length === 0) return ceintureObtenue(confirmation, gagnes, true);
+  return { parcours: confirmation, evenement: 'confirmation' };
 }
+
+// Les jeux a gagner sur chaque ceinture a confirmer qui a des imposes (`regles.imposesDe(ceinture)`,
+// moteur/entrainement-lecture.js) : ceux qu'on n'a pas gagnes a la ceinture visee.
+function jeuxDesCeinturesAConfirmer({ cible }, aConfirmer, gagnes, regles) {
+  const dejaGagnes = gagnes[cible] ?? [];
+  return Object.fromEntries(
+    aConfirmer
+      .filter((autre) => autre < cible && (regles.imposesDe?.(autre) ?? []).length > 0)
+      .map((autre) => [autre, regles.imposesDe(autre).filter((nom) => !dejaGagnes.includes(nom))])
+  );
+}
+// Les jeux qu'on peut jouer pour confirmer `ceinture` : ceux qui restent a gagner sur une
+// ceinture a jeux imposes, sinon ses `proposes` (un seul gagne suffit).
+function jeuxDeConfirmation(parcours, ceinture, proposes) {
+  const aFaire = complet(parcours).aFaireEnConfirmation[ceinture];
+  if (!aFaire) return proposes;
+  const confirmes = complet(parcours).jeuxConfirmes[ceinture] ?? [];
+  return aFaire.filter((nom) => !confirmes.includes(nom));
+}
+
+// Une ceinture a confirmer dont tout est deja gagne : confirmee d'office.
+const confirmeesDOffice = (aFaire) => Object.entries(aFaire).filter(([, noms]) => noms.length === 0).map(([ceinture]) => Number(ceinture));
 
 // Un jeu de confirmation, sur `ceinture`.
 function resultatDeConfirmation(parcours, ceinture, nom, sens, gagne, regles) {
   const avecRevanche = regles.revancheDeConfirmation ?? regles.revanche;
   const cle = `${ceinture}|${nom}`;
   const avant = { ...MANCHE_NEUVE, ...parcours.enConfirmation[cle] };
+  // Une ceinture a jeux imposes : seulement ceux qui restent a gagner.
+  const aFaire = parcours.aFaireEnConfirmation[ceinture];
+  const dejaConfirmes = parcours.jeuxConfirmes[ceinture] ?? [];
+  if (aFaire && (!aFaire.includes(nom) || dejaConfirmes.includes(nom))) return null;
   if (avecRevanche && avant[sens]) return null;
   const { jeu, issue } = suiteDUnEssai(avant, gagne, regles);
   if (issue === 'essai rate' || issue === 'rattrapage') return { parcours: { ...parcours, enConfirmation: { ...parcours.enConfirmation, [cle]: jeu } }, evenement: issue };
-  if (issue === 'reinitialiser') return reinitialiser(parcours, { confirmees: [], enConfirmation: {} }, regles);
+  if (issue === 'reinitialiser') return reinitialiser(parcours, { confirmees: confirmeesDOffice(parcours.aFaireEnConfirmation), enConfirmation: {}, jeuxConfirmes: {} }, regles);
   const manche = { ...jeu, [sens]: true };
   if (avecRevanche && !(manche.aller && manche.revanche)) return { parcours: { ...parcours, enConfirmation: { ...parcours.enConfirmation, [cle]: manche } }, evenement: 'reste la revanche' };
   const gagnes = ajouterGagne(parcours.gagnes, ceinture, nom);
+  if (aFaire && aFaire.some((autre) => autre !== nom && !dejaConfirmes.includes(autre))) {
+    const jeuxConfirmes = { ...parcours.jeuxConfirmes, [ceinture]: [...dejaConfirmes, nom] };
+    return { parcours: { ...parcours, gagnes, enConfirmation: sansCle(parcours.enConfirmation, cle), jeuxConfirmes }, evenement: 'jeu reussi' };
+  }
   const enConfirmation = Object.fromEntries(Object.entries(parcours.enConfirmation).filter(([autre]) => !autre.startsWith(`${ceinture}|`)));
   const suite = { ...parcours, gagnes, enConfirmation, confirmees: [...parcours.confirmees, ceinture] };
   if (ceinturesAConfirmer(suite).length > 0) return { parcours: suite, evenement: 'ceinture confirmee' };

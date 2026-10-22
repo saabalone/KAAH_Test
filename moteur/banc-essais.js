@@ -9,7 +9,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleursDuPlateau,
 // appliquerCoup (partie.js), ecrirePosition (notation.js), lireCoupNacre
-// (notation.js), obtenirConseils (next-move.js), SEUIL_NULLE_PAR_DEFAUT,
+// (notation.js), obtenirConseils, conseilsDuCampAuTrait, coupGagnantOuEgal (next-move.js), SEUIL_NULLE_PAR_DEFAUT,
 // compterOccurrences (nulle.js), coupDuLivre (ia.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), GROUPES_DE_L_EVALUATION_IA,
 // multiplierUnGroupe (ia-groupes.js) viennent de fichiers charges avant celui-ci.
 
@@ -114,7 +114,8 @@ function hasardDuBanc(graine) {
 function coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDejaJoues, coupsAuHasard, livreEnsuite = true) {
   if (!livre) return null;
   if (coupsDejaJoues < coupsAuHasard) {
-    const conseils = obtenirConseils(livre, ecrirePosition(etat), etat.joueurAuTrait);
+    // Seulement les verts et les gris, vus du camp au trait (saab, 2026-10-22 : « pas les rouges »).
+    const conseils = conseilsDuCampAuTrait(livre, ecrirePosition(etat), etat.joueurAuTrait).filter(coupGagnantOuEgal);
     if (conseils.length > 0) {
       const choisi = conseils[Math.floor(hasard() * conseils.length)];
       const coup = lireCoupNacre(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, choisi.coup);

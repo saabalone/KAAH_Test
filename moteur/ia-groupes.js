@@ -24,10 +24,10 @@ const GROUPES_DE_L_EVALUATION_IA = [
     cle: 'attaque',
     libelle: 'Attaque',
     couleur: '#e04848',
-    termes: ['gain', 'gainScore', 'perte', 'perteScore', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'menaceEjection', 'fourchette', 'piege'],
-    reglages: ['gain', 'gainScore', 'gainFibonacci', 'perte', 'perteScore', 'perteFibonacci', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'menaceEjection', 'fourchette', 'piege', 'piegeProgressifAdverse', 'piegeProgressifMien', 'piegeGagnantAdverse', 'piegeGagnantMien'],
+    termes: ['gain', 'gainScore', 'perte', 'perteScore', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'sumitoContre', 'billesPoussables', 'billesMultipoussables', 'billesPoussablesBord', 'billesEjectables', 'billesMultiejectables', 'menaceEjection', 'fourchette', 'piege'],
+    reglages: ['gain', 'gainScore', 'gainFibonacci', 'perte', 'perteScore', 'perteFibonacci', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'sumitoContre', 'billesPoussables', 'billesMultipoussables', 'billesPoussablesBord', 'billesEjectables', 'billesMultiejectables', 'menaceEjection', 'fourchette', 'piege', 'piegeProgressifAdverse', 'piegeProgressifMien', 'piegeGagnantAdverse', 'piegeGagnantMien'],
   },
-  { cle: 'compacite', libelle: 'Compacité', couleur: '#3a7bd5', termes: ['compacite'], reglages: ['compacite'] },
+  { cle: 'compacite', libelle: 'Compacité', couleur: '#3a7bd5', termes: ['compacite', 'groupesSepares'], reglages: ['compacite', 'groupesSepares'] },
   { cle: 'cohesion', libelle: 'Cohésion', couleur: '#3fbf5a', termes: ['cohesion', 'bordSoi', 'bordAdverse'], reglages: ['cohesion', 'bordSoi', 'bordAdverse'] },
   {
     cle: 'materiel',
@@ -40,7 +40,7 @@ const GROUPES_DE_L_EVALUATION_IA = [
 
 // Les ajouts qui reglent la recherche, pas l'evaluation (er, es, ef, fn) : listes a part,
 // apres les 4 groupes, sans courbe.
-const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau'] };
+const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau', 'elagageGarde'] };
 
 // Tous les poids et ajouts, groupe apres groupe.
 const REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA = [...GROUPES_DE_L_EVALUATION_IA, REGLAGE_DE_RECHERCHE_IA].flatMap((groupe) => groupe.reglages);
@@ -54,6 +54,20 @@ const groupeDuTerme = (terme) => GROUPES_DE_L_EVALUATION_IA.find((groupe) => gro
 // cohesion, materiel } (une position finie, sa « victoire », n'en a pas).
 function partsDesGroupes(detail) {
   return Object.fromEntries(GROUPES_DE_L_EVALUATION_IA.map((groupe) => [groupe.cle, groupe.termes.reduce((somme, terme) => somme + (detail[terme] ?? 0), 0)]));
+}
+
+// Les EJECTIONS d'une ligne (saab, 2026-10-21 : « sur le Graphique il n'y a pas les lignes
+// pointillées d'éject ») : le rang de chaque position atteinte par une ejection, et le camp qui y a
+// perdu une bille (ou plusieurs : une par rang).
+function ejectionsDeLaLigne(etats) {
+  return etats.flatMap((etat, rang) => {
+    const avant = etats[rang - 1];
+    if (!avant) return [];
+    return [
+      ...(etat.billesEjecteesNoires > avant.billesEjecteesNoires ? [{ rang, camp: 'noir' }] : []),
+      ...(etat.billesEjecteesBlanches > avant.billesEjecteesBlanches ? [{ rang, camp: 'blanc' }] : []),
+    ];
+  });
 }
 
 // Les parts a chaque position de `etats`, pour `camp`, avec `poids` et `version`.

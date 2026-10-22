@@ -107,6 +107,8 @@ function reglesDeSerieDuGrade(reglages, grade, sorte = 'variantes', typesDe = ()
     imposes,
     quotas,
     typesDe,
+    // Les imposes d'une autre ceinture (une ceinture sautee, moteur/entrainement-serie.js).
+    imposesDe: (autre) => reglages.ceintures[autre]?.[sorte]?.imposes ?? [],
   };
 }
 

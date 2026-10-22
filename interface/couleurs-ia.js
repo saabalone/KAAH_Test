@@ -4,9 +4,9 @@
 // 2026-10-02 : « on remonte les couleurs de la valeur jusqu'a son fichier »).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurDuProfilIA
-// (moteur/couleurs-profil-ia.js), nomDeLaMachine, ABREVIATIONS_STYLES_IA
-// (moteur/ia.js), listerProfilsIA (interface/profils-ia.js) viennent de
-// fichiers charges avant celui-ci.
+// (moteur/couleurs-profil-ia.js), listerProfilsIA (interface/profils-ia.js) viennent de
+// fichiers charges avant celui-ci. Le nom d'une machine en couleurs :
+// interface/nom-machine-couleurs.js.
 
 const CLASSES_COULEURS_IA = { modifie: 'reglage-modifie', dernier: 'reglage-valide-dernier', ancien: 'reglage-valide-ancien' };
 
@@ -24,15 +24,4 @@ function colorerListeProfilsIA(select, couleurDe = null) {
   for (const option of select.options) poserCouleurIA(option, couleur(option.value));
   poserCouleurIA(select, couleur(select.value));
   suivreLeProfilParDefaut(select); // interface/noms-profils-ia.js
-}
-
-// Le nom d'une machine (KAI2_Nor_5s), l'abreviation de son style (saab :
-// « Agr / Nor / Def ») dans la couleur de ses reglages : [texte, <span>, texte].
-function nomDeLaMachineColore(machine, couleur) {
-  const nom = nomDeLaMachine(machine);
-  const style = document.createElement('span');
-  style.textContent = ABREVIATIONS_STYLES_IA[machine.style];
-  poserCouleurIA(style, couleur);
-  const debut = nom.indexOf(`_${style.textContent}_`) + 1;
-  return [nom.slice(0, debut), style, nom.slice(debut + style.textContent.length)];
 }

@@ -39,7 +39,7 @@ function conseilDeTemps({ moteur, niveau, elague, reflexionMax }) {
   const facteur = moteur === 'kai' ? KAI_PLUS_LENT_QUE_KAI_PLUS : 1;
   const [habituel, souvent] = mesure.map((secondes) => secondes * facteur);
   const qui = `${moteur === 'kai' ? 'KAI' : 'KAI++'}, ${elague ? 'avec' : 'sans'} élagage`;
-  const tropCourt = reflexionMax < souvent;
+  const tropCourt = reflexionMax !== REFLEXION_SANS_LIMITE_S && reflexionMax < souvent;
   const suite = tropCourt
     ? ` Avec ${secondesLisibles(reflexionMax)} de réflexion max, il s'arrêtera souvent avant (il joue alors le meilleur coup de la profondeur finie)${souvent === Infinity ? ' : baissez plutôt le niveau, ou prenez un profil qui élague (« el »).' : ` : donnez-lui au moins ${secondesLisibles(souvent)}.`}`
     : '';

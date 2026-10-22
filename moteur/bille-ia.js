@@ -85,8 +85,20 @@ function detailDeLaBille(etat, notation, poids, version) {
     ejectable: poussees.some((sumito) => sumito.ejection && billesPousseesPar(sumito, couleurs).at(-1) === notation),
     sortie: sortieDeLaZone(etat, notation),
   };
+  const termes = termesDeLaBille(etat, notation, camp, poids, version);
+  return { ...detail, termes, valeur: sommeDesTermes(termes) };
+}
+
+// Ce que la bille de `notation` (de `camp`) apporte a chaque terme : avec elle moins sans elle.
+function termesDeLaBille(etat, notation, camp, poids, version) {
   const avec = termesDeLaPosition(etat, camp, poids, version);
   const sans = termesDeLaPosition(sansLaBille(etat, notation), camp, poids, version);
-  const termes = Object.fromEntries(Object.keys(avec).map((terme) => [terme, avec[terme] - sans[terme]]));
-  return { ...detail, termes, valeur: sommeDesTermes(termes) };
+  return Object.fromEntries(Object.keys(avec).map((terme) => [terme, avec[terme] - sans[terme]]));
+}
+
+// Sa valeur seule (saab, 2026-10-21 : « ajouter le poids d'une bille au survol ») : celle du
+// detail, sans le reste (le survol suit la souris) ; null sur une case vide.
+function valeurDeLaBille(etat, notation, poids, version) {
+  const camp = etat.plateau[notation]?.couleur;
+  return camp ? sommeDesTermes(termesDeLaBille(etat, notation, camp, poids, version)) : null;
 }

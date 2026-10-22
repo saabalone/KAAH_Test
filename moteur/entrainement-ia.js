@@ -7,7 +7,7 @@
 // d'essais (interface/banc-essais-ceintures.js) joue les jeux.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ceinturesJouables,
-// jeuxChoisissables (moteur/entrainement-serie.js) viennent d'un fichier charge avant.
+// jeuxChoisissables, jeuxDeConfirmation (moteur/entrainement-serie.js) viennent d'un fichier charge avant.
 
 // Le jeu que l'IA joue ensuite : { ceinture, nom, sens }, ou null (plus rien a jouer :
 // le sommet, ou une ceinture sans jeu propose). La ceinture a jouer la plus basse ; son
@@ -21,7 +21,7 @@ function prochainJeuDuParcours(parcours, propositions, regles) {
     ? Object.fromEntries(Object.entries(parcours.enConfirmation ?? {}).filter(([cle]) => cle.startsWith(`${ceinture}|`)).map(([cle, jeu]) => [cle.slice(`${ceinture}|`.length), jeu]))
     : parcours.enCours ?? {};
   const proposes = propositions(ceinture);
-  const nom = Object.keys(commences)[0] ?? (enConfirmation ? proposes[0] : jeuxChoisissables(parcours, proposes, regles)[0]);
+  const nom = Object.keys(commences)[0] ?? (enConfirmation ? jeuxDeConfirmation(parcours, ceinture, proposes)[0] : jeuxChoisissables(parcours, proposes, regles)[0]);
   if (nom === undefined) return null;
   const avecRevanche = enConfirmation ? regles.revancheDeConfirmation ?? regles.revanche : regles.revanche;
   return { ceinture, nom, sens: avecRevanche && commences[nom]?.aller ? 'revanche' : 'aller' };

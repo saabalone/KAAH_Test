@@ -15,7 +15,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : GROUPES_DE_L_EVALUATION_IA,
 // partsDesGroupes, pourcentagesDesGroupes, barresDesGroupes, fenetreDuGraphique,
-// ligneSuivieParLeGraphique (moteur/ia-groupes.js), detailDeLEvaluation
+// ligneSuivieParLeGraphique, ejectionsDeLaLigne (moteur/ia-groupes.js), detailDeLEvaluation
 // (moteur/essai-ia.js), lireMachine (moteur/ia.js), ecrirePosition (moteur/notation.js),
 // etatsDeLaSequence (moteur/sequence-prevue.js), listerProfilsIA (interface/profils-ia.js),
 // remplirListeProfils, profilDuChoix (interface/liste-profils-choix.js), svgDesCourbes, coupSousLaFraction,
@@ -55,6 +55,7 @@ function demarrerGraphiqueDesGroupes(elements, partie) {
   // qu'elle donne), titre, horsPartie (sa position n'est pas sur la ligne regardee) }.
   let sequence = null;
   let details = []; // le detail de l'evaluation a chaque position montree
+  let ejections = []; // les ejections de ces positions (moteur/ia-groupes.js, ejectionsDeLaLigne)
   let enPourcentage = false;
   let avecBarres = true;
   elements.ecart.value = String(lireEcartDuGraphique());
@@ -74,6 +75,7 @@ function demarrerGraphiqueDesGroupes(elements, partie) {
     const etatsDeLaLigne = sequence?.horsPartie ? [sequence.depart] : Array.from({ length: ligne.length + 1 }, (_, rang) => partie.etatDuChemin(ligne.slice(0, rang)));
     const etats = [...etatsDeLaLigne, ...(sequence?.etats ?? [])];
     details = etats.map((etat) => detailDeLEvaluation(etat, elements.camp.value, machine.poids, machine.version));
+    ejections = ejectionsDeLaLigne(etats);
     elements.coup.max = String(details.length - 1);
   }
 
@@ -84,7 +86,7 @@ function demarrerGraphiqueDesGroupes(elements, partie) {
     const toutes = montrees.flatMap((parts) => Object.values(parts));
     const axe = enPourcentage ? { bas: 0, haut: 100, enPourcentage } : { bas: Math.min(0, ...toutes), haut: Math.max(0, ...toutes), enPourcentage };
     const fenetre = fenetreDuGraphique(rang, courbes.length, Math.max(0, Math.round(Number(elements.ecart.value) || 0)));
-    elements.dessin.innerHTML = svgDesCourbes(montrees, rang, fenetre, { ...axe, debutProjete: debutDeLaSequence() });
+    elements.dessin.innerHTML = svgDesCourbes(montrees, rang, fenetre, { ...axe, debutProjete: debutDeLaSequence(), ejections, camp: elements.camp.value });
     elements.dessin.dataset.debut = String(fenetre.debut);
     elements.dessin.dataset.fin = String(fenetre.fin);
     const parts = courbes[rang] ?? {};

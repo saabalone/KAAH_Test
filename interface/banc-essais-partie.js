@@ -6,8 +6,8 @@
 // ecrirePosition (moteur/notation.js), appliquerCoup (moteur/partie.js),
 // poidsEnTexte, lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence
 // (moteur/ia.js), hasardDuBanc, coupDeLaReferenceAuLivre, dansLeLivre,
-// finDeLaPartieDuBanc (moteur/banc-essais.js) viennent de fichiers charges avant
-// celui-ci.
+// finDeLaPartieDuBanc (moteur/banc-essais.js), coupDuLivre (moteur/ia.js) viennent de
+// fichiers charges avant celui-ci.
 
 const POSITION_DEPART_BANC = '0a12b123c23g78h789i89_0a45b456c56g45h456i56'; // la Marguerite belge
 const GRAINE_MAX_BANC = 1e9;
@@ -45,7 +45,9 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     if (controle.arret) return null;
     if (controle.pause) await new Promise((resoudre) => (controle.reprendre = resoudre));
     const reglage = (etat.joueurAuTrait === 'noir') === tache.referenceNoir ? reference : essai;
-    let coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : null;
+    // L'essai aussi dans le livre (saab, 2026-10-19 : « la recherche avec le livre pour les 2,
+    // ce sera plus juste ») : ses coups du livre, jamais les coups au hasard de la reference.
+    let coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : parametres.livreEssai ? coupDuLivre(livre, etat, hasard)?.coup ?? null : null;
     if (reglage === reference) coupsDeLaReference++;
     if (!coup) {
       const debut = performance.now();

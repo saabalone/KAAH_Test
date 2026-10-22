@@ -48,7 +48,7 @@ function etatEnModeCeinture(parcours, grade, regles, aConfirmer) {
     if (grade === 0 && parcours.ceinture === 0) return 'ceinture de départ';
     if (grade <= parcours.ceinture) return '✓ obtenue';
   }
-  if (aConfirmer.includes(grade)) return `<button class="bouton-dialogue bouton-visee" type="button" data-ouvrir="${grade}" title="Une victoire ici confirme la série : touchez pour choisir le jeu">À confirmer</button>`;
+  if (aConfirmer.includes(grade)) return `<button class="bouton-dialogue bouton-visee" type="button" data-ouvrir="${grade}" title="${parcours.aFaireEnConfirmation?.[grade] ? 'Ses jeux imposés pas gagnés à la ceinture visée confirment la série : touchez pour les voir' : 'Une victoire ici confirme la série : touchez pour choisir le jeu'}">À confirmer</button>`;
   if (grade === parcours.cible) {
     if (parcours.aConfirmer) return 'série réussie : confirmez';
     return `<button class="bouton-dialogue bouton-visee" type="button" data-ouvrir="${grade}" title="La ceinture que vous visez : touchez pour choisir un jeu">🎯 visée : ${victoiresDeLaSerie(parcours, regles)}/${victoiresAttendues(regles)}</button>`;
@@ -66,7 +66,12 @@ function etatsDesJeux(vue, grade, parcours, regles, proposes, imposes) {
   const essais = (siens) => (siens?.echecs ? `raté ${siens.echecs}/${regles.essaisAvantReinitialisation}` : '');
   const libre = (nom, detail = '') => ({ nom, impose: imposes.includes(nom), etat: 'libre', detail });
   if (vue.mode === 'entrainement') return proposes.map((nom) => libre(nom));
-  if (parcours.aConfirmer) return proposes.map((nom) => libre(nom, essais(parcours.enConfirmation[`${grade}|${nom}`])));
+  if (parcours.aConfirmer) {
+    // Une ceinture a jeux imposes : ceux qui restent a gagner (moteur/entrainement-serie.js).
+    const aFaire = parcours.aFaireEnConfirmation?.[grade];
+    const confirmes = parcours.jeuxConfirmes?.[grade] ?? [];
+    return (aFaire ?? proposes).map((nom) => ({ ...libre(nom, essais(parcours.enConfirmation[`${grade}|${nom}`])), impose: Boolean(aFaire) || imposes.includes(nom), etat: confirmes.includes(nom) ? 'reussi' : 'libre' }));
+  }
   const noms = [...new Set([...parcours.valides, ...Object.keys(parcours.enCours), ...proposes])];
   const libres = jeuxChoisissables(parcours, noms, regles);
   return noms.map((nom) => {
@@ -95,6 +100,8 @@ function consigneDeLaCeinture(vue, grade, parcours, regles) {
   const nom = CEINTURES[grade].nom.toLowerCase();
   const revanche = 'Noir puis Blanc';
   if (vue.mode === 'entrainement') return `Ceinture ${nom} : touchez un jeu pour le voir, puis lancez Noir ou Blanc${vue.sorte === 'pzl' ? ' (on attaque avec le camp qui doit gagner, sinon on défend)' : ''}.`;
+  const aFaire = parcours.aFaireEnConfirmation?.[grade];
+  if (parcours.aConfirmer && aFaire) return `Confirmation de la ceinture ${nom} : ses jeux imposés que vous n'avez pas gagnés à la ceinture visée, tous (${(parcours.jeuxConfirmes?.[grade] ?? []).length}/${aFaire.length})${regles.revancheDeConfirmation ? `, chacun ${revanche}` : ''}.`;
   if (parcours.aConfirmer) return `Confirmation de la ceinture ${nom} : un jeu gagné${regles.revancheDeConfirmation ? ` (${revanche})` : ''}.`;
   const plusieurs = regles.victoiresParJeu > 1;
   const victoires = `${plusieurs ? `${regles.victoiresParJeu} victoires` : 'une victoire'}${regles.revanche ? ` (${plusieurs ? 'chacune ' : ''}${revanche})` : ''}`;

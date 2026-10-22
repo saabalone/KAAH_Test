@@ -23,12 +23,22 @@
 //     (moteur/ia-evaluation-v3.js, version 3 et plus) ;
 //   - Ppa, Ppm : le piege progressif, des billes adverses et des siennes (1, 2, 3, 5, 8
 //     fois le premier terme) ; Pga, Pgm : le piege gagnant, quand l'ejection suivante
-//     finit la partie — saab, 2026-10-16 (moteur/ia-evaluation-v4.js, version 4 et plus).
+//     finit la partie — saab, 2026-10-16 (moteur/ia-evaluation-v4.js, version 4 et plus) ;
+//   - Eg : l'elagage garde aussi, au-dela de ses el meilleurs, les ejections (1) ou toutes
+//     les poussees (2) — KAI++ seulement ; saab, 2026-10-19 (la valeur juste apres une
+//     ejection perd la menace qu'elle comptait deja : el10 en jetait une sur cinq) ;
+//   - Gs : les groupes separes — chaque groupe de billes voisines en plus du premier coute ce
+//     poids au camp, et le rapporte quand c'est l'adversaire — saab, 2026-10-19 (contre
+//     AbaPro, apres le coup 20, KAI++ se dispersait en 4 a 5 groupes, AbaPro en tenait 1) ;
+//   - Sc : le sumito 3-2 contre (moteur/ia-sumito-vide.js) — saab, 2026-10-19 ;
+//   - Bp, Bmp, Bpb, Be, Bme : les billes vulnerables, poussables (de plusieurs facons, au bord)
+//     et ejectables (de plusieurs facons) — saab, 2026-10-20, d'apres ULA (moteur/ia-sumito-vide.js).
 // `terme` : il a sa colonne (Essai, panneaux) ; da, ep, gf, pf et ceux du piege n'en ont pas, ils changent d'autres termes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
-// (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide
-// (ia-sumito-vide.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js) viennent de fichiers
+// (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide, termeDuSumitoContre, termesDesBillesVulnerables
+// (ia-sumito-vide.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
+// (regles.js), couleursDuPlateau (partie.js), CASES_VOISINES_IA (ia-evaluation-v2.js) viennent de fichiers
 // charges avant celui-ci.
 
 const OPTIONS_IA = [
@@ -47,6 +57,14 @@ const OPTIONS_IA = [
   { cle: 'piegeProgressifMien', suffixe: 'Ppm', terme: false },
   { cle: 'piegeGagnantAdverse', suffixe: 'Pga', terme: false },
   { cle: 'piegeGagnantMien', suffixe: 'Pgm', terme: false },
+  { cle: 'elagageGarde', suffixe: 'Eg', terme: false },
+  { cle: 'groupesSepares', suffixe: 'Gs', terme: true },
+  { cle: 'sumitoContre', suffixe: 'Sc', terme: true },
+  { cle: 'billesPoussables', suffixe: 'Bp', terme: true },
+  { cle: 'billesMultipoussables', suffixe: 'Bmp', terme: true },
+  { cle: 'billesPoussablesBord', suffixe: 'Bpb', terme: true },
+  { cle: 'billesEjectables', suffixe: 'Be', terme: true },
+  { cle: 'billesMultiejectables', suffixe: 'Bme', terme: true },
 ];
 // Chaque suffixe avec sa majuscule (saab, 2026-10-16 : « v5elecef est un peu confus, il
 // vaudrait mieux repérer chaque suffixe par une majuscule, v5ElEcEf »).
@@ -76,12 +94,42 @@ const PREMIER_TERME_DU_SCORE_PROGRESSIF = 10;
 // finirait la partie (une base a regler, saab : « ceux par défaut sont juste une base »).
 const PREMIER_TERME_DU_PIEGE_PROGRESSIF = 20;
 const PIEGE_GAGNANT_PROPOSE = 500;
+// Ce que l'elagage garde en plus de ses el meilleurs (solveur/kai-plus.cpp, meilleurs_coups).
+const ELAGAGE_GARDE_LES_EJECTIONS = 1;
+const ELAGAGE_GARDE_LES_POUSSEES = 2;
+// Un groupe en plus vaut une Compacite de plus d'une case de distance moyenne (une base a regler).
+const GROUPES_SEPARES_PROPOSES = 20;
+// Les billes vulnerables : les poids d'ULA (debutsaab9 : -3, -3, -4, -10, -10, Attaque a 65 %),
+// a l'echelle de KAI++ (une ejection y vaut 100 et plus, chez ULA 30 a 37).
+const BILLES_VULNERABLES_PROPOSEES = { billesPoussables: -5, billesMultipoussables: -5, billesPoussablesBord: -7, billesEjectables: -15, billesMultiejectables: -15 };
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES },
   ])
 );
+
+// Les groupes de billes voisines de `camp` sur `couleurs` (notation -> couleur), moins le
+// premier : une bille seule est un groupe ; aucune bille, rien en plus.
+function groupesEnPlus(couleurs, camp) {
+  const restantes = new Set(Object.keys(couleurs).filter((notation) => couleurs[notation] === camp));
+  let groupes = 0;
+  while (restantes.size > 0) {
+    groupes++;
+    const aVoir = [restantes.values().next().value];
+    restantes.delete(aVoir[0]);
+    while (aVoir.length > 0) {
+      for (const voisine of CASES_VOISINES_IA[aVoir.pop()]) if (voisine !== null && restantes.delete(voisine)) aVoir.push(voisine);
+    }
+  }
+  return Math.max(0, groupes - 1);
+}
+
+// Le terme des groupes separes pour `camp` (l'ajout Gs).
+function termeDesGroupesSepares(etat, camp, poids) {
+  const couleurs = couleursDuPlateau(etat.plateau);
+  return poids.groupesSepares * (groupesEnPlus(couleurs, couleurAdverse(camp)) - groupesEnPlus(couleurs, camp));
+}
 
 // Les termes des ajouts que `poids` porte, pour `camp` : { cle: valeur } ;
 // rien pour une partie finie.
@@ -94,7 +142,9 @@ function termesDesAjouts(etat, camp, poids) {
     if ('etendueCentre' in poids) termes.etendueCentre = etendue.etendueCentre;
     if ('etendueCases' in poids) termes.etendueCases = etendue.etendueCases;
   }
-  return termes;
+  if ('groupesSepares' in poids) termes.groupesSepares = termeDesGroupesSepares(etat, camp, poids);
+  if ('sumitoContre' in poids) termes.sumitoContre = termeDuSumitoContre(etat, camp, poids);
+  return { ...termes, ...termesDesBillesVulnerables(etat, camp, poids) };
 }
 
 // La valeur des ajouts, dans l'ordre de solveur/kai-plus.cpp (evaluer) : un
@@ -108,5 +158,8 @@ function valeurAvecLesAjouts(valeur, etat, camp, poids) {
     total += etendue.etendueCentre;
     total += etendue.etendueCases;
   }
+  if (poids.groupesSepares) total += termeDesGroupesSepares(etat, camp, poids);
+  if (poids.sumitoContre) total += termeDuSumitoContre(etat, camp, poids);
+  for (const valeur of Object.values(termesDesBillesVulnerables(etat, camp, poids))) total += valeur;
   return total;
 }

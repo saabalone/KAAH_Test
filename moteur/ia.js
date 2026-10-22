@@ -4,7 +4,7 @@
 // sinon la recherche (moteur/ia-recherche.js) avec l'evaluation du style
 // choisi (moteur/ia-evaluation.js).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : obtenirConseils
+// Pas d'import ni d'export (voir moteur/plateau.js) : conseilsDuCampAuTrait
 // (next-move.js), ecrirePosition, lireCoupNacre, ecrireCoupNacreSansAmbiguite
 // (notation.js), couleursDuPlateau, appliquerCoup (partie.js), rechercherCoup,
 // NIVEAUX_IA (ia-recherche.js), STYLES_IA, CLES_POIDS_IA, VALEUR_VICTOIRE_IA
@@ -25,7 +25,7 @@ const FRACTION_DES_VICTOIRES_LIVRE = 0.5;
 // pas au plateau reel).
 function coupDuLivre(base, etat, hasard) {
   if (!base) return null;
-  const conseils = obtenirConseils(base, ecrirePosition(etat), etat.joueurAuTrait);
+  const conseils = conseilsDuCampAuTrait(base, ecrirePosition(etat), etat.joueurAuTrait);
   const meilleur = conseils[0]?.victoires ?? 0;
   const candidats = conseils.filter((conseil) => conseil.victoires > 0 && conseil.victoires >= meilleur * FRACTION_DES_VICTOIRES_LIVRE);
   if (candidats.length === 0) return null;
@@ -101,7 +101,13 @@ const ABREVIATIONS_STYLES_IA = { agressif: 'Agr', normal: 'Nor', defensif: 'Def'
 const MOTEURS_IA = ['kai', 'kai++'];
 const PREFIXES_MOTEURS_IA = { kai: 'KAI', 'kai++': 'KAI++' };
 const MACHINE_PAR_DEFAUT = { moteur: 'kai', version: VERSION_IA, niveau: 2, style: 'normal', profil: NOMS_STYLES_IA.normal, poids: STYLES_IA.normal, reflexionMax: 5, livre: true, elagage: 0 };
-const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 60 };
+// Jusqu'a 5 minutes (saab, 2026-10-22 : « il manque des paliers et infini » — sans elagage,
+// le niveau 7 demande jusqu'a 70 s par coup) ; 0 : sans limite, comme au banc d'essais.
+const REFLEXION_MAX_BORNES_S = { min: 0.5, max: 300 };
+const REFLEXION_SANS_LIMITE_S = 0;
+// Pour chercher sans limite : un temps qui ne finit jamais avant elle (le meme qu'au banc).
+const REFLEXION_SANS_LIMITE_EN_RECHERCHE_S = 1e6;
+const reflexionPourChercher = (reflexionMax) => (reflexionMax === REFLEXION_SANS_LIMITE_S ? REFLEXION_SANS_LIMITE_EN_RECHERCHE_S : reflexionMax);
 const PREMIERE_VERSION_DU_PROFIL_IA = 1;
 
 // Le nom du profil integre d'un style et d'une version : « Normal », « Normal
@@ -134,9 +140,11 @@ function lireMachine(brut) {
     profil: typeof brut.profil === 'string' && brut.profil !== '' ? brut.profil : nomDuProfilIntegre(style, version, elagage),
     poids,
     reflexionMax:
-      Number.isFinite(reflexion) && reflexion > 0
-        ? Math.min(REFLEXION_MAX_BORNES_S.max, Math.max(REFLEXION_MAX_BORNES_S.min, reflexion))
-        : MACHINE_PAR_DEFAUT.reflexionMax,
+      brut.reflexionMax === REFLEXION_SANS_LIMITE_S
+        ? REFLEXION_SANS_LIMITE_S
+        : Number.isFinite(reflexion) && reflexion > 0
+          ? Math.min(REFLEXION_MAX_BORNES_S.max, Math.max(REFLEXION_MAX_BORNES_S.min, reflexion))
+          : MACHINE_PAR_DEFAUT.reflexionMax,
     // Le livre d'ouvertures (la base de coups, saab 2026-10-01) : oui, sauf s'il
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
@@ -165,9 +173,10 @@ function lireMachines(machines, ancienAdversaire) {
   return lues.noir || lues.blanc ? lues : null;
 }
 
-// « 1s2 » pour 1,2 s (saab : « 1,2 n'est pas possible » dans un nom), « 5s ».
+// « 1s2 » pour 1,2 s (saab : « 1,2 n'est pas possible » dans un nom), « 5s » ; « inf » sans limite.
 const DIXIEMES_PAR_SECONDE_IA = 10;
 function formaterTempsReflexion(secondes) {
+  if (secondes === REFLEXION_SANS_LIMITE_S) return 'inf';
   const dixiemes = Math.round(secondes * DIXIEMES_PAR_SECONDE_IA);
   const entier = Math.floor(dixiemes / DIXIEMES_PAR_SECONDE_IA);
   const reste = dixiemes % DIXIEMES_PAR_SECONDE_IA;
@@ -189,6 +198,13 @@ function suffixeDeVersionIA({ version, elagage, poids }) {
 // version de son profil, son numero dans l'historique (_h4) : KAI++8_Nor_30s_v5El10P2_v3.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
+  return morceauxDuNomDeLaMachine(machine).map(({ texte }) => texte).join('');
+}
+
+// Le meme nom en morceaux { cle, texte } — moteur, niveau, style, temps, profil (la version,
+// l'elagage, les ajouts, le jeu de poids, l'historique), et les « _ » entre eux : l'affichage
+// colore chacun (saab, 2026-10-22 : sa valeur par defaut en marron).
+function morceauxDuNomDeLaMachine(machine) {
   const code = codeDesAjouts(machine.poids);
   const ajouts = code && machine.numeroDesAjouts ? `P${machine.numeroDesAjouts}` : code;
   const tete = `v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${machine.elagage}` : ''}${ajouts}`;
@@ -196,7 +212,16 @@ function nomDeLaMachine(machine) {
   const version = tete !== `v${VERSION_IA}` ? `_${tete}` : '';
   const poids = machine.numeroDePoids > 1 ? `_v${machine.numeroDePoids}` : '';
   const historique = machine.versionHistorique ? `_h${machine.versionHistorique}` : '';
-  return `${PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai']}${machine.niveau}_${ABREVIATIONS_STYLES_IA[machine.style]}_${formaterTempsReflexion(machine.reflexionMax)}${version}${poids}${historique}`;
+  const profil = `${version}${poids}${historique}`;
+  return [
+    { cle: 'moteur', texte: PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai'] },
+    { cle: 'niveau', texte: String(machine.niveau) },
+    { cle: 'separateur', texte: '_' },
+    { cle: 'style', texte: ABREVIATIONS_STYLES_IA[machine.style] },
+    { cle: 'separateur', texte: '_' },
+    { cle: 'temps', texte: formaterTempsReflexion(machine.reflexionMax) },
+    ...(profil ? [{ cle: 'profil', texte: profil }] : []),
+  ];
 }
 
 // L'evaluation telle qu'on l'affiche : un nombre signe arrondi, ou, quand la

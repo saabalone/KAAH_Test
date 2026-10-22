@@ -91,6 +91,7 @@ function creerChoixDuBanc(elements, obtenirJeux) {
     ouvertures: Math.max(1, Number(elements.ouvertures.value) || 1),
     revanche: elements.revanche.checked,
     livre: elements.livre.checked,
+    livreEssai: elements.livreEssai.checked,
     hasard: Math.max(0, Number(elements.hasard.value) || 0),
     recolte: {
       active: elements.recolte.checked,
