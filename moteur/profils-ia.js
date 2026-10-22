@@ -173,7 +173,7 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'normal',
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
-    description: "L'IA par défaut (2026-10-22) : Normal v5ElP4_v4 avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7) — le P5 de saab, qui a battu AP6 6-4. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_v4.",
+    description: "L'IA par défaut (2026-10-22) : Normal v5ElP4_v4 avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7) — le P5 de saab, qui a battu AbaPro niveau 6 (AP6) 6-4, en KAI++ niveau 6. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_v4.",
   },
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
@@ -198,7 +198,7 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'agressif',
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
-    description: "L'Agressif P5 (2026-10-21) : l'IA par défaut (Normal v5ElP4_v4) avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7, comme le P5 qui a battu AP6) et la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19). Au niveau 6 contre P5 : 3 gagnées, 6 perdues, 11 nulles.",
+    description: "L'Agressif P5 (2026-10-21) : l'IA par défaut (Normal v5ElP4_v4) avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7, comme le P5 qui a battu AbaPro niveau 6, en KAI++ niveau 6) et la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19). Au niveau 6 contre P5 : 3 gagnées, 6 perdues, 11 nulles.",
   },
   // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
   // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le

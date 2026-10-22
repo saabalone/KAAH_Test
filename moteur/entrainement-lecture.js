@@ -4,7 +4,7 @@
 // et ses jeux proposes. Pur ; extrait de moteur/entrainement-profil.js (regle des
 // 200 lignes), qui decrit les regles a cocher.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES (moteur/entrainement.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, puzzlesProposablesDuGrade (moteur/entrainement.js),
 // quotasManquants (moteur/entrainement-serie.js) viennent de fichiers charges avant
 // celui-ci ; valeursProfilEntrainement (moteur/entrainement-profil.js, charge apres)
 // n'est appele qu'a l'usage.
@@ -94,10 +94,14 @@ function reglagesDuProfilEntrainement(profil) {
 // typesDuJeu), que seule l'interface connait. La serie a toujours au moins autant de
 // jeux qu'il y en a d'imposes (saab, 2026-10-11 : « vérifier que le réglage est
 // possible ») : sinon aucun jeu ne pourrait y prendre place.
-function reglesDeSerieDuGrade(reglages, grade, sorte = 'variantes', typesDe = () => []) {
+// `proposablesDe(grade)` (facultatif) : les noms que cet appareil peut proposer a ce grade — un
+// impose qui n'en est pas est ignore (saab, 2026-10-22 : un PZL My impose dans un profil, absent
+// des autres appareils, ou a plusieurs solutions avec « solution unique », bloquait la serie).
+function reglesDeSerieDuGrade(reglages, grade, sorte = 'variantes', typesDe = () => [], proposablesDe = null) {
   const siens = reglages.ceintures[grade];
   if (!siens) return reglages.serie;
-  const imposes = siens[sorte]?.imposes ?? [];
+  const proposables = (autre, noms) => (proposablesDe ? noms.filter((nom) => proposablesDe(autre).includes(nom)) : noms);
+  const imposes = proposables(grade, siens[sorte]?.imposes ?? []);
   const quotas = quotasPossibles(siens[sorte], typesDe);
   return {
     ...reglages.serie,
@@ -108,7 +112,7 @@ function reglesDeSerieDuGrade(reglages, grade, sorte = 'variantes', typesDe = ()
     quotas,
     typesDe,
     // Les imposes d'une autre ceinture (une ceinture sautee, moteur/entrainement-serie.js).
-    imposesDe: (autre) => reglages.ceintures[autre]?.[sorte]?.imposes ?? [],
+    imposesDe: (autre) => proposables(autre, reglages.ceintures[autre]?.[sorte]?.imposes ?? []),
   };
 }
 
@@ -137,6 +141,15 @@ function quotasPossibles(liste, typesDe) {
 function candidatsDuGrade(reglages, grade, sorte, nomsDuGrade, nomsExistants = nomsDuGrade) {
   const liste = reglages.ceintures[grade][sorte];
   return liste ? liste.candidats.filter((nom) => nomsExistants.includes(nom)) : [...nomsDuGrade];
+}
+
+// Les noms que `grade` propose sur cet appareil (une seule regle pour la boite d'Entrainement, la
+// fin d'un jeu et le banc des ceintures) : `jeux` ({ nom }, les variantes ou les puzzles qui
+// existent ici) ; sans liste, ses PZL a lui — a solution unique si la regle le dit (`comptes` :
+// les solutions comptees, moteur/entrainement.js).
+function nomsProposablesDuGrade(reglages, grade, sorte, jeux, comptes = {}) {
+  const duGrade = sorte === 'variantes' ? jeux : puzzlesProposablesDuGrade(jeux, grade, reglages.options.pzlSolutionUnique, comptes);
+  return candidatsDuGrade(reglages, grade, sorte, duGrade.map((jeu) => jeu.nom), jeux.map((jeu) => jeu.nom));
 }
 
 // Combien en tirer au hasard (undefined : tous).

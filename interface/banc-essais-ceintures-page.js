@@ -39,7 +39,8 @@ function etatDuPassageHtml(passage) {
 }
 
 function journalDuPassageHtml(passage, nom) {
-  const lignes = passage.journal.map((jeu, rang) => `<tr><td>${rang + 1}</td><td>${echapperBanc(CEINTURES[jeu.ceinture].nom)}</td><td>${echapperBanc(jeu.nom)}</td><td>${SENS_DU_PASSAGE[passage.sorte][jeu.sens]}</td><td>${jeu.reussi ? '<span class="resultat-reussi">✓</span>' : '<span class="resultat-rate">✗</span>'}</td><td>${echapperBanc(jeu.issue ?? '')}</td><td>${echapperBanc(jeu.evenement)}</td></tr>`);
+  // Un jeu joue se regarde sur le petit plateau (son numero : serieDesCeinturesDesIA).
+  const lignes = passage.journal.map((jeu, rang) => `<tr${jeu.numero === undefined ? '' : ` data-partie-banc="${jeu.numero}" title="Toucher : la revoir sur le petit plateau"`}><td>${rang + 1}</td><td>${echapperBanc(CEINTURES[jeu.ceinture].nom)}</td><td>${echapperBanc(jeu.nom)}</td><td>${SENS_DU_PASSAGE[passage.sorte][jeu.sens]}</td><td>${jeu.reussi ? '<span class="resultat-reussi">✓</span>' : '<span class="resultat-rate">✗</span>'}</td><td>${echapperBanc(jeu.issue ?? '')}</td><td>${echapperBanc(jeu.evenement)}</td></tr>`);
   return `<details><summary>${echapperBanc(nom)} — ${LIBELLES_SORTES_DU_PASSAGE[passage.sorte]} (${passage.journal.length} jeux)</summary><table class="banc-tableau"><tr><th>#</th><th>Ceinture</th><th>Jeu</th><th>Sens</th><th></th><th>Issue</th><th>Suite</th></tr>${lignes.join('')}</table></details>`;
 }
 
@@ -53,10 +54,31 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
   const taches = essais.flatMap((_, essai) => sortes.map((sorte) => ({ essai, sorte })));
   const passages = taches.map((tache) => ({ ...tache, ceinture: SANS_CEINTURE, journal: [], raison: null, commence: false }));
   const serie = { taches, unite: 'passages', fait: () => passages.filter((passage) => passage.raison).length };
-  serie.jouer = async (tache, kai, suivi) => {
+  // Les parties jouees, a regarder sur le petit plateau (saab, 2026-10-22 : « on ne voit pas au
+  // clic la partie ceinture en test en mini plateau » ; interface/banc-essais-regarder.js) :
+  // numero -> { numero, position, coups, titre }.
+  const parties = new Map();
+  serie.partieARegarder = (numero) => parties.get(numero) ?? null;
+  serie.jouer = async (tache, kai, suiviDuBanc) => {
     const passage = passages[taches.indexOf(tache)];
     passage.commence = true;
+    // Le passage annonce chaque partie ({ partie : { position, essaiNoir, titre } }, puis ses
+    // coupsJoues) : elle prend un numero, et sa ligne « en cours » se touche pour la suivre.
+    let numeroEnCours;
+    const suivi = (nouveau) => {
+      if (!nouveau.partie) {
+        if (nouveau.coupsJoues && parties.has(numeroEnCours)) parties.get(numeroEnCours).coups = nouveau.coupsJoues;
+        return suiviDuBanc(nouveau);
+      }
+      const { position, essaiNoir, titre } = nouveau.partie;
+      numeroEnCours = parties.size + 1;
+      parties.set(numeroEnCours, { numero: numeroEnCours, position, coups: [], titre: `${essais[tache.essai].nom} — ${titre}` });
+      return suiviDuBanc({ numero: numeroEnCours, position, essaiNoir, nomDuProfil: essais[tache.essai].nom, coupsJoues: [] });
+    };
     const surJeu = (etat) => {
+      // Le jeu qui vient de finir : sa (derniere) partie.
+      const dernier = etat.journal?.at(-1);
+      if (dernier && dernier.numero === undefined) dernier.numero = numeroEnCours;
       Object.assign(passage, etat);
       serie.surProgres?.();
     };
@@ -95,11 +117,13 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
 
 // `elements` : { variantes, pzl (cases), cible (<select> : la ceinture visee d'abord),
 // tout (case : tout tester), lancer } ; `lancerLaSerie(sortes, cibleDeDepart, toutTester)`.
-function brancherCeinturesDesIA(elements, lancerLaSerie) {
+function brancherCeinturesDesIA(elements) {
   elements.cible.replaceChildren(new Option('la suivante (jaune)', ''), ...CEINTURES.slice(2).map((ceinture, rang) => new Option(ceinture.nom, rang + 2)));
-  elements.lancer.addEventListener('click', () => {
+  // Le choix, lu au Lancer du banc (le mode « Ceintures » de Ce qu'on essaie) : { sortes,
+  // cibleDeDepart, toutTester }, ou null (rien de coche).
+  return function choixDesCeintures() {
     const sortes = [elements.variantes.checked && 'variantes', elements.pzl.checked && 'pzl'].filter(Boolean);
-    if (sortes.length === 0) return window.alert('Cochez Variantes ou PZL.');
-    lancerLaSerie(sortes, elements.cible.value === '' ? null : Number(elements.cible.value), elements.tout.checked);
-  });
+    if (sortes.length === 0) return window.alert('Cochez Variantes ou PZL (Ceintures des IA).') ?? null;
+    return { sortes, cibleDeDepart: elements.cible.value === '' ? null : Number(elements.cible.value), toutTester: elements.tout.checked };
+  };
 }

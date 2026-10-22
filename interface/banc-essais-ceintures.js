@@ -9,7 +9,7 @@
 // Ici, les JEUX (une variante, un PZL) ; le deroulement est dans
 // interface/banc-essais-ceintures-passage.js.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : plisUtilesDuPuzzle, issueDuPuzzle
+// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, campDuSens, plisUtilesDuPuzzle, issueDuPuzzle
 // (moteur/entrainement.js), positionAvecHandicap (moteur/entrainement-reglages.js),
 // machineDesCeintures,
 // NIVEAU_MAX_DES_PUZZLES, ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE (interface/entrainement-partie.js),
@@ -52,6 +52,8 @@ async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, es
   const jouees = [];
   for (let essai = 0; essai < essais; essai++) {
     const tache = { referenceNoir: campDeLIA === 'blanc', graine: Math.floor(Math.random() * GRAINE_MAX_BANC), position };
+    // Une partie a regarder sur le petit plateau (interface/banc-essais-ceintures-page.js).
+    suivi({ partie: { position, essaiNoir: campDeLIA === 'noir', titre: `${CEINTURES[jeu.ceinture].nom}, ${variante.nom} (${jeu.sens})` } });
     const partie = await jouerUnePartieDuBanc(tache, machine, candidat, { hasard: 0, livre: true }, kai, base, controle, suivi);
     if (!partie) return null;
     jouees.push(`${partie.fin} ${partie.score}, ${partie.coups.length} coups`);
@@ -71,6 +73,7 @@ async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, contr
   let etat = puzzle.position;
   const historique = [ecrirePosition(etat)];
   const coups = [];
+  suivi({ partie: { position: historique[0], essaiNoir: campDuSens(jeu.sens) === 'noir', titre: `${CEINTURES[jeu.ceinture].nom}, ${puzzle.nom} (${jeu.sens})` } });
   for (;;) {
     if (controle.arret) return null;
     if (controle.pause) await new Promise((resoudre) => (controle.reprendre = resoudre));
@@ -98,6 +101,7 @@ async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, contr
     const coup = reponse ? coupsDesPositions(etat, reponse.positions)[0] : null;
     if (!coup) return controle.arret ? null : { reussi: false, issue: 'plus de coup' };
     coups.push(textesDeLaSequence(etat, [coup])[0]);
+    suivi({ coupsJoues: [...coups] }); // pour la regarder en cours
     etat = appliquerCoup(etat, coup).etat;
     historique.push(ecrirePosition(etat));
     const ejectionsDuGagnant = puzzle.campGagnant === 'noir' ? etat.billesEjecteesBlanches : etat.billesEjecteesNoires;

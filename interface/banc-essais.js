@@ -101,6 +101,7 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     const essais = choix.essais();
     if (essais.length === 0) return window.alert('Cochez au moins un profil à essayer.') ?? null;
     const parametres = choix.parametres();
+    if (parametres.mode === 'ceintures') return outils.serieDesCeintures(essais);
     if (parametres.mode === 'parties' && parametres.variantes.length === 0) return window.alert('Cochez au moins une variante (Les parties).') ?? null;
     const banc = { base: obtenirBase, controle: () => enCours, viderLaRecolte };
     return parametres.mode === 'puzzles' ? serieDePuzzlesDuBanc(essais, choix.reference(), parametres, banc, choix.puzzles()) : serieDePartiesDuBanc(essais, choix.reference(), parametres, banc);
@@ -155,9 +156,8 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     rendreCachable();
   });
   // Les outils de la version de travail (interface/banc-essais-outils.js).
-  brancherOutilsDuBanc(elements, {
+  const outils = brancherOutilsDuBanc(elements, {
     lancer,
-    essais: () => choix.essais(),
     jeux: obtenirJeux,
     controle: () => enCours,
     viderLaRecolte,

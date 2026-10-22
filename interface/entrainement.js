@@ -6,10 +6,10 @@
 // réussir ») : le nom, Variantes ou PZL, le tableau des reglages, l'historique, et le
 // tableau des ceintures du joueur, la ceinture ouverte montrant ses jeux proposes.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, puzzlesProposablesDuGrade,
+// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES,
 // KAA_PZL_SOLUTIONS (donnees/kaa-puzzles-solutions.js)
 // typesDuJeu (moteur/entrainement.js), viserCeinture, ceinturesAConfirmer, tirerPropositions
-// (moteur/entrainement-serie.js), reglesDeSerieDuGrade, candidatsDuGrade,
+// (moteur/entrainement-serie.js), reglesDeSerieDuGrade, nomsProposablesDuGrade,
 // nombreDeJeuxProposes (moteur/entrainement-lecture.js),
 // nomJoueurAutorise (moteur/nom-partie.js), estUnNomParDefaut (moteur/filtre-parties.js),
 // afficherNomsConnus, retenirNomConnu, proprietaireCoche, definirProprietaire
@@ -67,13 +67,11 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
   }
 
   const tousLesJeux = () => (sorte === 'variantes' ? variantes : puzzles);
-  // Ce qu'un grade propose de lui-meme : toutes les variantes, ou ses PZL (a solution
-  // unique seulement, si la regle est cochee : moteur/entrainement.js).
-  const nomsDuGrade = (grade, reglages) => (sorte === 'variantes' ? variantes : puzzlesProposablesDuGrade(puzzles, grade, reglages.options.pzlSolutionUnique, KAA_PZL_SOLUTIONS)).map((jeu) => jeu.nom);
 
   const typesDe = (nom) => typesDUnJeu(sorte, nom);
 
-  const candidatsDe = (grade, reglages) => candidatsDuGrade(reglages, grade, sorte, nomsDuGrade(grade, reglages), tousLesJeux().map((jeu) => jeu.nom));
+  // Ce qu'un grade propose sur cet appareil (moteur/entrainement-lecture.js).
+  const candidatsDe = (grade, reglages) => nomsProposablesDuGrade(reglages, grade, sorte, tousLesJeux(), KAA_PZL_SOLUTIONS);
   // Les PZL ajoutes aux ceintures deja acquises (interface/entrainement-nouveaux.js).
   const nouveauxPzl = (nom, reglages) => (sorte === 'pzl' ? nouveauxPzlAValider(nom, (grade) => candidatsDe(grade, reglages)) : []);
 
@@ -97,7 +95,7 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
   function afficherTableau(nom) {
     const reglages = reglagesDeLEntrainement();
     const parcours = parcoursDuJoueur(nom, sorte);
-    const regles = reglesDeSerieDuGrade(reglages, parcours.cible ?? parcours.ceinture, sorte, typesDe);
+    const regles = reglesDeSerieDuGrade(reglages, parcours.cible ?? parcours.ceinture, sorte, typesDe, (grade) => candidatsDe(grade, reglages));
     const aConfirmer = parcours.aConfirmer ? ceinturesAConfirmer(parcours) : [];
     const nouveaux = nouveauxPzl(nom, reglages);
     const echapperSignal = (texte) => String(texte).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');

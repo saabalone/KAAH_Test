@@ -10,19 +10,17 @@
 // de fichiers charges avant celui-ci.
 
 // `elements` : ceux de la boite (ceinturesDesIA, mesParties) ; `banc` : { lancer(serie,
-// machines), essais() (les profils coches), jeux() ({ variantes, puzzles }), controle()
-// ({ arret, pause } ou null : rien ne tourne), viderLaRecolte() (une recolte neuve) }.
+// machines), jeux() ({ variantes, puzzles }), controle() ({ arret, pause } ou null : rien ne
+// tourne), viderLaRecolte() (une recolte neuve) }. Renvoie { serieDesCeintures(essais) }.
 function brancherOutilsDuBanc(elements, banc) {
   const estArretee = () => Boolean(banc.controle()?.arret);
   // Le solveur seul travaille : une partie (ou un PZL) a la fois, avec sa limite de temps.
   const solveurLimite = (limiteS) => creerSolveur({ limiteDepart: limiteS, limiteParCoup: limiteS });
 
-  // Les ceintures des IA : un passage par profil coche et par sorte.
-  brancherCeinturesDesIA(elements.ceinturesDesIA, (sortes, cibleDeDepart, toutTester) => {
-    const essais = banc.essais();
-    if (essais.length === 0) return window.alert('Cochez au moins un profil à essayer.');
-    banc.lancer(serieDesCeinturesDesIA(essais, sortes, banc.jeux(), banc.controle, cibleDeDepart, toutTester));
-  });
+  // Les ceintures des IA : un passage par profil coche et par sorte — lancees par le Lancer du
+  // banc, en mode « Ceintures » (saab, 2026-10-22 : « si je teste les ceintures, on dirait que
+  // Ce qu'on essaie se lance aussi »).
+  const choixDesCeintures = brancherCeinturesDesIA(elements.ceinturesDesIA);
 
   brancherRechercheDansMesParties(
     elements.mesParties,
@@ -36,4 +34,12 @@ function brancherOutilsDuBanc(elements, banc) {
       banc.lancer(serie, 1);
     }
   );
+
+  return {
+    // La serie des ceintures de `essais` (les profils coches), ou null.
+    serieDesCeintures(essais) {
+      const choix = choixDesCeintures();
+      return choix && serieDesCeinturesDesIA(essais, choix.sortes, banc.jeux(), banc.controle, choix.cibleDeDepart, choix.toutTester);
+    },
+  };
 }

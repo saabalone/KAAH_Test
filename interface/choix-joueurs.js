@@ -35,10 +35,11 @@ const CAMPS_JOUEURS = ['noir', 'blanc'];
 // d'avant qui l'avaient.
 const ROLE_HUMAIN = 'humain';
 // Une machine proposee la premiere fois (saab, 2026-10-07 : « mettre KAI++3_Nor
-// v1 par defaut pour les IA Joueur, puis le dernier utilise ») : KAI++, niveau 3,
-// Normal ; ensuite, le dernier choix retenu (lireDerniersJoueurs).
+// v1 par defaut pour les IA Joueur, puis le dernier utilise ») : KAI++, Normal ; ensuite, le
+// dernier choix retenu (lireDerniersJoueurs). Le niveau 1 (saab, 2026-10-22 : « pour ceux qui ne
+// règlent rien et qui ne savent pas jouer, ils ne gagneront jamais si c'est plus »).
 const MOTEUR_PROPOSE_IA = 'kai++';
-const NIVEAU_PROPOSE_IA = 3;
+const NIVEAU_PROPOSE_IA = 1;
 
 const CHOIX_JOUEUR_PAR_DEFAUT = {
   role: ROLE_HUMAIN,

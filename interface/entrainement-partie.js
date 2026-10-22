@@ -199,15 +199,16 @@ function oublierJeuDEntrainement(enCours) {
 // Note `reussi` (vrai ou faux) pour le jeu en cours, une seule fois : renvoie
 // { evenement, parcours, avant, regles } (moteur/entrainement-serie.js, apresUnResultat) ;
 // en mode Entrainement, l'evenement est 'reussi' ou 'rate', sans parcours.
-// `typesDe(nom)` : les types d'un jeu (pour les quotas par type).
+// `typesDe(nom)` : les types d'un jeu (pour les quotas par type) ; `proposablesDe(grade)` : les jeux
+// que l'appareil peut proposer (un impose absent est ignore, moteur/entrainement-lecture.js).
 // `resultat` : vrai (reussi), faux, ou RESULTAT_NULLE (moteur/entrainement-serie.js).
-function noterResultatDEntrainement(enCours, resultat, typesDe) {
+function noterResultatDEntrainement(enCours, resultat, typesDe, proposablesDe = null) {
   ecrireStockageEntrainement(CLE_ENTRAINEMENT_EN_COURS, { ...enCours, date: 'fini' });
   // Un nouveau PZL gagne est valide (interface/entrainement-nouveaux.js).
   if (resultat === true) validerUnNouveauPzl(enCours.joueur, enCours.sorte, enCours.nom);
   if (enCours.mode === 'entrainement') return { evenement: resultat === true ? 'reussi' : 'rate', parcours: null, avant: null, regles: null };
   const avant = parcoursDuJoueur(enCours.joueur, enCours.sorte);
-  const regles = reglesDeSerieDuGrade(reglagesDeLEntrainement(), avant.cible ?? enCours.ceinture, enCours.sorte, typesDe);
+  const regles = reglesDeSerieDuGrade(reglagesDeLEntrainement(), avant.cible ?? enCours.ceinture, enCours.sorte, typesDe, proposablesDe);
   // Le dernier jeu joue avant celui-ci a son grade ou plus haut (les deux modes) : une
   // pause trop longue fait reconfirmer le grade (interface/entrainement-historique.js).
   const derniere = historiqueDEntrainement(enCours.joueur).find((ligne) => ligne.sorte === enCours.sorte && ligne.ceinture >= avant.ceinture);

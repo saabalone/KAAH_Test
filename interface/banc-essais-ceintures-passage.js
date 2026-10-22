@@ -10,8 +10,8 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : parcoursNeuf, viserCeinture,
 // apresUnResultat, tirerPropositions (moteur/entrainement-serie.js), prochainJeuDuParcours,
 // suiteDuPassage, parcoursPourTester, issueDeLaSerieTestee (moteur/entrainement-ia.js),
-// puzzlesProposablesDuGrade, typesDuJeu (moteur/entrainement.js), KAA_PZL_SOLUTIONS
-// (donnees/kaa-puzzles-solutions.js), reglesDeSerieDuGrade, candidatsDuGrade,
+// typesDuJeu (moteur/entrainement.js), KAA_PZL_SOLUTIONS
+// (donnees/kaa-puzzles-solutions.js), reglesDeSerieDuGrade, nomsProposablesDuGrade,
 // nombreDeJeuxProposes (moteur/entrainement-lecture.js), reglagesDeLEntrainement
 // (interface/profils-entrainement.js), jouerLaVarianteDuPassage, jouerLePuzzleDuPassage,
 // JEUX_MAX_DU_PASSAGE, ESSAIS_SUR_UNE_NULLE (interface/banc-essais-ceintures.js) viennent de fichiers charges avant.
@@ -26,16 +26,17 @@ function joueurDesCeintures(candidat, sorte, jeux, kai, controle, suivi) {
   const tous = sorte === 'variantes' ? jeux.variantes : jeux.puzzles;
   const typesDe = (nom) => typesDuJeu(sorte, tous.find((jeu) => jeu.nom === nom) ?? { nom });
   const tirages = new Map();
+  // Ce qu'un grade propose sur cet appareil (moteur/entrainement-lecture.js).
+  const proposablesDe = (grade) => nomsProposablesDuGrade(reglages, grade, sorte, tous, KAA_PZL_SOLUTIONS);
   const propositions = (grade) => {
     if (!tirages.has(grade)) {
-      const duGrade = (sorte === 'variantes' ? tous : puzzlesProposablesDuGrade(tous, grade, reglages.options.pzlSolutionUnique, KAA_PZL_SOLUTIONS)).map((jeu) => jeu.nom);
       const { imposes = [], quotas = {} } = reglages.ceintures[grade][sorte] ?? {};
-      tirages.set(grade, tirerPropositions(candidatsDuGrade(reglages, grade, sorte, duGrade, tous.map((jeu) => jeu.nom)), { imposes, quotas, typesDe }, nombreDeJeuxProposes(reglages, grade, sorte)));
+      tirages.set(grade, tirerPropositions(proposablesDe(grade), { imposes, quotas, typesDe }, nombreDeJeuxProposes(reglages, grade, sorte)));
     }
     return tirages.get(grade);
   };
   return async function jouerLeSuivant(parcours) {
-    const regles = reglesDeSerieDuGrade(reglages, parcours.cible ?? parcours.ceinture, sorte, typesDe);
+    const regles = reglesDeSerieDuGrade(reglages, parcours.cible ?? parcours.ceinture, sorte, typesDe, proposablesDe);
     const jeu = prochainJeuDuParcours(parcours, propositions, regles);
     if (!jeu) return 'aucun';
     const position = tous.find((autre) => autre.nom === jeu.nom);

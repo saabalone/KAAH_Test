@@ -5500,6 +5500,16 @@ body:not(.version-de-travail) .aide-ajouts {
   display: none;
 }
 
+/* Ceintures (saab, 2026-10-22 : « si je teste les ceintures, on dirait que Ce qu'on essaie se
+   lance aussi ») : seulement les reglages des ceintures des IA, ni parties, ni puzzles, ni ce
+   qu'on fait varier, ni la reference. */
+#dialogue-banc-essais:not(.banc-en-ceintures) .banc-mode-ceintures,
+#dialogue-banc-essais.banc-en-ceintures .banc-mode-parties,
+#dialogue-banc-essais.banc-en-ceintures .banc-mode-puzzles,
+#dialogue-banc-essais.banc-en-ceintures .banc-hors-ceintures {
+  display: none;
+}
+
 .banc-choix-mode {
   display: flex;
   gap: 16px;
@@ -6479,3 +6489,8 @@ input.valeur-par-defaut, input.valeur-par-defaut::placeholder, span.valeur-par-d
 
 /* Fermer des panneaux d'une bille et de l'aire (saab, 2026-10-21) : en vert, comme les autres Fermer. */
 .entete-panneau-bille .bouton-fermer-panneau { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }
+
+/* L'apercu de KAAH_Test (interface/apercu-test.js) : les tableaux des ceintures, en lecture seule,
+   le disent (saab, 2026-10-22 : « je ne peux plus modifier les tableaux », il etait en aperçu). */
+.note-apercu-test { display: none; margin: 2px 0 6px; color: #e0832a; font-weight: bold; font-size: 13px; }
+body.apercu-kaah-test .note-apercu-test { display: block; }

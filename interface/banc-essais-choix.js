@@ -128,6 +128,8 @@ function creerChoixDuBanc(elements, obtenirJeux) {
     const essais = coches.size * variations().reduce((nombre, { valeurs }) => nombre * valeurs.length, 1);
     const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? 's' : ''}`;
     elements.dialogue.classList.toggle('banc-en-puzzles', mode() === 'puzzles');
+    elements.dialogue.classList.toggle('banc-en-ceintures', mode() === 'ceintures');
+    if (mode() === 'ceintures') return void (elements.total.textContent = `${pluriel(coches.size, 'profil')} : le passage des ceintures (Ceintures des IA)`);
     if (mode() === 'puzzles') {
       // La liste suit le filtre (sans boucler : seulement quand ses noms changent).
       const noms = puzzlesDuFiltre().map((puzzle) => puzzle.nom);
