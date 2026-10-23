@@ -61,7 +61,7 @@ async function jouerUnPuzzleDuBanc(tache, essai, defense, kai, controle, suivi =
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
         profondeur: defend ? Math.min(defenseComplete ? Infinity : DEMI_COUPS_MAX_DEFENSE_PUZZLE, Math.max(1, demiCoups - coups.length)) : essai.niveau,
-        poids: poidsEnTexte(reglage.poids),
+        poids: poidsEnTexte(poidsPourUnPuzzle(reglage.poids)), // ef a tous les niveaux (moteur/ia.js)
         version: reglage.version,
         graine: GRAINE_DES_PUZZLES,
         dureeMs: defend && defenseComplete ? RECHERCHE_SANS_LIMITE_MS : dureeDeReflexionDuBancMs(reglage.temps),

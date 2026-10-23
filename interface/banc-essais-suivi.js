@@ -95,7 +95,13 @@ function creerSuiviDuBanc(element, estEnPause, apresAffichage = () => {}) {
     },
     enCours(machine) {
       const partie = parties.get(machine);
-      return partie && { numero: partie.numero, position: partie.position, coups: partie.coupsJoues, titre: `${partie.libelle} (en cours)` };
+      if (!partie) return partie;
+      const { nomDuProfil: essai, nomAdverse: adverse } = partie;
+      const joueurs = essai && adverse ? (partie.essaiNoir ? { noir: essai, blanc: adverse } : { noir: adverse, blanc: essai }) : null;
+      // Sans le libelle (deja dans le titre) : « tour 3 (-0-0), essai : profondeur 6 finie (-27), 1 s ».
+      const { avant, camp, apres } = ligne(partie);
+      const reflexion = `${avant.replace(`${partie.libelle} : `, '')}${camp}${apres}`;
+      return { numero: partie.numero, position: partie.position, coups: partie.coupsJoues, titre: `${partie.titreDeLaPartie ?? partie.libelle} (en cours)`, joueurs, reflexion: reflexion.charAt(0).toUpperCase() + reflexion.slice(1) };
     },
     suivi: (machine) => (nouveau) => {
       Object.assign(parties.get(machine), nouveau);

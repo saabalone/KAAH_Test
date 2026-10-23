@@ -14,13 +14,14 @@
 // (rendu/ejections-apercu.js), ecrirePosition (moteur/notation.js), rendreDeplacable, reinitialiserPosition
 // (interface/deplacable.js) viennent de fichiers charges avant celui-ci.
 
-// `elements` : { dialogue, titre, apercu (<svg>), coups (la ligne des coups),
-// debut, precedent, suivant, fin, fermer, groupes } ; `montrerDansLesGroupes(etat, textes,
+// `elements` : { dialogue, titre, joueurs, reflexion (deux lignes, facultatives), apercu
+// (<svg>), coups (la ligne des coups), debut, precedent, suivant, fin, fermer, groupes } ; `montrerDansLesGroupes(etat, textes,
 // titre, ouvrir)` : la meme sequence dans les 4 groupes (saab, 2026-10-16 : « généraliser
 // le clic sur les tableaux de réflexion ou autre pour voir 4 groupes partout ») — tout de
 // suite si leur panneau est ouvert, au bouton « 4 groupes » sinon ; `suivreDansLesGroupes
-// (rang)` : le coup montre, que leur curseur suit. Renvoie { montrer(etat, textes, titre),
-// suivre(etat, textes, rang), prolonger(etat, textes, titre), actualiserBoutonGraphique() }.
+// (rang)` : le coup montre, que leur curseur suit. Renvoie { montrer(etat, textes, titre,
+// { aLaFin, joueurs }), suivre(etat, textes, rang), prolonger(etat, textes, titre), reflexion(texte),
+// actualiserBoutonGraphique() }.
 //
 // Saab, 2026-10-16 : « le mini plateau de la séquence doit rester pour voir les coups en
 // même temps que 4 groupes, car là au clic il disparaît » — une fenetre qui ne bloque rien
@@ -44,18 +45,29 @@ function demarrerSequencePrevue(elements, montrerDansLesGroupes = () => {}, suiv
     }
     dessinerEjectionsApercu(elements.apercu, etat.billesEjecteesNoires, etat.billesEjecteesBlanches);
     // Les coups rejoues (etats.length - 1 : un coup illisible arrete la
-    // sequence), celui qui mene a la position montree en evidence.
-    elements.coups.replaceChildren(
-      ...textes.slice(0, etats.length - 1).map((texte, index) => {
-        const bouton = document.createElement('button');
-        bouton.type = 'button';
-        bouton.className = 'coup-sequence-prevue';
-        bouton.classList.toggle('coup-sequence-prevue-actuel', index + 1 === rang);
-        bouton.textContent = texte;
-        bouton.addEventListener('click', () => aller(index + 1));
-        return bouton;
-      })
-    );
+    // sequence), celui qui mene a la position montree en evidence — tour par tour (saab,
+    // 2026-10-22 : « il n'y a pas le n° du tour ... mettre en colonnes paires ») : le numero,
+    // Noir, Blanc (styles.css : deux tours par ligne, Noir et Blanc toujours dans leur colonne).
+    const bouton = (texte, index) => {
+      const coup = document.createElement('button');
+      coup.type = 'button';
+      coup.className = 'coup-sequence-prevue';
+      coup.classList.toggle('coup-sequence-prevue-actuel', index + 1 === rang);
+      coup.textContent = texte;
+      coup.addEventListener('click', () => aller(index + 1));
+      return coup;
+    };
+    const cellule = (classe, texte = '') => Object.assign(document.createElement('span'), { className: classe, textContent: texte });
+    // Blanc au trait au depart : une case vide a la place du coup de Noir.
+    const decalage = etats[0].joueurAuTrait === 'blanc' ? 1 : 0;
+    const joues = textes.slice(0, etats.length - 1);
+    const cases = [];
+    for (let place = 0; place < joues.length + decalage; place++) {
+      if (place % 2 === 0) cases.push(cellule('tour-sequence-prevue', `${place / 2 + 1}.`));
+      const index = place - decalage;
+      cases.push(index < 0 ? cellule('coup-sequence-prevue') : bouton(joues[index], index));
+    }
+    elements.coups.replaceChildren(...cases);
     // Le coup montre reste dans la partie visible des coups (une longue partie defile).
     const actuel = elements.coups.querySelector('.coup-sequence-prevue-actuel');
     if (actuel) {
@@ -86,12 +98,27 @@ function demarrerSequencePrevue(elements, montrerDansLesGroupes = () => {}, suiv
   // d'un coup, comme la fleche.
   elements.apercu.addEventListener('click', () => aller(rang + 1));
 
+  // Qui joue Noir et Blanc (`joueurs` : { noir, blanc }, ou rien), et ce que la machine qui
+  // cherche fait en ce moment (LabAl, une partie en cours : interface/banc-essais-regarder.js).
+  function montrerLesJoueurs(joueurs) {
+    if (!elements.joueurs) return;
+    elements.joueurs.hidden = !joueurs;
+    elements.joueurs.textContent = joueurs ? `⚫ Noir : ${joueurs.noir} · ⚪ Blanc : ${joueurs.blanc}` : '';
+  }
+  function montrerLaReflexion(texte) {
+    if (!elements.reflexion) return;
+    elements.reflexion.hidden = !texte;
+    elements.reflexion.textContent = texte ?? '';
+  }
+
   // `aLaFin` : ouvrir sur le dernier coup (une partie qui se joue), pas sur le depart.
-  function montrer(etat, nouveauxTextes, titre, { aLaFin = false } = {}) {
+  function montrer(etat, nouveauxTextes, titre, { aLaFin = false, joueurs = null } = {}) {
     textes = nouveauxTextes;
     etats = etatsDeLaSequence(etat, textes);
     titreMontre = titre;
     elements.titre.textContent = titre;
+    montrerLesJoueurs(joueurs);
+    montrerLaReflexion(null);
     montrerDansLesGroupes(etat, textes, titre, false);
     aller(aLaFin ? etats.length - 1 : 0);
     if (!elements.dialogue.open) {
@@ -138,5 +165,8 @@ function demarrerSequencePrevue(elements, montrerDansLesGroupes = () => {}, suiv
     return rang;
   }
 
-  return { montrer, suivre, prolonger, actualiserBoutonGraphique };
+  // La reflexion en cours, tant que le petit plateau est ouvert (null : plus rien a dire).
+  const reflexion = (texte) => elements.dialogue.open && montrerLaReflexion(texte);
+
+  return { montrer, suivre, prolonger, reflexion, actualiserBoutonGraphique };
 }

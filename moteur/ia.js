@@ -108,6 +108,11 @@ const REFLEXION_SANS_LIMITE_S = 0;
 // Pour chercher sans limite : un temps qui ne finit jamais avant elle (le meme qu'au banc).
 const REFLEXION_SANS_LIMITE_EN_RECHERCHE_S = 1e6;
 const reflexionPourChercher = (reflexionMax) => (reflexionMax === REFLEXION_SANS_LIMITE_S ? REFLEXION_SANS_LIMITE_EN_RECHERCHE_S : reflexionMax);
+
+// Les poids d'une machine qui joue un PZL (saab, 2026-10-23 : « adapter fn seulement pour les PZL ») :
+// ef (plus d'elagage des qu'un camp a tant de billes ejectees) vaut a tous les niveaux — fn 0. Un PZL
+// de 4 tours se cherche a 7 demi-coups, au-dela du fn des profils (6) : l'elagage y jetait la solution.
+const poidsPourUnPuzzle = (poids) => (poids.elagageFin !== undefined && poids.elagageFinNiveau !== undefined ? { ...poids, elagageFinNiveau: 0 } : poids);
 const PREMIERE_VERSION_DU_PROFIL_IA = 1;
 
 // Le nom du profil integre d'un style et d'une version : « Normal », « Normal

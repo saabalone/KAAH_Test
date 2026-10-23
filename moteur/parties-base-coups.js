@@ -158,3 +158,21 @@ function selectionMulti(stats, clesDesParties) {
   }
   return new Map([...stats].filter(([cle]) => gardees.has(cle)));
 }
+
+// Les coups RETIRES de toutes les bases (saab, 2026-10-23 : « Il faut supprimer les 4 coups
+// d'ouverture (en fait 2 sym) », depuis la Marguerite Belge) : c3d4 et g7f6 de Noir, et la reponse
+// g5f5 de Blanc — une seule ligne pour ses deux images symetriques. Ils ne venaient que des
+// parties AO ; sous la position canonique, comme les cles de la base (cleDeLaBase).
+const COUPS_RETIRES_DES_BASES = [
+  '0a12b123c23g78h789i89_0a45b456c56g45h456i56,c3d4',
+  '0a12b123c23g78h789i89_0a45b456c56g45h456i56,g7f6',
+  '0a12b123c23f6g8h789i89_0a45b456c56g45h456i56,c5d5',
+];
+
+// Une base en CSV, sans les lignes de `cles` (generer-bases-coups.js : COUPS_RETIRES_DES_BASES).
+function retirerDesCoupsDeLaBase(texteCsv, cles) {
+  const stats = new Map();
+  ajouterCsvALaBase(stats, texteCsv);
+  for (const cle of cles) stats.delete(cle);
+  return statsEnCsv(stats);
+}

@@ -53,7 +53,7 @@ async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, es
   for (let essai = 0; essai < essais; essai++) {
     const tache = { referenceNoir: campDeLIA === 'blanc', graine: Math.floor(Math.random() * GRAINE_MAX_BANC), position };
     // Une partie a regarder sur le petit plateau (interface/banc-essais-ceintures-page.js).
-    suivi({ partie: { position, essaiNoir: campDeLIA === 'noir', titre: `${CEINTURES[jeu.ceinture].nom}, ${variante.nom} (${jeu.sens})` } });
+    suivi({ partie: { position, essaiNoir: campDeLIA === 'noir', adversaire: `machine ${CEINTURES[jeu.ceinture].nom.toLowerCase()} (niv. ${grade.niveau})`, titre: `${CEINTURES[jeu.ceinture].nom}, ${variante.nom} (${jeu.sens})` } });
     const partie = await jouerUnePartieDuBanc(tache, machine, candidat, { hasard: 0, livre: true }, kai, base, controle, suivi);
     if (!partie) return null;
     jouees.push(`${partie.fin} ${partie.score}, ${partie.coups.length} coups`);
@@ -67,13 +67,15 @@ async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, es
 // contre un joueur), l'IA avec ses propres reglages, mais elle non plus pas plus loin que les
 // tours qui restent — comme la machine d'une partie face a un PZL (interface/ia.js, aide.plis).
 // Saab, 2026-10-22 : KAI++8 « échoue sur PZL_E_0005 » : a 8 demi-coups, l'elagage jette a la
-// racine le gain en 3 (d4b4) et elle joue un gain en 5, trop tard pour le PZL. Renvoie { reussi (moteur,
-// issueDuPuzzle), issue } ou null (arretee).
+// racine le gain en 3 (d4b4) et elle joue un gain en 5, trop tard pour le PZL. Saab, 2026-10-23 :
+// « adapter l'élagage aussi pour les PZL -4-4 ou autres, comme ce n'est que pour tester les
+// ceintures » — l'IA testee y cherche sans elagage (ef ne couvrait que les -5-5). Renvoie { reussi
+// (moteur, issueDuPuzzle), issue } ou null (arretee).
 async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, controle, suivi) {
   let etat = puzzle.position;
   const historique = [ecrirePosition(etat)];
   const coups = [];
-  suivi({ partie: { position: historique[0], essaiNoir: campDuSens(jeu.sens) === 'noir', titre: `${CEINTURES[jeu.ceinture].nom}, ${puzzle.nom} (${jeu.sens})` } });
+  suivi({ partie: { position: historique[0], essaiNoir: campDuSens(jeu.sens) === 'noir', adversaire: 'machine du PZL', titre: `${CEINTURES[jeu.ceinture].nom}, ${puzzle.nom} (${jeu.sens})` } });
   for (;;) {
     if (controle.arret) return null;
     if (controle.pause) await new Promise((resoudre) => (controle.reprendre = resoudre));
@@ -81,13 +83,13 @@ async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, contr
     const iaAuTrait = etat.joueurAuTrait === campDuSens(jeu.sens);
     const coupsDuGagnant = coups.filter((_, rang) => rang % 2 === (puzzle.campGagnant === 'blanc' ? 1 : 0)).length;
     const plis = Math.min(NIVEAU_MAX_DES_PUZZLES, plisUtilesDuPuzzle(puzzle.toursMaximum, coupsDuGagnant, attaque));
-    const reglage = iaAuTrait ? { ...candidat, niveau: Math.min(candidat.niveau, plis) } : reglageDuBancPourLaMachine(machineDesCeintures({ niveau: plis, elagage: options.pzlSansElagage ? 0 : ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE, reflexionMax: options.reflexionPzl, livre: false }));
+    const reglage = iaAuTrait ? { ...candidat, niveau: Math.min(candidat.niveau, plis), elagage: 0 } : reglageDuBancPourLaMachine(machineDesCeintures({ niveau: plis, elagage: options.pzlSansElagage ? 0 : ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE, reflexionMax: options.reflexionPzl, livre: false }));
     suivi({ coup: coups.length + 1, camp: iaAuTrait ? 'essai' : 'machine', debut: performance.now(), profondeur: null, evaluation: null });
     const texte = await kai.chercher({
       position: ecrirePosition(etat),
       joueurNoir: etat.joueurAuTrait === 'noir',
       profondeur: reglage.niveau,
-      poids: poidsEnTexte(reglage.poids),
+      poids: poidsEnTexte(poidsPourUnPuzzle(reglage.poids)), // ef a tous les niveaux (moteur/ia.js)
       version: reglage.version,
       graine: Math.floor(Math.random() * GRAINE_MAX_BANC),
       dureeMs: dureeDeReflexionDuBancMs(reglage.temps),

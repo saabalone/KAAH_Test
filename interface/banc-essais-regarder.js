@@ -10,12 +10,14 @@
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 // `elements` : { dialogue, resultats, enCours, petitPlateau (sa boite) } ; `parties` :
-// { finie(numero), enCours(machine) } -> { numero, position, coups, titre } ;
+// { finie(numero), enCours(machine) } -> { numero, position, coups, titre, joueurs ({ noir,
+// blanc } : qui joue quoi), reflexion (en cours : ce que fait la machine qui cherche) } ;
 // `montrerUnePartie(position, coups, titre, { enDirect, aLaFin })` (enDirect : la meme
 // partie, plus longue — le petit plateau ne revient pas au debut ; aLaFin : ouvrir sur son
-// dernier coup). Renvoie { marquer() (apres chaque tableau),
-// oublierTout() (une nouvelle serie) }.
-function brancherLeRegardDesParties(elements, parties, montrerUnePartie) {
+// dernier coup) ; `montrerLaReflexion(texte)` : la ligne de ce que fait la machine qui cherche
+// (saab, 2026-10-22 : « il n'y a pas la boite Reflexion pour voir ce qu'il fait »). Renvoie
+// { marquer() (apres chaque tableau), oublierTout() (une nouvelle serie) }.
+function brancherLeRegardDesParties(elements, parties, montrerUnePartie, montrerLaReflexion = () => {}) {
   let regardee = null; // le numero de la partie sur le petit plateau
   let suivie = null; // { machine, coups } : la partie regardee pendant qu'elle se joue
   const vues = new Set();
@@ -26,6 +28,7 @@ function brancherLeRegardDesParties(elements, parties, montrerUnePartie) {
     const enCours = parties.enCours(suivie.machine);
     const partie = enCours?.numero === regardee ? enCours : parties.finie(regardee);
     if (!partie) return;
+    montrerLaReflexion(partie === enCours ? partie.reflexion : null);
     if (partie !== enCours) suivie = null; // finie : ses derniers coups, puis plus rien a suivre
     else if (partie.coups.length === suivie.coups) return;
     else suivie.coups = partie.coups.length;
@@ -51,7 +54,8 @@ function brancherLeRegardDesParties(elements, parties, montrerUnePartie) {
     marquer();
     elements.dialogue.close();
     // En cours : sur son dernier coup, pour la suivre.
-    montrerUnePartie(partie.position, partie.coups, partie.titre, { aLaFin: machine !== null });
+    montrerUnePartie(partie.position, partie.coups, partie.titre, { aLaFin: machine !== null, joueurs: partie.joueurs ?? null });
+    if (machine !== null) montrerLaReflexion(partie.reflexion);
   }
 
   elements.resultats.addEventListener('click', (evenement) => {

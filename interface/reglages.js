@@ -71,8 +71,8 @@
 // reglagesDifferentsDuDefaut (interface/reglages-champs.js),
 // demarrerRubriquesReglages (interface/reglages-rubriques.js),
 // listerNomsProfils, lireNomProfilActif, lireReglagesActifs, lireReglagesDuProfil,
-// sauverProfilActif, creerProfil, definirProfilActif, supprimerProfil,
-// NOM_PROFIL_DEFAUT (interface/reglages-profils.js), rendreDeplacable,
+// sauverProfilActif, creerProfil, definirProfilActif, supprimerProfil, remettreProfil,
+// estReglageIntegre (interface/reglages-profils.js), NOM_REGLAGES_DE_DEPART (moteur/reglages-integres.js), rendreDeplacable,
 // reinitialiserPosition (interface/deplacable.js), telechargerReglages,
 // demarrerImportation (interface/fichiers.js) viennent de fichiers charges
 // avant celui-ci dans index.html.
@@ -112,6 +112,14 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // au `change` qui suit — pour qu'Annuler revienne au debut du geste entier,
   // jamais a une valeur intermediaire du glissement.
   let avantGeste = null;
+  // Le profil tel qu'on l'a pris (saab, 2026-10-23 : « si on part d'un autre fichier il est écrasé
+  // et si on le renomme il crée un doublon ») : { nom, reglages } — null pour un integre, jamais
+  // modifie. « Sauver... » sous un autre nom le lui rend (ou supprime celui cree en route).
+  const instantaneDuProfil = () => {
+    const nom = lireNomProfilActif();
+    return { nom, reglages: estReglageIntegre(nom) ? null : lireReglagesDuProfil(nom) };
+  };
+  let auChargement = instantaneDuProfil();
 
   function remplirFormulaire() {
     remplirChampsReglages(elements.dialogue, actuel);
@@ -144,10 +152,16 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
         option.value = nom;
         option.textContent = nom;
         option.selected = nom === actif;
-        option.classList.toggle('reglage-modifie', reglagesDifferentsDuDefaut(nom === actif ? actuel : lireReglagesDuProfil(nom), AUTRES_REGLAGES));
+        // Lune, le reglage du depart, en marron comme toute valeur par defaut (saab, 2026-10-23) —
+        // et en mots : un telephone ne colore pas les options.
+        const deDepart = nom === NOM_REGLAGES_DE_DEPART;
+        if (deDepart) option.textContent = `${nom} (défaut)`;
+        option.classList.toggle('profil-ia-par-defaut', deDepart);
+        option.classList.toggle('reglage-modifie', !deDepart && reglagesDifferentsDuDefaut(nom === actif ? actuel : lireReglagesDuProfil(nom), AUTRES_REGLAGES));
         return option;
       })
     );
+    elements.selectProfil.classList.toggle('profil-ia-par-defaut', actif === NOM_REGLAGES_DE_DEPART);
   }
 
   // Recolore le plateau DEJA CONSTRUIT, sans jamais reconstruire ni
@@ -222,6 +236,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
   // annuler n'a aucun sens d'un profil a l'autre.
   function chargerReglages(nouveaux) {
     pile = [];
+    auChargement = instantaneDuProfil();
     const structurel = nouveaux.board.show_shadows !== actuel.board.show_shadows || nouveaux.kaah.horizontal_clocks !== actuel.kaah.horizontal_clocks;
     actuel = nouveaux;
     if (structurel) {
@@ -277,11 +292,21 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     }
   });
 
+  // Sous un autre nom : les reglages affiches vont dans le nouveau profil, et celui de depart
+  // redevient ce qu'il etait quand on l'a pris — un profil cree en route (une retouche d'un integre,
+  // set_kaah_<date>) disparait : jamais de doublon. Le nom d'un integre est refuse.
   elements.sauverSous.addEventListener('click', () => {
-    const propose = lireNomProfilActif() === NOM_PROFIL_DEFAUT ? '' : lireNomProfilActif();
-    const nom = window.prompt('Nom de ce profil de réglages :', propose);
+    const avant = lireNomProfilActif();
+    const nom = window.prompt('Nom de ce profil de réglages :', estReglageIntegre(avant) ? '' : avant)?.trim();
     if (!nom) return; // boite annulee, ou nom vide : rien ne change
+    if (estReglageIntegre(nom)) return window.alert(`« ${nom} » est un réglage intégré : choisissez un autre nom.`);
     creerProfil(nom, actuel);
+    if (nom !== avant && !estReglageIntegre(avant)) {
+      if (auChargement.nom === avant && auChargement.reglages) remettreProfil(avant, auChargement.reglages);
+      else if (auChargement.nom !== avant) supprimerProfil(avant);
+    }
+    auChargement = instantaneDuProfil();
+    pile = [];
     remplirProfils();
   });
 
@@ -294,8 +319,8 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
 
   elements.supprimerProfil.addEventListener('click', () => {
     const nom = lireNomProfilActif();
-    if (nom === NOM_PROFIL_DEFAUT) {
-      window.alert('Le profil par défaut n\'est pas supprimable.');
+    if (estReglageIntegre(nom)) {
+      window.alert(`« ${nom} » est un réglage intégré : il n'est pas supprimable.`);
       return;
     }
     if (!window.confirm(`Supprimer le profil « ${nom} » ?`)) return;

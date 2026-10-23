@@ -42,6 +42,8 @@ const TYPES_DE_CHAMPS_REGLAGES = {
     preparer: (champ, { min, pas }) =>
       Object.assign(champ, { min: 0, max: Math.round((1 - min) * POURCENT), step: pas * POURCENT }),
     lire: (champ, valeur) => (champ.value = Math.round((1 - valeur) * POURCENT)),
+    // Sa valeur, a cote (saab, 2026-10-22 : « mettre la valeur car on ne sait pas combien c'est »).
+    texte: (champ) => `${champ.value} %`,
     // Calcule en pourcents entiers : 1 - 80/100 donnerait 0.19999999999999996
     // dans le fichier de reglages exporte.
     ecrire: (champ) => (POURCENT - Number(champ.value)) / POURCENT,
@@ -93,7 +95,16 @@ function chaqueChampReglage(dialogue, action) {
 
 // Met chaque commande a la valeur de `reglages`.
 function remplirChampsReglages(dialogue, reglages) {
-  chaqueChampReglage(dialogue, (champ, type, categorie, cle) => type.lire(champ, reglages[categorie][cle]));
+  chaqueChampReglage(dialogue, (champ, type, categorie, cle) => {
+    type.lire(champ, reglages[categorie][cle]);
+    montrerLaValeur(champ, type);
+  });
+}
+
+// La valeur d'une commande qui la montre (un curseur : sa <b class="valeur-curseur"> voisine).
+function montrerLaValeur(champ, type) {
+  const valeur = champ.parentElement.querySelector('.valeur-curseur');
+  if (valeur && type.texte) valeur.textContent = type.texte(champ);
 }
 
 // Orange (phase 31, saab : « si je modifie dans Billes/Billes noires, Billes et
@@ -129,8 +140,12 @@ function brancherChampsReglages(dialogue, surApercu, surFinDeGeste) {
   chaqueChampReglage(dialogue, (champ, type, categorie, cle) => {
     type.preparer?.(champ, BORNES_REGLAGES_KAAH[cle]);
     const retouche = (reglages) => ((reglages[categorie][cle] = type.ecrire(champ)), reglages);
-    if (type.enDirect) champ.addEventListener('input', () => surApercu(retouche));
+    if (type.enDirect) champ.addEventListener('input', () => {
+      montrerLaValeur(champ, type);
+      surApercu(retouche);
+    });
     champ.addEventListener('change', () => {
+      montrerLaValeur(champ, type);
       surApercu(retouche);
       surFinDeGeste();
     });

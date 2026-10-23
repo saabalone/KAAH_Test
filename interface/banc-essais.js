@@ -31,8 +31,9 @@
 // `obtenirBase()` : le livre d'ouvertures charge (la base de coups) ; `obtenirJeux()` :
 // { variantes, puzzles } (les ceintures des IA) ; `ouvrirUnePartie(partie)` : revoir une
 // partie d'un fichier exporte (interface/banc-essais-revoir.js) ; `montrerUnePartie(position,
-// coups, titre)` : une partie de la serie sur le petit plateau et dans le Graphique.
-function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie, montrerUnePartie) {
+// coups, titre, options)` : une partie de la serie sur le petit plateau et dans le Graphique ;
+// `montrerLaReflexion(texte)` : ce que fait la machine de la partie suivie.
+function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie, montrerUnePartie, montrerLaReflexion) {
   const choix = creerChoixDuBanc(elements, obtenirJeux);
   // La retouche de l essai validee toute seule en fin de serie (interface/banc-essais-reglage.js).
   const validerLaRetouche = brancherValidationDuProfil(elements.validationAuto, choix.reglage);
@@ -47,12 +48,16 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
   const regard = brancherLeRegardDesParties(elements, {
     finie: (numero) => serieAffichee?.partieARegarder?.(numero),
     enCours: (machine) => suiviActif?.enCours(machine),
-  }, montrerUnePartie);
+  }, montrerUnePartie, montrerLaReflexion);
 
   const viderLaRecolte = () => (recolte = { entrees: [], date: formaterDateKAAWA(new Date()), ajoutee: false });
 
   function afficher(html, fait, total, unite) {
+    // Exporter se peut des le premier resultat, meme pendant la serie (saab, 2026-10-23 : « comme ce
+    // n'est pas terminé, je ne peux pas exporter ») ; un resultat de plus est a exporter de nouveau.
+    if (enCours && html !== dernier) exporte = false;
     dernier = html;
+    elements.exporter.disabled = false;
     elements.progres.textContent = `${fait} / ${total} ${unite}${enCours?.arret ? ' (arrêté)' : enCours?.pause ? ' (en pause)' : fait === total ? ' — fini' : ''}`;
     // Un tableau de resultats, reconstruit a chaque partie (jamais le plateau).
     elements.resultats.innerHTML = html;
@@ -128,11 +133,27 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     const suivi = creerSuiviDuBanc(elements.enCours, () => enCours?.pause, () => regard.marquer());
     suiviActif = suivi;
     let prochaine = 0;
+    // Le renfort d'une machine (saab, 2026-10-23 : les ceintures jouent l'aller et la revanche d'un
+    // meme jeu en meme temps) : une machine KAI++ de plus, arretee avec les autres, et sa ligne de suivi.
+    const RANG_DES_RENFORTS = 100;
+    const renfortDe = (rang) => {
+      let kaiDuRenfort = null;
+      const ligne = rang + RANG_DES_RENFORTS;
+      return {
+        machine: () => (kaiDuRenfort ??= enCours.machines[enCours.machines.push(creerKaiPlus()) - 1]),
+        suivi: (texte) => {
+          suivi.commencer(ligne, texte);
+          return suivi.suivi(ligne);
+        },
+        finir: () => suivi.finir(ligne),
+      };
+    };
     const machine = async (kai, rang) => {
+      const renfort = renfortDe(rang);
       while (prochaine < taches.length && !enCours.arret) {
         const tache = taches[prochaine++];
-        suivi.commencer(rang, libelle(tache, prochaine), serie.partieARegarder && tache.numero !== undefined ? { numero: tache.numero, position: tache.position ?? POSITION_DEPART_BANC, essaiNoir: !tache.referenceNoir, nomDuProfil: serie.nomDeLEssai?.(tache) } : {});
-        await jouer(tache, kai, suivi.suivi(rang));
+        suivi.commencer(rang, libelle(tache, prochaine), serie.partieARegarder && tache.numero !== undefined ? { numero: tache.numero, position: tache.position ?? POSITION_DEPART_BANC, essaiNoir: !tache.referenceNoir, nomDuProfil: serie.nomDeLEssai?.(tache), nomAdverse: serie.nomDeLAdversaire?.(tache) } : {});
+        await jouer(tache, kai, suivi.suivi(rang), renfort);
         suivi.finir(rang);
         afficher(rendu(), fait(), taches.length, unite);
       }

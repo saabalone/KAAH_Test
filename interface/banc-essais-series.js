@@ -50,9 +50,11 @@ function serieDePartiesDuBanc(essais, reference, parametres, banc) {
   // Une partie finie, pour la regarder (interface/banc-essais-regarder.js).
   const partieARegarder = (numero) => {
     const p = parties.find((partie) => partie.numero === numero);
-    return p && { numero, position: p.position ?? POSITION_DEPART_BANC, coups: p.coups, titre: `Partie ${numero} — ${p.essai + 1}. ${essais[p.essai].nom} en ${p.referenceNoir ? 'Blanc' : 'Noir'}, ${p.fin}, ${p.score}` };
+    if (!p) return p;
+    const [essai, adverse] = [essais[p.essai].nom, reference.nom];
+    return { numero, position: p.position ?? POSITION_DEPART_BANC, coups: p.coups, titre: `Partie ${numero} — ${p.essai + 1}. ${essai} en ${p.referenceNoir ? 'Blanc' : 'Noir'}, ${p.fin}, ${p.score}`, joueurs: p.referenceNoir ? { noir: adverse, blanc: essai } : { noir: essai, blanc: adverse } };
   };
-  return { taches, jouer, rendu, fait: () => parties.length, unite: 'parties', libelle, nomDuFichier, donnees, essaisRetouches, partieARegarder, nomDeLEssai: (tache) => essais[tache.essai].nom };
+  return { taches, jouer, rendu, fait: () => parties.length, unite: 'parties', libelle, nomDuFichier, donnees, essaisRetouches, partieARegarder, nomDeLEssai: (tache) => essais[tache.essai].nom, nomDeLAdversaire: () => reference.nom };
 }
 
 // Une serie de puzzles : chaque essai attaque chaque puzzle, la reference defend.

@@ -12,20 +12,26 @@
 // PROGRAMME, jamais l'un a la place de l'autre (saab, "attention, on ne
 // revient pas au fichier par defaut").
 //
+// Les reglages INTEGRES Lune, Terre et Soleil (saab, 2026-10-23 ; moteur/reglages-integres.js) sont
+// comme Défaut : toujours la, jamais modifies ; Lune est actif sur un appareil neuf.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
-// fusionnerReglages (moteur/reglages.js) et formaterDateKAAWA
+// fusionnerReglages (moteur/reglages.js), REGLAGES_INTEGRES, NOM_REGLAGES_DE_DEPART,
+// reglagesIntegres (moteur/reglages-integres.js) et formaterDateKAAWA
 // (interface/sauvegarde.js) viennent de fichiers charges avant celui-ci
 // dans index.html.
 
 const CLE_PROFILS_REGLAGES = 'kaah-reglages-profils';
 const NOM_PROFIL_DEFAUT = 'Défaut';
+const NOMS_REGLAGES_INTEGRES = [NOM_PROFIL_DEFAUT, ...Object.keys(REGLAGES_INTEGRES)];
+const estReglageIntegre = (nom) => NOMS_REGLAGES_INTEGRES.includes(nom);
 
 function lireStockageProfils() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_PROFILS_REGLAGES) ?? '{}');
-    return { actif: brut.actif ?? NOM_PROFIL_DEFAUT, profils: brut.profils ?? {} };
+    return { actif: brut.actif ?? NOM_REGLAGES_DE_DEPART, profils: brut.profils ?? {} };
   } catch {
-    return { actif: NOM_PROFIL_DEFAUT, profils: {} };
+    return { actif: NOM_REGLAGES_DE_DEPART, profils: {} };
   }
 }
 
@@ -37,17 +43,17 @@ function ecrireStockageProfils(stockage) {
   }
 }
 
-// « Défaut » d'abord (toujours en tete, comme dans KAAWA), puis les profils
-// enregistres dans leur ordre de creation.
+// « Défaut » d'abord (toujours en tete, comme dans KAAWA), les autres integres, puis les profils
+// enregistres dans leur ordre de creation (un des leurs au nom d'un integre s'efface devant lui).
 function listerNomsProfils() {
-  return [NOM_PROFIL_DEFAUT, ...Object.keys(lireStockageProfils().profils)];
+  return [...NOMS_REGLAGES_INTEGRES, ...Object.keys(lireStockageProfils().profils).filter((nom) => !estReglageIntegre(nom))];
 }
 
 function lireNomProfilActif() {
   const { actif, profils } = lireStockageProfils();
   // Un profil peut avoir ete supprime ailleurs (autre onglet) : retombe sur
-  // Defaut plutot que de pointer vers rien.
-  return actif === NOM_PROFIL_DEFAUT || actif in profils ? actif : NOM_PROFIL_DEFAUT;
+  // celui du depart plutot que de pointer vers rien.
+  return estReglageIntegre(actif) || actif in profils ? actif : NOM_REGLAGES_DE_DEPART;
 }
 
 // Les reglages REELLEMENT actifs en ce moment : ceux du profil actif,
@@ -59,18 +65,19 @@ function lireReglagesActifs() {
 }
 
 function lireReglagesDuProfil(nom) {
+  if (nom === NOM_PROFIL_DEFAUT) return REGLAGES_PAR_DEFAUT;
+  if (estReglageIntegre(nom)) return reglagesIntegres(nom);
   const profils = lireStockageProfils().profils;
-  if (nom === NOM_PROFIL_DEFAUT || !(nom in profils)) return REGLAGES_PAR_DEFAUT;
-  return fusionnerReglages(profils[nom]);
+  return nom in profils ? fusionnerReglages(profils[nom]) : REGLAGES_PAR_DEFAUT;
 }
 
-// Ecrase le profil ACTIF avec `reglages` — jamais « Défaut » (toujours
-// REGLAGES_PAR_DEFAUT, immuable) : appeler ceci sur Defaut cree plutot un
+// Ecrase le profil ACTIF avec `reglages` — jamais un integre (Défaut, Lune,
+// Terre, Soleil, immuables) : appeler ceci sur l'un d'eux cree plutot un
 // nouveau profil, exactement comme KAAWA (Sauver sur Defaut equivaut a
 // Sous...). Renvoie le nom reellement utilise.
 function sauverProfilActif(reglages) {
   const nom = lireNomProfilActif();
-  if (nom === NOM_PROFIL_DEFAUT) return creerProfil(nomProfilParDefaut(), reglages);
+  if (estReglageIntegre(nom)) return creerProfil(nomProfilParDefaut(), reglages);
   const stockage = lireStockageProfils();
   stockage.profils[nom] = reglages;
   ecrireStockageProfils(stockage);
@@ -101,16 +108,25 @@ function creerProfil(nom, reglages) {
 
 function definirProfilActif(nom) {
   const stockage = lireStockageProfils();
-  stockage.actif = nom === NOM_PROFIL_DEFAUT || nom in stockage.profils ? nom : NOM_PROFIL_DEFAUT;
+  stockage.actif = estReglageIntegre(nom) || nom in stockage.profils ? nom : NOM_REGLAGES_DE_DEPART;
   ecrireStockageProfils(stockage);
 }
 
-// Jamais « Défaut » (rien a supprimer, voir l'en-tete). Si c'etait le profil
-// actif, on retombe sur Defaut.
+// Remet le profil `nom` a `reglages` sans changer le profil actif (Sauver... sous un autre nom :
+// interface/reglages.js).
+function remettreProfil(nom, reglages) {
+  if (estReglageIntegre(nom)) return;
+  const stockage = lireStockageProfils();
+  stockage.profils[nom] = reglages;
+  ecrireStockageProfils(stockage);
+}
+
+// Jamais un integre (rien a supprimer, voir l'en-tete). Si c'etait le profil
+// actif, on retombe sur celui du depart.
 function supprimerProfil(nom) {
-  if (nom === NOM_PROFIL_DEFAUT) return;
+  if (estReglageIntegre(nom)) return;
   const stockage = lireStockageProfils();
   delete stockage.profils[nom];
-  if (stockage.actif === nom) stockage.actif = NOM_PROFIL_DEFAUT;
+  if (stockage.actif === nom) stockage.actif = NOM_REGLAGES_DE_DEPART;
   ecrireStockageProfils(stockage);
 }

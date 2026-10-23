@@ -24,7 +24,8 @@
 // (moteur/pendules.js, `camps`) ; le mode reste commun.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : reglagesDuCamp
-// (moteur/pendules.js) vient d'un fichier charge avant celui-ci.
+// (moteur/pendules.js) vient d'un fichier charge avant celui-ci ; lireReglagesActifs
+// (interface/reglages-profils.js) ne sert qu'une fois la page chargee.
 
 // Valeur par defaut d'un champ numerique laisse vide ou invalide : jamais
 // NaN dans un reglage (romprait le calcul des pendules, moteur/pendules.js).
@@ -44,8 +45,8 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 // `elements` : { dialogue, boutonChrono, boutonBonus, boutonDelai,
 // sectionTemps, sectionBonus, sectionDelai, tempsInitial, bonusParCoup,
 // bonusParEjection, delaiParCoup, campsDifferents (la case), blanc ({ tempsInitial,
-// bonusParCoup, bonusParEjection, delaiParCoup } : les champs de Blanc), annuler,
-// valider, fermer }.
+// bonusParCoup, bonusParEjection, delaiParCoup } : les champs de Blanc), horizontales (la case
+// « Pendules et Occ à l'horizontale », facultative), annuler, valider, fermer }.
 //
 // Fermer LA BOITE (Valider, Fermer, ou un clic en dehors — interface/
 // fermeture-dialogues.js) applique toujours les reglages AFFICHES, jamais
@@ -61,7 +62,11 @@ const DELAI_PAR_COUP_PAR_DEFAUT = 5;
 // (`ouvrir(valeurs, { avecAdversaire: true })`) — jamais pour un changement de
 // mode en cours de partie. Les reglages rendus portent alors aussi
 // `machines` ({ noir, blanc }, null entre humains).
-function demarrerChoixModePendules(elements, choixJoueurs) {
+//
+// `changerLesPendulesHorizontales(valeur)` (saab, 2026-10-23 : « boite Mode pendule, ajouter le btn
+// Pendule/Occ horizontal ») : le reglage de Reglages > Affichage redessine le plateau (la page se
+// recharge) — applique seulement une fois la boite fermee, la partie deja lancee (elle reprend).
+function demarrerChoixModePendules(elements, choixJoueurs, changerLesPendulesHorizontales = null) {
   let modeChoisi = null;
   let resoudre = null;
   let valeursOuverture = null;
@@ -128,6 +133,8 @@ function demarrerChoixModePendules(elements, choixJoueurs) {
     const reglages = construireReglages();
     resoudre?.(avecAdversaire ? { ...reglages, machines: choixJoueurs.lire() } : reglages);
     resoudre = null;
+    const horizontales = elements.horizontales?.checked;
+    if (elements.horizontales && horizontales !== lireReglagesActifs().kaah.horizontal_clocks) setTimeout(() => changerLesPendulesHorizontales?.(horizontales));
   });
 
   // Les reglages d'un camp, lus dans ses champs (`champs` : ceux de Noir, ou
@@ -178,6 +185,7 @@ function demarrerChoixModePendules(elements, choixJoueurs) {
     avecAdversaire = Boolean(options.avecAdversaire);
     choixJoueurs.preparer(avecAdversaire);
     appliquerValeurs(valeurs);
+    if (elements.horizontales) elements.horizontales.checked = lireReglagesActifs().kaah.horizontal_clocks;
     elements.dialogue.showModal();
     return new Promise((r) => {
       resoudre = r;

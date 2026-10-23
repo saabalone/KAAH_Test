@@ -82,16 +82,20 @@ function etatsDesJeux(vue, grade, parcours, regles, proposes, imposes) {
 }
 
 // Les deux sens du jeu choisi (`etat` : le sien ; un jeu reussi se regarde, il ne se
-// rejoue plus) : [{ sens, fait, interdit, titre }].
+// rejoue plus) : [{ sens, fait, interdit, titre, aJouer }] — `aJouer` : le seul sens qu'on peut jouer
+// (saab, 2026-10-22 : « en PZL ... c'est imposé d'être Noir, pour la revanche idem » : en vert, et
+// l'image du jeu le lance aussi).
 function sensDuJeuChoisi(vue, grade, parcours, choisi, etat) {
   const siens = vue.mode === 'entrainement' ? {} : parcours.aConfirmer ? parcours.enConfirmation[`${grade}|${choisi}`] ?? {} : parcours.enCours[choisi] ?? {};
-  return ['aller', 'revanche'].map((sens) => {
+  const sens = ['aller', 'revanche'].map((sens) => {
     // PZL : Noir d'abord (saab, 2026-10-17 : « le 1er jeu se fait toujours en Noir » — il
     // joue le premier : on cherche soi-meme le 1er bon coup, la machine ne l'a pas montre).
     const noirDAbord = vue.mode === 'ceinture' && vue.sorte === 'pzl' && sens === 'revanche' && !siens.aller;
     const titre = etat === 'reussi' ? 'Ce jeu est réussi : il reste acquis' : noirDAbord ? 'D’abord en Noir : Blanc vient ensuite' : '';
     return { sens, fait: Boolean(siens[sens]), interdit: noirDAbord || etat !== 'libre', titre };
   });
+  const jouables = sens.filter((un) => !un.fait && !un.interdit);
+  return sens.map((un) => ({ ...un, aJouer: jouables.length === 1 && jouables[0] === un }));
 }
 
 // Ce qu'il faut faire sous une ceinture ouverte.
@@ -125,9 +129,14 @@ function htmlDesPropositions({ sorte, grade, consigne, jeux, choisi, sens }) {
     const titre = etat === 'reussi' ? 'Réussi : il reste acquis' : etat === 'pris' ? 'Plus de place dans la série : finissez les jeux commencés ou imposés' : 'Voir ce jeu';
     return `<button class="bouton-dialogue bouton-jeu-propose${nom === choisi ? ' bouton-actif' : ''}${etat !== 'libre' ? ' jeu-fait' : ''}" type="button" data-jeu="${echapperCeinture(nom)}" title="${titre}" ${etat === 'pris' ? 'disabled' : ''}>${impose ? '📌 ' : ''}${etat === 'reussi' ? '✓ ' : ''}${echapperCeinture(nom)}${detail ? ` <span class="note-reglages">${detail}</span>` : ''}</button>`;
   });
+  // Le seul sens jouable : son bouton en vert, et l'image du jeu le lance aussi (encadree de vert).
+  const seul = sens.find((un) => un.aJouer);
+  const image = seul
+    ? `<svg id="apercu-entrainement" class="apercu-entrainement apercu-cliquable" data-ceinture="${grade}" data-sens="${seul.sens}" data-nom="${echapperCeinture(choisi)}"><title>Toucher : jouer en ${LIBELLES_DES_SENS[sorte][seul.sens]}</title></svg>`
+    : '<svg id="apercu-entrainement" class="apercu-entrainement"></svg>';
   const lancement = choisi
-    ? `<div class="choix-jeu-entrainement"><svg id="apercu-entrainement" class="apercu-entrainement"></svg><div class="sens-jeu-entrainement">${sens
-        .map((un) => `<button class="bouton-dialogue${un.fait ? ' jeu-fait' : ''}" type="button" data-ceinture="${grade}" data-sens="${un.sens}" data-nom="${echapperCeinture(choisi)}" ${un.fait || un.interdit ? 'disabled' : ''} ${un.titre ? `title="${un.titre}"` : ''}>${un.fait ? '✓ ' : '▶ '}${LIBELLES_DES_SENS[sorte][un.sens]}</button>`)
+    ? `<div class="choix-jeu-entrainement">${image}<div class="sens-jeu-entrainement">${sens
+        .map((un) => `<button class="bouton-dialogue${un.fait ? ' jeu-fait' : ''}${un.aJouer ? ' bouton-a-faire' : ''}" type="button" data-ceinture="${grade}" data-sens="${un.sens}" data-nom="${echapperCeinture(choisi)}" ${un.fait || un.interdit ? 'disabled' : ''} ${un.titre ? `title="${un.titre}"` : ''}>${un.fait ? '✓ ' : '▶ '}${LIBELLES_DES_SENS[sorte][un.sens]}</button>`)
         .join('')}</div></div>`
     : '';
   return `${objectif}<p class="consigne-entrainement">${consigne}</p><div class="jeux-proposes">${boutons.join('')}</div>${lancement}`;

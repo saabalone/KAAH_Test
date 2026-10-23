@@ -107,6 +107,7 @@ const FICHIERS_ESSENTIELS = [
   './moteur/menaces.js',
   './moteur/couleurs.js',
   './moteur/reglages.js',
+  './moteur/reglages-integres.js',
   './donnees/kaa-variantes.js',
   './donnees/kaa-puzzles.js',
   './donnees/kaa-puzzles-machine.js',

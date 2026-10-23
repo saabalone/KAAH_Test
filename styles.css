@@ -1189,6 +1189,15 @@ button,
   padding-left: 6px;
 }
 
+/* Mais la ligne previsualisee se charge (ou se joue) si on la retouche : en VERT, comme ce qui
+   attend un geste sans danger (saab, 2026-10-22 : « en vert aussi son label car si on reclic il
+   se chargera »). */
+.ligne-partie-previsualisee,
+.ligne-variante-previsualisee {
+  border-left-color: var(--vert-demande);
+  color: #3fcf7a;
+}
+
 /* Avertissement affiche seulement pendant une confirmation de reprise
    automatique (interface/mes-parties.js, ouvrirPourConfirmationReprise) —
    meme orange que le reste des signaux "c'est ici" de KAAH. */
@@ -1283,6 +1292,18 @@ button,
    faire defiler pour la retrouver et la confirmer (signale par saab). Il
    occupe donc sa place des l'ouverture, pleine ou vide, et plus rien ne
    bouge entre les deux clics. */
+/* Un apercu montre (pas vide) se touche pour charger : encadre de vert (saab, 2026-10-22 :
+   « encadrer les mini plateaux en vert pour savoir qu'on peut cliquer dessus ») ; de meme
+   l'image d'un jeu d'Entrainement qui lance le seul sens jouable (interface/entrainement-ceintures.js). */
+#apercu-variante:not(:empty),
+#apercu-puzzle:not(:empty),
+#apercu-partie:not(:empty),
+.apercu-cliquable {
+  outline: 3px solid var(--vert-demande);
+  outline-offset: -1px;
+  cursor: pointer;
+}
+
 #apercu-variante,
 #apercu-puzzle,
 #apercu-partie {
@@ -1706,7 +1727,6 @@ button,
 .fleche-conseil {
   pointer-events: none;
   stroke-width: 3.2;
-  opacity: var(--opacite-fleches-conseils, 1);
 }
 
 .fleche-conseil-dominante {
@@ -1717,8 +1737,11 @@ button,
    laisser deviner les cases en dessous (signale par saab, en vue d'un
    futur affichage des coordonnees) — sauf le coup qu'on vient de choisir,
    dessine SANS cette classe, opaque, par-dessus les autres. */
+/* Leur opacite : le curseur Transparence de Reglages > Fleches Conseils (saab, 2026-10-22 : « le
+   curseur au minimum donne un peu trop de transparence » — avant, 0,35 fois la sienne ; a 0 %,
+   elles sont maintenant aussi opaques que la fleche choisie, qui l'est toujours). */
 .fleche-conseil-translucide {
-  opacity: calc(var(--opacite-fleches-conseils, 1) * 0.35);
+  opacity: var(--opacite-fleches-conseils, 0.5);
 }
 
 /* Couleurs et opacite reglables (saab, 2026-09-27, Reglages > Fleches
@@ -3449,8 +3472,17 @@ button,
   fill: #4aa8ff;
 }
 
-/* Le meme compteur sous le titre, pendules a l'horizontale (saab, 2026-10-01). */
+/* Le meme compteur sous le titre, pendules a l'horizontale (saab, 2026-10-01) — sur le meme
+   fond que son cadre a gauche du plateau (« Fond Occ », .cadre-occurrences-fond) : un fond de
+   fenetre change ne lui retire jamais son contraste (saab, 2026-10-23). */
 .compteur-occurrences-entete {
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: var(--fond-cadre-occurrences);
+  border: 1px solid #e4e4e4;
+  border-radius: 4px;
   padding: 1px 6px;
   font: 12px sans-serif;
   color: #ffd700;
@@ -4446,12 +4478,14 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   cursor: pointer;
 }
 
+/* Tour par tour, deux tours par ligne : le numero, Noir, Blanc (saab, 2026-10-22 : « mettre en
+   colonnes paires », Noir et Blanc toujours dans leur colonne ; interface/sequence-prevue.js). */
 .coups-sequence-prevue {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2px 6px;
-  max-width: 260px;
+  display: grid;
+  grid-template-columns: repeat(2, auto 1fr 1fr);
+  align-items: center;
+  gap: 2px 4px;
+  max-width: 280px;
   margin: 0 auto 6px;
   /* Une longue partie (LabAl) : les coups defilent, les boutons restent visibles (saab, 2026-10-18). */
   max-height: 7.5em;
@@ -4475,6 +4509,10 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
   font: 13px monospace;
   cursor: pointer;
 }
+
+.tour-sequence-prevue { color: #8a8a8a; font: 12px monospace; text-align: right; }
+.joueurs-sequence-prevue, .reflexion-sequence-prevue { margin: 0 0 4px; text-align: center; }
+.reflexion-sequence-prevue { color: #e0832a; }
 
 .coup-sequence-prevue-actuel {
   background: var(--vert-demande);

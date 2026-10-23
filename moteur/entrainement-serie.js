@@ -18,7 +18,9 @@
 //   - puis la CONFIRMATION : une victoire sur chaque ceinture sautee (saab : « il faut
 //     valider toutes les ceintures sautées »), ou, sans saut, sur celle d'en dessous ;
 //     une ceinture a confirmer qui a des jeux imposes (sautee, ou celle d'en dessous) se
-//     confirme par ceux qu'on n'a pas gagnes a la ceinture visee, tous (saab, 2026-10-18 :
+//     confirme par ceux qu'on n'a pas encore reussis AU-DESSUS d'elle (saab, 2026-10-23 : « ce qui
+//     est réussi au-dessus est validé en dessous » — a la visee, a une ceinture confirmee en
+//     route, ou lors d'une tentative d'avant), tous (saab, 2026-10-18 :
 //     « faire jouer seulement celles qui diffèrent ... donc on fait la B » ; « si on saute de
 //     Blanche à Jaune, on devra confirmer tous ceux de Blanche, car Jaune fait les
 //     complémentaires ») — tous deja gagnes : confirmee d'office ;
@@ -188,23 +190,33 @@ function resultatDeSerie(parcours, nom, sens, gagne, regles) {
   return { parcours: confirmation, evenement: 'confirmation' };
 }
 
+// Les jeux reussis au-dessus de `ceinture` (saab, 2026-10-23 : « ce qui est réussi au-dessus est
+// validé en dessous, ça reste logique et ça allège ») : a la visee, a une ceinture confirmee en
+// route, ou lors d'une tentative d'avant.
+const gagnesAuDessus = (gagnes, ceinture) => Object.entries(gagnes ?? {}).filter(([autre]) => Number(autre) > ceinture).flatMap(([, noms]) => noms);
+
 // Les jeux a gagner sur chaque ceinture a confirmer qui a des imposes (`regles.imposesDe(ceinture)`,
-// moteur/entrainement-lecture.js) : ceux qu'on n'a pas gagnes a la ceinture visee.
+// moteur/entrainement-lecture.js) : ceux qu'on n'a pas encore reussis au-dessus d'elle.
 function jeuxDesCeinturesAConfirmer({ cible }, aConfirmer, gagnes, regles) {
-  const dejaGagnes = gagnes[cible] ?? [];
   return Object.fromEntries(
     aConfirmer
       .filter((autre) => autre < cible && (regles.imposesDe?.(autre) ?? []).length > 0)
-      .map((autre) => [autre, regles.imposesDe(autre).filter((nom) => !dejaGagnes.includes(nom))])
+      .map((autre) => [autre, regles.imposesDe(autre).filter((nom) => !gagnesAuDessus(gagnes, autre).includes(nom))])
   );
+}
+// Ce qui reste a gagner pour confirmer `ceinture` (une ceinture a jeux imposes) : ni deja confirme
+// la, ni reussi au-dessus depuis ; null sans jeux imposes.
+function resteAConfirmer(parcours, ceinture) {
+  const entier = complet(parcours);
+  const aFaire = entier.aFaireEnConfirmation[ceinture];
+  if (!aFaire) return null;
+  const faits = [...(entier.jeuxConfirmes[ceinture] ?? []), ...gagnesAuDessus(entier.gagnes, ceinture)];
+  return aFaire.filter((nom) => !faits.includes(nom));
 }
 // Les jeux qu'on peut jouer pour confirmer `ceinture` : ceux qui restent a gagner sur une
 // ceinture a jeux imposes, sinon ses `proposes` (un seul gagne suffit).
 function jeuxDeConfirmation(parcours, ceinture, proposes) {
-  const aFaire = complet(parcours).aFaireEnConfirmation[ceinture];
-  if (!aFaire) return proposes;
-  const confirmes = complet(parcours).jeuxConfirmes[ceinture] ?? [];
-  return aFaire.filter((nom) => !confirmes.includes(nom));
+  return resteAConfirmer(parcours, ceinture) ?? proposes;
 }
 
 // Une ceinture a confirmer dont tout est deja gagne : confirmee d'office.
@@ -218,7 +230,7 @@ function resultatDeConfirmation(parcours, ceinture, nom, sens, gagne, regles) {
   // Une ceinture a jeux imposes : seulement ceux qui restent a gagner.
   const aFaire = parcours.aFaireEnConfirmation[ceinture];
   const dejaConfirmes = parcours.jeuxConfirmes[ceinture] ?? [];
-  if (aFaire && (!aFaire.includes(nom) || dejaConfirmes.includes(nom))) return null;
+  if (aFaire && !resteAConfirmer(parcours, ceinture).includes(nom)) return null;
   if (avecRevanche && avant[sens]) return null;
   const { jeu, issue } = suiteDUnEssai(avant, gagne, regles);
   if (issue === 'essai rate' || issue === 'rattrapage') return { parcours: { ...parcours, enConfirmation: { ...parcours.enConfirmation, [cle]: jeu } }, evenement: issue };
@@ -226,12 +238,15 @@ function resultatDeConfirmation(parcours, ceinture, nom, sens, gagne, regles) {
   const manche = { ...jeu, [sens]: true };
   if (avecRevanche && !(manche.aller && manche.revanche)) return { parcours: { ...parcours, enConfirmation: { ...parcours.enConfirmation, [cle]: manche } }, evenement: 'reste la revanche' };
   const gagnes = ajouterGagne(parcours.gagnes, ceinture, nom);
-  if (aFaire && aFaire.some((autre) => autre !== nom && !dejaConfirmes.includes(autre))) {
-    const jeuxConfirmes = { ...parcours.jeuxConfirmes, [ceinture]: [...dejaConfirmes, nom] };
-    return { parcours: { ...parcours, gagnes, enConfirmation: sansCle(parcours.enConfirmation, cle), jeuxConfirmes }, evenement: 'jeu reussi' };
-  }
-  const enConfirmation = Object.fromEntries(Object.entries(parcours.enConfirmation).filter(([autre]) => !autre.startsWith(`${ceinture}|`)));
-  const suite = { ...parcours, gagnes, enConfirmation, confirmees: [...parcours.confirmees, ceinture] };
+  const jeuxConfirmes = aFaire ? { ...parcours.jeuxConfirmes, [ceinture]: [...dejaConfirmes, nom] } : parcours.jeuxConfirmes;
+  const avecLeJeu = { ...parcours, gagnes, jeuxConfirmes, enConfirmation: sansCle(parcours.enConfirmation, cle) };
+  // Confirmees maintenant : celle du jeu (sans imposes, un jeu gagne suffit ; sinon tous les siens),
+  // et celles du dessous dont tout est desormais reussi au-dessus.
+  const finie = (autre) => (autre === ceinture && !aFaire) || resteAConfirmer(avecLeJeu, autre)?.length === 0;
+  const nouvelles = ceinturesAConfirmer(avecLeJeu).filter(finie);
+  if (nouvelles.length === 0) return { parcours: avecLeJeu, evenement: 'jeu reussi' };
+  const enConfirmation = Object.fromEntries(Object.entries(avecLeJeu.enConfirmation).filter(([autre]) => !nouvelles.some((confirmee) => autre.startsWith(`${confirmee}|`))));
+  const suite = { ...avecLeJeu, enConfirmation, confirmees: [...parcours.confirmees, ...nouvelles] };
   if (ceinturesAConfirmer(suite).length > 0) return { parcours: suite, evenement: 'ceinture confirmee' };
   return ceintureObtenue(suite, gagnes, true);
 }

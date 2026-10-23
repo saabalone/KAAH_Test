@@ -304,7 +304,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // Hors PZL, une position calme (personne ne peut pousser) : quelques secondes suffisent
     // (moteur/position-calme.js ; saab, 2026-10-19 : « le bloc fait chercher trop longtemps »).
     // Sans limite (moteur/ia.js) : un temps qui ne finit jamais avant elle.
-    const sansLimite = { ...machine, reflexionMax: reflexionPourChercher(machine.reflexionMax) };
+    // Dans un PZL, ef a tous les niveaux (moteur/ia.js, poidsPourUnPuzzle).
+    const sansLimite = { ...machine, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
     const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
 
     const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };

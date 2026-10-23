@@ -855,7 +855,7 @@
         <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume. <b>Clic (ordinateur)</b> : sur ordinateur, un petit clic à chaque appui sur un bouton ou sur le plateau. <b>Vibration (tél.)</b> : sur téléphone, une brève vibration au même moment (Android ; l'iPhone ne la permet pas aux pages web) — elle reste active même quand le Son global est coupé.</li>
         <li><b>English / Français</b> (en haut de cette Aide, et sur la question d'installation) : l'interface en anglais ou en français (la page se recharge). En anglais, l'Aide reste en français pour l'instant : un bouton la copie, pour la coller dans un traducteur.</li>
         <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le mode simple (sans relief) et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage, le titre de sa rubrique et le nom du profil (dans la liste aussi).<br><b>Annuler</b> (en bas) défait le dernier changement, puis celui d'avant, jusqu'aux valeurs d'origine ; retouches des profils IA comprises, et même après avoir fermé puis rouvert Réglages (tant qu'on garde le même profil).</li>
-        <li><b>Profils</b> de réglages : « Sauver... » propose un nom pour le profil affiché. <b>Comparer</b> : tous les profils côte à côte, une ligne par réglage (les couleurs en pastille), en orange ce qui diffère de Défaut ; touchez le nom d'un profil pour le choisir.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
+        <li><b>Profils</b> de réglages : <b>Défaut</b> (les réglages d'origine) et les intégrés <b>Lune</b> (au départ), <b>Terre</b> et <b>Soleil</b> ne changent jamais — une retouche crée votre profil, set_kaah_&lt;date&gt;. Pour un nouveau réglage, partez de l'un d'eux. Sur un de vos profils, une retouche l'enregistre tout de suite ; « Sauver... » sous un autre nom en fait un nouveau profil et rend au premier ce qu'il était quand vous l'avez choisi (pas de doublon). « Sauver... » propose un nom pour le profil affiché. <b>Comparer</b> : tous les profils côte à côte, une ligne par réglage (les couleurs en pastille), en orange ce qui diffère de Défaut ; touchez le nom d'un profil pour le choisir.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
         <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA. Importer demande le <b>préfixe</b> de l'expéditeur (ses initiales, par exemple) : il se met devant le nom de la partie, qui ne se confond plus avec une des vôtres et se regroupe avec ses autres parties. On peut choisir en même temps sa page de recherches 1er coup.</li>
@@ -1088,6 +1088,9 @@
       <button id="bouton-supprimer-profil-reglages" class="bouton-dialogue" type="button" title="Supprime le profil de réglages choisi">Supprimer</button>
       <button id="bouton-comparer-profils-reglages" class="bouton-dialogue" type="button" title="Tous les profils de réglages côte à côte (en orange : ce qui diffère de Défaut)">Comparer</button>
     </div>
+    <!-- Saab, 2026-10-23 : « expliquer qu'il faut se positionner sur le fichier Défaut pour créer un
+         nouveau réglage » (interface/reglages.js, Sauver...). -->
+    <p class="note-reglages">Défaut, Lune, Terre et Soleil ne changent jamais : une retouche crée votre profil (set_kaah_&lt;date&gt;), que « Sauver... » renomme. Sur un de vos profils, une retouche l'enregistre ; « Sauver... » sous un autre nom en fait un nouveau profil et rend au premier ce qu'il était quand vous l'avez choisi.</p>
     <!-- Rubriques repliables (saab, 2026-09-27 : trop de reglages pour une seule
          liste) — interface/reglages-rubriques.js retient celles qui sont
          ouvertes. Chaque couleur, case ou curseur est liee a son reglage par
@@ -1132,7 +1135,7 @@
         <label class="ligne-couleur">Défaite <input id="couleur-conseil-defaite" type="color" /></label>
         <label class="ligne-couleur">Nulle <input id="couleur-conseil-nulle" type="color" /></label>
         <label class="ligne-couleur">Égalité <input id="couleur-conseil-egalite" type="color" /></label>
-        <label class="ligne-curseur">Transparence <input id="curseur-transparence-conseils" type="range" /></label>
+        <label class="ligne-curseur" title="Les flèches de fond de « Tout afficher » (la flèche du coup choisi reste opaque) : 0 % = aussi opaques qu'elle">Transparence (Tout afficher) <input id="curseur-transparence-conseils" type="range" /> <b class="valeur-curseur"></b></label>
       </details>
 
       <details class="rubrique-reglages" data-rubrique="fleches-menaces">
@@ -1141,7 +1144,7 @@
         <label class="ligne-couleur">Autre camp <input id="couleur-menace-ennemi" type="color" /></label>
         <label class="ligne-couleur">Éjection <input id="couleur-menace-ejection" type="color" /></label>
         <label class="ligne-couleur">Éjection gagnante <input id="couleur-menace-ejection-fin" type="color" /></label>
-        <label class="ligne-curseur">Transparence <input id="curseur-transparence-menaces" type="range" /></label>
+        <label class="ligne-curseur">Transparence <input id="curseur-transparence-menaces" type="range" /> <b class="valeur-curseur"></b></label>
       </details>
 
       <details class="rubrique-reglages" data-rubrique="chevron">
@@ -1651,6 +1654,8 @@
       <!-- Noir et Blanc differents (saab, 2026-10-09) : la case ouvre la colonne de
            Blanc (interface/pendules-mode.js). -->
       <label class="ligne-reglage"><input id="case-pendules-par-camp" type="checkbox" /> Noir et Blanc différents</label>
+      <!-- Saab, 2026-10-23 : le reglage de Reglages > Affichage, ici aussi (interface/pendules-mode.js). -->
+      <label class="ligne-reglage" title="Comme dans Réglages &gt; Affichage : le plateau se redessine (la page se recharge) une fois la boîte fermée, et la partie reprend"><input id="case-pendules-horizontales-mode" type="checkbox" /> Pendules et Occ à l'horizontale</label>
       <p class="entete-pendules-par-camp"><span>Noir</span><span>Blanc</span></p>
       <label class="ligne-nombre-pendule">
         Temps initial (secondes)
@@ -1802,6 +1807,8 @@
        interface/sequence-prevue.js. -->
   <dialog id="dialogue-sequence-prevue" class="dialogue dialogue-sequence-prevue">
     <h2 id="titre-sequence-prevue" title="Glisser pour déplacer cette fenêtre"></h2>
+    <p id="joueurs-sequence-prevue" class="note-reglages joueurs-sequence-prevue" hidden></p>
+    <p id="reflexion-sequence-prevue" class="note-reglages reflexion-sequence-prevue" hidden></p>
     <svg id="apercu-sequence-prevue"></svg>
     <div id="coups-sequence-prevue" class="coups-sequence-prevue"></div>
     <div class="boutons-dialogue-cote-a-cote">
@@ -2213,6 +2220,7 @@
   <script src="./moteur/menaces.js"></script>
   <script src="./moteur/couleurs.js"></script>
   <script src="./moteur/reglages.js"></script>
+  <script src="./moteur/reglages-integres.js"></script>
   <script src="./donnees/kaa-variantes.js"></script>
   <script src="./donnees/kaa-next-move.js"></script>
   <script src="./donnees/kaa-puzzles.js"></script>
@@ -2921,14 +2929,16 @@
       // Revoir une partie d'un fichier du banc : une partie de Mes parties, ouverte.
       ({ arbre, prefixe, evenement, date, variante, joueurs }) => creerEtOuvrirLaPartie(arbre, { variantName: variante, joueurs: { noir: joueurs.noir, blanc: joueurs.blanc }, date, prefixe, evenement }),
       // Une partie de la serie : le petit plateau et le Graphique, qui se suivent (saab, 2026-10-18).
-      (position, coups, titre, { enDirect = false, aLaFin = false } = {}) => {
+      (position, coups, titre, { enDirect = false, aLaFin = false, joueurs = null } = {}) => {
         const depart = { ...lirePosition(position), joueurAuTrait: 'noir' };
         const rang = enDirect ? petitPlateau?.prolonger(depart, coups, titre) : null;
         if (enDirect && rang === null) return; // le petit plateau montre autre chose
         graphiqueDesGroupes?.montrerUneSequence(depart, coups, titre, !enDirect);
         if (enDirect) graphiqueDesGroupes?.suivreLaSequence(rang);
-        else petitPlateau?.montrer(depart, coups, titre, { aLaFin });
-      }
+        else petitPlateau?.montrer(depart, coups, titre, { aLaFin, joueurs });
+      },
+      // Ce que fait la machine de la partie suivie (une ligne sur le petit plateau).
+      (texte) => petitPlateau?.reflexion(texte)
     );
     const boiteReglages = demarrerReglages(
       {
@@ -2970,6 +2980,7 @@
       bonusParEjection: document.getElementById('pendule-bonus-ejection'),
       delaiParCoup: document.getElementById('pendule-delai-coup'),
         campsDifferents: document.getElementById('case-pendules-par-camp'),
+        horizontales: document.getElementById('case-pendules-horizontales-mode'),
         blanc: {
           tempsInitial: document.getElementById('pendule-temps-initial-blanc'),
           bonusParCoup: document.getElementById('pendule-bonus-coup-blanc'),
@@ -2979,7 +2990,14 @@
       annuler: document.getElementById('bouton-annuler-mode-pendules'),
       valider: document.getElementById('bouton-valider-mode-pendules'),
       fermer: document.getElementById('bouton-fermer-mode-pendules'),
-    }, demarrerChoixJoueurs(document.getElementById('section-adversaire')));
+    }, demarrerChoixJoueurs(document.getElementById('section-adversaire')), (horizontales) => {
+      // Pendules et Occ a l'horizontale, depuis la boite : dans le profil de Reglages actif (un
+      // integre en cree un a soi, interface/reglages-profils.js), puis le plateau se redessine.
+      const reglages = structuredClone(lireReglagesActifs());
+      reglages.kaah.horizontal_clocks = horizontales;
+      sauverProfilActif(reglages);
+      demarrerRechargement();
+    });
     document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
       // `ouvrir` renvoie toujours des reglages (jamais `null`, voir
       // interface/pendules-mode.js) : les reappliquer ici est un non-evenement
@@ -4514,6 +4532,8 @@
           (petitPlateau = demarrerSequencePrevue({
             dialogue: document.getElementById('dialogue-sequence-prevue'),
             titre: document.getElementById('titre-sequence-prevue'),
+            joueurs: document.getElementById('joueurs-sequence-prevue'),
+            reflexion: document.getElementById('reflexion-sequence-prevue'),
             apercu: document.getElementById('apercu-sequence-prevue'),
             coups: document.getElementById('coups-sequence-prevue'),
             debut: document.getElementById('bouton-debut-sequence-prevue'),

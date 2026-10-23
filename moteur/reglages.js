@@ -119,7 +119,10 @@ const REGLAGES_PAR_DEFAUT = {
     hint_loss_color: [0xe0 / 255, 0x40 / 255, 0x40 / 255, 1],
     hint_draw_color: [0x4a / 255, 0xa8 / 255, 0xff / 255, 1],
     hint_tie_color: [0x9a / 255, 0x9a / 255, 0x9a / 255, 1],
-    hint_opacity: 1,
+    // L'opacite des fleches de fond de « Tout afficher » (la fleche choisie reste opaque :
+    // saab, 2026-10-22 ; styles.css, .fleche-conseil-translucide) — 0,5, la Transparence a 50 %
+    // (saab, 2026-10-23).
+    hint_opacity: 0.5,
     // Fleches de Menaces (rendu/menaces.js) : une couleur par sorte, une
     // opacite de base (les ejections restent un peu plus appuyees, styles.css).
     threat_friend_color: [0x2e / 255, 0xcc / 255, 0x55 / 255, 1],
