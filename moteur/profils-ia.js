@@ -282,7 +282,7 @@ function nomDuProfilImporte(nom, auteur, nomsPris, moi = '') {
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
 // `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
 function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, reflexionMax, livre });
+  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, milieu: profil.milieu, reflexionMax, livre });
 }
 
 // Les profils dans l'ordre (saab, 2026-10-16 : « mets ces profils dans l'ordre Agr/Nor/Def

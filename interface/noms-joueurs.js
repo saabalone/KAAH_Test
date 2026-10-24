@@ -91,7 +91,8 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     if (choix.role === ROLE_HUMAIN) return null;
     if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) {
       const elagage = choix.elagage ?? trouverProfilIA(enJeu.profil)?.elagage ?? enJeu.elagage;
-      return lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, elagage });
+      const machine = lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, elagage });
+      return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
     }
     return machineDuChoix(choix);
   }

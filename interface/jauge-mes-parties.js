@@ -49,7 +49,11 @@ function actualiserJaugeMesParties(element) {
   const nombre = listerPartiesEnregistrees().length;
   element.hidden = nombre === 0;
   element.textContent = String(nombre);
-  element.classList.toggle('badge-mes-parties-alerte', nombre > lireSeuilJaugeParties());
+  const alerte = nombre > lireSeuilJaugeParties();
+  element.classList.toggle('badge-mes-parties-alerte', alerte);
+  // Et le bouton entoure de vert, ce qui attend un geste (saab, 2026-10-23 : « le contour vert qd
+  // l'intérieur du dossier est rouge ») : l'ouvrir pour faire de la place.
+  element.closest('button')?.classList.toggle('bouton-mes-parties-alerte', alerte);
 }
 
 // Cable le champ numerique de seuil (boite "Mes parties") : pre-rempli au

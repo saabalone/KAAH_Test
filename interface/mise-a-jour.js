@@ -3,8 +3,9 @@
 // consommer internet inutilement »). Le service worker (service-worker.js)
 // installe une nouvelle version sans rien telecharger ; ce fichier la propose,
 // et ne demande son chargement (quelques Mo) qu'apres « Charger ». Refuser
-// garde la version actuelle, hors ligne comme avant : la question reviendra au
-// prochain lancement.
+// garde la version actuelle, hors ligne comme avant. La question ne s'ouvre plus seule (saab,
+// 2026-10-24 : « plutôt que de l'afficher à chaque fois, il faudrait mettre un btn Nouvelle version
+// dans le bandeau Aide ») : index.html la garde, et le bouton l'ouvre.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : NOM_VERSION_KAAH_TEST
 // (version.js) vient d'un fichier charge avant celui-ci.
@@ -22,9 +23,10 @@ function demanderAuServiceWorker(travailleur, message) {
 // `enregistrement` : celui de service-worker.js ; `proposer(version, tailleMo,
 // charger)` (tailleMo : son poids, null s'il n'est pas connu) : demande l'accord (index.html, boite de confirmation) et appelle charger()
 // s'il est donne ; `signaler(texte)` : un message pendant le chargement ;
-// `recharger()` : la page, une fois la nouvelle version prete.
+// `recharger()` : la page, une fois la nouvelle version prete. Renvoie { verifier } : regarder tout de
+// suite (le bouton Nouvelle version).
 function surveillerLesMisesAJour(enregistrement, { proposer, signaler, recharger }) {
-  let dejaProposee = null; // une seule question par version et par lancement
+  let dejaProposee = null; // une seule proposition par version et par lancement
 
   async function charger(travailleur) {
     signaler('Chargement de la nouvelle version…');
@@ -52,4 +54,5 @@ function surveillerLesMisesAJour(enregistrement, { proposer, signaler, recharger
     });
   });
   verifier();
+  return { verifier };
 }

@@ -22,7 +22,8 @@
 // creerSolveur (interface/solveur.js), contenuDesPuzzles
 // (interface/banc-essais-page-puzzles.js),
 // brancherOutilsDuBanc (interface/banc-essais-outils.js), brancherRevueDesFichiers
-// (interface/banc-essais-revoir.js), donneesDuBancEnHtml (moteur/banc-fichiers.js),
+// (interface/banc-essais-revoir.js), contenuDuFichierDesParties (interface/banc-essais-revoir.js),
+// donneesDuBancEnHtml, nomDuFichierDesParties (moteur/banc-fichiers.js),
 // brancherValidationDuProfil (interface/banc-essais-reglage.js), brancherLeRegardDesParties
 // (interface/banc-essais-regarder.js) viennent de fichiers charges avant celui-ci.
 
@@ -207,8 +208,10 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
       setTimeout(() => {
         const date = formaterDateKAAWA(new Date());
         const nom = nomDuDernier?.(date) ?? `LabAl_${date}`;
-        const donnees = donneesDuDernier ? donneesDuBancEnHtml(donneesDuDernier()) : '';
-        telechargerTexte(pageDuBanc(dernier, `LabAlone, banc d'essais du ${new Date().toLocaleString('fr-FR')} — ${nom}`, donnees), `${nom}.html`, 'text/html');
+        telechargerTexte(pageDuBanc(dernier, `LabAlone, banc d'essais du ${new Date().toLocaleString('fr-FR')} — ${nom}`), `${nom}.html`, 'text/html');
+        // Ses parties dans un fichier a part, pour les revoir (moteur/banc-fichiers.js, nomDuFichierDesParties).
+        const donnees = donneesDuDernier?.() ?? null;
+        if (donnees?.parties.length) telechargerTexte(pageDuBanc(contenuDuFichierDesParties(donnees), `LabAlone, les parties — ${nom}`, donneesDuBancEnHtml(donnees)), `${nomDuFichierDesParties(nom)}.html`, 'text/html');
       })
     );
   });

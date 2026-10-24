@@ -154,6 +154,8 @@ function lireMachine(brut) {
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
     elagage,
+    // Le profil du milieu (l'ajout Ct, moteur/ia-phase.js) : seulement avec Ct.
+    ...('centreTenu' in poids && brut.milieu && typeof brut.milieu === 'object' ? { milieu: lireProfilDuMilieu(brut.milieu) } : {}),
     // L'indice de son profil (moteur/profils-ia.js), s'il en a un.
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
     // La version de son profil (moteur/historique-profil-ia.js), au-dela de la 1re.
@@ -161,6 +163,15 @@ function lireMachine(brut) {
     // Les numeros de son nom (saab, 2026-10-16, moteur/noms-ia.js) : Pn, _v, _h.
     ...Object.fromEntries(['numeroDesAjouts', 'numeroDePoids', 'versionHistorique'].filter((cle) => Number.isInteger(brut[cle]) && brut[cle] > 0).map((cle) => [cle, brut[cle]])),
   };
+}
+
+// Le profil du milieu d'une machine qui a l'ajout Ct (moteur/ia-phase.js) : une COPIE de ses
+// reglages (saab, 2026-10-23 : « lance Copie » — le changer ou le supprimer ensuite ne touche plus
+// la machine), sans son propre Ct : jamais de bascule en chaine.
+function lireProfilDuMilieu(brut) {
+  const { profil, version, elagage, style, poids } = lireMachine({ ...brut, milieu: undefined });
+  const { centreTenu, ...sansLeCentreTenu } = poids;
+  return { profil, version, elagage, style, poids: sansLeCentreTenu };
 }
 
 // Les machines d'une partie : { noir, blanc }, chacune un reglage ou null (un
@@ -246,7 +257,7 @@ function libelleEvaluation(valeur) {
 // l'ordre des cles ; 0 pour ceux des versions 2 a 5 absents — ceux de la 5 a
 // la fin, pour que les anciens restent a leur place)...
 function poidsEnTexte(poids) {
-  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_IA].map((cle) => poids[cle] ?? 0).join(',');
+  return [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_KAI_PLUS].map((cle) => poids[cle] ?? 0).join(',');
 }
 
 // ... sa reponse relue — « profondeur, evaluation, positions examinees, puis la

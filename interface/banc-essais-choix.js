@@ -61,6 +61,8 @@ function creerChoixDuBanc(elements, obtenirJeux) {
     niveau: niveauDuBanc(tapes.niveau ?? '', parDefaut().niveau),
     temps: tempsDuBanc(String(tapes.temps ?? '').replace(',', '.'), parDefaut().temps),
     poids: lireMachine({ version: profil.version, style: profil.style, elagage: profil.elagage, poids: profil.poids }).poids,
+    // Son profil du milieu (l'ajout Ct, moteur/ia-phase.js), s'il en a un.
+    ...(lireMachine(profil).milieu ? { milieu: lireMachine(profil).milieu } : {}),
   });
 
   const variations = () =>

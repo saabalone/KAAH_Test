@@ -342,6 +342,11 @@ button,
   background: #b3261edd; /* meme rouge que le bouton Abandonner */
   color: #ffffff;
 }
+/* Le bouton Mes parties, badge rouge : entoure de vert (interface/jauge-mes-parties.js). */
+.bouton-mes-parties-alerte {
+  outline: 2px solid #45b862;
+  outline-offset: -2px;
+}
 
 /* UNE BANDE D'ICONES, DANS LES DEUX MISES EN PAGE. Les libelles en toutes
    lettres n'existaient qu'ici, sur ordinateur, et coutaient ~100px de large
@@ -6046,8 +6051,10 @@ body:not(.version-locale) .bouton-version-locale { display: none; }
 .banc-reglage-essai .nombre-reglage::-webkit-inner-spin-button { opacity: 1; }
 .banc-reglage-essai tr.banc-change td, .banc-reglage-essai tr.banc-change th { color: #e0832a; }
 
-/* Revoir un fichier du banc (interface/banc-essais-revoir.js) : les parties deja vues. */
-.partie-labalone-vue td { color: #3fcf7a; }
+/* Revoir un fichier du banc (interface/banc-essais-revoir.js) : une partie deja vue a son titre (le nom
+   de l'essai) en violet, comme dans le tableau des resultats (saab, 2026-10-23 : « mets le titre en violet
+   qd elle est vue »). */
+.partie-labalone-vue td:nth-child(3) { color: #b070e0; }
 
 /* Les groupes de l'evaluation a l'ecran (interface/groupes-ia.js) : leur titre, et le
    filet de leur couleur devant chaque reglage (le texte garde la couleur de validation). */
@@ -6286,7 +6293,7 @@ body.face-a-face .tableau-barres-groupes {
    changements (.bouton-danger) ; ORANGE, deja exporte. */
 .bouton-dialogue.bouton-a-faire:not(:disabled) { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }
 button[id^='bouton-fermer'], #bouton-annuler-liste-entrainement { background: var(--vert-demande); border-color: var(--vert-demande); color: #fff; }
-.bouton-dialogue.bouton-danger,
+.bouton-dialogue.bouton-danger:not(:disabled),
 .bouton-dialogue[data-abandonner]:not(:disabled), #bouton-abandonner-profil-ia:not(:disabled),
 button[id^='bouton-vider']:not(:disabled), button[id^='bouton-supprimer']:not(:disabled), .bouton-dialogue[data-supprimer],
 #bouton-confirmer-suppression, #bouton-arreter-banc:not(:disabled) { background: #7c2424; border-color: #9c3a3a; color: #fff; }
@@ -6303,6 +6310,14 @@ body:not(.version-de-travail) .seulement-version-de-travail { display: none; }
 /* Les mises a la ligne d'un message de confirmation (« \n », ex. l'installation) se voient. */
 #message-confirmation {
   white-space: pre-line;
+}
+/* Ce que coute l'installation (« (quelques Mo) », interface/confirmation.js, enRouge) : le rouge du
+   bouton Installer, en pastille — un texte rouge ne se lirait pas sur le vert de la boite. */
+.message-en-rouge {
+  background: #7c2424;
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 3px;
 }
 
 /* L'en-tete de Conseils : le titre, puis Fermer a droite (interface/next-move.js). */
@@ -6367,6 +6382,15 @@ label[title] {
   background: var(--vert-demande);
   border-color: var(--vert-demande);
   color: #fff;
+}
+/* Un bouton vert dans une boite verte disparaissait (saab, 2026-10-23 : « Later ... n'a rien comme il
+   est dans le vert » ; 2026-10-24 : le Fermer de la boite Fin de partie) : une pastille d'un vert plus
+   sombre, bordee de clair. */
+#dialogue-confirmation .bouton-dialogue.bouton-a-faire:not(:disabled),
+#bouton-confirmer-suppression.confirmation-verte,
+#dialogue-fin-de-partie button[id^='bouton-fermer'] {
+  background: #135227;
+  border-color: #cfe9d6;
 }
 
 /* Les nouveaux PZL a valider, sur la plus haute ceinture reussie (interface/entrainement-nouveaux.js). */

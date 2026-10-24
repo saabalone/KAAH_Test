@@ -68,9 +68,20 @@ function ecrirePartiesEnregistrees(liste) {
   }
 }
 
+// La partie active est celle de CET ONGLET (saab, 2026-10-24 : « j'ai plein d'onglets ouverts et
+// plusieurs de KAAH ») : le stockage du navigateur est commun a tous les onglets, et une partie
+// active commune faisait enregistrer la partie d'un onglet SUR celle d'un autre. Chaque onglet la
+// retient dans son stockage de session (il survit a un rechargement de l'onglet) ; le stockage
+// commun ne garde que la derniere, pour la reprendre a la prochaine ouverture. '' : cet onglet n'a
+// pas de partie active (« Nouvelle partie ») — surtout pas celle d'un autre onglet.
 function obtenirIdPartieActive() {
   try {
-    return window.localStorage.getItem(CLE_ID_ACTIVE);
+    const deLOnglet = window.sessionStorage.getItem(CLE_ID_ACTIVE);
+    if (deLOnglet !== null) return deLOnglet || null;
+    // Un onglet qui s'ouvre reprend la derniere partie, puis la garde pour lui.
+    const derniere = window.localStorage.getItem(CLE_ID_ACTIVE);
+    window.sessionStorage.setItem(CLE_ID_ACTIVE, derniere ?? '');
+    return derniere;
   } catch {
     return null;
   }
@@ -78,6 +89,7 @@ function obtenirIdPartieActive() {
 
 function definirIdPartieActive(id) {
   try {
+    window.sessionStorage.setItem(CLE_ID_ACTIVE, id);
     window.localStorage.setItem(CLE_ID_ACTIVE, id);
   } catch {
     // Tant pis : voir l'en-tete du fichier, jamais de plantage pour ca.
@@ -85,12 +97,14 @@ function definirIdPartieActive(id) {
 }
 
 // "Nouvelle partie" (index.html) : oublie seulement QUELLE entree est
-// active. La partie precedente ne disparait pas pour autant — elle reste
+// active, dans cet onglet. La partie precedente ne disparait pas pour autant — elle reste
 // dans la liste, comme n'importe quelle autre partie deja jouee (voir
-// l'en-tete du fichier).
+// l'en-tete du fichier). Le stockage commun ne l'oublie que si c'etait la sienne.
 function oublierPartieActive() {
   try {
-    window.localStorage.removeItem(CLE_ID_ACTIVE);
+    const avant = obtenirIdPartieActive();
+    window.sessionStorage.setItem(CLE_ID_ACTIVE, '');
+    if (avant && window.localStorage.getItem(CLE_ID_ACTIVE) === avant) window.localStorage.removeItem(CLE_ID_ACTIVE);
   } catch {
     // Rien de plus a faire.
   }
@@ -209,6 +223,21 @@ function sauvegarderPartieActive(donnees) {
   if (!nouvelId) return false;
   definirIdPartieActive(nouvelId);
   return true;
+}
+
+// La taille de chaque cle dans le stockage du navigateur, en caracteres (moteur/place-stockage.js :
+// ce qui le remplit, quand plus rien ne s'enregistre) ; {} sans stockage.
+function taillesDuStockage() {
+  try {
+    const tailles = {};
+    for (let rang = 0; rang < window.localStorage.length; rang++) {
+      const cle = window.localStorage.key(rang);
+      tailles[cle] = cle.length + (window.localStorage.getItem(cle)?.length ?? 0);
+    }
+    return tailles;
+  } catch {
+    return {};
+  }
 }
 
 // Supprime une entree de "Mes parties" — si c'etait la partie active,

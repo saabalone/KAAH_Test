@@ -39,6 +39,8 @@ const LIBELLES_REGLAGES_IA = {
   piegeProgressifMien: 'Piège progressif des miennes, 1er terme (Ppm)',
   piegeGagnantAdverse: 'Piège gagnant adverse (Pga)',
   piegeGagnantMien: 'Piège gagnant des miennes (Pgm)',
+  piegeFinAdverse: 'Piège de fin de partie adverse (Pfa)',
+  piegeFinMien: 'Piège de fin de partie des miennes (Pfm)',
   centre: 'Centre',
   caseE5: 'e5',
   caseD4: 'd4',
@@ -58,6 +60,7 @@ const LIBELLES_REGLAGES_IA = {
   elagageFin: 'Élagage coupé en fin de partie (ef)',
   elagageFinNiveau: "ef jusqu'au niveau (fn)",
   elagageGarde: "L'élagage garde les éjections / poussées (Eg)",
+  centreTenu: 'Centre tenu, puis le profil du milieu (Ct)',
   groupesSepares: 'Groupes séparés (Gs)',
   sumitoContre: 'Sumito 3/2 contré (Sc)',
   billesPoussables: 'Billes poussables (Bp)',
@@ -85,9 +88,16 @@ const NOTE_AVANT_HISTORIQUE_IA = NOTE_AVANT_HISTORIQUE;
 
 // Version, livre, elagage, style et poids, ramenes a des valeurs sures (moteur/ia.js).
 function valeursReglagesIA(brut) {
-  const { version, livre, elagage, style, poids } = lireMachine(brut);
-  return { version, livre, elagage, style, poids };
+  const { version, livre, elagage, style, poids, milieu } = lireMachine(brut);
+  return { version, livre, elagage, style, poids, ...(milieu ? { milieu } : {}) };
 }
+
+// Le profil du milieu (l'ajout Ct, moteur/ia-phase.js) : un reglage de plus pour l'historique — sa
+// copie entiere, qu'une autre copie (un autre profil, ou le meme retouche) change.
+const CLE_PROFIL_DU_MILIEU = 'milieu';
+const LIBELLE_PROFIL_DU_MILIEU = 'Profil du milieu';
+const valeurDuProfilDuMilieu = (valeurs) => (valeurs.milieu ? JSON.stringify(valeurs.milieu) : undefined);
+const nomDuProfilDuMilieu = (valeur) => (valeur === undefined ? '—' : JSON.parse(valeur).profil);
 
 function valeurReglageIA(valeurs, cle) {
   return REGLAGES_IA_HORS_POIDS.includes(cle) ? valeurs[cle] : valeurs.poids[cle];
@@ -112,17 +122,18 @@ function lignesDesReglagesIA(profil) {
     if (groupe && groupe !== groupeEnCours) lignes.push(`── ${groupe.libelle} ──`);
     groupeEnCours = groupe;
     lignes.push(`${LIBELLES_REGLAGES_IA[cle]} : ${texteReglageIA(cle, valeurReglageIA(valeurs, cle))}`);
+    if (cle === 'centreTenu') lignes.push(`${LIBELLE_PROFIL_DU_MILIEU} : ${valeurs.milieu?.profil ?? 'aucun (il garde le sien)'}`);
   }
   return lignes;
 }
 
 // Ce qu'un profil IA retient, pour le moteur commun des versions.
 const DESCRIPTION_REGLAGES_IA = {
-  cles: CLES_REGLAGES_IA,
+  cles: [...CLES_REGLAGES_IA, CLE_PROFIL_DU_MILIEU],
   valeurs: valeursReglagesIA,
-  valeur: valeurReglageIA,
-  libelle: (cle) => LIBELLES_REGLAGES_IA[cle],
-  texte: texteReglageIA,
+  valeur: (valeurs, cle) => (cle === CLE_PROFIL_DU_MILIEU ? valeurDuProfilDuMilieu(valeurs) : valeurReglageIA(valeurs, cle)),
+  libelle: (cle) => (cle === CLE_PROFIL_DU_MILIEU ? LIBELLE_PROFIL_DU_MILIEU : LIBELLES_REGLAGES_IA[cle]),
+  texte: (cle, valeur) => (cle === CLE_PROFIL_DU_MILIEU ? nomDuProfilDuMilieu(valeur) : texteReglageIA(cle, valeur)),
 };
 
 const memesReglagesIA = (a, b) => memesReglages(DESCRIPTION_REGLAGES_IA, a, b);

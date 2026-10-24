@@ -6,7 +6,8 @@
 // ecrirePosition (moteur/notation.js), appliquerCoup (moteur/partie.js),
 // poidsEnTexte, lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence
 // (moteur/ia.js), hasardDuBanc, coupDeLaReferenceAuLivre, dansLeLivre,
-// finDeLaPartieDuBanc (moteur/banc-essais.js), coupDuLivre (moteur/ia.js) viennent de
+// finDeLaPartieDuBanc (moteur/banc-essais.js), coupDuLivre (moteur/ia.js), reglageDeLaPhase
+// (moteur/ia-phase.js) viennent de
 // fichiers charges avant celui-ci.
 
 const POSITION_DEPART_BANC = '0a12b123c23g78h789i89_0a45b456c56g45h456i56'; // la Marguerite belge
@@ -52,16 +53,18 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     if (!coup) {
       const debut = performance.now();
       suivi({ coup: coups.length + 1, camp: reglage === reference ? 'référence' : 'essai', debut, score: scoreDuBanc(etat), profondeur: null, evaluation: null });
+      // L'ajout Ct (moteur/ia-phase.js) : le profil du milieu des qu'il tient le centre.
+      const jouee = reglageDeLaPhase(reglage, etat);
       const texte = await kai.chercher({
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
         profondeur: reglage.niveau,
-        poids: poidsEnTexte(reglage.poids),
-        version: reglage.version,
+        poids: poidsEnTexte(jouee.poids),
+        version: jouee.version,
         graine: Math.floor(hasard() * GRAINE_MAX_BANC),
         dureeMs: dureeDeReflexionDuBancMs(reglage.temps),
         historique: historique.join('\n'),
-        elagage: reglage.elagage,
+        elagage: jouee.elagage,
       }, (progres) => {
         const reponse = lireReponseKaiPlus(progres);
         if (reponse) suivi({ profondeur: reponse.profondeur, evaluation: reponse.evaluation });

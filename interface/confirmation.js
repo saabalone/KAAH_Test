@@ -76,9 +76,10 @@ function demarrerConfirmation(elements) {
   // de crédit, effacement de données ») : par defaut la confirmation est dangereuse (rouge)
   // et le refus, sans danger, en vert ; `confirmerVert` : la confirmation n'efface rien
   // (vert), le refus reste neutre ; `refus.danger` : le refus en rouge ; `neutre` : deux
-  // choix egaux, sans couleur.
-  function demander(message, surConfirmation, texteConfirmer, refus = {}, { confirmerVert = false, neutre = false } = {}) {
-    elements.message.textContent = message;
+  // choix egaux, sans couleur. `enRouge` : un morceau du message a voir (saab, 2026-10-23 :
+  // « (quelques Mo) » en rouge dans la boite Installer, ce que coute le chargement).
+  function demander(message, surConfirmation, texteConfirmer, refus = {}, { confirmerVert = false, neutre = false, enRouge = null } = {}) {
+    ecrireLeMessage(message, enRouge);
     elements.confirmer.textContent = texteConfirmer ?? 'Supprimer';
     elements.refuser.textContent = refus.texte ?? 'Refuser';
     elements.confirmer.classList.toggle('confirmation-verte', confirmerVert && !neutre);
@@ -88,6 +89,20 @@ function demarrerConfirmation(elements) {
     rappelEnCours = surConfirmation;
     rappelDeRefus = refus.surRefus ?? null;
     elements.dialogue.showModal();
+  }
+
+  // Le morceau rouge est un texte a part : la traduction le prend seul (interface/langue.js,
+  // un noeud de texte a la fois ; donnees/traduction-anglais.js).
+  function ecrireLeMessage(message, enRouge) {
+    const rang = enRouge ? message.indexOf(enRouge) : -1;
+    if (rang < 0) {
+      elements.message.textContent = message;
+      return;
+    }
+    const rouge = document.createElement('span');
+    rouge.className = 'message-en-rouge';
+    rouge.textContent = enRouge;
+    elements.message.replaceChildren(message.slice(0, rang), rouge, message.slice(rang + enRouge.length));
   }
 
   return { demander };

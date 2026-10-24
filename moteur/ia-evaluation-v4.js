@@ -86,17 +86,29 @@ function billesBloquees(couleurs, camp) {
 //     premier terme (1, 2, 3, 5, 8 : sommeProgressiveDuScore, ia-evaluation-v3.js) a la
 //     place du Piege lineaire ;
 //   - Pga, Pgm : gagnant — quand l'ejection suivante finit la partie (5 billes deja
-//     perdues par ce camp), chaque bille piegee de ce camp vaut ce poids en plus.
+//     perdues par ce camp), chaque bille piegee de ce camp vaut ce poids en plus ;
+//   - Pfa, Pfm : de fin de partie (saab, 2026-10-23 : « si il y a autant de billes adverses sur une
+//     zone qu'il contrôle, que de billes manquantes pour gagner, il doit essayer de les bloquer pour
+//     gagner ») — des que les billes piegees d'un camp sont au moins aussi nombreuses que les
+//     ejections qui lui restent avant de perdre, ce poids, une fois — seulement quand il ne lui en
+//     reste plus que 2 (saab, « piste 1 » : sans cette limite, l'essai 27 voyait 5 ou 6 billes
+//     « piegees » des le coup 20, surtout coincees derriere les leurs, et perdait 37 parties sur 38).
 const DERNIERE_BILLE_AVANT_LA_FIN = EJECTIONS_POUR_GAGNER - 1;
+const EJECTIONS_RESTANTES_DU_PIEGE_DE_FIN = 2;
 const partDuPiege = (lineaire, progressif, piegees) => (progressif ? progressif * sommeProgressiveDuScore(piegees) : lineaire * piegees);
 const partDuPiegeGagnant = (gagnant, piegees, perdues) => (gagnant && perdues >= DERNIERE_BILLE_AVANT_LA_FIN ? gagnant * piegees : 0);
+function partDuPiegeDeFin(fin, piegees, perdues) {
+  const restantes = EJECTIONS_POUR_GAGNER - perdues;
+  return fin && piegees > 0 && restantes <= EJECTIONS_RESTANTES_DU_PIEGE_DE_FIN && piegees >= restantes ? fin : 0;
+}
 
 function termeDuPiegeIA(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   const lui = couleurAdverse(camp);
   const [siennes, miennes] = [billesBloquees(couleurs, lui), billesBloquees(couleurs, camp)];
   const progressif = partDuPiege(poids.piege, poids.piegeProgressifAdverse, siennes) - partDuPiege(poids.piege, poids.piegeProgressifMien, miennes);
-  return progressif + partDuPiegeGagnant(poids.piegeGagnantAdverse, siennes, ejectionsDe(etat, lui)) - partDuPiegeGagnant(poids.piegeGagnantMien, miennes, ejectionsDe(etat, camp));
+  const gagnant = partDuPiegeGagnant(poids.piegeGagnantAdverse, siennes, ejectionsDe(etat, lui)) - partDuPiegeGagnant(poids.piegeGagnantMien, miennes, ejectionsDe(etat, camp));
+  return progressif + gagnant + partDuPiegeDeFin(poids.piegeFinAdverse, siennes, ejectionsDe(etat, lui)) - partDuPiegeDeFin(poids.piegeFinMien, miennes, ejectionsDe(etat, camp));
 }
 
 // La valeur de `etat` pour `camp`, version 4 (le meme ordre des operations que

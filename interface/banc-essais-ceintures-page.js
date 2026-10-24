@@ -65,6 +65,19 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
   // numero -> { numero, position, coups, titre, joueurs }.
   const parties = new Map();
   serie.partieARegarder = (numero) => parties.get(numero) ?? null;
+  // Et pour le fichier des parties (interface/banc-essais.js, Exporter ; saab, 2026-10-23 : « on ne
+  // peut pas revoir les parties ») : l'issue de son jeu, au journal — une partie nulle rejouee, ou
+  // une revanche oubliee apres l'aller, n'y est pas.
+  serie.donnees = () => {
+    const jeux = new Map(passages.flatMap((passage) => passage.journal).filter((jeu) => jeu.numero !== undefined).map((jeu) => [jeu.numero, jeu]));
+    const jouees = [...parties.values()].filter((partie) => partie.coups.length > 0);
+    return {
+      parties: jouees.map(({ numero, jeu, position, essai, adversaire, essaiNoir, coups }) => {
+        const issue = jeux.get(numero);
+        return { numero, variante: jeu, position, essai, reference: adversaire, essaiNoir, coups, fin: issue ? (issue.reussi ? '✓ réussi' : '✗ raté') : '—', score: issue?.issue ?? '' };
+      }),
+    };
+  };
   // Le suivi d'une ligne « en cours » (`suiviDuBanc`) : le passage annonce chaque partie ({ partie :
   // { position, essaiNoir, adversaire, titre } }, puis ses coupsJoues) ; elle prend un numero, et sa
   // ligne se touche pour la suivre. Une ligne par machine : celle du renfort a la sienne.
@@ -78,7 +91,7 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
       const { position, essaiNoir, adversaire, titre } = nouveau.partie;
       const nom = essais[tache.essai].nom;
       numeroEnCours = parties.size + 1;
-      parties.set(numeroEnCours, { numero: numeroEnCours, position, coups: [], titre: `${nom} — ${titre}`, joueurs: essaiNoir ? { noir: nom, blanc: adversaire } : { noir: adversaire, blanc: nom } });
+      parties.set(numeroEnCours, { numero: numeroEnCours, position, coups: [], titre: `${nom} — ${titre}`, joueurs: essaiNoir ? { noir: nom, blanc: adversaire } : { noir: adversaire, blanc: nom }, jeu: titre, essai: nomDeMachineDuBanc(essais[tache.essai]), adversaire, essaiNoir });
       return suiviDuBanc({ numero: numeroEnCours, position, essaiNoir, nomDuProfil: nom, nomAdverse: adversaire, titreDeLaPartie: `${nom} — ${titre}`, coupsJoues: [] });
     };
     suivi.numero = () => numeroEnCours;

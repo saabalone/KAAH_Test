@@ -59,7 +59,8 @@
 // (moteur/sequence-prevue.js), reflechirAvecKai,
 // reflechirAvecKaiPlus, MILLISECONDES_PAR_SECONDE, ATTENTE_SUSPENSION_MS
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
-// phaseDeLaPartie (moteur/ia-evaluation.js), etatCourant, noeudCourant
+// phaseDeLaPartie (moteur/ia-evaluation.js), phaseDuReglage, reglageDeLaPhase (moteur/ia-phase.js),
+// etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
 // marquerNomMachine, colorerLeNom (rendu/ligne-joueur.js), morceauxColoresDuNom
 // (interface/nom-machine-couleurs.js), solutionsDeLaSequence, solutionsDeLAdversaire,
@@ -199,8 +200,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       evaluations.definirEnCours(null);
       return reflexion.afficherEnCours(hypotheseAffichee);
     }
-    const { etat, camp, coupsJoues, suivi, debut, genre, machine } = reflexionEnCours;
-    evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation });
+    const { etat, camp, coupsJoues, suivi, debut, genre, machine, bascule } = reflexionEnCours;
+    evaluations.definirEnCours({ camp, profondeur: suivi.profondeur, evaluation: suivi.evaluation, bascule });
     reflexion.afficherEnCours({
       etat,
       camp,
@@ -228,6 +229,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     const arbre = partie.obtenirArbre();
     const coupsJoues = arbre.chemin.length + 1;
     const phase = phaseDeLaPartie(etat, arbre.chemin.length);
+    // L'ajout Ct (moteur/ia-phase.js) : 'debut' ou 'milieu', gardee avec le coup ; null sans Ct.
+    let bascule = null;
     const historique = positionsDepuisLaRacine(arbre, arbre.chemin);
     // Le livre d'ouvertures (la base de coups chargee), si la machine s'en sert
     // (saab, 2026-10-01 : case Livre, interface/choix-joueurs.js).
@@ -259,7 +262,7 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         finir();
         if (!encoreValable || !texte) return;
         if (genre !== 'suggestion' && machines[camp] !== machine) return; // la boite du nom l'a remplacee entre-temps
-        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau };
+        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau, ...(bascule ? { bascule } : {}) };
         if (genre === 'suggestion') {
           const ligne = `Suggestion ${commentaireDeReflexion(`${nomDeLaMachine(machine)} (profil ${machine.profil})`, reflexionIA)}`;
           suggestions.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, suggestion: true, ligne, jouer: () => partie.jouerCoupTexte(texte) });
@@ -305,7 +308,11 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // (moteur/position-calme.js ; saab, 2026-10-19 : « le bloc fait chercher trop longtemps »).
     // Sans limite (moteur/ia.js) : un temps qui ne finit jamais avant elle.
     // Dans un PZL, ef a tous les niveaux (moteur/ia.js, poidsPourUnPuzzle).
-    const sansLimite = { ...machine, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
+    // L'ajout Ct (moteur/ia-phase.js) : le profil du milieu des qu'elle tient le centre — jamais dans un PZL.
+    bascule = aide ? null : phaseDuReglage(machine, etat);
+    reflexionEnCours.bascule = bascule; // le cadre de son evaluation le dit pendant qu'elle cherche
+    const jouee = aide ? machine : reglageDeLaPhase(machine, etat);
+    const sansLimite = { ...jouee, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
     const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
 
     const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };

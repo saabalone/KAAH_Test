@@ -473,6 +473,8 @@
         <input id="champ-seuil-jauge-parties" type="number" min="0" step="1" />
         parties
       </label>
+      <!-- Saab, 2026-10-24 : la place prise sur l'appareil (moteur/place-stockage.js) — plein, plus rien ne s'enregistre. -->
+      <p id="place-stockage-parties" class="note-reglages"></p>
     </div>
     <!-- Rempli par interface/filtre-parties.js : un champ a cocher et remplir
          par element du titre des parties (demande de saab). -->
@@ -803,6 +805,8 @@
         <p class="aide-version aide-modes">Modes Entraînement et Ceinture : l'icône ceinture, sous Puzzles (rubrique « Entraînement et Ceintures »).</p>
       </div>
       <div class="boutons-entete-aide">
+        <!-- Saab, 2026-10-24 : la boite d'installation ou de nouvelle version, quand on le veut (index.html, en bas). -->
+        <button id="bouton-nouvelle-version" class="bouton-dialogue" type="button" title="Installer KAAH sur cet appareil, ou voir s'il existe une nouvelle version (vert : une nouvelle version attend)" hidden>Nouvelle version</button>
         <button class="bouton-dialogue bouton-langue" type="button" data-changer-langue title="Fra / Eng : l'interface en français ou en anglais (la page se recharge)">English</button>
         <button id="bouton-fermer-aide-haut" class="bouton-dialogue bouton-fermer-aide" type="button" title="Ferme cette fenêtre">Fermer</button>
       </div>
@@ -919,7 +923,7 @@
         <li><b>Faire varier</b> (facultatif) : un poids (sa valeur d'origine dans chaque profil coché s'écrit dessous) et ses valeurs séparées par des virgules (<code>0, 40, 60</code> : trois essais par profil coché) ; <code>sans</code> enlève le poids ; <b>Élagage</b> se fait varier aussi ; <b>Cases (e5 à a1) ×</b> multiplie les 9 cases ensemble (<code>0,5, 1, 2</code>). <b>Niveau</b> et <b>Réflexion max</b> se font varier aussi (le même profil au niveau 3 puis 5, par exemple). Avec un 2e poids, toutes les combinaisons sont jouées (3 valeurs × 2 valeurs = 6 essais par profil).</li>
         <li><b>Contre</b> : la référence (Normal v4el au départ). Case <b>avec le livre</b> : elle prend ses coups dans le livre d'ouvertures tant qu'elle peut ; décochée, seulement ses premiers coups au hasard (ci-dessous), puis elle cherche elle-même. Les profils essayés ne se servent jamais du livre.</li>
         <li><b>Les parties</b> : le nombre d'<b>ouvertures</b> (chaque ouverture : la référence joue ses <b>premiers coups au hasard</b> parmi ceux du livre, 6 au départ, pour que les parties ne se ressemblent pas ; les mêmes ouvertures pour chaque essai, pour comparer à égalité) ; <b>Revanche</b> : chaque ouverture jouée des deux couleurs ; le <b>niveau</b> et la <b>réflexion max</b> par défaut de KAI++ ; combien de parties <b>en même temps</b> (une par cœur du processeur, au départ tous sauf un). Depuis la Marguerite belge ; nulle à la 3e répétition d'une position ou après 150 tours. Au-dessus du compteur, en orange, le <b>total</b> : essais × ouvertures × 2 (revanche) = parties, recalculé à chaque changement.</li>
-        <li><b>Lancer</b> (vert ; orange pendant la série) : en orange, le temps écoulé depuis le lancement, puis une ligne par partie en cours — laquelle, son tour, qui cherche (l'essai ou la référence), la dernière profondeur finie et son évaluation, et depuis combien de secondes ; les secondes avancent toutes seules : si elles bougent, rien n'est bloqué. Le tableau se remplit au fil des parties —d'abord les <b>réglages complets</b> de la référence (titre en jaune) et de chaque essai côte à côte, niveau et réflexion compris (en orange ce qui diffère de la référence), puis le <b>résumé</b> (parties gagnées par l'essai, en Noir et en Blanc, nulles, tours et temps moyens ; le nom en vert s'il gagne plus de parties que la référence, nulles enlevées, en orange s'il en gagne moins), puis <b>chaque partie</b> avec son score et sa séquence (un coup du livre en orange quand la référence le joue, en vert quand l'essai le trouve tout seul).<br><b>Pause</b> / <b>Reprendre</b>, <b>Arrêter</b> (garde les parties finies) ; <b>Exporter</b> télécharge le tableau en page <code>LabAlone_….html</code>, à ouvrir dans le navigateur. <b>Cacher les résultats</b> : les choix reprennent toute la hauteur pour préparer une nouvelle série (le tableau revient au prochain Lancer, ou par <b>Montrer les résultats</b>). Fermer la boîte n'arrête pas les parties : rouvrez-la pour voir où elles en sont.</li>
+        <li><b>Lancer</b> (vert ; orange pendant la série) : en orange, le temps écoulé depuis le lancement, puis une ligne par partie en cours — laquelle, son tour, qui cherche (l'essai ou la référence), la dernière profondeur finie et son évaluation, et depuis combien de secondes ; les secondes avancent toutes seules : si elles bougent, rien n'est bloqué. Le tableau se remplit au fil des parties —d'abord les <b>réglages complets</b> de la référence (titre en jaune) et de chaque essai côte à côte, niveau et réflexion compris (en orange ce qui diffère de la référence), puis le <b>résumé</b> (parties gagnées par l'essai, en Noir et en Blanc, nulles, tours et temps moyens ; le nom en vert s'il gagne plus de parties que la référence, nulles enlevées, en orange s'il en gagne moins), puis <b>chaque partie</b> avec son score et sa séquence (un coup du livre en orange quand la référence le joue, en vert quand l'essai le trouve tout seul).<br><b>Pause</b> / <b>Reprendre</b>, <b>Arrêter</b> (garde les parties finies) ; <b>Exporter</b> télécharge le tableau en page <code>LabAl_….html</code>, à ouvrir dans le navigateur, et ses parties dans un fichier à part, <code>LabAl_…_parties.html</code> (Parties et Ceintures) : <b>Revoir un fichier LabAl…</b> le reprend pour les revoir sur le plateau ; il se supprime sans toucher aux résultats. Le navigateur peut demander une fois s'il accepte de télécharger plusieurs fichiers. <b>Cacher les résultats</b> : les choix reprennent toute la hauteur pour préparer une nouvelle série (le tableau revient au prochain Lancer, ou par <b>Montrer les résultats</b>). Fermer la boîte n'arrête pas les parties : rouvrez-la pour voir où elles en sont.</li>
         <li><b>Ce qu'on essaie : Parties ou Puzzles.</b><br><b>Récolter les puzzles des parties</b> (en Parties) : après chaque partie gagnée, le solveur de KAAWA remonte depuis la fin et garde la plus ancienne position d'où le gagnant force la victoire (avec ses règles : une position répétée compte comme une échappée de la défense), jusqu'à <b>Tours maxi</b> (4 au départ : quelques secondes par position ; 5 : environ une minute ; au-delà, trop long), puis le moins de tours qui suffit ; plus court que <b>Tours mini</b>, elle n'est pas gardée. Chaque puzzle est nommé comme ceux de KAAWA, avec le numéro de sa partie : <code>PZL_M_2610081900_(-5-2)xtr3x_p12</code> (Noir commence toujours : si c'est Blanc qui doit jouer, les camps sont inversés). <b>Exporter les puzzles</b> les télécharge (<code>KAA_PZL_banc_….json</code>, que Puzzles > Importer reprend) ; <b>Ajouter à My</b> les range avec vos puzzles.<br><b>Puzzles</b> : ceux de KAAWA et/ou les vôtres (My), entre <b>Tours mini</b> et <b>Tours maxi</b>. Chaque profil coché attaque avec son niveau et sa réflexion ; la référence défend, sans élagage, en voyant jusqu'à 6 demi-coups (exact jusqu'à 3 tours), et choisit la parade qui retarde le plus la défaite. Résolu : gagné dans les tours du puzzle. Deux cases, à cocher si besoin : <b>Défense jusqu'à la fin du puzzle</b> (exacte partout, sans limite de temps : plus lente sur les puzzles de 4 tours où Blanc gagne) ; <b>Vérifier par le solveur</b> (un puzzle gagné ne compte que si le solveur dit « Bravo » : chaque coup de l'attaquant gardait la victoire forcée ; ≈ gagné mais pas la solution, ? trop long à vérifier). Le tableau donne les résolus de chaque profil (en tout et par nombre de tours), puis chaque puzzle avec ✓ ou ✗ par profil (les coups joués en infobulle).</li>
         <li>Une série est longue : 20 ouvertures × revanche = 40 parties par essai, souvent plusieurs minutes chacune au niveau 5 avec 30 s. Pour un premier coup d'œil, baissez le niveau et la réflexion.</li>
       </ul>
@@ -986,7 +990,7 @@
         <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; Opera : menu, « Écran d'accueil » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »).<br>Il marche ensuite hors ligne.</li>
         <li>Sous le numéro de version, en haut de cette Aide, <b>Hors ligne</b> dit si KAAH marche sans internet sur cet appareil (« prêt ✓ »), ou pourquoi pas.</li>
         <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes).<br>Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
-        <li><b>Nouvelle version</b> : à chaque ouverture avec internet, KAAH vérifie seulement s'il y en a une (quelques Ko) — sans rien recharger s'il n'y en a pas. S'il y en a une, il vous demande s'il faut la <b>charger</b> (quelques Mo) ; « Refuser » garde la version actuelle, hors ligne comme avant, et la question reviendra à la prochaine ouverture. (La toute première mise à jour vers ce fonctionnement se fait encore seule, une fois.)<br><b>Première ouverture</b> : KAAH demande aussi, avec son poids, s'il peut s'<b>installer</b> sur l'appareil (télécharger ses fichiers une fois, pour jouer ensuite même sans internet). « Plus tard » : il marche quand même, avec internet, sans rien installer, et la question revient à la prochaine ouverture (pas en rechargeant la page). Jamais en double-clic sur le fichier : on ne peut pas y installer.</li>
+        <li><b>Nouvelle version</b> : bouton <b>Nouvelle version</b>, en haut de cette Aide. Avec internet, KAAH vérifie seul, sans rien vous demander, s'il en existe une (quelques Ko) : le bouton passe alors au <b>vert</b>. Le toucher ouvre la question : la <b>charger</b> (quelques Mo), ou non — la version actuelle reste, hors ligne comme avant. Pas encore de nouvelle version : il le dit.<br><b>Première ouverture</b> : KAAH demande, une seule fois, avec son poids, s'il peut s'<b>installer</b> sur l'appareil (télécharger ses fichiers une fois, pour jouer ensuite même sans internet). « Plus tard » : il marche quand même, avec internet, sans rien installer ; pour l'installer ensuite, ce même bouton Nouvelle version. Jamais en double-clic sur le fichier : on ne peut pas y installer.</li>
         <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_PC.html" target="_blank" rel="noopener">INSTALLATION_PC</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b> reçu avec KAAH).</li>
         <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_ANDROID.html" target="_blank" rel="noopener">INSTALLATION_ANDROID</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
         <li><b>iPhone</b> : pas de méthode simple sans adresse internet — voir <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_IOS.html" target="_blank" rel="noopener">INSTALLATION_IOS</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
@@ -1287,6 +1291,8 @@
         <label class="ligne-couleur poids-ajout" title="Ajout ef (KAI++) : dès qu'un camp a ce nombre de billes éjectées, la machine n'élague plus (elle regarde tous les coups) — en fin de partie, les combinaisons forcées que l'élagage jetait sont vues. 0 : jamais">Élagage coupé en fin de partie (ef) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageFin" class="nombre-reglage" type="number" step="1" min="0" max="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout fn (KAI++) : ef seulement jusqu'à ce niveau ; au-delà, la machine élague même en fin de partie (au niveau 8, sans élagage, la profondeur ne finit plus en 30 s). 0 : ef à tous les niveaux">ef jusqu'au niveau (fn) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageFinNiveau" class="nombre-reglage" type="number" step="1" min="0" max="8" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Eg (KAI++) : en plus de ses el meilleurs coups, l'élagage garde toujours les éjections (1), ou toutes les poussées (2) — la valeur juste après une éjection perd la menace qu'elle comptait déjà, et l'élagage la jetait. 0 : rien de plus">L'élagage garde (Eg) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageGarde" class="nombre-reglage" type="number" step="1" min="0" max="2" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-10-23 : l'ajout Ct, le centre tenu (moteur/ia-phase.js) — et la copie du profil du milieu. -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Ct (centre tenu) : tant que la machine a moins de Ct billes sur e5 et ses 6 voisines, elle joue ce profil ; dès qu'elle les a, le profil du milieu choisi à côté (une copie : le changer ou le supprimer ensuite ne change rien ici) ; elle revient à ce profil si elle perd le centre. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit lequel elle joue">Centre tenu (Ct) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centreTenu" class="nombre-reglage" type="number" step="1" min="1" max="7" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <select id="select-profil-milieu-ia" title="Le profil du milieu : ses réglages sont copiés dans ce profil quand on le choisit"></select></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-3" title="La distance moyenne, en coups, entre ses billes deux à deux : plus elle est petite, plus le bloc est compact. Ce poids par coup de distance en moins que l'adversaire">Compacité <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-compacite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Gs (KAI++) : chaque groupe de billes voisines en plus du premier (une bille seule compte pour un groupe) coûte ce poids, et le rapporte chez l'adversaire — pour ne pas se disperser">Groupes séparés (Gs) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-groupesSepares" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1314,6 +1320,9 @@
         <label class="ligne-couleur poids-ajout" title="Ajout Ppm (version 4 et plus) : le même pour mes billes piégées, en négatif (la 1re coûte ce premier terme, la 2e deux fois…)">Piège progressif des miennes, 1er terme (Ppm) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piegeProgressifMien" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Pga (version 4 et plus) : quand l'adversaire a déjà perdu 5 billes (la suivante finit la partie), chacune de ses billes piégées rapporte ce poids en plus">Piège gagnant adverse (Pga) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piegeGagnantAdverse" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Pgm (version 4 et plus) : quand j'ai déjà perdu 5 billes, chacune des miennes piégées coûte ce poids en plus">Piège gagnant des miennes (Pgm) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piegeGagnantMien" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-10-23 : le piege de fin de partie (moteur/ia-evaluation-v4.js). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Pfa (version 4 et plus) : dès que les billes adverses piégées sont au moins aussi nombreuses que les éjections qui me manquent pour gagner (2 billes piégées quand l'adversaire en a déjà perdu 4), ce poids, une fois — seulement quand il me manque au plus 2 éjections : la victoire est à portée">Piège de fin de partie adverse (Pfa) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piegeFinAdverse" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Pfm (version 4 et plus) : la même chose pour mes billes piégées — dès qu'elles sont au moins aussi nombreuses que les éjections qui manquent à l'adversaire (au plus 2), ce poids en moins">Piège de fin de partie des miennes (Pfm) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-piegeFinMien" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-09-30 : une retouche reste en orange jusqu'a Valider
              (vert : derniere validation, jaune : plus ancienne) ; l'historique
              des versions, comme les branches de la Sequence
@@ -1491,12 +1500,12 @@
       <button id="bouton-lancer-banc" class="bouton-dialogue" type="button" title="Lance la série choisie : chaque profil coché contre la référence (Parties), sur les puzzles (Puzzles), ou son passage de ceintures (Ceintures). Vert : prêt. Orange : une série tourne. Gris : la série finie n'est pas encore exportée (lancer la remplacerait, une confirmation est demandée).">Lancer</button>
       <button id="bouton-pause-banc" class="bouton-dialogue" type="button" disabled title="Suspend la série après le coup en cours ; le même bouton (Reprendre) la relance là où elle en était">Pause</button>
       <button id="bouton-arreter-banc" class="bouton-dialogue" type="button" disabled title="Arrête la série pour de bon : les parties finies restent dans le tableau (et s'exportent), celles en cours sont abandonnées">Arrêter</button>
-      <button id="bouton-exporter-banc" class="bouton-dialogue" type="button" disabled title="Enregistre le tableau des résultats dans un fichier .html, au nom de l'essai (LabAl_date_référence(parties)-essai[victoires Noir x_Blanc y_nulles n]...). Vert : série finie, pas encore exportée. Orange : déjà exportée.">Exporter</button>
+      <button id="bouton-exporter-banc" class="bouton-dialogue" type="button" disabled title="Enregistre le tableau des résultats dans un fichier .html, au nom de l'essai (LabAl_date_référence(parties)-essai[victoires Noir x_Blanc y_nulles n]...), et ses parties à part (…_parties.html, pour Revoir). Vert : série finie, pas encore exportée. Orange : déjà exportée.">Exporter</button>
       <button id="bouton-exporter-recolte-banc" class="bouton-dialogue banc-avec-recolte" type="button" title="Les puzzles récoltés, dans un fichier KAA_PZL au format de KAAWA (Puzzles > Importer le reprend)">Exporter les puzzles</button>
       <button id="bouton-ajouter-recolte-banc" class="bouton-dialogue banc-avec-recolte" type="button" title="Les puzzles récoltés, ajoutés à vos puzzles My (un nom déjà pris est numéroté)">Ajouter à My</button>
       <!-- La validation automatique de l'essai retouche (interface/banc-essais-reglage.js). -->
       <p id="banc-validation-auto" class="note-reglages banc-validation-auto" hidden></p>
-      <button id="bouton-revoir-banc" class="bouton-dialogue" type="button" title="Ouvre un fichier exporté par le Banc d'essais (LabAl_…html) et liste ses parties : Voir en ouvre une sur le plateau ; ✓ celles déjà vues">Revoir un fichier LabAl…</button>
+      <button id="bouton-revoir-banc" class="bouton-dialogue" type="button" title="Ouvre un fichier exporté par le Banc d'essais (LabAl_…_parties.html, ou un ancien LabAl_…html) et liste ses parties : Voir en ouvre une sur le plateau ; ✓ celles déjà vues">Revoir un fichier LabAl…</button>
       <button id="bouton-cacher-resultats-banc" class="bouton-dialogue" type="button" disabled title="Cacher le tableau des résultats pour préparer une nouvelle série (il revient au prochain Lancer, Exporter le garde)">Cacher les résultats</button>
       <button id="bouton-fermer-banc" class="bouton-dialogue" type="button" title="Ferme la boîte sans rien arrêter : une série lancée continue, on rouvre le Banc d'essais pour la suivre">Fermer</button>
     </div>
@@ -2187,6 +2196,7 @@
   <script src="./moteur/archive-recherches.js"></script>
   <script src="./moteur/ia-recherche.js"></script>
   <script src="./moteur/ia.js"></script>
+  <script src="./moteur/ia-phase.js"></script>
   <script src="./moteur/noms-ia.js"></script>
   <script src="./moteur/historique-reglages.js"></script>
   <script src="./moteur/historique-profil-ia.js"></script>
@@ -2280,6 +2290,7 @@
   <script src="./interface/navigation-colonne.js"></script>
   <script src="./interface/disposition.js"></script>
   <script src="./interface/face-a-face.js"></script>
+  <script src="./moteur/place-stockage.js"></script>
   <script src="./interface/sauvegarde.js"></script>
   <script src="./interface/historique-joueurs.js"></script>
   <script src="./interface/noms-connus.js"></script>
@@ -2566,10 +2577,17 @@
       }
       elementEtatSauvegarde.title = texte;
     }
+    // Une sauvegarde refusee (saab, 2026-10-24 : une partie finie contre AP6 « n'est pas notée », le
+    // seul signe etait au survol) : le dire une fois par ouverture, avec ce qui remplit le stockage
+    // (moteur/place-stockage.js) et quoi faire — la partie, elle, reste entiere dans la page.
+    let echecDeSauvegardeSignale = false;
     function actualiserEtatSauvegarde(reussie, donnees) {
       const nom = nomDeFichierKAAWA(donnees);
-      ecrireTitrePartie(reussie ? nom : `${nom} — sauvegarde impossible (stockage du navigateur indisponible)`);
+      ecrireTitrePartie(reussie ? nom : `${nom} — PAS ENREGISTRÉE : stockage du navigateur plein`);
       elementEtatSauvegarde.classList.toggle('etat-sauvegarde-erreur', !reussie);
+      if (reussie || echecDeSauvegardeSignale) return;
+      echecDeSauvegardeSignale = true;
+      window.alert(`Cette partie ne s'enregistre plus : le stockage du navigateur est plein (${texteDeLaPlace(placeParZone(taillesDuStockage()))}).\n\nElle reste entière dans cette page. Pour ne pas la perdre :\n1. Téléchargez-la (icône Exporter de la colonne de gauche).\n2. Faites de la place : Mes parties (supprimer des parties), puis la Corbeille (la vider : une partie supprimée y garde sa place), ou Réflexion IA > Vider les recherches gardées.\n3. Jouez ou naviguez d'un coup : elle s'enregistre de nouveau.`);
     }
     // Au demarrage, rien n'a encore ete ecrit pour de vrai s'il n'y a pas
     // de partie reprise (rien a perdre avant le premier coup) : un texte
@@ -2926,8 +2944,15 @@
       () => baseNextMove,
       // Les ceintures des IA : ce qui existe, lu au moment du lancement.
       () => ({ variantes: variantesDisponibles, puzzles: puzzlesDisponibles, base: baseNextMove }),
-      // Revoir une partie d'un fichier du banc : une partie de Mes parties, ouverte.
-      ({ arbre, prefixe, evenement, date, variante, joueurs }) => creerEtOuvrirLaPartie(arbre, { variantName: variante, joueurs: { noir: joueurs.noir, blanc: joueurs.blanc }, date, prefixe, evenement }),
+      // Revoir une partie d'un fichier du banc : une partie de Mes parties, ouverte (Voir) ou
+      // seulement rangee (Copier : son identifiant, ou null si le stockage refuse).
+      ({ arbre, prefixe, evenement, date, variante, joueurs }, ouvrir = true) => {
+        const options = { variantName: variante, joueurs: { noir: joueurs.noir, blanc: joueurs.blanc }, date, prefixe, evenement };
+        if (ouvrir) return creerEtOuvrirLaPartie(arbre, options);
+        const id = creerNouvellePartie(donneesDeLaPartieCreee(arbre, options));
+        actualiserCompteursDeParties();
+        return id;
+      },
       // Une partie de la serie : le petit plateau et le Graphique, qui se suivent (saab, 2026-10-18).
       (position, coups, titre, { enDirect = false, aLaFin = false, joueurs = null } = {}) => {
         const depart = { ...lirePosition(position), joueurAuTrait: 'noir' };
@@ -3803,11 +3828,11 @@
       }
     );
 
-    // Une partie faite d'un arbre (Creer une partie ; revoir une partie du banc) : rangee
-    // dans Mes parties, puis ouverte. `options` : { variantName, joueurs, date, prefixe, evenement }.
-    function creerEtOuvrirLaPartie(arbre, { variantName, joueurs = { ...NOMS_PAR_DEFAUT }, date = formaterDateKAAWA(new Date()), prefixe = null, evenement = EVENEMENT_PAR_DEFAUT }) {
+    // Une partie faite d'un arbre (Creer une partie ; revoir une partie du banc), au format de
+    // Mes parties. `options` : { variantName, joueurs, date, prefixe, evenement }.
+    function donneesDeLaPartieCreee(arbre, { variantName, joueurs = { ...NOMS_PAR_DEFAUT }, date = formaterDateKAAWA(new Date()), prefixe = null, evenement = EVENEMENT_PAR_DEFAUT }) {
           const tempsInitial = REGLAGES_PENDULES_PAR_DEFAUT.tempsInitial;
-          const donnees = arbreVersDonnees(arbre, {
+          return arbreVersDonnees(arbre, {
             date,
             event: evenement,
             variantName,
@@ -3818,6 +3843,11 @@
             pendulesActuelles: { tempsNoir: tempsInitial, tempsBlanc: tempsInitial },
             ...(prefixe ? { prefixe } : {}),
           });
+    }
+
+    // Rangee dans Mes parties, puis ouverte.
+    function creerEtOuvrirLaPartie(arbre, options) {
+          const donnees = donneesDeLaPartieCreee(arbre, options);
           const charger = () => {
             const id = creerNouvellePartie(donnees);
             if (!id) {
@@ -3974,6 +4004,10 @@
     // l'en-tete de interface/jauge-mes-parties.js pour pourquoi pas dans
     // "Réglages" comme prevu au depart).
     demarrerReglageJaugeMesParties(document.getElementById('champ-seuil-jauge-parties'), elementBadgeMesParties);
+    // La place prise sur l'appareil, a chaque ouverture de Mes parties (moteur/place-stockage.js).
+    document.getElementById('bouton-mes-parties').addEventListener('click', () => {
+      document.getElementById('place-stockage-parties').textContent = `Place prise sur cet appareil (la limite dépend du navigateur : souvent 5 à 10 Mo, parties comprises) : ${texteDeLaPlace(placeParZone(taillesDuStockage()))}. Plein, plus rien ne s'enregistre : supprimez des parties, puis videz la Corbeille.`;
+    });
 
     const listeParties = demarrerListeParties(
       {
@@ -4648,16 +4682,73 @@
     // parties recharge la page — saab l'a eue en rejouant une partie), d'ou le
     // stockage de session. Jamais en double-clic (file://) : on ne peut pas y
     // installer, la question n'aurait aucun sens.
-    const CLE_INSTALLATION_PLUS_TARD = 'kaah-installation-plus-tard';
+    // Saab, 2026-10-24 : « Au 1er chargement on garde la boite installer. Ensuite, plutôt que de
+    // l'afficher à chaque fois, il faudrait mettre un btn Nouvelle version dans le bandeau Aide » —
+    // la boite d'installation ne s'ouvre seule qu'au tout premier chargement (retenu sur l'appareil) ;
+    // ensuite, comme la question d'une nouvelle version, seulement par ce bouton, vert quand une
+    // nouvelle version attend.
+    const CLE_INSTALLATION_PROPOSEE = 'kaah-installation-proposee';
     const texteTaille = TAILLE_VERSION_KAAH_MO ? `${TAILLE_VERSION_KAAH_MO} Mo` : 'quelques Mo';
     const installationPossible = 'serviceWorker' in navigator && window.location.protocol.startsWith('http');
-    function installationRemiseAPlusTard() {
+    const boutonNouvelleVersion = document.getElementById('bouton-nouvelle-version');
+    boutonNouvelleVersion.hidden = !installationPossible;
+    let miseAJourEnAttente = null; // { version, tailleMo, charger } : trouvee, pas encore chargee
+    let surveillanceDesMisesAJour = null; // { verifier } (interface/mise-a-jour.js)
+    let rechercheDemandee = false; // le bouton cherche : la boite s'ouvre des qu'une version est trouvee
+    function installationDejaProposee() {
       try {
-        return window.sessionStorage.getItem(CLE_INSTALLATION_PLUS_TARD) === 'oui';
+        return window.localStorage.getItem(CLE_INSTALLATION_PROPOSEE) === 'oui';
       } catch {
         return false;
       }
     }
+    function retenirInstallationProposee() {
+      try {
+        window.localStorage.setItem(CLE_INSTALLATION_PROPOSEE, 'oui');
+      } catch {
+        // Elle sera seulement reproposee a la prochaine ouverture.
+      }
+    }
+    function bandeauDeMiseAJour(texte) {
+      const bandeau = document.getElementById('bandeau-mise-a-jour');
+      bandeau.textContent = texte ?? '';
+      bandeau.hidden = !texte;
+    }
+    function proposerLInstallation() {
+      // Fra / Eng sur cette boite seulement (saab, 2026-10-17).
+      const boutonLangue = document.getElementById('bouton-langue-chargement');
+      boutonLangue.hidden = false;
+      document.getElementById('dialogue-confirmation').addEventListener('close', () => (boutonLangue.hidden = true), { once: true });
+      confirmation.demander(
+        // Ses mises a la ligne (saab, 2026-10-16) : styles.css, #message-confirmation.
+        `Installer KAAH sur cet appareil :\n(${NOM_VERSION_KAAH_TEST}),\npour y jouer ensuite même sans internet ?\nIl télécharge ses fichiers une seule fois (${texteTaille}).\n« Plus tard » : KAAH marche quand même,\navec internet, sans rien installer ;\nAide > Nouvelle version pour installer ensuite.`,
+        installerLeServiceWorker,
+        'Installer',
+        { texte: 'Plus tard' },
+        { enRouge: `(${texteTaille})` }
+      );
+    }
+    function proposerLaMiseAJour({ version, tailleMo, charger }) {
+      confirmation.demander(
+        `Une nouvelle version de KAAH est disponible (${version}, vous avez ${NOM_VERSION_KAAH_TEST}). La charger maintenant ? Il faut internet, ${tailleMo ? `${tailleMo} Mo` : 'quelques Mo'}. Sinon, Aide > Nouvelle version la proposera de nouveau.`,
+        charger,
+        'Charger'
+      );
+    }
+    boutonNouvelleVersion.addEventListener('click', async () => {
+      const enregistrement = await navigator.serviceWorker.getRegistration().catch(() => null);
+      if (!enregistrement) return proposerLInstallation();
+      if (miseAJourEnAttente) return proposerLaMiseAJour(miseAJourEnAttente);
+      rechercheDemandee = true;
+      bandeauDeMiseAJour("Recherche d'une nouvelle version…");
+      await enregistrement.update().catch(() => {});
+      await surveillanceDesMisesAJour?.verifier();
+      // Une version qui s'installe encore : la boite s'ouvrira une fois installee (proposer, plus bas).
+      if (miseAJourEnAttente || enregistrement.installing) return;
+      rechercheDemandee = false;
+      bandeauDeMiseAJour(null);
+      window.alert(`Vous avez la dernière version : ${NOM_VERSION_KAAH_TEST}.`);
+    });
     // Apres la boite de chargement : l'alerte des ceintures (interface/alerte-ceintures.js),
     // une fois la question d'installation repondue.
     const alerterApresLeChargement = () => {
@@ -4674,49 +4765,30 @@
           alerterApresLeChargement();
           return installerLeServiceWorker();
         }
-        if (installationRemiseAPlusTard()) return alerterApresLeChargement();
-        // Fra / Eng sur cette boite seulement (saab, 2026-10-17).
-        const boutonLangue = document.getElementById('bouton-langue-chargement');
-        boutonLangue.hidden = false;
-        document.getElementById('dialogue-confirmation').addEventListener('close', () => (boutonLangue.hidden = true), { once: true });
-        confirmation.demander(
-          // Ses mises a la ligne (saab, 2026-10-16) : styles.css, #message-confirmation.
-          `Installer KAAH sur cet appareil :\n(${NOM_VERSION_KAAH_TEST}),\npour y jouer ensuite même sans internet ?\nIl télécharge ses fichiers une seule fois (${texteTaille}).\n« Plus tard » : KAAH marche quand même,\navec internet, sans rien installer ;\nla question reviendra à la prochaine ouverture.`,
-          installerLeServiceWorker,
-          'Installer',
-          {
-            texte: 'Plus tard',
-            surRefus: () => {
-              try {
-                window.sessionStorage.setItem(CLE_INSTALLATION_PLUS_TARD, 'oui');
-              } catch {
-                // Elle sera seulement redemandee au prochain rechargement.
-              }
-            },
-          }
-        );
+        if (installationDejaProposee()) return alerterApresLeChargement();
+        retenirInstallationProposee();
+        proposerLInstallation();
         alerterApresLeChargement();
       });
     }
     function installerLeServiceWorker() {
         navigator.serviceWorker
           .register('./service-worker.js', { updateViaCache: 'none' })
-          .then((enregistrement) =>
-            surveillerLesMisesAJour(enregistrement, {
-              proposer: (version, tailleMo, charger) =>
-                confirmation.demander(
-                  `Une nouvelle version de KAAH est disponible (${version}, vous avez ${NOM_VERSION_KAAH_TEST}). La charger maintenant ? Il faut internet, ${tailleMo ? `${tailleMo} Mo` : 'quelques Mo'}. Sinon, la question reviendra au prochain lancement.`,
-                  charger,
-                  'Charger'
-                ),
-              signaler: (texte) => {
-                const bandeau = document.getElementById('bandeau-mise-a-jour');
-                bandeau.textContent = texte;
-                bandeau.hidden = false;
+          .then((enregistrement) => {
+            surveillanceDesMisesAJour = surveillerLesMisesAJour(enregistrement, {
+              // Gardee, jamais demandee d'office : le bouton Nouvelle version passe au vert.
+              proposer: (version, tailleMo, charger) => {
+                miseAJourEnAttente = { version, tailleMo, charger };
+                boutonNouvelleVersion.classList.add('bouton-a-faire');
+                if (!rechercheDemandee) return;
+                rechercheDemandee = false;
+                bandeauDeMiseAJour(null);
+                proposerLaMiseAJour(miseAJourEnAttente);
               },
+              signaler: bandeauDeMiseAJour,
               recharger: () => demarrerRechargement(),
-            })
-          )
+            });
+          })
           // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
           // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
           // Opera : "rien n'indique que c'est installe").

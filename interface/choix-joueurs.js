@@ -232,8 +232,12 @@ function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
   const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
   const machine = machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), moteur: choix.role, livre: choix.livre });
-  return choix.elagage === null || choix.elagage === undefined ? machine : { ...machine, elagage: choix.elagage };
+  return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
 }
+
+// Un elagage tape dans la boite remplace celui du profil, quel qu'il soit : celui du profil du
+// milieu aussi (l'ajout Ct, moteur/ia-phase.js).
+const avecLElagageForce = (machine, elagage) => ({ ...machine, elagage, ...(machine.milieu ? { milieu: { ...machine.milieu, elagage } } : {}) });
 
 // `section` : la rubrique (#section-adversaire), un bloc `.choix-joueur` par
 // camp (data-camp). Renvoie { preparer(visible), lire() } : preparer affiche (ou

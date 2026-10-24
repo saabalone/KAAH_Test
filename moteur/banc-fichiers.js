@@ -80,3 +80,15 @@ function lireFichierLabAlone(html, nomDuFichier) {
 
 // « LabAl_2610131857_1 » : le prefixe du titre d'une partie revue (moteur/nom-partie.js).
 const prefixeDeLaPartie = ({ prefixe, date }, numero) => [prefixe, date, numero].filter((morceau) => morceau !== '').join('_');
+
+// Les parties dans un fichier A PART des resultats (saab, 2026-10-23 : « faire un 2eme fichier
+// séparé des parties, comme ça on pourrait les revoir, les supprimer, sans toucher au LabAl des
+// résultats ») : le nom des resultats, puis _parties — meme prefixe, meme date, donc les memes
+// titres de parties revues.
+const SUFFIXE_DU_FICHIER_DES_PARTIES = '_parties';
+const nomDuFichierDesParties = (nomDesResultats) => `${nomDesResultats}${SUFFIXE_DU_FICHIER_DES_PARTIES}`;
+
+// Les parties cochees d'un fichier revu, dans un nouveau fichier (saab, 2026-10-23 : « copier ou
+// exporter les parties qu'on veut ») : le nom du fichier ouvert, puis _choix et la date — le prefixe
+// et la date d'origine restent en tete, les parties gardent leur numero, donc leur titre.
+const nomDuFichierDuChoix = (nomDuFichierOuvert, date) => `${nomDuFichierOuvert}_choix${date}`;

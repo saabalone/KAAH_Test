@@ -41,7 +41,7 @@ function serieDePartiesDuBanc(essais, reference, parametres, banc) {
   };
   // Les parties, pour les revoir depuis le fichier exporte (moteur/banc-fichiers.js).
   const donnees = () => ({
-    parties: parties.map((p) => ({ numero: p.numero, variante: p.variante ?? null, position: p.position ?? POSITION_DEPART_BANC, essai: nomDeMachineDuBanc(essais[p.essai]), reference: nomDeMachineDuBanc(reference), essaiNoir: !p.referenceNoir, coups: p.coups, occurrences: p.occurrences, fin: p.fin, score: p.score })),
+    parties: parties.map((p) => ({ numero: p.numero, variante: p.variante ?? null, position: p.position ?? POSITION_DEPART_BANC, essai: nomDeMachineDuBanc(essais[p.essai]), reference: nomDeMachineDuBanc(reference), essaiNoir: !p.referenceNoir, coups: p.coups, livre: p.livre, occurrences: p.occurrences, fin: p.fin, score: p.score })),
   });
   const essaisRetouches = () => {
     const resume = resumeDuBanc(parties, essais.length);

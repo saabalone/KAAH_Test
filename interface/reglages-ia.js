@@ -66,7 +66,10 @@ function demarrerReglagesIA(elements) {
   // l'Historique et le titre de la rubrique prennent la plus forte.
   function marquerCouleurs() {
     const couleurs = couleursDesReglagesIA(profilActuel(), brouillon);
-    for (const [cle, couleur] of Object.entries(couleurs)) poserCouleurIA(ligneDe(cle), couleur);
+    // Le profil du milieu n'a pas de ligne a lui : il est sur celle de Ct (moteur/ia-phase.js).
+    const { [CLE_PROFIL_DU_MILIEU]: couleurDuMilieu, ...parLigne } = couleurs;
+    parLigne.centreTenu = couleurLaPlusForte([parLigne.centreTenu, couleurDuMilieu]);
+    for (const [cle, couleur] of Object.entries(parLigne)) poserCouleurIA(ligneDe(cle), couleur);
     const duProfil = couleurLaPlusForte(Object.values(couleurs));
     poserCouleurIA(elements.select.closest('label'), duProfil);
     colorerListeProfilsIA(elements.select, (nom) => (nom === nomActuel ? duProfil : couleurDuProfilIA(trouverProfilIA(nom))));

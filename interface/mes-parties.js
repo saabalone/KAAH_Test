@@ -213,14 +213,33 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   // Phase 26 (corbeille) : chaque partie supprimee y part intacte AVANT
   // d'etre retiree de "Mes parties" — envoyerALaCorbeille (interface/
   // corbeille.js) vient d'un fichier charge avant celui-ci dans index.html.
-  // Une partie dont la mise en corbeille echoue (stockage plein) n'est pas
-  // supprimee : mieux vaut la garder que la perdre sans recours.
+  // Une partie dont la mise en corbeille echoue n'est pas supprimee sans le
+  // demander : mieux vaut la garder que la perdre sans recours.
+  // Le stockage plein (saab, 2026-10-24 : « J'ai 141 parties et si je supprime elles ne se suppriment
+  // pas ») : la corbeille, au meme endroit, refuse tout — et sans place, plus rien ne s'enregistre. Les
+  // parties refusees se suppriment alors DEFINITIVEMENT, si on le confirme (les exporter d'abord).
   function supprimerSelection(ids) {
     const parties = listerPartiesEnregistrees();
+    const refusees = [];
     for (const id of ids) {
       const entree = parties.find((partie) => partie.id === id);
-      if (entree && envoyerALaCorbeille('parties', entree)) supprimerPartieNommee(id);
+      if (!entree) continue;
+      if (envoyerALaCorbeille('parties', entree)) supprimerPartieNommee(id);
+      else refusees.push(id);
     }
+    finirLaSuppression(ids);
+    if (refusees.length === 0) return;
+    demanderConfirmation(
+      `Le stockage du navigateur est plein : ${refusees.length > 1 ? `${refusees.length} parties ne peuvent pas aller` : 'la partie ne peut pas aller'} dans la corbeille. ${refusees.length > 1 ? 'Les' : 'La'} supprimer DÉFINITIVEMENT, sans corbeille ? (Pour ${refusees.length > 1 ? 'les' : 'la'} garder, ${refusees.length > 1 ? 'exportez-les' : 'exportez-la'} d'abord : bouton Exporter.)`,
+      () => {
+        for (const id of refusees) supprimerPartieNommee(id);
+        finirLaSuppression(refusees);
+      },
+      'Supprimer définitivement'
+    );
+  }
+
+  function finirLaSuppression(ids) {
     if (ids.includes(idPrevisualise)) {
       idPrevisualise = null;
       elements.apercu.innerHTML = '';

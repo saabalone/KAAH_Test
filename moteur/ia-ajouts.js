@@ -32,7 +32,12 @@
 //     AbaPro, apres le coup 20, KAI++ se dispersait en 4 a 5 groupes, AbaPro en tenait 1) ;
 //   - Sc : le sumito 3-2 contre (moteur/ia-sumito-vide.js) — saab, 2026-10-19 ;
 //   - Bp, Bmp, Bpb, Be, Bme : les billes vulnerables, poussables (de plusieurs facons, au bord)
-//     et ejectables (de plusieurs facons) — saab, 2026-10-20, d'apres ULA (moteur/ia-sumito-vide.js).
+//     et ejectables (de plusieurs facons) — saab, 2026-10-20, d'apres ULA (moteur/ia-sumito-vide.js) ;
+//   - Pfa, Pfm : le piege de fin de partie — autant de billes piegees que d'ejections qui manquent
+//     pour gagner (moteur/ia-evaluation-v4.js) — saab, 2026-10-23 ;
+//   - Ct : le centre tenu — des que la machine a Ct billes au centre, elle joue le profil du
+//     milieu copie dans le sien ; avant, et si elle le perd, le sien — saab, 2026-10-23
+//     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation).
 // `terme` : il a sa colonne (Essai, panneaux) ; da, ep, gf, pf et ceux du piege n'en ont pas, ils changent d'autres termes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
@@ -65,10 +70,16 @@ const OPTIONS_IA = [
   { cle: 'billesPoussablesBord', suffixe: 'Bpb', terme: true },
   { cle: 'billesEjectables', suffixe: 'Be', terme: true },
   { cle: 'billesMultiejectables', suffixe: 'Bme', terme: true },
+  { cle: 'piegeFinAdverse', suffixe: 'Pfa', terme: false },
+  { cle: 'piegeFinMien', suffixe: 'Pfm', terme: false },
+  // Le centre tenu (moteur/ia-phase.js) choisit le profil qui cherche : KAI++ ne le voit jamais.
+  { cle: 'centreTenu', suffixe: 'Ct', terme: false, horsDeKaiPlus: true },
 ];
 // Chaque suffixe avec sa majuscule (saab, 2026-10-16 : « v5elecef est un peu confus, il
 // vaudrait mieux repérer chaque suffixe par une majuscule, v5ElEcEf »).
 const CLES_OPTIONS_IA = OPTIONS_IA.map((option) => option.cle);
+// Ceux que KAI++ lit, dans son ordre (solveur/kai-plus.cpp, lire_poids ; moteur/ia.js, poidsEnTexte).
+const CLES_OPTIONS_KAI_PLUS = OPTIONS_IA.filter((option) => !option.horsDeKaiPlus).map((option) => option.cle);
 
 // Le code du jeu d'ajouts d'un profil (« SvEcEf ») ; '' sans ajout. Son numero Pn :
 // moteur/noms-ia.js.
@@ -102,10 +113,12 @@ const GROUPES_SEPARES_PROPOSES = 20;
 // Les billes vulnerables : les poids d'ULA (debutsaab9 : -3, -3, -4, -10, -10, Attaque a 65 %),
 // a l'echelle de KAI++ (une ejection y vaut 100 et plus, chez ULA 30 a 37).
 const BILLES_VULNERABLES_PROPOSEES = { billesPoussables: -5, billesMultipoussables: -5, billesPoussablesBord: -7, billesEjectables: -15, billesMultiejectables: -15 };
+// Le centre tenu : 4 des 7 cases du centre (une base a regler).
+const CENTRE_TENU_PROPOSE = 4;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE },
   ])
 );
 

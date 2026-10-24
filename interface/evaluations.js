@@ -10,7 +10,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : evaluerPosition,
 // STYLES_IA, phaseDeLaPartie, ABREVIATIONS_PHASES (moteur/ia-evaluation.js),
-// libelleEvaluation (moteur/ia.js), etatCourant (moteur/arbre.js),
+// libelleEvaluation, ABREVIATIONS_STYLES_IA (moteur/ia.js), etatCourant (moteur/arbre.js),
 // afficherEvaluation (rendu/evaluation.js) viennent de fichiers charges avant.
 
 const CLE_EVALUATIONS_VISIBLES = 'kaah-evaluations-visibles';
@@ -22,6 +22,14 @@ function lireEvaluationsVisibles() {
   } catch {
     return { noir: false, blanc: false };
   }
+}
+
+// Le profil que joue une machine qui a l'ajout Ct (moteur/ia-phase.js ; saab, 2026-10-23 : « il
+// faut savoir tjs quelle phase il joue, donc l'indiquer quelque part sur le plateau ») : le style
+// abrege du sien au debut (« Def »), une fleche vers celui du milieu ensuite (« →Agr ») ; rien sans Ct.
+function marqueDeLaBascule(machine, bascule) {
+  if (!bascule) return '';
+  return bascule === 'milieu' ? ` →${ABREVIATIONS_STYLES_IA[machine.milieu?.style] ?? '?'}` : ` ${ABREVIATIONS_STYLES_IA[machine.style]}`;
 }
 
 function texteDeLaReflexion(reflexion) {
@@ -61,9 +69,10 @@ function demarrerEvaluations(svg) {
     const phase = ABREVIATIONS_PHASES[phaseDeLaPartie(etat, arbre.chemin.length)];
     for (const camp of ['noir', 'blanc']) {
       if (machines[camp]) {
-        const valeur =
-          enCours?.camp === camp && enCours.profondeur ? libelleEvaluation(enCours.evaluation) : texteDeLaReflexion(derniereReflexion(camp) ?? {});
-        afficherEvaluation(svg, camp, `${phase} ${valeur}`, false);
+        const cherche = enCours?.camp === camp;
+        const valeur = cherche && enCours.profondeur ? libelleEvaluation(enCours.evaluation) : texteDeLaReflexion(derniereReflexion(camp) ?? {});
+        const bascule = cherche && enCours.bascule ? enCours.bascule : derniereReflexion(camp)?.bascule;
+        afficherEvaluation(svg, camp, `${phase} ${valeur}${marqueDeLaBascule(machines[camp], bascule)}`, false);
       } else if (visibles[camp]) {
         afficherEvaluation(svg, camp, `${phase} ${valeurPourUnHumain(etat, camp)}`, false);
       } else {
