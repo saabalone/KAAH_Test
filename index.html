@@ -992,7 +992,7 @@
         <li><b>Avec internet (recommandé)</b> : ouvrez <b>https://saabalone.github.io/KAAH_Test/</b>, puis installez KAAH (Chrome / Edge : menu du navigateur, « Installer » ; Opera : menu, « Écran d'accueil » ; iPhone, dans Safari : Partager, « Sur l'écran d'accueil »).<br>Il marche ensuite hors ligne.</li>
         <li>Sous le numéro de version, en haut de cette Aide, <b>Hors ligne</b> dit si KAAH marche sans internet sur cet appareil (« prêt ✓ »), ou pourquoi pas.</li>
         <li><b>Opera : pas « Page hors ligne »</b>. Elle n'enregistre qu'une photo de la page : le jeu n'y tourne pas (plateau sans relief, boutons inertes).<br>Installez plutôt KAAH sur l'écran d'accueil, comme ci-dessus.</li>
-        <li><b>Nouvelle version</b> : bouton <b>Nouvelle version</b>, en haut de cette Aide. Avec internet, KAAH vérifie seul, sans rien vous demander, s'il en existe une (quelques Ko) : le bouton passe alors au <b>vert</b>. Le toucher ouvre la question : la <b>charger</b> (quelques Mo), ou non — la version actuelle reste, hors ligne comme avant. Pas encore de nouvelle version : il le dit.<br><b>Première ouverture</b> : KAAH demande, une seule fois, avec son poids, s'il peut s'<b>installer</b> sur l'appareil (télécharger ses fichiers une fois, pour jouer ensuite même sans internet). « Plus tard » : il marche quand même, avec internet, sans rien installer ; pour l'installer ensuite, ce même bouton Nouvelle version. Jamais en double-clic sur le fichier : on ne peut pas y installer.</li>
+        <li><b>Nouvelle version</b> : bouton <b>Nouvelle version</b>, en haut de cette Aide. Avec internet, KAAH vérifie seul, sans rien vous demander, s'il en existe une (quelques Ko) : le bouton passe alors au <b>vert</b> (« Nouvelle version ! ») ; sinon il dit « À jour ✓ », ou « Installer KAAH » tant que KAAH n'est pas installé. L'Aide s'ouvre à chaque lancement : on le voit tout de suite. Le toucher ouvre la question : la <b>charger</b> (quelques Mo), ou non — la version actuelle reste, hors ligne comme avant. Pas encore de nouvelle version : il le dit.<br><b>Première ouverture</b> : KAAH demande, une seule fois, avec son poids, s'il peut s'<b>installer</b> sur l'appareil (télécharger ses fichiers une fois, pour jouer ensuite même sans internet). « Plus tard » : il marche quand même, avec internet, sans rien installer ; pour l'installer ensuite, ce même bouton Nouvelle version. Jamais en double-clic sur le fichier : on ne peut pas y installer.</li>
         <li><b>PC</b> : extrayez le dossier reçu, puis double-clic sur <b>index.html</b> (il s'ouvre dans votre navigateur).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_PC.html" target="_blank" rel="noopener">INSTALLATION_PC</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b> reçu avec KAAH).</li>
         <li><b>Android</b> : extrayez le dossier avec l'application Fichiers, puis tapez dans la barre d'adresse du navigateur <b>file:///storage/emulated/0/Download/KAAH/index.html</b> (à adapter si le dossier est ailleurs).<br>Mode d'emploi complet : <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_ANDROID.html" target="_blank" rel="noopener">INSTALLATION_ANDROID</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
         <li><b>iPhone</b> : pas de méthode simple sans adresse internet — voir <a href="https://saabalone.github.io/KAAH_Test/docs/INSTALLATION_IOS.html" target="_blank" rel="noopener">INSTALLATION_IOS</a> (avec internet — sinon, le fichier du même nom dans le dossier <b>docs</b>).</li>
@@ -4697,6 +4697,14 @@
     let miseAJourEnAttente = null; // { version, tailleMo, charger } : trouvee, pas encore chargee
     let surveillanceDesMisesAJour = null; // { verifier } (interface/mise-a-jour.js)
     let rechercheDemandee = false; // le bouton cherche : la boite s'ouvre des qu'une version est trouvee
+    // Le bouton dit ou on en est, a chaque ouverture de l'Aide (saab, 2026-10-24 : « il faut ouvrir sur la
+    // page Aide, pour voir chaque fois si on est à jour, et aussi pour ceux qui ne connaissent [pas] ») :
+    // l'Aide s'ouvre seule au lancement (interface/aide.js) ; le bouton, vert s'il y a une nouvelle version.
+    const TEXTES_DU_BOUTON_DE_VERSION = { installer: 'Installer KAAH', nouvelle: 'Nouvelle version !', aJour: 'À jour ✓' };
+    function montrerLEtatDeLaVersion(etat) {
+      boutonNouvelleVersion.textContent = TEXTES_DU_BOUTON_DE_VERSION[etat];
+      boutonNouvelleVersion.classList.toggle('bouton-a-faire', etat === 'nouvelle');
+    }
     function installationDejaProposee() {
       try {
         return window.localStorage.getItem(CLE_INSTALLATION_PROPOSEE) === 'oui';
@@ -4749,6 +4757,7 @@
       if (miseAJourEnAttente || enregistrement.installing) return;
       rechercheDemandee = false;
       bandeauDeMiseAJour(null);
+      montrerLEtatDeLaVersion('aJour');
       window.alert(`Vous avez la dernière version : ${NOM_VERSION_KAAH_TEST}.`);
     });
     // Apres la boite de chargement : l'alerte des ceintures (interface/alerte-ceintures.js),
@@ -4767,6 +4776,7 @@
           alerterApresLeChargement();
           return installerLeServiceWorker();
         }
+        montrerLEtatDeLaVersion('installer');
         if (installationDejaProposee()) return alerterApresLeChargement();
         retenirInstallationProposee();
         proposerLInstallation();
@@ -4781,7 +4791,7 @@
               // Gardee, jamais demandee d'office : le bouton Nouvelle version passe au vert.
               proposer: (version, tailleMo, charger) => {
                 miseAJourEnAttente = { version, tailleMo, charger };
-                boutonNouvelleVersion.classList.add('bouton-a-faire');
+                montrerLEtatDeLaVersion('nouvelle');
                 if (!rechercheDemandee) return;
                 rechercheDemandee = false;
                 bandeauDeMiseAJour(null);
@@ -4790,6 +4800,14 @@
               signaler: bandeauDeMiseAJour,
               recharger: () => demarrerRechargement(),
             });
+            // La verification du lancement : rien de neuf, « À jour ✓ » (sans internet, le bouton n'en sait rien).
+            enregistrement
+              .update()
+              .then(async () => {
+                await surveillanceDesMisesAJour.verifier();
+                if (!miseAJourEnAttente && !enregistrement.installing) montrerLEtatDeLaVersion('aJour');
+              })
+              .catch(() => {});
           })
           // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
           // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
