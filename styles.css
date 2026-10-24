@@ -6459,6 +6459,9 @@ label[title] {
 .en-anglais .seulement-en-anglais { display: flex; }
 .aide-a-traduire { flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0; color: #e0832a; font-size: 13px; }
 .boutons-entete-aide { display: flex; gap: 6px; align-items: flex-start; }
+/* Sous le hors-ligne, a gauche (index.html) : sa largeur, pas celle de la colonne. */
+.aide-entete .bouton-nouvelle-version { display: block; margin: 2px 0 6px; }
+.aide-entete .bouton-nouvelle-version[hidden] { display: none; }
 #bouton-langue-chargement { margin: 0 0 6px; }
 
 /* LabAl : l'essai en Blanc en blanc, en Noir en gris (interface/banc-essais-page.js) ; une

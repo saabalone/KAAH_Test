@@ -795,6 +795,10 @@
         <h2>Aide de KAAH</h2>
         <p id="version-kaah" class="aide-version"></p>
         <p id="hors-ligne-kaah" class="aide-version"></p>
+        <!-- Saab, 2026-10-24 : la boite d'installation ou de nouvelle version, quand on le veut (index.html, en
+             bas) ; sous le hors-ligne, dont il parle (dans les boutons du haut, il poussait Fermer hors de la
+             fenetre). Pas .aide-version : il reste quand l'en-tete se replie. -->
+        <button id="bouton-nouvelle-version" class="bouton-dialogue bouton-nouvelle-version" type="button" title="Installer KAAH sur cet appareil, ou voir s'il existe une nouvelle version (vert : une nouvelle version attend)" hidden>Nouvelle version</button>
         <!-- Ordinateur ou telephone (saab, 2026-10-08) : meme fichiers, le seuil
              de 700 px (styles.css) choisit la ligne. -->
         <p class="aide-version banc-ordinateur">Version ordinateur : avec le Banc d'essais, LabAlone (icône 🧪, ou Réglages &gt; Profil IA) pour faire jouer des profils IA contre un profil de référence.</p>
@@ -805,8 +809,6 @@
         <p class="aide-version aide-modes">Modes Entraînement et Ceinture : l'icône ceinture, sous Puzzles (rubrique « Entraînement et Ceintures »).</p>
       </div>
       <div class="boutons-entete-aide">
-        <!-- Saab, 2026-10-24 : la boite d'installation ou de nouvelle version, quand on le veut (index.html, en bas). -->
-        <button id="bouton-nouvelle-version" class="bouton-dialogue" type="button" title="Installer KAAH sur cet appareil, ou voir s'il existe une nouvelle version (vert : une nouvelle version attend)" hidden>Nouvelle version</button>
         <button class="bouton-dialogue bouton-langue" type="button" data-changer-langue title="Fra / Eng : l'interface en français ou en anglais (la page se recharge)">English</button>
         <button id="bouton-fermer-aide-haut" class="bouton-dialogue bouton-fermer-aide" type="button" title="Ferme cette fenêtre">Fermer</button>
       </div>
