@@ -312,7 +312,9 @@ button,
   font-size: 16px;
 }
 
-#bouton-choix-icones.bouton-actif {
+#bouton-choix-icones.bouton-actif,
+#bouton-icones-simple.bouton-actif,
+#bouton-icones-labalone.bouton-actif {
   background: #cc6a00;
   border-color: #cc6a00;
   color: #ffffff;

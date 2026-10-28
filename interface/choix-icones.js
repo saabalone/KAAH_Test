@@ -1,9 +1,10 @@
 // Choisir les icones de la colonne de gauche (saab, 2026-10-27 : « Réglages/Colonne icones, en plus du btn
 // réorganiser, ajouter btn Choix des icones, on pourra cocher ceux qu'on veut afficher ») : Reglages >
 // « Choix des icônes » deplie une case a cocher par icone ; decochee, l'icone quitte la colonne tout de
-// suite, et un groupe dont toutes les icones sont decochees avec elle. Retenu sur cet appareil
-// (localStorage, a part des reglages de KAAWA comme l'ordre des groupes, interface/ordre-colonne.js) ; ni
-// Défaut ni un profil n'y touchent. Reglages reste toujours affiche : sans lui, plus moyen de revenir ici.
+// suite, et un groupe dont toutes les icones sont decochees avec elle ; deux prereglages, Simple (au depart) et
+// LabAlone (toutes). Retenu sur cet appareil (localStorage, a part des reglages de KAAWA comme l'ordre des
+// groupes, interface/ordre-colonne.js) ; ni Défaut ni un profil n'y touchent (Lune, Terre et Soleil ne changent
+// que le plateau). Reglages reste toujours affiche : sans lui, plus moyen de revenir ici.
 // En mode reorganisation, les icones decochees reapparaissent (styles.css) : un groupe cache ne doit pas
 // avaler en silence un ▲ ou un ▼.
 //
@@ -14,12 +15,22 @@ const ICONE_TOUJOURS_AFFICHEE = 'bouton-reglages';
 // Une icone qui n'existe que sur ordinateur, en local ou dans la version de travail : sa ligne non plus.
 const CLASSES_DES_ICONES_A_PART = ['banc-ordinateur', 'bouton-version-locale', 'seulement-version-de-travail'];
 
+// Deux prereglages (saab, 2026-10-28 : « On a qu'à appeler le mode setting 'Simple (défaut)' et le précédent
+// 'Labalone' car c'est celui qui permet la recherche » ; « Lune Terre Soleil ne change que le plateau, pas les
+// btn ») : Simple cache les icones de la recherche — ce que saab cachait (sa sauvegarde complete du 2026-10-28) ;
+// Variantes, Puzzles et Correspondance restent dans la boite Nouvelle partie — ; LabAlone les montre toutes.
+// Simple vaut pour un appareil qui n'a jamais choisi.
+const ICONES_CACHEES_EN_SIMPLE = ['bouton-variantes', 'bouton-puzzles', 'bouton-correspondance', 'bouton-graphique', 'bouton-banc-essais', 'bouton-occurrences'];
+const PREREGLAGES_DES_ICONES = { simple: ICONES_CACHEES_EN_SIMPLE, labalone: [] };
+
 function lireIconesMasquees() {
   try {
-    const ids = JSON.parse(window.localStorage.getItem(CLE_ICONES_MASQUEES) ?? '[]');
+    const brut = window.localStorage.getItem(CLE_ICONES_MASQUEES);
+    if (brut === null) return [...ICONES_CACHEES_EN_SIMPLE];
+    const ids = JSON.parse(brut);
     return Array.isArray(ids) ? ids : [];
   } catch {
-    return [];
+    return [...ICONES_CACHEES_EN_SIMPLE];
   }
 }
 
@@ -49,7 +60,7 @@ function dessinDeLIcone(icone) {
 }
 
 // `elements` : { conteneur (#boutons-sauvegarde), bouton (« Choix des icônes »), liste (ou viennent les
-// cases), toutAfficher }.
+// cases), prereglages ({ simple, labalone } : leurs boutons) }.
 function demarrerChoixIcones(elements) {
   const masquees = new Set(lireIconesMasquees().filter((id) => id !== ICONE_TOUJOURS_AFFICHEE));
 
@@ -79,6 +90,11 @@ function demarrerChoixIcones(elements) {
       for (const icone of icones) icone.classList.toggle('icone-masquee', masquees.has(icone.id));
       groupe.classList.toggle('groupe-masque', icones.every((icone) => masquees.has(icone.id)));
       signalerLesCachees(icones);
+    }
+    // Le prereglage que la colonne suit en ce moment, en orange (aucun, une fois retouchee a la main).
+    for (const [nom, bouton] of Object.entries(elements.prereglages)) {
+      const cachees = PREREGLAGES_DES_ICONES[nom];
+      bouton.classList.toggle('bouton-actif', cachees.length === masquees.size && cachees.every((id) => masquees.has(id)));
     }
   }
 
@@ -126,12 +142,15 @@ function demarrerChoixIcones(elements) {
     elements.liste.parentElement.hidden = !ouvrir;
     elements.bouton.classList.toggle('bouton-actif', ouvrir);
   });
-  elements.toutAfficher.addEventListener('click', () => {
-    masquees.clear();
-    ecrireIconesMasquees([]);
-    appliquer();
-    construireLaListe();
-  });
+  for (const [nom, bouton] of Object.entries(elements.prereglages)) {
+    bouton.addEventListener('click', () => {
+      masquees.clear();
+      for (const id of PREREGLAGES_DES_ICONES[nom]) masquees.add(id);
+      ecrireIconesMasquees([...masquees]);
+      appliquer();
+      construireLaListe();
+    });
+  }
 
   appliquer();
 }

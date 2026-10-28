@@ -112,6 +112,25 @@ function definirProfilActif(nom) {
   ecrireStockageProfils(stockage);
 }
 
+// Lune -> Terre, une seule fois (saab, 2026-10-28 : « Tu peux même changer Lune en Terre comme ça ça se verra bien
+// qu'il y a eu des modifs, et ceux qui avaient leurs réglages devront pouvoir les retrouver ») : un appareil reste
+// sur Lune, l'ancien reglage de depart, passe sur Terre ; un profil a soi, Défaut ou Soleil ne bougent pas. Vrai
+// s'il vient de passer : la page le dit, et propose de revenir a Lune (definirProfilActif).
+const ANCIEN_REGLAGE_DE_DEPART = 'Lune';
+const CLE_PASSAGE_A_TERRE = 'kaah-reglages-passage-terre';
+function passerDeLAncienReglageDeDepart() {
+  try {
+    if (window.localStorage.getItem(CLE_PASSAGE_A_TERRE)) return false;
+    window.localStorage.setItem(CLE_PASSAGE_A_TERRE, '1');
+  } catch {
+    return false; // sans stockage, rien a faire passer
+  }
+  const stockage = lireStockageProfils();
+  if (stockage.actif !== ANCIEN_REGLAGE_DE_DEPART) return false;
+  ecrireStockageProfils({ ...stockage, actif: NOM_REGLAGES_DE_DEPART });
+  return true;
+}
+
 // Remet le profil `nom` a `reglages` sans changer le profil actif (Sauver... sous un autre nom :
 // interface/reglages.js).
 function remettreProfil(nom, reglages) {

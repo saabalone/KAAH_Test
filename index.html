@@ -370,7 +370,7 @@
       <!-- Reglages (phase 22) : couleurs, mode simple, coordonnees sur
            les billes, import/export — interface/reglages.js. -->
       <div class="groupe-boutons">
-        <button id="bouton-reglages" title="Couleurs, mode simple, coordonnées, fichier de réglages">
+        <button id="bouton-reglages" title="Couleurs, sans relief, coordonnées, fichier de réglages">
           <span class="icone-bouton icone-texte" aria-hidden="true">⚙</span><span class="libelle-bouton">Réglages</span>
         </button>
       </div>
@@ -850,7 +850,7 @@
       <summary>Les boutons de la colonne de gauche</summary>
       <ul>
         <li><span class="dessin-icone dessin-icone-vert">☰</span> (en haut) : affiche le nom de chaque bouton.</li>
-        <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.<br>« Choix des icônes » : une case par icône ; décochée, l'icône quitte la colonne (Réglages reste toujours) — « Tout afficher » les remet toutes. Dans un groupe dont des icônes sont cachées, l'infobulle de ses icônes dit lesquelles (sur téléphone : un appui long).</li>
+        <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.<br>« Choix des icônes » : une case par icône ; décochée, l'icône quitte la colonne (Réglages reste toujours). Deux préréglages : <b>Simple</b> (au départ : Variantes, Puzzles et Correspondance — tous trois dans Nouvelle partie —, Occurrences, Graphique et le Banc d'essais cachés) et <b>LabAlone</b> (toutes les icônes, pour la recherche). Dans un groupe dont des icônes sont cachées, l'infobulle de ses icônes dit lesquelles (sur téléphone : un appui long).</li>
         <li><b data-icone="bouton-nouvelle-partie">Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b data-icone="bouton-correspondance">Correspondance</b> : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
         <li>Le titre de Mes parties, Variantes, Puzzles et Corbeille donne le <b>nombre</b> de lignes affichées et leur <b>volume</b>, ex. « Mes parties (11, 10k) » (k = mille octets, M = million).</li>
@@ -862,7 +862,7 @@
         <li><b data-icone="bouton-face-a-face">Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
         <li><b data-icone="bouton-sons">Sons</b> : un interrupteur par son, plus un curseur de volume. <b>Clic (ordinateur)</b> : sur ordinateur, un petit clic à chaque appui sur un bouton ou sur le plateau. <b>Vibration (tél.)</b> : sur téléphone, une brève vibration au même moment (Android ; l'iPhone ne la permet pas aux pages web) — elle reste active même quand le Son global est coupé.</li>
         <li><b>English / Français</b> (en haut de cette Aide, et sur la question d'installation) : l'interface en anglais ou en français (la page se recharge). En anglais, l'Aide reste en français pour l'instant : un bouton la copie, pour la coller dans un traducteur.</li>
-        <li><b data-icone="bouton-reglages">Réglages</b> : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le mode simple (sans relief) et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage, le titre de sa rubrique et le nom du profil (dans la liste aussi).<br><b>Annuler</b> (en bas) défait le dernier changement, puis celui d'avant, jusqu'aux valeurs d'origine ; retouches des profils IA comprises, et même après avoir fermé puis rouvert Réglages (tant qu'on garde le même profil).</li>
+        <li><b data-icone="bouton-reglages">Réglages</b> : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (sans relief), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le sans relief et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage, le titre de sa rubrique et le nom du profil (dans la liste aussi).<br><b>Annuler</b> (en bas) défait le dernier changement, puis celui d'avant, jusqu'aux valeurs d'origine ; retouches des profils IA comprises, et même après avoir fermé puis rouvert Réglages (tant qu'on garde le même profil).</li>
         <li><b>Profils</b> de réglages : <b>Défaut</b> (les réglages d'origine) et les intégrés <b>Lune</b>, <b>Terre</b> (au départ) et <b>Soleil</b> ne changent jamais — une retouche crée votre profil, set_kaah_&lt;date&gt;. Pour un nouveau réglage, partez de l'un d'eux. Sur un de vos profils, une retouche l'enregistre tout de suite ; « Sauver... » sous un autre nom en fait un nouveau profil et rend au premier ce qu'il était quand vous l'avez choisi (pas de doublon). « Sauver... » propose un nom pour le profil affiché. <b>Comparer</b> : tous les profils côte à côte, une ligne par réglage (les couleurs en pastille), en orange ce qui diffère de Défaut ; touchez le nom d'un profil pour le choisir.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
@@ -1169,7 +1169,7 @@
         <summary>Affichage</summary>
         <label class="ligne-reglage">
           <input id="case-mode-simple" type="checkbox" />
-          Mode simple (sans relief, pour un téléphone lent)
+          Sans relief (pour un téléphone lent)
         </label>
         <!-- Saab, 2026-10-01 : couchees en haut et en bas a droite, Occ au-dessus
              du tableau Reflexion IA (rendu/pendule-horizontale.js). Recharge la
@@ -1186,7 +1186,7 @@
           <input id="case-selection-bille" type="checkbox" />
           Sélection sur bille
         </label>
-        <label class="ligne-couleur">Taille des trous (mode simple) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-trous" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur">Taille des trous (sans relief) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-trous" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur">Taille coord sur bille <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-coord-bille" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur">Taille coord arrivée <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-coord-arrivee" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur">Taille des ronds verts <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="curseur-taille-ronds-verts" class="nombre-reglage" type="number" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1206,7 +1206,10 @@
         <!-- Les icones affichees (interface/choix-icones.js) : retenues sur cet appareil, comme l'ordre. -->
         <div id="choix-icones-colonne" hidden>
           <div id="liste-choix-icones" class="liste-choix-icones"></div>
-          <button id="bouton-toutes-les-icones" class="bouton-dialogue" type="button" title="Remet toutes les icônes dans la colonne">Tout afficher</button>
+          <div class="boutons-dialogue-cote-a-cote">
+            <button id="bouton-icones-simple" class="bouton-dialogue" type="button" title="Les icônes de la recherche cachées : Variantes, Puzzles, Correspondance (tous trois dans Nouvelle partie), Occurrences, Graphique, Banc d'essais">Simple (défaut)</button>
+            <button id="bouton-icones-labalone" class="bouton-dialogue" type="button" title="Toutes les icônes, pour la recherche">LabAlone</button>
+          </div>
         </div>
       </details>
 
@@ -2682,6 +2685,9 @@
     // rechargement complet (Valider/Sauver.../changer de profil,
     // interface/reglages.js) : plus de mise a jour en direct depuis cette
     // phase, voir son en-tete pour pourquoi.
+    // Un appareil reste sur Lune passe a Terre, le nouveau reglage de depart, avant tout dessin ; la page le dit
+    // plus bas, une fois prete (interface/reglages-profils.js).
+    const passeATerre = passerDeLAncienReglageDeDepart();
     const reglages = lireReglagesActifs();
     const hexBilleNoire = couleurVersHex(reglages.colors.black);
     const hexBilleBlanche = couleurVersHex(reglages.colors.white);
@@ -3770,7 +3776,7 @@
       conteneur: document.getElementById('boutons-sauvegarde'),
       bouton: document.getElementById('bouton-choix-icones'),
       liste: document.getElementById('liste-choix-icones'),
-      toutAfficher: document.getElementById('bouton-toutes-les-icones'),
+      prereglages: { simple: document.getElementById('bouton-icones-simple'), labalone: document.getElementById('bouton-icones-labalone') },
     });
 
     // Boutons de la colonne de gauche (phase 12) : voir
@@ -4867,8 +4873,27 @@
     });
     // Apres la boite de chargement : l'alerte des ceintures (interface/alerte-ceintures.js),
     // une fois la question d'installation repondue.
+    // Le passage de Lune a Terre (plus haut, passerDeLAncienReglageDeDepart), dit une fois, avec le retour a Lune
+    // (saab, 2026-10-28 : « ceux qui avaient leurs réglages devront pouvoir les retrouver (explication nécessaire
+    // peut être) ») ; `ensuite` : l'alerte des ceintures.
+    function direLePassageATerre(ensuite) {
+      confirmation.demander(
+        `Nouveaux réglages de départ : ${NOM_REGLAGES_DE_DEPART} (plateau bleu, trous dorés), à la place de ${ANCIEN_REGLAGE_DE_DEPART}. ${ANCIEN_REGLAGE_DE_DEPART} reste dans Réglages, dans la liste des profils (en haut de la boîte).`,
+        ensuite,
+        `Garder ${NOM_REGLAGES_DE_DEPART}`,
+        {
+          texte: `Revenir à ${ANCIEN_REGLAGE_DE_DEPART}`,
+          surRefus: () => {
+            definirProfilActif(ANCIEN_REGLAGE_DE_DEPART);
+            demarrerRechargement();
+          },
+        },
+        { confirmerVert: true }
+      );
+    }
     const alerterApresLeChargement = () => {
-      const alerter = () => alerterDesCeintures(confirmation, () => document.getElementById('bouton-entrainement').click());
+      const ceintures = () => alerterDesCeintures(confirmation, () => document.getElementById('bouton-entrainement').click());
+      const alerter = () => (passeATerre ? direLePassageATerre(ceintures) : ceintures());
       const boite = document.getElementById('dialogue-confirmation');
       if (boite.open) boite.addEventListener('close', () => setTimeout(alerter), { once: true });
       else alerter();
