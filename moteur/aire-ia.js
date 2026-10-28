@@ -9,7 +9,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : couleurAdverse
 // (regles.js), versNotation (plateau.js), couleursDuPlateau (partie.js),
-// COORDONNEES_DES_CASES_IA, distanceAxiale (ia-evaluation-v3.js),
+// COORDONNEES_DES_CASES_IA, distanceAxiale, compaciteDuCamp (ia-evaluation-v3.js),
 // termesDeLaPosition, sommeDesTermes (bille-ia.js) viennent de fichiers charges
 // avant celui-ci.
 
@@ -107,8 +107,12 @@ function detailDeLAire(etat, cases, camp, poids, version) {
   const avec = termesDeLaPosition(etat, camp, poids, version);
   const sans = termesDeLaPosition(sousPosition((notation) => !dedans(notation)), camp, poids, version);
   const apport = Object.fromEntries(Object.keys(avec).map((terme) => [terme, avec[terme] - sans[terme]]));
+  // La distance moyenne de chaque camp dans l'aire (saab, 2026-10-27 : la Compacite de Blanc en bloc
+  // paraissait negative) : la Compacite compare les deux — sans bille adverse dedans, 0 en face.
+  const dansLAire = sousPosition(dedans);
   return {
     billes: { [camp]: billesDansLAire(etat, cases, camp), [couleurAdverse(camp)]: billesDansLAire(etat, cases, couleurAdverse(camp)) },
+    distances: { [camp]: compaciteDuCamp(dansLAire, camp), [couleurAdverse(camp)]: compaciteDuCamp(dansLAire, couleurAdverse(camp)) },
     termes,
     valeur: sommeDesTermes(termes),
     apport,

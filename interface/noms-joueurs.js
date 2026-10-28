@@ -37,7 +37,7 @@
 // brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
 // valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
 // ROLE_HUMAIN, reflexionDuChoix (interface/choix-joueurs.js), afficherNomsConnus, retenirNomConnu
-// (interface/noms-connus.js), estUnNomParDefaut (moteur/filtre-parties.js) viennent de fichiers charges avant celui-ci,
+// (interface/noms-connus.js) viennent de fichiers charges avant celui-ci,
 // ou ne servent qu'une fois la page chargee.
 
 // Corrige le champ a chaque frappe. Un espace tape devient "_" tout de suite
@@ -64,7 +64,7 @@ function brancherSaisieNomJoueur(champ) {
 // messageNom (le nom est obligatoire), valider (vert quand il attend), fermer (rouge s'il laisse sans nom), marcheMachine, boutonIA, suggestion,
 // choixIA (le choix d'un camp, interface/choix-joueurs.js), descriptionMachine,
 // poidsMachine (<table>) }. `nomsParDefaut` : { noir, blanc }. Renvoie
-// { definirCommandeMachines } : la partie y branche celle des machines
+// { definirCommandeMachines, ouvrir, nommer } : la partie branche dans le premier celle des machines
 // (interface/ia.js : machineDe, estEnMarche, basculer, suspendre,
 // definirMachine). Marche/Arret n'apparait que pour le camp d'une machine
 // (saab : « se servir du btn Nom pour la relancer ... ou l'arreter »).
@@ -227,13 +227,12 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   }
   // Les couleurs de la boite (saab, 2026-10-19 : « Valider doit passer en vert dès que j'ai mis
   // un nom, et Fermer en rouge, car si on n'a pas mis de nom et qu'on ferme, on sera obligé de
-  // revenir ») : Valider vert des que le nom est valable (pas Joueur_1) ou qu'une machine
-  // joue ; Fermer rouge tant que ce joueur humain n'a pas encore de nom enregistre.
+  // revenir ») : Valider vert des qu'il y a un nom ou qu'une machine joue (2026-10-27 : Joueur_1 permis,
+  // Fermer n'est plus rouge — rien n'oblige plus a revenir).
   function actualiserLesBoutons() {
     const machine = commandeMachines ? machineChoisie() : machineEnJeu();
     const nom = nomJoueurAutorise(elements.champ.value);
-    elements.valider.classList.toggle('bouton-a-faire', Boolean(machine) || (Boolean(nom) && !estUnNomParDefaut(nom)));
-    elements.fermer.classList.toggle('bouton-danger', !machineEnJeu() && estUnNomParDefaut(joueurs[campEnCours]));
+    elements.valider.classList.toggle('bouton-a-faire', Boolean(machine) || Boolean(nom));
   }
   elements.champ.addEventListener('input', actualiserLesBoutons);
   // Un nom connu touche (interface/noms-connus.js), Humain / IA, un niveau : apres leur effet.
@@ -251,26 +250,27 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const avant = machineEnJeu();
     const apres = commandeMachines ? machineChoisie() : avant;
     const machineChangee = JSON.stringify(apres) !== JSON.stringify(avant);
+    // Joueur_1 et Joueur_2 permis (saab, 2026-10-27 : « retirer l'interdiction des noms Joueur 1 et
+    // Joueur 2 ») : les noms se demandent a la fin de la partie (index.html, demanderLesNomsALaFin).
     let nom = nomJoueurAutorise(elements.champ.value) || nomsParDefaut[campEnCours];
-    // Saab, 2026-10-08 : « nom obligatoire tout le temps » — un humain donne le sien.
-    if (!apres && estUnNomParDefaut(nom)) {
-      elements.messageNom.hidden = false;
-      elements.champ.focus();
-      return;
-    }
     if (machineChangee) {
       const nomGarde = nom !== joueurs[campEnCours] || (avant && joueurs[campEnCours] !== nomDeLaMachine(avant));
       if (!nomGarde) nom = apres ? nomDeLaMachine(apres) : nomsParDefaut[campEnCours];
       commandeMachines.definirMachine(campEnCours, apres);
     }
     elements.dialogue.close();
-    retenirNomConnu(nom);
-    const nomChange = nom !== joueurs[campEnCours];
-    if (nomChange) {
-      joueurs[campEnCours] = nom;
-      afficherNomJoueur(svg, campEnCours, nom);
-    }
+    const nomChange = nommer(campEnCours, nom);
     if (machineChangee || nomChange) surChangement();
+  }
+
+  // Donne `nom` (deja corrige) a `camp`, et le retient parmi les noms connus ; vrai s'il a change. Aussi pour
+  // les noms de fin de partie (interface/noms-fin-de-partie.js), qui sauvegardent ensuite une seule fois.
+  function nommer(camp, nom) {
+    retenirNomConnu(nom);
+    if (nom === joueurs[camp]) return false;
+    joueurs[camp] = nom;
+    afficherNomJoueur(svg, camp, nom);
+    return true;
   }
 
   elements.valider.addEventListener('click', valider);
@@ -286,5 +286,6 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       commandeMachines = commande;
     },
     ouvrir,
+    nommer,
   };
 }

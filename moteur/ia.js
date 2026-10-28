@@ -79,6 +79,17 @@ const ELAGAGE_PAR_DEFAUT_IA = 10;
 // noms affiches et ceux des machines (saab, 2026-10-16 : une majuscule par suffixe).
 const SUFFIXE_ELAGAGE_IA = 'el';
 const SUFFIXE_ELAGAGE_NOM_IA = 'El';
+// Le livre, toujours dit, juste apres l'elagage (saab, 2026-10-28 : « les anciens profils dans les essais n'ont
+// rien alors que la plupart sont avec livre ... ls, la ok après El, mais ... Ls, La, car on commence par une
+// majuscule »).
+const SUFFIXE_AVEC_LIVRE_NOM_IA = 'La';
+const SUFFIXE_SANS_LIVRE_NOM_IA = 'Ls';
+// Le jeu de poids (_k2, _v3) : _k pour un profil de KAAH, _v pour un profil perso (saab, 2026-10-28 : « pour
+// éviter toute ambiguité du nom de version, pour les machines perso on garde _v, et pour KAAH, on met _k ») —
+// chacun ses numeros, jamais deux poids sous le meme nom.
+const LETTRE_POIDS_KAAH_NOM_IA = 'k';
+const LETTRE_POIDS_PERSO_NOM_IA = 'v';
+const lettreDuJeuDePoids = (personnel) => (personnel ? LETTRE_POIDS_PERSO_NOM_IA : LETTRE_POIDS_KAAH_NOM_IA);
 const VERSIONS_IA = [1, 2, 3, 4, 5];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
@@ -223,10 +234,12 @@ function nomDeLaMachine(machine) {
 function morceauxDuNomDeLaMachine(machine) {
   const code = codeDesAjouts(machine.poids);
   const ajouts = code && machine.numeroDesAjouts ? `P${machine.numeroDesAjouts}` : code;
-  const tete = `v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${machine.elagage}` : ''}${ajouts}`;
-  // La version 1 sans elagage ni ajout : le nom la tait.
-  const version = tete !== `v${VERSION_IA}` ? `_${tete}` : '';
-  const poids = machine.numeroDePoids > 1 ? `_v${machine.numeroDePoids}` : '';
+  const livre = machine.livre === false ? SUFFIXE_SANS_LIVRE_NOM_IA : SUFFIXE_AVEC_LIVRE_NOM_IA;
+  const tete = `v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${machine.elagage}` : ''}${livre}${ajouts}`;
+  // La version 1 sans elagage ni ajout, avec le livre : le nom la tait.
+  const version = tete !== `v${VERSION_IA}${SUFFIXE_AVEC_LIVRE_NOM_IA}` ? `_${tete}` : '';
+  // Le profil d'une machine perso a un indice (moteur/profils-ia.js, machineDuProfil) ; un profil de KAAH, non.
+  const poids = machine.numeroDePoids > 1 ? `_${lettreDuJeuDePoids(Boolean(machine.indiceProfil))}${machine.numeroDePoids}` : '';
   const historique = machine.versionHistorique ? `_h${machine.versionHistorique}` : '';
   const profil = `${version}${poids}${historique}`;
   return [

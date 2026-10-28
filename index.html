@@ -403,13 +403,15 @@
            barre d'outils de KAAWA. -->
       <div class="groupe-boutons">
         <button id="bouton-notes-perso" title="Bloc-notes personnel : notes libres, qui restent d'une partie à l'autre">
-          <span class="icone-bouton icone-texte" aria-hidden="true">NP</span><span class="libelle-bouton">Notes</span>
+          <!-- Un bloc-notes (saab, 2026-10-27 : « Changer l'icone NP par l'icone d'un bloc note »). -->
+          <span class="icone-bouton" aria-hidden="true"><svg viewBox="0 0 25 25" width="25" height="25"><rect x="5" y="4" width="15" height="18" rx="1.5" fill="#f4e7a1" stroke="#8a7a2a" stroke-width="1"/><path d="M8 9h9M8 12.5h9M8 16h6" stroke="#8a7a2a" stroke-width="1.2"/><path d="M8 2.5v3M12.5 2.5v3M17 2.5v3" stroke="#5a5a5a" stroke-width="1.4" stroke-linecap="round"/></svg></span><span class="libelle-bouton">Notes</span>
         </button>
       </div>
       <!-- Aide (phase 27, complétée) : "i?" comme dans KAAWA. -->
       <div class="groupe-boutons">
         <button id="bouton-aide" title="Aide : jouer, boutons, installation, problèmes connus">
-          <span class="icone-bouton icone-texte" aria-hidden="true">i?</span><span class="libelle-bouton">Aide</span>
+          <!-- Un i dans un rond bleu (saab, 2026-10-27 : « comme ça existe souvent »). -->
+          <span class="icone-bouton" aria-hidden="true"><svg viewBox="0 0 25 25" width="25" height="25"><circle cx="12.5" cy="12.5" r="10" fill="#2f7fd8"/><circle cx="12.5" cy="7.5" r="1.6" fill="#ffffff"/><rect x="11.2" y="10.5" width="2.6" height="8" rx="1" fill="#ffffff"/></svg></span><span class="libelle-bouton">Aide</span>
         </button>
       </div>
     </div>
@@ -834,12 +836,12 @@
         <li><b>La corde autour du plateau</b> reste toujours noire du côté de Noir (qui a commencé) et blanche du côté de Blanc, même avec des billes d'autres couleurs : on sait ainsi toujours qui a commencé.</li>
         <li>Noir joue en bas et commence.<br>Touchez une de vos billes, puis une case <b>verte</b> : c'est le coup. Toujours deux touchers.<br>Pour un groupe de 2 ou 3 billes, touchez la première bille du groupe.</li>
         <li><b>Abandonner</b> (drapeau) et <b>Nulle</b> (signe =) : deux petits boutons de chaque côté du compteur d'éjections de chaque joueur.<br>Toucher l'un demande une confirmation verte (Valider ou Refuser) ; seul le joueur qui a la main peut abandonner, mais chacun peut proposer nulle. La confirmation nomme le joueur qui demande.<br>Le cadre orange <b>Tour n</b> indique à qui c'est de jouer.</li>
-        <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ ».<br>(un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs)</li>
+        <li>Touchez le cadre d'un joueur pour changer son nom : seulement des lettres sans accent, des chiffres et « _ ». Rien n'oblige à nommer les joueurs avant de jouer : à la fin de la partie (6 billes, abandon, temps ou nulle), si un joueur s'appelle encore Joueur_1 ou Joueur_2, une seule boîte demande leurs noms, Blanc sur fond blanc, Noir sur fond noir : un champ vide garde son nom, <b>Valider</b> (vert) une fois ; un seul nom tapé sur deux, KAAH demande si l'autre reste ainsi.<br>(un espace devient « _ », un accent disparaît, tout autre signe est retiré — le nom entre dans le titre de la partie, où « - » et « , » servent de séparateurs)</li>
         <li>Le texte bleu au-dessus du nom de la partie est la position actuelle en notation compressée : touchez-le pour la copier — et voir ses 12 permutations (rotations, miroirs), voir plus bas.</li>
-        <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) — à droite du nom (pendules debout), ou sous la pendule du joueur du haut et au-dessus de celle du joueur du bas (pendules couchées) — ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ) ou <b>Change</b> (autre variante).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.<br>Trompé d'Option (Same au lieu de Revanche, par exemple) ? Tant que personne n'a joué dans la nouvelle partie (ou seulement le premier coup d'une machine), son cadre dit <b>Tour 1 Options</b> : touchez-le et choisissez de nouveau ; la partie vide est oubliée.</li>
+        <li>Partie terminée : touchez le cadre <b>Gagné Options</b> (vert), <b>Perdu Options</b> (rouge) — à droite du nom (pendules debout), ou sous la pendule du joueur du haut et au-dessus de celle du joueur du bas (pendules couchées) — ou <b>Nulle Options</b> pour choisir <b>Revanche</b> (couleurs inversées), <b>Same</b> (même position de départ), <b>Change</b> (autre variante) ou <b>Nouveau PZL</b> (autre puzzle).<br>Avec Revanche, chacun reste assis à sa place : le plateau se retourne (les Noirs, et la corde noire, sont alors du côté de celui qui les joue) mais les pendules, compteurs et noms restent du même côté.<br>Trompé d'Option (Same au lieu de Revanche, par exemple) ? Tant que personne n'a joué dans la nouvelle partie (ou seulement le premier coup d'une machine), son cadre dit <b>Tour 1 Options</b> : touchez-le et choisissez de nouveau ; la partie vide est oubliée.</li>
         <li>On gagne avec 6 billes éjectées (le compteur de chaque camp est près de sa piste).<br>En fin de partie, les billes du perdant rétrécissent (celles des deux camps pour une nulle ; taille réglable dans Réglages, Affichage) ; elles la gardent quand on navigue dans cette partie, et la reprennent sur une branche.</li>
         <li><b>Évaluation</b> : le petit cadre collé au compteur d'éjections de chaque camp donne la phase de la partie (<b>Ouv.</b>, <b>Mil.</b>, <b>Fin</b>) et la valeur de la position pour ce camp (positive : bonne pour lui ; « Gagne en 3 » quand une machine voit la fin ; « Livre » quand elle joue la base de coups).<br>Pour une machine, c'est la sienne ; pour un humain, « Évaluation » en grisé : touchez-le pour la voir (le jugement du profil Normal), encore pour la cacher.</li>
-        <li><b>Pendule ou Chrono</b> : seule la partie réellement jouée est à la pendule choisie (Bonus, Délai), jusqu'à sa fin.<br>Tout le reste — une branche, ou la suite jouée après une fin au temps — est en <b>Chrono</b> : le temps de chaque coup, qui part de 0 s, sans jamais faire perdre.<br>Perdue au temps, la partie reste perdue (titre en <b>T</b>) même si on continue à jouer après.<br>Le temps de chaque coup est enregistré : en naviguant, chaque pendule montre le temps d'alors.<br>Le petit cadre collé contre chaque pendule (côté plateau) est le <b>temps total</b> pris par ce camp jusqu'au coup regardé.</li>
+        <li><b data-icone="bouton-mode-pendules">Pendule ou Chrono</b> : seule la partie réellement jouée est à la pendule choisie (Bonus, Délai), jusqu'à sa fin.<br>Tout le reste — une branche, ou la suite jouée après une fin au temps — est en <b>Chrono</b> : le temps de chaque coup, qui part de 0 s, sans jamais faire perdre.<br>Perdue au temps, la partie reste perdue (titre en <b>T</b>) même si on continue à jouer après.<br>Le temps de chaque coup est enregistré : en naviguant, chaque pendule montre le temps d'alors.<br>Le petit cadre collé contre chaque pendule (côté plateau) est le <b>temps total</b> pris par ce camp jusqu'au coup regardé.</li>
         <li>Tout ce qui attend une réponse de votre part est en <b>vert</b> : vos billes jouables (un léger voile vert dessus, désactivable dans Réglages, « Sélection sur bille »), les cases de destination une fois une bille choisie, un choix de branche, des confirmations, une nulle, Annuler, une pendule qui attend.<br>Sélectionner une bille remplace son propre voile vert par un anneau orange, sans toucher aux autres.</li>
       </ul>
     </details>
@@ -847,25 +849,25 @@
     <details>
       <summary>Les boutons de la colonne de gauche</summary>
       <ul>
-        <li><b>☰</b> (en haut) : affiche le nom de chaque bouton.</li>
-        <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.</li>
-        <li><b>Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
-        <li><b>Correspondance</b> (l'enveloppe ouverte) : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
+        <li><span class="dessin-icone dessin-icone-vert">☰</span> (en haut) : affiche le nom de chaque bouton.</li>
+        <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.<br>« Choix des icônes » : une case par icône ; décochée, l'icône quitte la colonne (Réglages reste toujours) — « Tout afficher » les remet toutes. Dans un groupe dont des icônes sont cachées, l'infobulle de ses icônes dit lesquelles (sur téléphone : un appui long).</li>
+        <li><b data-icone="bouton-nouvelle-partie">Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
+        <li><b data-icone="bouton-correspondance">Correspondance</b> : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
         <li>Le titre de Mes parties, Variantes, Puzzles et Corbeille donne le <b>nombre</b> de lignes affichées et leur <b>volume</b>, ex. « Mes parties (11, 10k) » (k = mille octets, M = million).</li>
-        <li><b>Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.<br>Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).<br><b>Exporter</b> (vert) : un fichier par partie cochée (le format de KAAWA, nommé comme dans la liste), à garder ou à envoyer ; <b>Supprimer la sélection</b> passe en rouge.<br>Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; le vainqueur s'écrit <b>x</b> (Noir), <b>n</b> (Nulle) ou <b>y</b> (Blanc), comme dans le titre, et se cherche aussi par ce mot ou par le nom du joueur ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles.<br>Le ▶ devient orange tant qu'un filtre cache des parties.<br><b>Joueurs</b> : l'historique de chaque joueur, humain ou machine (🤖) — parties, gagnées, nulles, perdues (au total, en Noir, en Blanc), séries, records (victoire la plus courte, la plus longue, la plus large, et les mêmes en défaite, chacun avec <b>Voir</b> pour rouvrir la partie si elle est encore dans la liste), bilan contre chaque adversaire et par variante. Il garde les parties même supprimées de la liste. Seuls les joueurs <b>nommés</b> y sont : un nom par défaut (Joueur_1…) n'est pas suivi. Dans la boîte du nom (touchez le nom sur le plateau), les noms déjà donnés s'affichent en boutons : un toucher le remet.</li>
-        <li><b>Variantes</b> et <b>Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).<br>Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.<br>En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.<br>Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
-        <li><b>Conseils</b> (ampoule) : les coups les plus joués dans la base de coups pour la position affichée.<br>Par défaut, la <b>fusion de 4 bases</b> : celle de KAAWA (PS), et les parties d'abal.online (AO), de Migs++ et d'ULA — en version <b>Multi</b> : les coups joués dans au moins 2 parties, et, dans chaque partie, le 1er coup que nulle autre n'a joué, pour chaque camp (là où elle sort du connu, souvent là où est l'erreur). Les 3 nombres d'un coup sont vus du camp au trait : ses parties gagnées (vert), nulles (bleu), perdues (rouge) — la base, elle, compte les victoires de Noir et de Blanc, comme KAAWA. Le livre des machines prend les coups qui gagnent le plus pour le camp qui joue. Dans une position vraiment symétrique (ex. Marguerite Belge), deux coups symétriques ont la même stat, la somme des deux (a1d4 et i9f6). Les bases complètes et les Multi de chaque source (KAA_NEXT_MOVE_REF_…_Best_Stat_Fus.csv) s'importent dans Réglages.<br><b>Réfléchir</b> (en tête du panneau) : KAI++ réfléchit sur la position avec le profil, le niveau et la réflexion choisis, <b>même si elle est dans le livre</b> ; sa réponse et sa séquence arrivent dans Réflexion IA (« Sugg. »), sa recherche par premier coup dans le tableau du dessous. Toucher une séquence la montre sur un petit plateau et, si le <b>Graphique</b> est ouvert (son icône, avec Séquence/Commentaires/Occurrences), dans ses courbes, en pointillé au bout de la partie (✕ revient à la partie) ; le bouton « Graphique » du petit plateau l'ouvre. Toucher un coup du livre le montre aussi dans le Graphique.</li>
-        <li><b>Menaces</b> (cible) : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
-        <li><b>Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b>Commentaires</b> : un commentaire par coup. <b>Occurrences</b> : les autres endroits de la partie où la même position apparaît. <b>Graphique</b> (version de travail) : la part de chaque groupe de l'évaluation au fil des coups ; un clic sur son icône l'ouvre, un autre le ferme ; <b>Camp</b> passe de Noir à Blanc en un clic.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
-        <li><b>Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
-        <li><b>Sons</b> : un interrupteur par son, plus un curseur de volume. <b>Clic (ordinateur)</b> : sur ordinateur, un petit clic à chaque appui sur un bouton ou sur le plateau. <b>Vibration (tél.)</b> : sur téléphone, une brève vibration au même moment (Android ; l'iPhone ne la permet pas aux pages web) — elle reste active même quand le Son global est coupé.</li>
+        <li><b data-icone="bouton-mes-parties">Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.<br>Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).<br><b>Exporter</b> (vert) : un fichier par partie cochée (le format de KAAWA, nommé comme dans la liste), à garder ou à envoyer ; <b>Supprimer la sélection</b> passe en rouge.<br>Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; le vainqueur s'écrit <b>x</b> (Noir), <b>n</b> (Nulle) ou <b>y</b> (Blanc), comme dans le titre, et se cherche aussi par ce mot ou par le nom du joueur ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles.<br>Le ▶ devient orange tant qu'un filtre cache des parties.<br><b>Joueurs</b> : l'historique de chaque joueur, humain ou machine (🤖) — parties, gagnées, nulles, perdues (au total, en Noir, en Blanc), séries, records (victoire la plus courte, la plus longue, la plus large, et les mêmes en défaite, chacun avec <b>Voir</b> pour rouvrir la partie si elle est encore dans la liste), bilan contre chaque adversaire et par variante. Il garde les parties même supprimées de la liste. Seuls les joueurs <b>nommés</b> y sont : un nom par défaut (Joueur_1…) n'est pas suivi. Dans la boîte du nom (touchez le nom sur le plateau), les noms déjà donnés s'affichent en boutons : un toucher le remet.</li>
+        <li><b data-icone="bouton-variantes">Variantes</b> et <b data-icone="bouton-puzzles">Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).<br>Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.<br>En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.<br>Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
+        <li><b data-icone="bouton-conseils">Conseils</b> : les coups les plus joués dans la base de coups pour la position affichée.<br>Par défaut, la <b>fusion de 4 bases</b> : celle de KAAWA (PS), et les parties d'abal.online (AO), de Migs++ et d'ULA — en version <b>Multi</b> : les coups joués dans au moins 2 parties, et, dans chaque partie, le 1er coup que nulle autre n'a joué, pour chaque camp (là où elle sort du connu, souvent là où est l'erreur). Les 3 nombres d'un coup sont vus du camp au trait : ses parties gagnées (vert), nulles (bleu), perdues (rouge) — la base, elle, compte les victoires de Noir et de Blanc, comme KAAWA. Le livre des machines prend les coups qui gagnent le plus pour le camp qui joue. Dans une position vraiment symétrique (ex. Marguerite Belge), deux coups symétriques ont la même stat, la somme des deux (a1d4 et i9f6). Les bases complètes et les Multi de chaque source (KAA_NEXT_MOVE_REF_…_Best_Stat_Fus.csv) s'importent dans Réglages.<br><b>Réfléchir</b> (en tête du panneau) : KAI++ réfléchit sur la position avec le profil, le niveau et la réflexion choisis, <b>même si elle est dans le livre</b> ; sa réponse et sa séquence arrivent dans Réflexion IA (« Sugg. »), sa recherche par premier coup dans le tableau du dessous. Toucher une séquence la montre sur un petit plateau et, si le <b>Graphique</b> est ouvert (son icône, avec Séquence/Commentaires/Occurrences), dans ses courbes, en pointillé au bout de la partie (✕ revient à la partie) ; le bouton « Graphique » du petit plateau l'ouvre. Toucher un coup du livre le montre aussi dans le Graphique.</li>
+        <li><b data-icone="bouton-menaces">Menaces</b> : affiche les poussées possibles des deux camps (vert : camp au trait, orange : l'autre, rouge : éjection).</li>
+        <li><b data-icone="bouton-sequence">Séquence</b> : l'arbre des coups ; toucher un coup y ramène le plateau.<br>En haut, <b>Copie séquence Nacre</b> / <b>Copie séquence AP</b> copient les coups du départ jusqu'au coup regardé, comme dans KAAWA.<br><b data-icone="bouton-commentaires">Commentaires</b> : un commentaire par coup. <b data-icone="bouton-occurrences">Occurrences</b> : les autres endroits de la partie où la même position apparaît. <b data-icone="bouton-graphique">Graphique</b> (version de travail) : la part de chaque groupe de l'évaluation au fil des coups ; un clic sur son icône l'ouvre, un autre le ferme ; <b>Camp</b> passe de Noir à Blanc en un clic.<br>Au-dessus de ces trois onglets, <b>|&lt;H / &lt;H / H&gt;</b> retiennent les ENDROITS visités en touchant l'arbre (comme le retour d'un navigateur web) — différents des flèches de coup précédent/suivant, ci-dessous.</li>
+        <li><b data-icone="bouton-face-a-face">Face-à-face</b> : mode deux joueurs de chaque côté d'un téléphone posé à plat (voir plus bas).</li>
+        <li><b data-icone="bouton-sons">Sons</b> : un interrupteur par son, plus un curseur de volume. <b>Clic (ordinateur)</b> : sur ordinateur, un petit clic à chaque appui sur un bouton ou sur le plateau. <b>Vibration (tél.)</b> : sur téléphone, une brève vibration au même moment (Android ; l'iPhone ne la permet pas aux pages web) — elle reste active même quand le Son global est coupé.</li>
         <li><b>English / Français</b> (en haut de cette Aide, et sur la question d'installation) : l'interface en anglais ou en français (la page se recharge). En anglais, l'Aide reste en français pour l'instant : un bouton la copie, pour la coller dans un traducteur.</li>
-        <li><b>Réglages</b> (⚙) : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le mode simple (sans relief) et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage, le titre de sa rubrique et le nom du profil (dans la liste aussi).<br><b>Annuler</b> (en bas) défait le dernier changement, puis celui d'avant, jusqu'aux valeurs d'origine ; retouches des profils IA comprises, et même après avoir fermé puis rouvert Réglages (tant qu'on garde le même profil).</li>
-        <li><b>Profils</b> de réglages : <b>Défaut</b> (les réglages d'origine) et les intégrés <b>Lune</b> (au départ), <b>Terre</b> et <b>Soleil</b> ne changent jamais — une retouche crée votre profil, set_kaah_&lt;date&gt;. Pour un nouveau réglage, partez de l'un d'eux. Sur un de vos profils, une retouche l'enregistre tout de suite ; « Sauver... » sous un autre nom en fait un nouveau profil et rend au premier ce qu'il était quand vous l'avez choisi (pas de doublon). « Sauver... » propose un nom pour le profil affiché. <b>Comparer</b> : tous les profils côte à côte, une ligne par réglage (les couleurs en pastille), en orange ce qui diffère de Défaut ; touchez le nom d'un profil pour le choisir.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
+        <li><b data-icone="bouton-reglages">Réglages</b> : des rubriques qui se déplient (Billes, Plateau, Coordonnées, Sélection et arrivée, Flèches Conseils, Flèches Menaces, Chevron, Affichage...) ; l'appareil retient celles qui sont ouvertes.<br>Couleurs de tout le plateau, des flèches (avec leur transparence) et du chevron du dernier coup.<br>Dans Affichage, en chiffres (avec − et + de chaque côté) : la taille des trous (mode simple), des coordonnées sur les billes et sur les cases d'arrivée, des ronds verts — jamais plus grands que la bille — et des billes du perdant (de la taille d'un trou, 0,66, à presque une bille).<br><b>Pendules et Occ à l'horizontale</b> (Affichage) : les pendules couchées en haut et en bas à droite du plateau, le compteur Occ sous le titre de la partie.<br>Tout s'applique tout de suite ; seuls le mode simple (sans relief) et les pendules à l'horizontale rechargent la page.<br>Ce qui diffère de <b>Défaut</b> est en <b>orange</b> : la ligne du réglage, le titre de sa rubrique et le nom du profil (dans la liste aussi).<br><b>Annuler</b> (en bas) défait le dernier changement, puis celui d'avant, jusqu'aux valeurs d'origine ; retouches des profils IA comprises, et même après avoir fermé puis rouvert Réglages (tant qu'on garde le même profil).</li>
+        <li><b>Profils</b> de réglages : <b>Défaut</b> (les réglages d'origine) et les intégrés <b>Lune</b>, <b>Terre</b> (au départ) et <b>Soleil</b> ne changent jamais — une retouche crée votre profil, set_kaah_&lt;date&gt;. Pour un nouveau réglage, partez de l'un d'eux. Sur un de vos profils, une retouche l'enregistre tout de suite ; « Sauver... » sous un autre nom en fait un nouveau profil et rend au premier ce qu'il était quand vous l'avez choisi (pas de doublon). « Sauver... » propose un nom pour le profil affiché. <b>Comparer</b> : tous les profils côte à côte, une ligne par réglage (les couleurs en pastille), en orange ce qui diffère de Défaut ; touchez le nom d'un profil pour le choisir.<br>Attention : lui donner un nom déjà différent en crée un <b>nouveau</b> profil, même sans rien changer d'autre — l'ancien n'est pas supprimé pour autant, supprimez-le vous-même si vous n'en avez plus besoin.<br>« Supprimer » (avec confirmation) retire le profil affiché ; le profil <b>Défaut</b> ne peut pas être supprimé, une alerte le rappelle si vous essayez.</li>
         <li><b>Base de coups</b> (Réglages) : choisissez la base qui sert aux Conseils, comme « BDD moves » dans KAAWA.<br>« Importer une base... » ajoute un fichier <code>KAA_NEXT_MOVE_REF_(...).csv</code>, gardé sur cet appareil ; « Supprimer » le retire (la base intégrée, elle, ne se supprime pas).<br>Le choix fait partie du profil de réglages, sous le même nom que dans KAAWA.</li>
         <li>Export/import d'un fichier de réglages : les couleurs sans équivalent dans KAAWA restent dans le fichier, que KAAWA se contente d'ignorer, sans erreur.</li>
-        <li><b>Exporter</b> / <b>Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA. Importer demande le <b>préfixe</b> de l'expéditeur (ses initiales, par exemple) : il se met devant le nom de la partie, qui ne se confond plus avec une des vôtres et se regroupe avec ses autres parties. On peut choisir en même temps sa page de recherches 1er coup.</li>
-        <li><b>NP</b> : un bloc-notes personnel (bug, idées, à retester...), enregistré tout seul à chaque frappe — jamais lié à une partie précise.</li>
+        <li><b data-icone="bouton-exporter">Exporter</b> / <b data-icone="bouton-importer">Importer</b> : enregistre ou charge une partie dans un fichier, au format de KAAWA. Importer demande le <b>préfixe</b> de l'expéditeur (ses initiales, par exemple) : il se met devant le nom de la partie, qui ne se confond plus avec une des vôtres et se regroupe avec ses autres parties. On peut choisir en même temps sa page de recherches 1er coup.</li>
+        <li><b data-icone="bouton-notes-perso">Bloc-notes</b> : un bloc-notes personnel (bug, idées, à retester...), enregistré tout seul à chaque frappe — jamais lié à une partie précise.</li>
       </ul>
     </details>
 
@@ -898,7 +900,7 @@
       <summary>Entraînement et Ceintures</summary>
       <ul>
         <li><b>Le principe</b> : contre la machine, des grades comme au judo, en <b>Variantes</b> (des parties) et en <b>PZL</b> (des puzzles) — deux parcours séparés. L'icône (la ceinture, sous Puzzles) demande d'abord le mode : <b>Entraînement</b> ou <b>Ceinture</b>.</li>
-        <li><b>Entraînement</b> : pour s'exercer. On choisit la ceinture qu'on veut (la blanche au départ, puis la dernière essayée), un jeu parmi ceux proposés, et on joue. Rien ne se gagne ni ne se perd ; tout est noté dans l'historique.</li>
+        <li><b data-icone="bouton-entrainement">Entraînement</b> : pour s'exercer. On choisit la ceinture qu'on veut (la blanche au départ, puis la dernière essayée), un jeu parmi ceux proposés, et on joue. Rien ne se gagne ni ne se perd ; tout est noté dans l'historique.</li>
         <li><b>Ceinture</b> : pour monter de grade. On part sans ceinture : la blanche se gagne aussi (un nouveau joueur la vise d'abord). On vise une ceinture (la suivante, ou plus loin) et on réussit sa série ; une fois obtenue, la blanche ne se perd plus ; les mêmes conditions de jeu qu'à l'Entraînement.</li>
         <li><b>Les grades</b> : 6 ceintures — blanche (celle de départ), jaune, orange, verte, bleue, marron —, puis les Dans : <b>noire</b> du 1er au 5e Dan, <b>blanche et rouge</b> du 6e au 8e, <b>rouge</b> 9e et 10e.</li>
         <li><b>La boîte</b> : votre nom (obligatoire ; les noms déjà donnés sont dessous, ☆ pour un favori ; <b>C'est moi</b> : l'icône prend vos ceintures), <b>Variantes</b> ou <b>PZL</b>, le <b>Tableau des réglages</b>, l'<b>Historique</b>, puis le tableau de vos ceintures : la machine et les pendules de chaque grade, ou ses PZL.</li>
@@ -945,7 +947,7 @@
       <summary>Permutations</summary>
       <ul>
         <li>Touchez la position affichée (au-dessus du nom de la partie) : elle se copie, comme avant, ET une boîte s'ouvre avec ses <b>12 permutations</b> (rotations, miroirs du plateau) et leurs 12 « Camp_Permut » (camps échangés) — la ligne qui correspond à la position de référence de la base de coups est mise en évidence.<br>Toucher une valeur l'affiche sur le plateau le temps de la regarder, avec un bouton pour revenir.</li>
-        <li><b>Puzzles</b> : depuis la phase 16bis, chaque <b>ouverture</b> d'un puzzle propose automatiquement une orientation différente parmi les 12 (jamais deux fois la même avant d'avoir vu les 12) — le nom du puzzle et sa solution ne changent pas, seule l'orientation visuelle du plateau varie.<br>Une fois les 12 « Bravo » obtenus, le cycle recommence. Un interrupteur dans la boîte Puzzles permet de le désactiver (toujours la position exacte du fichier).</li>
+        <li><b>Puzzles</b> : depuis la phase 16bis, chaque <b>ouverture</b> d'un puzzle propose automatiquement une orientation différente parmi les 12 (jamais deux fois la même avant d'avoir vu les 12) — le nom du puzzle et sa solution ne changent pas, seule l'orientation visuelle du plateau varie.<br>Une fois les 12 « Bravo » obtenus, le cycle recommence. La case « Permutation aléatoire » de la boîte Puzzles la retire (la position exacte du fichier) pour le PZL regardé seulement : on peut le refaire autant de fois qu'on veut ; dès qu'on charge un autre PZL, elle se recoche. Cochée, <b>Same</b> et <b>Revanche</b> refont le PZL dans une autre orientation.</li>
       </ul>
     </details>
 
@@ -1054,6 +1056,9 @@
       <p>Même position, mêmes joueurs, mêmes couleurs.</p>
       <button id="bouton-change" class="bouton-dialogue" type="button" title="Nouvelle partie sur une autre variante">Change (Nouvelle variante)</button>
       <p>Choisir une autre position de départ.</p>
+      <!-- Saab, 2026-10-28 : « En fin de PZL, la boite affiche 'Nouvelle variante' mais il faudrait aussi nouveau PZL ». -->
+      <button id="bouton-nouveau-pzl" class="bouton-dialogue" type="button" title="Nouvelle partie sur un autre puzzle">Nouveau PZL</button>
+      <p>Choisir un autre puzzle.</p>
     </div>
     <button id="bouton-fermer-fin-de-partie" class="bouton-dialogue" type="button" title="Ferme cette fenêtre">Fermer</button>
   </dialog>
@@ -1196,6 +1201,12 @@
         <div class="boutons-dialogue-cote-a-cote">
           <button id="bouton-reorganiser-colonne" class="bouton-dialogue" type="button" title="Range les groupes d'icônes de la colonne dans un autre ordre">Réorganiser les groupes</button>
           <button id="bouton-ordre-origine-colonne" class="bouton-dialogue" type="button" title="Remet les icônes de la colonne dans leur ordre d'origine">Ordre d'origine</button>
+          <button id="bouton-choix-icones" class="bouton-dialogue" type="button" title="Cocher les icônes à garder dans la colonne ; une icône décochée disparaît (Réglages reste toujours)">Choix des icônes</button>
+        </div>
+        <!-- Les icones affichees (interface/choix-icones.js) : retenues sur cet appareil, comme l'ordre. -->
+        <div id="choix-icones-colonne" hidden>
+          <div id="liste-choix-icones" class="liste-choix-icones"></div>
+          <button id="bouton-toutes-les-icones" class="bouton-dialogue" type="button" title="Remet toutes les icônes dans la colonne">Tout afficher</button>
         </div>
       </details>
 
@@ -1655,7 +1666,18 @@
        affiches (demande de saab, 2026-09-25) : Annuler revient seulement a
        ceux d'avant l'ouverture, sans fermer. -->
   <dialog id="dialogue-mode-pendules" class="dialogue">
-    <h2>Mode de pendule</h2>
+    <h2 id="titre-mode-pendules">Mode de pendule</h2>
+    <!-- La Nouvelle partie (saab, 2026-10-27 : « Il faut renommer celle de Nouvelle partie, et ajouter la variante
+         active, ainsi que le choix Variante/Pzl, et Correspondance (comme ça on a tout en un) ; si on valide
+         seulement on reste sur les mêmes réglages ») : interface/pendules-mode.js. -->
+    <div id="section-nouvelle-partie" class="section-nouvelle-partie" hidden>
+      <p class="note-reglages">Position : <b id="variante-nouvelle-partie"></b></p>
+      <div id="boutons-position-nouvelle-partie" class="boutons-dialogue-cote-a-cote">
+        <button id="bouton-np-variantes" class="bouton-dialogue" type="button" title="Choisir une autre position de départ parmi les variantes">Variante…</button>
+        <button id="bouton-np-puzzles" class="bouton-dialogue" type="button" title="Choisir un puzzle">PZL…</button>
+        <button id="bouton-np-correspondance" class="bouton-dialogue" type="button" title="Jouer à distance en s'envoyant des codes KAA1">Correspondance…</button>
+      </div>
+    </div>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-mode-chrono" class="bouton-filtre" type="button" title="Chrono : on compte le temps sans limite">Chrono</button>
       <button id="bouton-mode-bonus" class="bouton-filtre" type="button" title="Pendule avec un bonus de temps à chaque coup">Pendule (Bonus)</button>
@@ -1706,6 +1728,8 @@
           <span>Noir</span>
           <button class="bouton-filtre" type="button" data-role="humain" title="Ce joueur est un humain">Humain</button>
           <button class="bouton-filtre" type="button" data-role="kai++" title="La machine (en C++, dans le navigateur)">KAI++</button>
+          <!-- Saab, 2026-10-27 : son nom, si on veut (sinon Joueur_1 / Joueur_2, demande a la fin) ; une machine a le sien. -->
+          <input class="choix-nom-joueur" type="text" maxlength="30" autocomplete="off" placeholder="Nom (facultatif)" title="Le nom de ce joueur, si vous voulez : vide, il s'appelle Joueur_1 ou Joueur_2, et KAAH proposera de le nommer à la fin" />
         </div>
         <div class="reglages-machine" hidden>
           <!-- Les boutons 1 a NIVEAU_MAX_IA : interface/choix-joueurs.js. -->
@@ -1728,6 +1752,8 @@
           <span>Blanc</span>
           <button class="bouton-filtre" type="button" data-role="humain" title="Ce joueur est un humain">Humain</button>
           <button class="bouton-filtre" type="button" data-role="kai++" title="La machine (en C++, dans le navigateur)">KAI++</button>
+          <!-- Saab, 2026-10-27 : son nom, si on veut (sinon Joueur_1 / Joueur_2, demande a la fin) ; une machine a le sien. -->
+          <input class="choix-nom-joueur" type="text" maxlength="30" autocomplete="off" placeholder="Nom (facultatif)" title="Le nom de ce joueur, si vous voulez : vide, il s'appelle Joueur_1 ou Joueur_2, et KAAH proposera de le nommer à la fin" />
         </div>
         <div class="reglages-machine" hidden>
           <!-- Les boutons 1 a NIVEAU_MAX_IA : interface/choix-joueurs.js. -->
@@ -1751,6 +1777,16 @@
       <button id="bouton-valider-mode-pendules" class="bouton-dialogue" type="button" title="Garde ces pendules et ferme">Valider</button>
       <button id="bouton-fermer-mode-pendules" class="bouton-dialogue" type="button" title="Ferme cette fenêtre">Fermer</button>
     </div>
+  </dialog>
+
+  <!-- Les noms a la fin de la partie (interface/noms-fin-de-partie.js) : les camps encore sans nom dans une
+       seule boite, Blanc en haut et Noir en bas, validee une fois. -->
+  <dialog id="dialogue-noms-fin" class="dialogue">
+    <h2>Partie finie : les noms</h2>
+    <p class="note-reglages">Un champ vide garde son nom (Joueur_1, Joueur_2).</p>
+    <label id="ligne-nom-fin-blanc" class="ligne-nom-fin" data-camp="blanc"><span>Blanc</span><input type="text" maxlength="30" autocomplete="off" placeholder="Joueur_2" title="Le nom de Blanc : vide, il reste Joueur_2" /></label>
+    <label id="ligne-nom-fin-noir" class="ligne-nom-fin" data-camp="noir"><span>Noir</span><input type="text" maxlength="30" autocomplete="off" placeholder="Joueur_1" title="Le nom de Noir : vide, il reste Joueur_1" /></label>
+    <button id="bouton-valider-noms-fin" class="bouton-dialogue bouton-a-faire" type="button" title="Garde les noms tapés ; un champ vide garde son nom">Valider</button>
   </dialog>
 
   <!-- Nom d'un joueur (interface/noms-joueurs.js) : un clic sur le cadre de
@@ -1874,7 +1910,8 @@
          interface/reflexion-ia.js. Place par interface/disposition.js en tete de
          la colonne des tableaux, sous le titre sur ordinateur — jamais au-dessus
          du plateau, qu'il retrecissait en paysage (saab, 2026-09-30). -->
-    <details id="reflexion-ia" class="reflexion-ia" open hidden>
+    <!-- Repliee au depart (saab, 2026-10-27 : « Replier Réflexion IA par défaut ») ; les infobulles : saab, meme jour. -->
+    <details id="reflexion-ia" class="reflexion-ia" hidden>
         <!-- La case (saab, 2026-09-30) : chaque ligne aussi en commentaire du
              coup (interface/reflexion-ia.js). -->
         <!-- « Essai sur position » (saab, 2026-10-01) : ouvre Reglages, rubrique
@@ -1882,7 +1919,7 @@
              fermer Reglages) le referme. Branche dans index.html, plus bas. -->
         <!-- « Relancer » (saab, 2026-10-01) : les machines rejouent depuis la
              position regardee, meme deja jouee (interface/ia.js, relance). -->
-        <summary>Réflexion IA <button type="button" class="bouton-relancer-ia" title="Les machines jouent depuis cette position, même déjà jouée (leur coup suit la partie s'il est le même, sinon ouvre une branche)">▶ Relancer</button> <button type="button" class="bouton-pas-a-pas-ia" title="Auto : les machines jouent toutes seules ; Pas à pas : chacune attend « Coup IA » (les pendules aussi)">Auto</button> <button type="button" class="bouton-coup-ia" title="La machine au trait joue un coup" hidden>Coup IA ▶|</button> <label class="reflexion-commentaire"><input class="case-reflexion-commentaire" type="checkbox" /> en commentaire</label> <label class="reflexion-commentaire"><input id="case-essai-position" type="checkbox" /> Essai sur position</label></summary>
+        <summary><span title="Ce que la machine a pensé à chaque coup : le temps, la profondeur finie, les positions examinées, l'évaluation et la suite qu'elle prévoit. Toucher le titre : déplier ou replier">Réflexion IA</span> <button type="button" class="bouton-relancer-ia" title="Les machines jouent depuis cette position, même déjà jouée (leur coup suit la partie s'il est le même, sinon ouvre une branche)">▶ Relancer</button> <button type="button" class="bouton-pas-a-pas-ia" title="Auto : les machines jouent toutes seules ; Pas à pas : chacune attend « Coup IA » (les pendules aussi)">Auto</button> <button type="button" class="bouton-coup-ia" title="La machine au trait joue un coup" hidden>Coup IA ▶|</button> <label class="reflexion-commentaire" title="Cochée : chaque ligne de ce tableau est aussi écrite dans le commentaire de son coup — gardée dans le fichier de la partie"><input class="case-reflexion-commentaire" type="checkbox" /> en commentaire</label> <label class="reflexion-commentaire" title="Ouvre Réglages sur l'essai des poids, avec le profil de la machine au trait, sur la position regardée : retoucher un poids montre aussitôt ce qu'il change ; l'essai suit la position quand on navigue. Décocher (ou fermer Réglages) le referme"><input id="case-essai-position" type="checkbox" /> Essai sur position</label></summary>
         <!-- Poignee de largeur, sur le bord gauche (saab, 2026-10-03 : « comme celle
              de Sequence, sinon je suis oblige d'ouvrir Sequence ») : la meme
              largeur de colonne que celle de la Sequence (interface/sequence.js,
@@ -1891,7 +1928,7 @@
         <div class="reflexion-ia-defilement">
           <table>
             <thead>
-              <tr><th>Coup</th><th>Temps</th><th>Prof.</th><th>Positions</th><th>Éval.</th><th>Séquence prévue</th></tr>
+              <tr><th title="Le numéro du coup et le coup joué">Coup</th><th title="Le temps de réflexion, en secondes">Temps</th><th title="La profondeur finie, en demi-coups">Prof.</th><th title="Le nombre de positions examinées">Positions</th><th title="L'évaluation pour la machine qui joue (+ : elle est mieux ; Livre : coup pris dans le livre d'ouvertures)">Éval.</th><th title="La suite qu'elle prévoit ; la toucher la rejoue sur un petit plateau">Séquence prévue</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -2286,6 +2323,7 @@
   <script src="./interface/choix-joueurs.js"></script>
   <script src="./interface/nom-machine-couleurs.js"></script>
   <script src="./interface/pendules-mode.js"></script>
+  <script src="./interface/nouvelle-partie.js"></script>
   <script src="./interface/ia.js"></script>
   <script src="./interface/creation-partie.js"></script>
   <script src="./interface/sequence.js"></script>
@@ -2364,6 +2402,7 @@
   <script src="./interface/formulaire-position-my.js"></script>
   <script src="./interface/fermeture-dialogues.js"></script>
   <script src="./interface/ordre-colonne.js"></script>
+  <script src="./interface/choix-icones.js"></script>
   <script src="./interface/code-correspondance.js"></script>
   <script src="./interface/correspondance-rangement.js"></script>
   <script src="./interface/correspondance.js"></script>
@@ -2406,6 +2445,7 @@
   <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
   <script src="./interface/noms-joueurs.js"></script>
+  <script src="./interface/noms-fin-de-partie.js"></script>
   <script src="./interface/commentaires.js"></script>
   <script src="./interface/occurrences.js"></script>
   <script src="./interface/menaces.js"></script>
@@ -2579,6 +2619,16 @@
       }
       elementEtatSauvegarde.title = texte;
     }
+    // Le titre se copie d'un clic, comme la position au-dessus (saab, 2026-10-27 : « pouvoir copier le titre
+    // de la partie dans son champ, sinon c'est compliqué ») : son texte entier (le title), « Copié ! » un instant.
+    elementEtatSauvegarde.addEventListener('click', () => {
+      const titre = elementEtatSauvegarde.title;
+      if (!titre) return;
+      navigator.clipboard?.writeText(titre).then(() => {
+        elementEtatSauvegarde.textContent = 'Copié !';
+        setTimeout(() => ecrireTitrePartie(titre), DUREE_FLASH_COPIE_POSITION);
+      });
+    });
     // Une sauvegarde refusee (saab, 2026-10-24 : une partie finie contre AP6 « n'est pas notée », le
     // seul signe etait au survol) : le dire une fois par ouverture, avec ce qui remplit le stockage
     // (moteur/place-stockage.js) et quoi faire — la partie, elle, reste entiere dans la page.
@@ -2948,8 +2998,8 @@
       () => ({ variantes: variantesDisponibles, puzzles: puzzlesDisponibles, base: baseNextMove }),
       // Revoir une partie d'un fichier du banc : une partie de Mes parties, ouverte (Voir) ou
       // seulement rangee (Copier : son identifiant, ou null si le stockage refuse).
-      ({ arbre, prefixe, evenement, date, variante, joueurs }, ouvrir = true) => {
-        const options = { variantName: variante, joueurs: { noir: joueurs.noir, blanc: joueurs.blanc }, date, prefixe, evenement };
+      ({ arbre, prefixe, evenement, date, variante, joueurs, machines }, ouvrir = true) => {
+        const options = { variantName: variante, joueurs: { noir: joueurs.noir, blanc: joueurs.blanc }, date, prefixe, evenement, machines };
         if (ouvrir) return creerEtOuvrirLaPartie(arbre, options);
         const id = creerNouvellePartie(donneesDeLaPartieCreee(arbre, options));
         actualiserCompteursDeParties();
@@ -2994,6 +3044,8 @@
     // Mode de pendule (phase 22bis) : une seule boite, deux appelants (voir
     // l'en-tete d'interface/pendules-mode.js) — le bouton "Nouvelle partie"
     // ci-dessous, et le bouton dedie de la colonne de gauche plus bas.
+    // La rubrique Joueurs de la boite (interface/choix-joueurs.js) : aussi ses noms, pour la Nouvelle partie.
+    const choixDesJoueurs = demarrerChoixJoueurs(document.getElementById('section-adversaire'));
     const choixModePendules = demarrerChoixModePendules({
       dialogue: document.getElementById('dialogue-mode-pendules'),
       boutonChrono: document.getElementById('bouton-mode-chrono'),
@@ -3017,7 +3069,7 @@
       annuler: document.getElementById('bouton-annuler-mode-pendules'),
       valider: document.getElementById('bouton-valider-mode-pendules'),
       fermer: document.getElementById('bouton-fermer-mode-pendules'),
-    }, demarrerChoixJoueurs(document.getElementById('section-adversaire')), (horizontales) => {
+    }, choixDesJoueurs, (horizontales) => {
       // Pendules et Occ a l'horizontale, depuis la boite : dans le profil de Reglages actif (un
       // integre en cree un a soi, interface/reglages-profils.js), puis le plateau se redessine.
       const reglages = structuredClone(lireReglagesActifs());
@@ -3075,6 +3127,7 @@
         revanche: document.getElementById('bouton-revanche'),
         same: document.getElementById('bouton-same'),
         change: document.getElementById('bouton-change'),
+        nouveauPzl: document.getElementById('bouton-nouveau-pzl'),
         fermer: document.getElementById('bouton-fermer-fin-de-partie'),
       },
       {
@@ -3086,7 +3139,9 @@
           const refaite = !optionsDeFinDisponibles(partie.obtenirArbre()) && optionAModifier();
           const finie = refaite ? optionsPrecedentes : { joueurs, plateauRetourne, machines };
           const suite = partieSuivante(choix, finie);
-          definirPositionDepartSuivante(ecrirePosition(partie.obtenirArbre().racine.etat), variantName, {
+          // Un PZL qu'on refait : une autre orientation si sa case est cochee (interface/puzzles-permutations.js).
+          const depart = ecrirePosition(partie.obtenirArbre().racine.etat);
+          definirPositionDepartSuivante(puzzleOriginal ? positionPourRefaireLePuzzle(puzzleOriginal, depart) : depart, variantName, {
             joueurs: suite.joueurs,
             reglagesPendules,
             plateauRetourne: suite.plateauRetourne,
@@ -3098,6 +3153,7 @@
         },
         recharger: demarrerRechargement,
         ouvrirVariantes: () => document.getElementById('bouton-variantes').click(),
+        ouvrirPuzzles: () => document.getElementById('bouton-puzzles').click(),
       }
     );
 
@@ -3133,6 +3189,8 @@
     // L'evaluation de chaque camp, a cote de son compte d'ejections (saab,
     // 2026-09-30) : interface/evaluations.js.
     const evaluations = demarrerEvaluations(svg);
+    // Le panneau d'une bille ou d'une aire (interface/infos-case.js, cree plus bas) : il suit la navigation.
+    let infosCase = null;
     let graphiqueDesGroupes = null; // interface/graphique-groupes.js, cree apres la partie
     let petitPlateau = null; // interface/sequence-prevue.js, cree avec les machines
     const partie = demarrerPartie(
@@ -3201,6 +3259,8 @@
         // etre declenche qu'apres un coup ou une navigation, donc apres
         // que tout le reste de ce script ait fini de s'executer.
         conseils?.actualiser();
+        infosCase?.actualiser();
+        demanderLesNomsALaFin(arbre);
         // La position regardee a change : les fleches de menaces
         // affichees (si le bouton "!?" est actif) ne valent plus rien,
         // voir interface/menaces.js.
@@ -3705,6 +3765,13 @@
       ordreOrigine: document.getElementById('bouton-ordre-origine-colonne'),
       dialogueReglages: document.getElementById('dialogue-reglages'),
     });
+    // Les icones gardees dans la colonne (interface/choix-icones.js, Reglages > Choix des icônes).
+    demarrerChoixIcones({
+      conteneur: document.getElementById('boutons-sauvegarde'),
+      bouton: document.getElementById('bouton-choix-icones'),
+      liste: document.getElementById('liste-choix-icones'),
+      toutAfficher: document.getElementById('bouton-toutes-les-icones'),
+    });
 
     // Boutons de la colonne de gauche (phase 12) : voir
     // interface/sauvegarde.js pour le detail de chaque fonction.
@@ -3719,6 +3786,24 @@
     // uniquement contre un clic malencontreux qui ferait perdre de vue la
     // partie qu'on etait en train de jouer, pas contre une vraie perte de
     // donnees.
+    // La boite de la Nouvelle partie (interface/nouvelle-partie.js) : la meme, sous son nom.
+    const nouvellePartie = demarrerNouvellePartie(
+      {
+        dialogue: document.getElementById('dialogue-mode-pendules'),
+        titre: document.getElementById('titre-mode-pendules'),
+        section: document.getElementById('section-nouvelle-partie'),
+        variante: document.getElementById('variante-nouvelle-partie'),
+        boutonsPosition: document.getElementById('boutons-position-nouvelle-partie'),
+        variantes: document.getElementById('bouton-np-variantes'),
+        puzzles: document.getElementById('bouton-np-puzzles'),
+        correspondance: document.getElementById('bouton-np-correspondance'),
+      },
+      choixModePendules,
+      choixDesJoueurs
+    );
+    // Les noms tapes dans la boite, sinon Joueur_1 / Joueur_2 (une machine prend le sien au chargement).
+    const joueursTapes = (noms) => ({ noir: noms.noir || NOMS_PAR_DEFAUT.noir, blanc: noms.blanc || NOMS_PAR_DEFAUT.blanc });
+    const BOUTONS_D_UNE_AUTRE_POSITION = { variantes: 'bouton-variantes', puzzles: 'bouton-puzzles', correspondance: 'bouton-correspondance' };
     document.getElementById('bouton-nouvelle-partie').addEventListener('click', async () => {
       // Phase 22bis, elargie le 2026-09-25 : le mode de pendule se choisit
       // AVANT de demarrer, a CHAQUE debut de partie (Nouvelle partie,
@@ -3727,13 +3812,17 @@
       // precedente). Fermer la boite sans rien changer demarre quand meme,
       // avec les reglages affiches (interface/pendules-mode.js) : plus
       // besoin de Valider a l'aveugle pour garder les reglages proposes.
-      const { machines: machinesChoisies, ...reglagesChoisis } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
+      // La position de la partie en cours (saab : « ajouter la variante active ») : la meme, sauf apres un
+      // puzzle ou un jeu d'Entrainement (la Marguerite belge).
+      const position = puzzleEnCours || entrainementEnCours ? { texte: MARGUERITE_BELGE, nom: 'Marguerite Belge' } : { texte: ecrirePosition(partie.obtenirArbre().racine.etat), nom: variantName };
+      const { machines: machinesChoisies, noms, ailleurs, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: position.nom, choixDeLaPosition: true });
+      if (ailleurs) return document.getElementById(BOUTONS_D_UNE_AUTRE_POSITION[ailleurs]).click();
       const demarrer = () => {
         // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
         // definirPositionDepartSuivante) : les reglages choisis survivent
         // au rechargement qui suit, `construireDonneesDepart` plus haut
         // les relit via `positionChoisie.reglagesPendules`.
-        definirPositionDepartSuivante(MARGUERITE_BELGE, 'Marguerite Belge', { reglagesPendules: reglagesChoisis, machines: machinesChoisies });
+        definirPositionDepartSuivante(position.texte, position.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms) });
         oublierPartieActive();
         demarrerRechargement();
       };
@@ -3832,7 +3921,8 @@
 
     // Une partie faite d'un arbre (Creer une partie ; revoir une partie du banc), au format de
     // Mes parties. `options` : { variantName, joueurs, date, prefixe, evenement }.
-    function donneesDeLaPartieCreee(arbre, { variantName, joueurs = { ...NOMS_PAR_DEFAUT }, date = formaterDateKAAWA(new Date()), prefixe = null, evenement = EVENEMENT_PAR_DEFAUT }) {
+    // `machines` : une partie du banc revue (interface/banc-essais-revoir.js) garde les reglages de ses deux machines.
+    function donneesDeLaPartieCreee(arbre, { variantName, joueurs = { ...NOMS_PAR_DEFAUT }, date = formaterDateKAAWA(new Date()), prefixe = null, evenement = EVENEMENT_PAR_DEFAUT, machines = null }) {
           const tempsInitial = REGLAGES_PENDULES_PAR_DEFAUT.tempsInitial;
           return arbreVersDonnees(arbre, {
             date,
@@ -3844,6 +3934,7 @@
             plateauRetourne: false,
             pendulesActuelles: { tempsNoir: tempsInitial, tempsBlanc: tempsInitial },
             ...(prefixe ? { prefixe } : {}),
+            ...(machines ? { machines } : {}),
           });
     }
 
@@ -3970,26 +4061,40 @@
       // KAAH_Test » — permise seulement dans une version de travail.
       () => !optionsEntrainement?.interdireIA && (!puzzleEnCours || SUFFIXE_VERSION_KAAH_TEST !== '')
     );
-    // Saab, 2026-10-08 : « nom obligatoire tout le temps » — tant qu'un camp humain
-    // porte un nom par defaut (une machine a toujours le sien), toucher le plateau,
-    // pendules comprises, ouvre sa boite du nom. Dans un puzzle, seul le camp qui
-    // doit gagner ; pas en correspondance (le nom de l'autre vient de son appareil).
-    function campSansNom() {
-      if (correspondanceActive) return null;
+    // Les noms, demandes a la FIN de la partie (saab, 2026-10-27 : « L'obligation de mettre les noms en
+    // début de partie est gênant, on va le demander en fin de partie, avec btn vert donnant la possibilité
+    // de ne pas nommer les joueurs ») — avant, toucher le plateau ouvrait d'office la boite du nom. Une
+    // fois, quand la partie finit, si un camp humain porte encore un nom par defaut (une machine a
+    // toujours le sien) ; pas en correspondance (le nom de l'autre vient de son appareil). Dans un puzzle,
+    // seul le camp qui doit gagner. Toute fin compte (saab : « seulement en fin normale (score) mais pas
+    // si Abandon (voir aussi les autres cas de fin, tps, Nulle, etc...) ») : celle de la ligne reellement
+    // jouee (moteur/arbre.js, finDeLaPartie : 6 ejections, temps, nulle, abandon) — naviguer n'y change rien.
+    function campsSansNom() {
+      if (correspondanceActive) return [];
       const camps = puzzleEnCours ? [puzzleEnCours.campGagnant] : ['noir', 'blanc'];
-      return camps.find((camp) => estUnNomParDefaut(joueurs[camp])) ?? null;
+      return camps.filter((camp) => !machines[camp] && estUnNomParDefaut(joueurs[camp]));
     }
-    svg.addEventListener(
-      'click',
-      (evenement) => {
-        const camp = campSansNom();
-        if (!camp || evenement.target.closest('.nom-joueur')) return;
-        evenement.stopImmediatePropagation();
-        evenement.preventDefault();
-        nomsJoueurs.ouvrir(camp);
+    // Les nommer : les deux dans une seule boite, validee une fois (saab, 2026-10-28 ; interface/noms-fin-de-partie.js).
+    const nomsDeFin = demarrerNomsDeFinDePartie(
+      {
+        dialogue: document.getElementById('dialogue-noms-fin'),
+        lignes: { noir: document.getElementById('ligne-nom-fin-noir'), blanc: document.getElementById('ligne-nom-fin-blanc') },
+        valider: document.getElementById('bouton-valider-noms-fin'),
       },
-      true
+      joueurs,
+      nomsJoueurs,
+      confirmation,
+      () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps())
     );
+    let partieDejaFinie = finDeLaPartie(partie.obtenirArbre()) !== null;
+    function demanderLesNomsALaFin(arbre) {
+      const finie = finDeLaPartie(arbre) !== null;
+      const vientDeFinir = finie && !partieDejaFinie;
+      partieDejaFinie = finie;
+      const sansNom = campsSansNom();
+      if (!vientDeFinir || sansNom.length === 0 || entrainementEnCours) return;
+      nomsDeFin.ouvrir(sansNom);
+    }
     // Jauge du nombre de parties enregistrees (phase 12ter,
     // interface/jauge-mes-parties.js) : mise a jour au demarrage, puis a
     // chaque coup/navigation sauvegarde (voir sauvegarderMaintenant plus
@@ -4245,9 +4350,12 @@
         // apres la confirmation de remplacement s'il y en a une : inutile
         // de la demander pour rien si elle est ensuite refusee.
         const charger = async () => {
-          const { machines: machinesChoisies, ...reglagesPendules } = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT, { avecAdversaire: true });
+          // `reglagesChoisis`, jamais `reglagesPendules` : ce nom-la, ceux de la partie en cours, est l'argument
+          // (le reprendre ici le masquait, et la boite ne s'ouvrait plus — saab, 2026-10-28 : « Après un PZL,
+          // j'ai voulu charger une variante mais elle ne s'affiche pas »).
+          const { machines: machinesChoisies, noms, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: variante.nom });
           oublierPartieActive();
-          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules, machines: machinesChoisies });
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms) });
           demarrerRechargement();
         };
         // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
@@ -4333,19 +4441,11 @@
       .getElementById('bouton-creer-partie-puzzles')
       .addEventListener('click', () => creationPartie.ouvrir(puzzlePrevisualise?.texteBrut ?? positionDeLaPartieAffichee()));
 
-    // Interrupteur "Permutation aleatoire" (phase 16bis, interface/puzzles-
-    // permutations.js) : en direct, comme les reglages (phase 22) — jamais un
-    // "Valider" a part. Change juste le PROCHAIN tirage, jamais celui deja
-    // fait pour la partie en cours.
+    // La case Solver, en direct comme les reglages (phase 22). Celle de la permutation aleatoire est
+    // branchee par la boite Puzzles (interface/puzzles.js, brancherCasePermutation) : elle suit le PZL regarde.
     const caseSolveur = document.getElementById('case-solveur-puzzles');
     caseSolveur.checked = solveurDesPuzzlesActif();
     caseSolveur.addEventListener('change', () => choisirSolveurDesPuzzles(caseSolveur.checked));
-    const casePermutationAleatoire = document.getElementById('case-permutation-aleatoire-puzzles');
-    casePermutationAleatoire.checked = permutationAleatoireActive();
-    casePermutationAleatoire.addEventListener('change', () => {
-      definirPermutationAleatoireActive(casePermutationAleatoire.checked);
-      reinitialiserChoixPermutations();
-    });
 
     // La sauvegarde complete (interface/sauvegarde-complete.js).
     demarrerSauvegardeComplete(
@@ -4445,6 +4545,7 @@
         filtres: document.getElementById('filtres-puzzles'),
         apercu: document.getElementById('apercu-puzzle'),
         fermer: document.getElementById('bouton-fermer-puzzles'),
+        permutation: document.getElementById('case-permutation-aleatoire-puzzles'),
       },
       puzzlesDisponibles,
       (puzzle) => {
@@ -4454,6 +4555,8 @@
         // aussi (voir le commentaire equivalent sur les variantes plus haut).
         const charger = async () => {
           const reglagesPendules = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
+          // Un autre PZL que celui de la case decochee : elle se recoche (interface/puzzles-permutations.js).
+          retenirLePuzzleCharge(puzzle.nom);
           oublierPartieActive();
           definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom, { reglagesPendules });
           demarrerRechargement();
@@ -4475,7 +4578,9 @@
         puzzlePrevisualise = puzzle;
         boutonModifierPuzzle.disabled = puzzle === null;
         boutonSupprimerPuzzle.disabled = !puzzle?.my;
-      }
+      },
+      // Le PZL en jeu : la case de la permutation dit son etat quand aucun n'est regarde.
+      () => puzzleEnCours?.nom ?? null
     );
 
     // Conseils (phase 15) : la base Next Move choisie dans les Reglages (la
@@ -4613,12 +4718,12 @@
     // Les infos d'une case (saab, 2026-10-04, interface/infos-case.js) : au
     // survol, et au clic droit le tableau d'une bille, avec les poids de la
     // machine de son camp, sinon de celle d'en face, sinon de Normal v3.
-    demarrerInfosCase(svg, () => etatCourant(partie.obtenirArbre()), (camp) => {
+    infosCase = demarrerInfosCase(svg, () => etatCourant(partie.obtenirArbre()), (camp) => {
       const machine = machines[camp] ?? machines[camp === 'noir' ? 'blanc' : 'noir'];
       if (machine) return { nom: nomDeLaMachine(machine), poids: machine.poids, version: machine.version };
       const parDefaut = PROFILS_IA_INTEGRES.find((profil) => profil.nom === nomDuProfilIntegre('normal', 3));
       return { nom: parDefaut.nom, poids: parDefaut.poids, version: parDefaut.version };
-    }, document.getElementById('case-survol-valeur-bille'));
+    }, document.getElementById('case-survol-valeur-bille'), () => partie.obtenirArbre().chemin.length);
 
     // Menaces (phase 19) : les poussées possibles des deux camps sur la
     // position REGARDEE, jamais seulement les coups du joueur au trait —

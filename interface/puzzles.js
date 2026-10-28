@@ -21,7 +21,7 @@
 // poserBille (rendu/plateau-svg.js), dessinerEjectionsApercu
 // (rendu/ejections-apercu.js), depuisNotation (moteur/plateau.js),
 // lirePosition (moteur/notation.js), choisirPermutationPourPuzzle,
-// reinitialiserChoixPermutations (interface/puzzles-permutations.js)
+// reinitialiserChoixPermutations, brancherCasePermutation (interface/puzzles-permutations.js)
 // viennent tous de fichiers charges avant celui-ci dans index.html.
 
 const CLE_FAVORIS_PUZZLES = 'kaah-puzzles-favoris';
@@ -56,16 +56,22 @@ function decrireObjectif(puzzle) {
   return `${camp} gagne en ${tours}`;
 }
 
-// `elements` : { bouton, dialogue, liste, apercu, fermer}. `apercu` est un
+// `elements` : { bouton, dialogue, liste, apercu, fermer, permutation }. `apercu` est un
 // <svg> vide, dedie a l'apercu : les billes ejectees
 // (rendu/ejections-apercu.js) s'y dessinent aussi, en 2 colonnes dans son
 // coin bas-gauche, comme KAAWA. `puzzles` : le tableau renvoye par
 // moteur.lirePuzzles. `surChargement(puzzle)` est appele quand
 // l'utilisateur confirme (voir index.html, qui sait demarrer une partie
 // neuve sur cette position). `surPrevisualisation(puzzle ou null)` : comme dans
-// interface/variantes.js.
-function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisualisation) {
+// interface/variantes.js. `permutation` : la case de la permutation aleatoire, qui dit l'etat du PZL regarde,
+// a defaut de celui en jeu (`nomDuPuzzleEnJeu()`, null hors PZL ; interface/puzzles-permutations.js).
+function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisualisation, nomDuPuzzleEnJeu) {
   let previsualise = null;
+  const actualiserCasePermutation = brancherCasePermutation(
+    elements.permutation,
+    () => previsualise?.nom ?? nomDuPuzzleEnJeu(),
+    () => previsualise && afficherApercu(previsualise)
+  );
   // Rangee de classement (phase 20ter) : seulement les categories non vides.
   const filtre = creerBarreFiltres(
     elements.filtres,
@@ -82,6 +88,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
     // Nouvelle visite de la boite : un nouveau tirage a chaque fois, plutot
     // que de proposer indefiniment la meme orientation deja vue.
     reinitialiserChoixPermutations();
+    actualiserCasePermutation();
     rafraichir();
     elements.dialogue.showModal();
   });
@@ -98,6 +105,7 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
     previsualise = puzzle;
     if (puzzle) afficherApercu(puzzle);
     else elements.apercu.innerHTML = '';
+    actualiserCasePermutation();
     surPrevisualisation(puzzle);
   }
 

@@ -233,6 +233,91 @@ button,
   opacity: 0.45;
 }
 
+/* Les icones decochees (interface/choix-icones.js) : hors de la colonne, sauf pendant la
+   reorganisation, ou tous les groupes se montrent pour que ▲ et ▼ fassent toujours ce qu'on voit. */
+#colonne-gauche:not(.colonne-en-reorganisation) .icone-masquee,
+#colonne-gauche:not(.colonne-en-reorganisation) .groupe-masque {
+  display: none;
+}
+
+/* Reglages > Choix des icônes : une case, le dessin de l'icone sur le gris de la colonne, son nom. */
+/* Un cadre par groupe, comme dans la colonne ; les cadres de haut en bas, puis la colonne suivante (deux au
+   plus, une seule sur telephone) — l'ordre de la barre se lit en descendant. */
+.liste-choix-icones {
+  columns: 170px 2;
+  column-gap: 8px;
+  margin: 6px 0;
+}
+
+.groupe-choix-icones {
+  break-inside: avoid;
+  margin-bottom: 4px;
+  padding: 0 6px;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+}
+
+.ligne-choix-icone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hauteur-commande);
+  cursor: pointer;
+}
+
+.ligne-choix-icone:has(input:disabled) {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Le dessin d'une icone hors de la colonne (interface/choix-icones.js, dessinDeLIcone) : dans le Choix des
+   icônes et dans l'Aide, sur le gris de la colonne. Plus petit que dans la colonne : les dessins et les
+   hexagones (34 px) ; un emoji (18 px) y tient deja. */
+.dessin-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background: #3a3a3a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dessin-icone .icone-bouton:not(.icone-hexagone) svg,
+.dessin-icone svg.icone-bouton {
+  width: 20px;
+  height: 20px;
+}
+
+.dessin-icone .icone-hexagone {
+  transform: scale(0.72);
+}
+
+/* La couleur qu'une icone a par defaut dans la colonne, aussi hors d'elle (saab : « mettre en vert
+   l'icone hamberger comme il est dans l'appli » ; « FàF aussi, tous ceux qui ont des couleurs par défaut
+   doivent l'avoir dans Aide ») : le vert de ☰ (#bouton-etendre-colonne, sans dessin a copier : son
+   caractere) et de Face-à-face tant qu'il n'est pas actif. L'orange d'une icone active, le vert de
+   Correspondance en cours disent un etat du moment, pas sa couleur. */
+.dessin-icone.dessin-icone-vert,
+.dessin-icone[data-copie-de='bouton-face-a-face'] {
+  background: var(--vert-demande);
+  color: #ffffff;
+}
+
+.dessin-icone.dessin-icone-vert {
+  font-size: 16px;
+}
+
+#bouton-choix-icones.bouton-actif {
+  background: #cc6a00;
+  border-color: #cc6a00;
+  color: #ffffff;
+}
+
 /* Face-a-face, seul bouton de la colonne a le signaler AINSI (saab,
    2026-09-25) : vert (le meme vert que toute demande en attente,
    --vert-demande) tant qu'il n'est PAS actif, pour inviter a l'essayer —
@@ -551,6 +636,10 @@ button,
   font-weight: bold;
   cursor: pointer;
   list-style: none;
+  /* En vert, comme les chapitres de l'Aide (saab, 2026-10-27 : « Mettre les Rubriques blanche en vert, car
+     on ne les reconnaît pas bien qd c'est déplié, garder celles en orange ») : l'orange (et le jaune)
+     plus bas l'emportent. */
+  color: #45b862;
 }
 
 .rubrique-reglages > summary::-webkit-details-marker {
@@ -2392,6 +2481,19 @@ button,
   color: #888;
   font: 11px sans-serif;
   text-align: center;
+  /* Un clic le copie (index.html) ; il se selectionne aussi a la souris. */
+  cursor: copy;
+  user-select: text;
+}
+
+/* La notation du Plateau (interface/infos-case.js) : a copier. */
+.notation-plateau {
+  margin: 2px 0 6px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #c4c4c4;
+  word-break: break-all;
+  user-select: text;
 }
 
 #etat-sauvegarde.etat-sauvegarde-erreur {
@@ -5677,6 +5779,16 @@ body:not(.version-de-travail) .aide-ajouts {
   color: #3fcf7a;
 }
 
+/* Le resultat d'une partie du banc, vu de l'essai (interface/banc-essais-page.js, classeDuResultatBanc) :
+   gagnee en vert (.banc-essai), perdue en rouge, nulle du bleu des nulles de KAAH. */
+.banc-perdue {
+  color: #e05a5a;
+}
+
+.banc-nulle {
+  color: #4aa8ff;
+}
+
 .banc-coups {
   font-family: monospace;
   max-width: 700px;
@@ -5849,8 +5961,10 @@ body.bloque-annuler :is(#nav-annuler, .bouton-annuler-joueur) {
   width: 70px; /* la largeur des champs, .ligne-nombre-pendule input */
   text-align: center;
 }
-/* Avec la colonne de Blanc : le libelle, le champ de Noir, celui de Blanc, alignes. */
-.pendules-par-camp .ligne-nombre-pendule,
+/* Avec la colonne de Blanc : le libelle, le champ de Noir, celui de Blanc, alignes. Les champs des pendules
+   seulement (#section-temps-pendule) : la classe est sur toute la boite, et la grille prenait aussi la
+   Réflexion max d'une machine, dont le + passait a la ligne (saab, 2026-10-28). */
+.pendules-par-camp #section-temps-pendule .ligne-nombre-pendule,
 .pendules-par-camp .entete-pendules-par-camp {
   display: grid;
   grid-template-columns: 1fr 70px 70px;
@@ -6572,3 +6686,60 @@ input.valeur-par-defaut, input.valeur-par-defaut::placeholder, span.valeur-par-d
    le disent (saab, 2026-10-22 : « je ne peux plus modifier les tableaux », il etait en aperçu). */
 .note-apercu-test { display: none; margin: 2px 0 6px; color: #e0832a; font-weight: bold; font-size: 13px; }
 body.apercu-kaah-test .note-apercu-test { display: block; }
+
+/* La boite de la Nouvelle partie (saab, 2026-10-27 : « Mettre aussi les réglages du joueur Blanc sur fond
+   blanc, comme ça on verra bien ce qui lui est attribué ») : le bloc de Blanc sur fond clair, texte sombre. */
+.choix-joueur[data-camp="blanc"] {
+  background: #e8e8e8;
+  color: #111111;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.choix-joueur[data-camp="blanc"] .note-reglages {
+  color: #333333;
+}
+.choix-joueur .choix-nom-joueur {
+  width: 12em;
+  min-height: var(--hauteur-commande);
+}
+.section-nouvelle-partie {
+  margin-bottom: 6px;
+}
+
+/* Les noms de fin de partie (interface/noms-fin-de-partie.js ; saab, 2026-10-28 : « en fond blanc pour Blanc et
+   noir pour Noir ») : chaque camp sur sa couleur, comme dans la boite Nouvelle partie. */
+.ligne-nom-fin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 4px 8px;
+  border: 1px solid #888888;
+  border-radius: 6px;
+}
+.ligne-nom-fin[hidden] {
+  display: none;
+}
+.ligne-nom-fin span {
+  width: 4em;
+  font-weight: bold;
+}
+.ligne-nom-fin input {
+  flex: 1;
+  min-height: var(--hauteur-commande);
+}
+.ligne-nom-fin[data-camp='blanc'] {
+  background: #f2f2f2;
+  color: #111111;
+}
+.ligne-nom-fin[data-camp='blanc'] input {
+  background: #ffffff;
+  color: #111111;
+}
+.ligne-nom-fin[data-camp='noir'] {
+  background: #111111;
+  color: #f2f2f2;
+}
+#bouton-valider-noms-fin {
+  margin-top: 6px;
+}

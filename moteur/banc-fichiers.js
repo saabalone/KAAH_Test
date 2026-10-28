@@ -78,6 +78,34 @@ function lireFichierLabAlone(html, nomDuFichier) {
   return { prefixe: nom?.[1] ?? 'LabAl', date: nom?.[2] ?? ancien?.[1] ?? '', parties };
 }
 
+// Les reglages des deux machines d'une partie du banc, ranges comme ceux d'une partie contre la machine (champ
+// Machines, moteur/sauvegarde.js ; moteur/ia.js, lireMachine) : une partie revue les garde dans son fichier
+// (saab, 2026-10-28 : « avant il y avait "Machines":{"noir":... », il ne savait plus comment elle etait reglee).
+// Un profil du banc : { nom, style, version, elagage, poids, niveau, temps (0 : sans limite, comme
+// REFLEXION_SANS_LIMITE_S), milieu } ; le livre, le banc le decide pour l'essai et pour la reference.
+const MOTEUR_DU_BANC = 'kai++';
+
+function machineDuProfilDuBanc(profil, livre) {
+  return {
+    moteur: MOTEUR_DU_BANC,
+    version: profil.version,
+    niveau: profil.niveau,
+    style: profil.style,
+    profil: profil.nom,
+    poids: profil.poids,
+    reflexionMax: profil.temps,
+    livre,
+    elagage: profil.elagage,
+    ...(profil.milieu ? { milieu: profil.milieu } : {}),
+  };
+}
+
+function machinesDeLaPartieDuBanc({ essai, reference, essaiNoir, livreEssai, livreReference }) {
+  const machineDeLEssai = machineDuProfilDuBanc(essai, livreEssai);
+  const machineDeLaReference = machineDuProfilDuBanc(reference, livreReference);
+  return essaiNoir ? { noir: machineDeLEssai, blanc: machineDeLaReference } : { noir: machineDeLaReference, blanc: machineDeLEssai };
+}
+
 // « LabAl_2610131857_1 » : le prefixe du titre d'une partie revue (moteur/nom-partie.js).
 const prefixeDeLaPartie = ({ prefixe, date }, numero) => [prefixe, date, numero].filter((morceau) => morceau !== '').join('_');
 

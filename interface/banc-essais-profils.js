@@ -59,8 +59,10 @@ function afficherLesOriginesDuBanc(elements, profils) {
 // sans limite, et ce qu'on y fait varier, abrege (« Normal v5El · ScGain 80 · E5 +30 » :
 // _ScGain80E5+30, moteur/noms-ia.js) — les signes restent. Ses ajouts par leur Pn : ceux
 // de la variante (une variation peut en enlever un).
-function nomDeMachineDuBanc(profil) {
-  const machine = nomDeLaMachine({ moteur: 'kai++', niveau: profil.niveau, style: profil.style, reflexionMax: profil.temps, version: profil.version, elagage: profil.elagage, poids: profil.poids, numeroDesAjouts: numeroDesAjoutsDe(profil.poids), numeroDePoids: profil.numeroDePoids });
+// `livre` : la serie le decide, pour la reference et pour les essais (La ou Ls dans le nom, moteur/ia.js) ; un
+// profil perso a un indice (son jeu de poids en _v, ceux de KAAH en _k).
+function nomDeMachineDuBanc(profil, livre = true) {
+  const machine = nomDeLaMachine({ moteur: 'kai++', niveau: profil.niveau, style: profil.style, reflexionMax: profil.temps, version: profil.version, elagage: profil.elagage, livre, poids: profil.poids, numeroDesAjouts: numeroDesAjoutsDe(profil.poids), numeroDePoids: profil.numeroDePoids, indiceProfil: profil.indice });
   const variation = profil.nom.includes(' · ') ? `_${profil.nom.slice(profil.nom.indexOf(' · ') + 3).replace(/[^\p{L}\p{N},+-]+/gu, '')}` : '';
   const sansLivre = profil.nom.includes(' sans livre') ? '_sansLivre' : '';
   return `${machine}${sansLivre}${variation}`;

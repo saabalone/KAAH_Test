@@ -41,12 +41,13 @@ function registreAvecLesAjouts(registre, code) {
   return { registre: { ...registre, [code]: numero }, numero };
 }
 
-// Le nom d'un profil : « Normal v5ElP2_v3 » ; la version 1 sans elagage ni ajout, le
-// style seul (comme le profil integre « Normal »).
-function nomAfficheDuProfilIA({ style, version, elagage }, numeroDesAjouts, numeroDePoids) {
+// Le nom d'un profil : « Normal v5ElP2_k3 » (un profil de KAAH), « Normal v5ElP2_v3 » (`personnel` : un profil
+// perso, moteur/ia.js, lettreDuJeuDePoids) ; la version 1 sans elagage ni ajout, le style seul (comme le profil
+// integre « Normal »). Le livre n'y est pas : c'est la machine qui le choisit (moteur/ia.js, nomDeLaMachine).
+function nomAfficheDuProfilIA({ style, version, elagage }, numeroDesAjouts, numeroDePoids, personnel = false) {
   const nu = version === VERSION_IA && !elagage && !numeroDesAjouts;
   const base = nu ? NOMS_STYLES_IA[style] : `${NOMS_STYLES_IA[style]} v${version}${elagage ? SUFFIXE_ELAGAGE_NOM_IA : ''}${numeroDesAjouts ? `P${numeroDesAjouts}` : ''}`;
-  return numeroDePoids > 1 ? `${base}_v${numeroDePoids}` : base;
+  return numeroDePoids > 1 ? `${base}_${lettreDuJeuDePoids(personnel)}${numeroDePoids}` : base;
 }
 
 // La famille d'un profil : ce que son nom dit avant _vm (le nombre de l'elagage n'y est pas).

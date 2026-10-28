@@ -9,7 +9,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : lireFichierLabAlone,
 // prefixeDeLaPartie (moteur/banc-fichiers.js), construirePartieDepuisSequence,
 // NOTATION_NACRE (moteur/creation-partie.js), lirePosition (moteur/notation.js),
-// POSITION_DEPART_BANC (interface/banc-essais-partie.js), echapperBanc
+// POSITION_DEPART_BANC (interface/banc-essais-partie.js), echapperBanc, classeDuResultatBanc
 // (interface/banc-essais-page.js), choisirFichiersTexte (interface/fichiers.js),
 // NOMS_STYLES_IA, ABREVIATIONS_STYLES_IA (moteur/ia.js), PREFIXE_LABALONE
 // (moteur/banc-noms.js), donneesDuBancEnHtml, nomDuFichierDuChoix (moteur/banc-fichiers.js),
@@ -52,12 +52,12 @@ function contenuDuFichierDesParties({ parties }) {
 
 // Qui gagne, ecrit comme dans les resultats (saab, 2026-10-23 : « c'est pas clair pour voir si c'est
 // l'essai ou la ref qui gagne, pourquoi tu ne reprends pas ce que tu faisais avant ? » ; interface/
-// banc-essais-page.js, partiesHtmlDuBanc) : « essai (Noir) » en vert gras, « référence (Blanc) » ; une
-// nulle, ou l'issue d'un jeu des ceintures (« ✓ réussi »), telle quelle.
+// banc-essais-page.js, partiesHtmlDuBanc) : « essai (Noir) » en vert gras, « référence (Blanc) » en rouge,
+// une nulle en bleu (classeDuResultatBanc) ; l'issue d'un jeu des ceintures (« ✓ réussi ») telle quelle.
 function gagnantDeLaPartieHtml({ fin, essaiNoir }) {
-  if (fin !== 'noir' && fin !== 'blanc') return echapperBanc(fin);
-  const gagnee = (fin === 'noir') === essaiNoir;
-  return gagnee ? `<b class="banc-essai">essai (${essaiNoir ? 'Noir' : 'Blanc'})</b>` : `référence (${essaiNoir ? 'Blanc' : 'Noir'})`;
+  const classe = classeDuResultatBanc(fin, essaiNoir);
+  const gagnant = fin !== 'noir' && fin !== 'blanc' ? fin : (fin === 'noir') === essaiNoir ? `essai (${essaiNoir ? 'Noir' : 'Blanc'})` : `référence (${essaiNoir ? 'Blanc' : 'Noir'})`;
+  return classe ? `<b class="${classe}">${echapperBanc(gagnant)}</b>` : echapperBanc(gagnant);
 }
 
 // La sequence d'une partie, numerotee, avec le code couleur des resultats (saab, 2026-10-23 : « tu ne
@@ -113,7 +113,9 @@ function brancherRevueDesFichiers(elements, estOccupe, ouvrirUnePartie, surAffic
     if (erreur || !arbre) return { erreur: erreur?.coup ?? '?' };
     const [noir, blanc] = (partie.essaiNoir ? [partie.essai, partie.reference] : [partie.reference, partie.essai]).map(nomAbregeDuJoueur);
     // L'evenement : LabAl (ou LabAlCeint), que le prefixe redit (moteur/nom-partie.js).
-    return { arbre, prefixe: prefixeDeLaPartie(fichier, partie.numero), evenement: fichier.prefixe ?? PREFIXE_LABALONE, date: fichier.date, variante: partie.variante ?? 'Marguerite Belge', joueurs: { noir, blanc } };
+    // Les reglages des machines (moteur/banc-fichiers.js, machinesDeLaPartieDuBanc) : dans le fichier de la partie,
+    // sous Machines ; un fichier d'avant n'en a pas.
+    return { arbre, prefixe: prefixeDeLaPartie(fichier, partie.numero), evenement: fichier.prefixe ?? PREFIXE_LABALONE, date: fichier.date, variante: partie.variante ?? 'Marguerite Belge', joueurs: { noir, blanc }, machines: partie.machines ?? null };
   }
 
   function voir(numero) {

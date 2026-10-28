@@ -241,3 +241,15 @@ function tirerPermutationNonResolue(resolues, hasard = Math.random) {
   const choix = disponibles.length > 0 ? disponibles : Array.from({ length: NOMBRE_DE_PERMUTATIONS }, (_, i) => i);
   return choix[Math.floor(hasard() * choix.length)];
 }
+
+// Refaire le meme PZL (Same, Revanche) : une AUTRE orientation (saab, 2026-10-28 : « En PZL, si je fais 'Same'
+// le PZL doit permuter qd même si la case est cochée, là j'ai tjs le même »). `exclues` : celle qu'on vient de
+// jouer et celles qui donnent la meme position ; parmi les autres, les non resolues d'abord, comme
+// tirerPermutationNonResolue. Toutes exclues (un PZL que rien ne change) : n'importe laquelle.
+function tirerUneAutrePermutation(resolues, exclues, hasard = Math.random) {
+  const toutes = Array.from({ length: NOMBRE_DE_PERMUTATIONS }, (_, i) => i);
+  const autres = toutes.filter((index) => !exclues.includes(index));
+  const nonResolues = autres.filter((index) => !resolues.includes(index));
+  const choix = nonResolues.length > 0 ? nonResolues : autres.length > 0 ? autres : toutes;
+  return choix[Math.floor(hasard() * choix.length)];
+}

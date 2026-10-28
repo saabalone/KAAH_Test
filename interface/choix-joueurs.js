@@ -136,6 +136,9 @@ function brancherChoixMachine(element, surChangement) {
     const { role, niveau } = choix;
     for (const bouton of element.querySelectorAll('[data-role]')) bouton.classList.toggle('bouton-actif', bouton.dataset.role === role);
     element.querySelector('.reglages-machine').hidden = role === ROLE_HUMAIN;
+    // Le nom (saab, 2026-10-27) : pour un humain seulement ; une machine a le sien.
+    const champNom = element.querySelector('.choix-nom-joueur');
+    if (champNom) champNom.hidden = role !== ROLE_HUMAIN;
     for (const bouton of element.querySelectorAll('[data-niveau]')) {
       bouton.classList.toggle('bouton-actif', Number(bouton.dataset.niveau) === niveau);
     }
@@ -251,6 +254,7 @@ function demarrerChoixJoueurs(section) {
 
   function preparer(visible) {
     section.hidden = !visible;
+    for (const champ of section.querySelectorAll('.choix-nom-joueur')) champ.value = '';
     const choix = lireDerniersJoueurs();
     for (const camp of CAMPS_JOUEURS) blocs[camp].definir({ ...choix[camp], livre: livreDuProfil(choix[camp].profil) });
   }
@@ -264,5 +268,8 @@ function demarrerChoixJoueurs(section) {
     return machines.noir || machines.blanc ? machines : null;
   }
 
-  return { preparer, lire };
+  // Les noms tapes ({ noir, blanc } ; '' : aucun) : ceux des humains, corriges comme dans la boite du nom.
+  const noms = () => Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, nomJoueurAutorise(section.querySelector(`.choix-joueur[data-camp="${camp}"] .choix-nom-joueur`)?.value ?? '')]));
+
+  return { preparer, lire, noms };
 }

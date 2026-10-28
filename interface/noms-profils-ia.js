@@ -57,7 +57,8 @@ function libelleAncienProfilIA(profil) {
 // Le nom d'un profil dans les listes (moteur/noms-ia.js) : « Normal v5ElP2_v3 » ; celui
 // d'un autre auteur, son nom devant (saab_Normal v5ElP2).
 function libelleProfilIA(profil) {
-  const nom = `${nomAfficheDuProfilIA(profil, numeroDesAjoutsDe(profil.poids), profil.numeroDePoids ?? 1)}${profil.issueDuBanc ?? ''}`;
+  // Un profil perso a un indice (interface/profils-ia.js) : son jeu de poids en _v ; ceux de KAAH en _k.
+  const nom = `${nomAfficheDuProfilIA(profil, numeroDesAjoutsDe(profil.poids), profil.numeroDePoids ?? 1, Boolean(profil.indice))}${profil.issueDuBanc ?? ''}`;
   return profil.auteur && profil.auteur !== lireNomAuteurIA() ? `${profil.auteur}_${nom}` : nom;
 }
 

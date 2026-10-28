@@ -26,9 +26,11 @@
 // lui donne `lecture` (index.html, qui utilise partieSuivante de moteur/revanche.js et
 // definirPositionDepartSuivante de interface/sauvegarde.js).
 
-// `elements` : { dialogue, revanche, same, change, fermer }. `lecture` :
+// `elements` : { dialogue, revanche, same, change, nouveauPzl, fermer }. `lecture` :
 // { optionsDisponibles(), suivante(choix) (pose la position de depart du prochain
-// chargement, sans recharger), recharger(), ouvrirVariantes() }.
+// chargement, sans recharger), recharger(), ouvrirVariantes(), ouvrirPuzzles() }.
+// Nouveau PZL (saab, 2026-10-28 : « En fin de PZL, la boite affiche 'Nouvelle variante' mais
+// il faudrait aussi nouveau PZL ») : comme Change, mais la boite des puzzles.
 function demarrerFinDePartie(svg, elements, lecture) {
   svg.addEventListener('click', (evenement) => {
     const cadre = evenement.target.closest('.nom-tour-cadre');
@@ -51,6 +53,10 @@ function demarrerFinDePartie(svg, elements, lecture) {
   elements.change.addEventListener('click', () => {
     elements.dialogue.close();
     lecture.ouvrirVariantes();
+  });
+  elements.nouveauPzl.addEventListener('click', () => {
+    elements.dialogue.close();
+    lecture.ouvrirPuzzles();
   });
   elements.fermer.addEventListener('click', () => elements.dialogue.close());
 }

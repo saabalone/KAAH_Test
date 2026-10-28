@@ -89,6 +89,14 @@ function resumeHtmlDuBanc(essais, resume, parametres) {
   return `<table class="banc-tableau"><tr><th>Essai</th>${titres.map((titre) => enteteBanc(titre, largeur)).join('')}</tr>${lignes.join('')}</table>`;
 }
 
+// La couleur du resultat d'une partie, vu de l'essai (saab, 2026-10-27 : « comme les parties 'essai' gagnées
+// sont en vert, il faudrait mettre les perdues en rouge et nulles en bleu ») : ici et dans le fichier des
+// parties (interface/banc-essais-revoir.js, gagnantDeLaPartieHtml). Une fin d'un autre genre : sans couleur.
+function classeDuResultatBanc(fin, essaiNoir) {
+  if (fin === 'noir' || fin === 'blanc') return (fin === 'noir') === essaiNoir ? 'banc-essai' : 'banc-perdue';
+  return fin.startsWith('nulle') ? 'banc-nulle' : '';
+}
+
 function partiesHtmlDuBanc(essais, parties) {
   const triees = [...parties].sort((a, b) => a.numero - b.numero);
   const essaiNoir = (p) => !p.referenceNoir;
@@ -97,7 +105,8 @@ function partiesHtmlDuBanc(essais, parties) {
   const titres = ['Ouverture', "L'essai joue", 'Gagnant', 'Score', 'Tours'];
   const largeur = largeurCommune(titres, triees.flatMap((p) => [p.ouverture, essaiNoir(p) ? 'Noir' : 'Blanc', gagnant(p), p.score, p.tours]));
   const lignes = triees.map((p) => {
-    const texteGagnant = gagnee(p) ? `<b class="banc-essai">${echapperBanc(gagnant(p))}</b>` : echapperBanc(gagnant(p));
+    const classe = classeDuResultatBanc(p.fin, essaiNoir(p));
+    const texteGagnant = classe ? `<b class="${classe}">${echapperBanc(gagnant(p))}</b>` : echapperBanc(gagnant(p));
     const coups = p.coups
       .map((coup, i) => {
         const parLaReference = (i % 2 === 0) === p.referenceNoir;
@@ -136,7 +145,7 @@ const STYLE_PAGE_BANC = `body { background: #1e1e1e; color: #e4e4e4; font: 13px 
 h1 { font-size: 18px; } h3 { font-size: 15px; margin-top: 18px; } .note-reglages { color: #c4c4c4; }
 table { border-collapse: collapse; } th, td { padding: 2px 6px; border-bottom: 1px solid #3a3a3a; text-align: left; vertical-align: top; }
 th { color: #9a9a9a; font-weight: normal; vertical-align: bottom; } th.banc-reference { color: #d9b62b; font-weight: bold; } .banc-change { color: #e0832a; font-weight: bold; }
-.banc-mieux td:first-child { color: #3fcf7a; } .banc-moins td:first-child { color: #e0832a; } .banc-essai { color: #3fcf7a; }
+.banc-mieux td:first-child { color: #3fcf7a; } .banc-moins td:first-child { color: #e0832a; } .banc-essai { color: #3fcf7a; } .banc-perdue { color: #e05a5a; } .banc-nulle { color: #4aa8ff; }
 .banc-coups { font-family: monospace; font-size: 12px; max-width: 900px; } .banc-tour { color: #7a7a7a; margin-left: 4px; }
 .banc-essai-noir td { color: #8c8c8c; } .banc-essai-blanc td { color: #ffffff; }
 .banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-occ { color: #5aa0ff; } .banc-occ sup { font-size: 9px; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }`;

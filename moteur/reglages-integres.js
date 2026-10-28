@@ -43,8 +43,10 @@ const REGLAGES_INTEGRES = Object.freeze({
   },
 });
 
-// Les reglages actifs sur un appareil neuf.
-const NOM_REGLAGES_DE_DEPART = 'Lune';
+// Les reglages actifs sur un appareil neuf : Terre depuis le 2026-10-28 (saab : « On peut mettre aussi ce setting
+// par défaut, ça simplifiera pour ceux qui ne veulent pas faire de recherche » — son export
+// settings_kaah_2610280436, exactement Terre) ; Lune avant. Un appareil qui a deja choisi Lune la garde.
+const NOM_REGLAGES_DE_DEPART = 'Terre';
 
 // Les reglages complets de `nom` (fusionnes sur Défaut), ou null s'il n'est pas integre.
 function reglagesIntegres(nom) {

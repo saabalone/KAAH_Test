@@ -348,6 +348,9 @@ const TRADUCTION_ANGLAIS = {
   "Par bille adverse éjectée": "Per opponent's marble ejected",
   "Réglages de l'Entraînement": "Training settings",
   "Change (Nouvelle variante)": "Change (new variant)",
+  "Nouveau PZL": "New PZL",
+  "Choisir un autre puzzle.": "Choose another puzzle.",
+  "Nouvelle partie sur un autre puzzle": "New game on another puzzle",
   "Coordonnées sur les billes": "Coordinates on the marbles",
   "Blanc joue le premier coup": "White plays the first move",
   "Va à la fin de la séquence": "Goes to the end of the sequence",
@@ -743,6 +746,42 @@ const TRADUCTION_ANGLAIS = {
   "Lecture seule : aperçu KAAH_Test (👁, en orange dans les icônes). Touchez 👁 pour revenir à la version de travail et modifier.": "Read only: KAAH_Test preview (👁, orange in the icons). Touch 👁 to go back to the work version and edit.",
   "La machine (en C++, dans le navigateur)": "The machine (in C++, in the browser)",
   "Plus de temps de réflexion (après 300 s : sans limite, ∞)": "More thinking time (after 300 s: no limit, ∞)",
+  // Reflexion IA, ses colonnes et ses cases (saab, 2026-10-27 : des infobulles partout ou il en faut)
+  "Ce que la machine a pensé à chaque coup : le temps, la profondeur finie, les positions examinées, l'évaluation et la suite qu'elle prévoit. Toucher le titre : déplier ou replier": "What the machine thought at each move: the time, the depth reached, the positions examined, the evaluation and the line it expects. Touch the title: unfold or fold",
+  "Les machines jouent depuis cette position, même déjà jouée (leur coup suit la partie s'il est le même, sinon ouvre une branche)": "The machines play from this position, even one already played (their move follows the game if it is the same, otherwise it opens a branch)",
+  "La machine au trait joue un coup": "The machine to move plays one move",
+  "Cochée : chaque ligne de ce tableau est aussi écrite dans le commentaire de son coup — gardée dans le fichier de la partie": "Ticked: each line of this table is also written in its move's comment — kept in the game file",
+  "Ouvre Réglages sur l'essai des poids, avec le profil de la machine au trait, sur la position regardée : retoucher un poids montre aussitôt ce qu'il change ; l'essai suit la position quand on navigue. Décocher (ou fermer Réglages) le referme": "Opens Settings on the weight test, with the profile of the machine to move, on the position viewed: changing a weight shows at once what it changes; the test follows the position when navigating. Untick it (or close Settings) to close it",
+  "Le numéro du coup et le coup joué": "The move number and the move played",
+  "Le temps de réflexion, en secondes": "The thinking time, in seconds",
+  "La profondeur finie, en demi-coups": "The depth reached, in half-moves",
+  "Le nombre de positions examinées": "The number of positions examined",
+  "L'évaluation pour la machine qui joue (+ : elle est mieux ; Livre : coup pris dans le livre d'ouvertures)": "The evaluation for the machine playing (+: it is better; Book: move taken from the opening book)",
+  "La suite qu'elle prévoit ; la toucher la rejoue sur un petit plateau": "The line it expects; touching it replays it on a small board",
+  // Boite Aire : le Plateau et les distances
+  "La position regardée, le camp au trait (x : Noir, y : Blanc) et le tour qu’il va jouer — à sélectionner pour la copier": "The position viewed, the side to move (x: Black, y: White) and the turn it is about to play — select it to copy it",
+  "Distance moyenne": "Average distance",
+  "Entre les billes de chaque camp dans l’aire (la Compacité : celle de l’adversaire moins la sienne ; sans bille adverse dans l’aire, 0 en face)": "Between each side's marbles in the area (Compactness: the opponent's minus one's own; with no opposing marble in the area, 0 opposite)",
+  "Copié !": "Copied!",
+  // La boite de la Nouvelle partie
+  "Position :": "Position:",
+  "Variante…": "Variant…",
+  "Correspondance…": "Correspondence…",
+  "Choisir une autre position de départ parmi les variantes": "Choose another starting position among the variants",
+  "Choisir un puzzle": "Choose a puzzle",
+  "Jouer à distance en s'envoyant des codes KAA1": "Play remotely by sending each other KAA1 codes",
+  "Le nom de ce joueur, si vous voulez : vide, il s'appelle Joueur_1 ou Joueur_2, et KAAH proposera de le nommer à la fin": "This player's name, if you like: left empty, it is Player_1 or Player_2, and KAAH will offer to name them at the end",
+  // Les noms demandes a la fin de la partie (interface/noms-fin-de-partie.js)
+  "Partie finie : les noms": "Game over: the names",
+  "Un champ vide garde son nom (Joueur_1, Joueur_2).": "An empty field keeps its name (Player_1, Player_2).",
+  "Le nom de Blanc : vide, il reste Joueur_2": "White's name: left empty, it stays Player_2",
+  "Le nom de Noir : vide, il reste Joueur_1": "Black's name: left empty, it stays Player_1",
+  "Garde les noms tapés ; un champ vide garde son nom": "Keeps the names typed; an empty field keeps its name",
+  // Reglages > Colonne d'icones > Choix des icones
+  "Choix des icônes": "Choose the icons",
+  "Cocher les icônes à garder dans la colonne ; une icône décochée disparaît (Réglages reste toujours)": "Tick the icons to keep in the column; an unticked icon disappears (Settings always stays)",
+  "Tout afficher": "Show all",
+  "Remet toutes les icônes dans la colonne": "Puts every icon back in the column",
   // La langue
   "English": "English",
   "Français": "Français",
@@ -806,6 +845,22 @@ const TRADUCTION_ANGLAIS_MOTIFS = [
   [/^Nouvelle partie \(pas encore jouée\) — (.+)$/, 'New game (not played yet) — $1'],
   [/^Plus tard$/, 'Later'],
   [/^Charger$/, 'Load'],
+  // Les noms demandes a la fin de la partie (interface/noms-fin-de-partie.js) : un seul nom tape sur deux.
+  [
+    /^Seul (Noir|Blanc) est nommé \((.+)\) : laisser (Noir|Blanc) en (.+) \?$/,
+    (tout, nomme, nom, laisse, defaut) => `Only ${nomme === 'Noir' ? 'Black' : 'White'} is named (${nom}): leave ${laisse === 'Noir' ? 'Black' : 'White'} as ${defaut.replace(/\bJoueur_(\d+)/g, 'Player_$1')}?`,
+  ],
+  [/^Laisser Joueur_(\d+)(\w*)$/, 'Keep Player_$1$2'],
+  // Une icone dont le groupe en cache d'autres (interface/choix-icones.js, signalerLesCachees) : son infobulle,
+  // puis les cachees.
+  [
+    /^([\s\S]+)\nCachées dans ce groupe : (.+) \(Réglages > Colonne d'icônes > Choix des icônes\)$/,
+    (tout, titre, noms) =>
+      `${TRADUCTION_ANGLAIS[titre] ?? titre}\nHidden in this group: ${noms.split(', ').map((nom) => TRADUCTION_ANGLAIS[nom] ?? nom).join(', ')} (Settings > Icon column > Choose the icons)`,
+  ],
+  [/^Nommer (Noir|Blanc)$/, (tout, camp) => `Name ${camp === 'Noir' ? 'Black' : 'White'}`],
+  // Le titre de la boite Aire : « Aire · Noir », « Plateau · Blanc ».
+  [/^(Aire|Plateau) · (Noir|Blanc)$/, (tout, quoi, camp) => `${quoi === 'Aire' ? 'Area' : 'Board'} · ${camp === 'Noir' ? 'Black' : 'White'}`],
   // Les noms par defaut des joueurs (Joueur_1, Joueur_2), partout ou ils s'affichent — le
   // nom enregistre reste Joueur_1 (les fichiers de KAAWA).
   [/^.*\bJoueur_\d+\b.*$/s, (tout) => tout.replace(/\bJoueur_(\d+)\b/g, 'Player_$1')],

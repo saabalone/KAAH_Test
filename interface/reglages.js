@@ -152,7 +152,7 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
         option.value = nom;
         option.textContent = nom;
         option.selected = nom === actif;
-        // Lune, le reglage du depart, en marron comme toute valeur par defaut (saab, 2026-10-23) —
+        // Le reglage du depart (Terre), en marron comme toute valeur par defaut (saab, 2026-10-23) —
         // et en mots : un telephone ne colore pas les options.
         const deDepart = nom === NOM_REGLAGES_DE_DEPART;
         if (deDepart) option.textContent = `${nom} (défaut)`;

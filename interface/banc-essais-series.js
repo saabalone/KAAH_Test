@@ -5,7 +5,8 @@
 // reprendre }), viderLaRecolte() (une recolte neuve : { entrees, date, ajoutee }) }.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : partiesDuBanc, resumeDuBanc
-// (moteur/banc-essais.js), nomDuFichierDuBanc (moteur/banc-noms.js), nomDeMachineDuBanc
+// (moteur/banc-essais.js), nomDuFichierDuBanc (moteur/banc-noms.js), machinesDeLaPartieDuBanc
+// (moteur/banc-fichiers.js), nomDeMachineDuBanc
 // (interface/banc-essais-choix.js), jouerUnePartieDuBanc, POSITION_DEPART_BANC
 // (interface/banc-essais-partie.js),
 // contenuDuBanc (interface/banc-essais-page.js), resumeDesPuzzles, entreeDuPuzzleRecolte
@@ -21,6 +22,9 @@ function serieDePartiesDuBanc(essais, reference, parametres, banc) {
   const taches = partiesDuBanc(essais.length, parametres);
   const parties = [];
   const { active } = parametres.recolte;
+  // Le livre de chacun, dans le nom des machines (La / Ls) comme dans leurs reglages.
+  const livreDeLaReference = parametres.livre !== false;
+  const livreDesEssais = parametres.livreEssai === true;
   const recolte = banc.viderLaRecolte();
   const solveur = active ? creerSolveur() : null; // un seul pour tout le banc (128 Mo)
   const fabriquer = (partie) => (etat, tours) => entreeDuPuzzleRecolte({ etat, gagnant: partie.fin, tours, numero: partie.numero, date: recolte.date, createur: CREATEUR_DES_RECOLTES });
@@ -37,11 +41,11 @@ function serieDePartiesDuBanc(essais, reference, parametres, banc) {
   const libelle = (tache) => `Partie ${tache.numero}/${taches.length} — ${tache.essai + 1}. ${essais[tache.essai].nom} en ${tache.referenceNoir ? 'Blanc' : 'Noir'}, ouverture ${tache.ouverture}`;
   const nomDuFichier = (date) => {
     const resume = resumeDuBanc(parties, essais.length);
-    return nomDuFichierDuBanc({ date, reference: nomDeMachineDuBanc(reference), partiesParEssai: taches.length / essais.length, essais: essais.map((essai, rang) => ({ machine: nomDeMachineDuBanc(essai), ...resume[rang] })), recolte: active });
+    return nomDuFichierDuBanc({ date, reference: nomDeMachineDuBanc(reference, livreDeLaReference), partiesParEssai: taches.length / essais.length, essais: essais.map((essai, rang) => ({ machine: nomDeMachineDuBanc(essai, livreDesEssais), ...resume[rang] })), recolte: active });
   };
   // Les parties, pour les revoir depuis le fichier exporte (moteur/banc-fichiers.js).
   const donnees = () => ({
-    parties: parties.map((p) => ({ numero: p.numero, variante: p.variante ?? null, position: p.position ?? POSITION_DEPART_BANC, essai: nomDeMachineDuBanc(essais[p.essai]), reference: nomDeMachineDuBanc(reference), essaiNoir: !p.referenceNoir, coups: p.coups, livre: p.livre, occurrences: p.occurrences, fin: p.fin, score: p.score })),
+    parties: parties.map((p) => ({ numero: p.numero, variante: p.variante ?? null, position: p.position ?? POSITION_DEPART_BANC, essai: nomDeMachineDuBanc(essais[p.essai], livreDesEssais), reference: nomDeMachineDuBanc(reference, livreDeLaReference), essaiNoir: !p.referenceNoir, coups: p.coups, livre: p.livre, occurrences: p.occurrences, fin: p.fin, score: p.score, machines: machinesDeLaPartieDuBanc({ essai: essais[p.essai], reference, essaiNoir: !p.referenceNoir, livreEssai: livreDesEssais, livreReference: livreDeLaReference }) })),
   });
   const essaisRetouches = () => {
     const resume = resumeDuBanc(parties, essais.length);

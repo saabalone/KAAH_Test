@@ -84,9 +84,10 @@ const POIDS_NORMAL_V5EL_V7 = {
 // l'Agressif et du Defensif.
 const POIDS_NORMAL_V5EL_V8 = { ...POIDS_NORMAL_V5EL_V7, cohesion: 15, gainFibonacci: 20, perteFibonacci: 20, sumito32: 6, sumito31: 4, sumito21: 2 };
 // L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut) :
-// Normal v5ElP5 depuis le 2026-10-22 (saab : « Ok mets le P5 Agr et Nor ») — son P5, qui a battu
-// AP6 ; avant, Normal v5ElP4_v4 (du 20 au 22/10).
-const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v10';
+// Normal v5ElP5_k2 depuis le 2026-10-28 (saab : « on passe ce réglage en profil par défaut, car même s'il
+// n'est pas encore bon, il attaque qd même s'il est en bloc ») — le P5 avec la menace a 10 ; avant, Normal
+// v5ElP5 (du 22 au 28/10), et Normal v5ElP4_k4 (du 20 au 22/10).
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v11';
 // Normal v5ElP4_v4 : la compacite a 50, la base des profils P5.
 const POIDS_NORMAL_V5EL_V9 = { ...POIDS_NORMAL_V5EL_V8, compacite: 50 };
 // Les billes poussables d'ULA (Bp, Bmp, Bpb), comme dans le P5 de saab.
@@ -146,7 +147,7 @@ const PROFILS_IA_DE_TRAVAIL = [
     style: 'normal',
     numeroDePoids: 3,
     poids: POIDS_NORMAL_V5EL_V8,
-    description: "L'IA par défaut du 19 au 20/10/2026 : Normal v5ElP4_v2 avec la cohésion à 15, le gain et la perte progressifs à 20 (gf, pf) et les sumitos doublés — 18 parties gagnées, 0 perdue, 2 nulles contre v5ElP4_v2 au niveau 8 sans limite (v5ElP4_v2 contre elle-même : 11-4).",
+    description: "L'IA par défaut du 19 au 20/10/2026 : Normal v5ElP4_k2 avec la cohésion à 15, le gain et la perte progressifs à 20 (gf, pf) et les sumitos doublés — 18 parties gagnées, 0 perdue, 2 nulles contre v5ElP4_k2 au niveau 8 sans limite (v5ElP4_k2 contre elle-même : 11-4).",
   },
   // La compacite (saab, 2026-10-20 : « fais le 1 ») : contre AbaPro, apres le coup 20, KAI++ se
   // dispersait (compacite 3,5 a 4 contre 2,1) ; l'IA par defaut avec la compacite a 50 bat
@@ -160,20 +161,34 @@ const PROFILS_IA_DE_TRAVAIL = [
     style: 'normal',
     numeroDePoids: 4,
     poids: POIDS_NORMAL_V5EL_V9,
-    description: "L'IA par défaut du 20 au 22/10/2026 : Normal v5ElP4_v3 avec la compacité à 50 au lieu de 20 — elle reste groupée. Au niveau 8 sans limite, le livre pour les deux camps : 12 parties gagnées, 3 perdues, 5 nulles contre Normal v5ElP4_v3, et 17 gagnées, 1 perdue, 2 nulles contre l'Agressif v5ElP4.",
+    description: "L'IA par défaut du 20 au 22/10/2026 : Normal v5ElP4_k3 avec la compacité à 50 au lieu de 20 — elle reste groupée. Au niveau 8 sans limite, le livre pour les deux camps : 12 parties gagnées, 3 perdues, 5 nulles contre Normal v5ElP4_k3, et 17 gagnées, 1 perdue, 2 nulles contre l'Agressif v5ElP4.",
   },
   // Le P5 de saab (2026-10-20 : « avec les nouveaux paramètres Bm, etc, KAI++6 gagne enfin AP6 » ;
   // 2026-10-22 : « Ok mets le P5 Agr et Nor ») : v9 avec les billes poussables d'ULA. Au niveau 8
   // sans limite : 8-4 (8 nulles) contre v9, jeu egal contre v9 + cohesion 20 (8-7, 5 nulles).
-  // L'IA par defaut. Le premier jeu de poids de sa famille (P5) : pas de _v.
+  // L'IA par defaut du 22 au 28/10. Le premier jeu de poids de sa famille (P5) : pas de _k.
+  {
+    nom: 'Normal v5el_v10',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
+    description: "L'IA par défaut du 22 au 28/10/2026 : Normal v5ElP5, le P5 de saab — Normal v5ElP4_k4 et les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7). En KAI++ niveau 6, il a battu AbaPro niveau 6 (AP6) 6-4 avec l'élagage 10 (2026-10-20), puis 6-4 avec l'élagage 20 (2026-10-24). Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_k4.",
+  },
+  // Le P5 avec la menace d'ejection a 10 (essais 32 a 35 ; saab, 2026-10-28 : « on passe ce réglage en profil par
+  // défaut, car même s'il n'est pas encore bon, il attaque qd même s'il est en bloc ») : la menace a 20 valait
+  // presque une bille ejectee, P5 gardait ses menaces au lieu d'ejecter (partie Br_2610250415). Son 2e jeu de
+  // poids de KAAH : _k2. L'IA par defaut.
   {
     nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
     version: 5,
     livre: true,
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'normal',
-    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
-    description: "L'IA par défaut (2026-10-22) : Normal v5ElP4_v4 avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7) — le P5 de saab, qui a battu AbaPro niveau 6 (AP6) 6-4, en KAI++ niveau 6. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_v4.",
+    numeroDePoids: 2,
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 10 },
+    description: "L'IA par défaut depuis le 2026-10-28 : Normal v5ElP5_k2, le P5 avec la menace d'éjection à 10 au lieu de 20 — il éjecte au lieu de garder ses menaces. Au niveau 6 contre P5 (80 parties, essais 32 et 33) : 51 gagnées, 10 perdues, 19 nulles, contre 35-5-40 pour P5 lui-même ; contre P5 au niveau 7 : 15-17 (8 nulles), P5 au niveau 6 : 14-18.",
   },
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
@@ -185,7 +200,7 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'agressif',
     poids: { ...POIDS_NORMAL_V5EL_V8, menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
-    description: "L'Agressif de l'IA par défaut (2026-10-19) : Normal v5ElP4_v3 avec la menace d'éjection à 25, les sumitos à 8, 5, 3 et le bord adverse à 19 — plus de pression, le gain inchangé. 12 parties gagnées, 2 perdues, 6 nulles contre Normal v5ElP4_v3 au niveau 8 sans limite, le livre pour les deux camps.",
+    description: "L'Agressif de l'IA par défaut (2026-10-19) : Normal v5ElP4_k3 avec la menace d'éjection à 25, les sumitos à 8, 5, 3 et le bord adverse à 19 — plus de pression, le gain inchangé. 12 parties gagnées, 2 perdues, 6 nulles contre Normal v5ElP4_k3 au niveau 8 sans limite, le livre pour les deux camps.",
   },
   // L'Agressif P5 (saab, 2026-10-21 : « il faudrait que je teste KAI++6_Agr_30s_v5El10P5, mais on
   // ne l'a pas encore fait ») : l'IA par defaut (v9) avec les billes poussables d'ULA (son P5, qui
@@ -198,7 +213,20 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'agressif',
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
-    description: "L'Agressif P5 (2026-10-21) : l'IA par défaut (Normal v5ElP4_v4) avec les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7, comme le P5 qui a battu AbaPro niveau 6, en KAI++ niveau 6) et la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19). Au niveau 6 contre P5 : 3 gagnées, 6 perdues, 11 nulles.",
+    description: "L'Agressif P5 (2026-10-21) : le P5 (Normal v5ElP5, qui a battu AbaPro niveau 6 en KAI++ niveau 6) avec la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19). Au niveau 6 contre P5 : 3 gagnées, 6 perdues, 11 nulles.",
+  },
+  // L'Agressif de l'IA par defaut (saab, 2026-10-28 : « Il faudrait aussi ajouter Agr et Def en _k2 ») : le meme
+  // changement que P5 -> P5_k2, la menace divisee par deux — 12,5, aussi 1,25 fois la menace a 10 de P5_k2, le
+  // rapport de l'Agr au Normal. Son 2e jeu de poids de KAAH : _k2.
+  {
+    nom: 'Agressif v5el_v10',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'agressif',
+    numeroDePoids: 2,
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 12.5, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
+    description: "L'Agressif de l'IA par défaut (2026-10-28) : l'Agressif P5 avec la menace d'éjection à 12,5 au lieu de 25 — la moitié, comme Normal v5ElP5_k2 (et 1,25 fois sa menace à 10, le rapport de l'Agr). Pas encore essayé au banc.",
   },
   // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
   // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le
@@ -210,7 +238,7 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'defensif',
     poids: { ...POIDS_NORMAL_V5EL_V8, cohesion: 20, compacite: 25 },
-    description: "Le Défensif de l'IA par défaut (2026-10-19) : Normal v5ElP4_v3 avec la cohésion à 20 et la compacité à 25 — il serre son bloc. 6 parties gagnées, 2 perdues, 12 nulles contre Normal v5ElP4_v3 au niveau 8 sans limite, le livre pour les deux camps.",
+    description: "Le Défensif de l'IA par défaut (2026-10-19) : Normal v5ElP4_k3 avec la cohésion à 20 et la compacité à 25 — il serre son bloc. 6 parties gagnées, 2 perdues, 12 nulles contre Normal v5ElP4_k3 au niveau 8 sans limite, le livre pour les deux camps.",
   },
   // Le Defensif P5 (saab, 2026-10-22 : « il faudrait aussi la Def ») : P5 (l'IA par defaut) avec la
   // cohesion a 20 et la compacite a 60. Au niveau 6 contre P5 : 2-0 (18 nulles), il ne perd pas ;
@@ -222,7 +250,19 @@ const PROFILS_IA_DE_TRAVAIL = [
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'defensif',
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, cohesion: 20, compacite: 60 },
-    description: "Le Défensif P5 (2026-10-22) : l'IA par défaut (Normal v5ElP5) avec la cohésion à 20 et la compacité à 60 — il serre son bloc. Au niveau 6 contre Normal v5ElP5 : 2 gagnées, 0 perdue, 18 nulles.",
+    description: "Le Défensif P5 (2026-10-22) : le P5 (Normal v5ElP5) avec la cohésion à 20 et la compacité à 60 — il serre son bloc. Au niveau 6 contre Normal v5ElP5 : 2 gagnées, 0 perdue, 18 nulles.",
+  },
+  // Le Defensif de l'IA par defaut (saab, 2026-10-28 : « Il faudrait aussi ajouter Agr et Def en _k2 ») : le
+  // Defensif P5 avec la menace a 10, comme P5_k2. Son 2e jeu de poids de KAAH : _k2.
+  {
+    nom: 'Défensif v5el_v10',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'defensif',
+    numeroDePoids: 2,
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, cohesion: 20, compacite: 60, menaceEjection: 10 },
+    description: "Le Défensif de l'IA par défaut (2026-10-28) : le Défensif P5 avec la menace d'éjection à 10 au lieu de 20, comme Normal v5ElP5_k2 — cohésion 20, compacité 60. Pas encore essayé au banc.",
   },
 ];
 

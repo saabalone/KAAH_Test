@@ -13,7 +13,7 @@
 // revient pas au fichier par defaut").
 //
 // Les reglages INTEGRES Lune, Terre et Soleil (saab, 2026-10-23 ; moteur/reglages-integres.js) sont
-// comme Défaut : toujours la, jamais modifies ; Lune est actif sur un appareil neuf.
+// comme Défaut : toujours la, jamais modifies ; Terre est actif sur un appareil neuf (NOM_REGLAGES_DE_DEPART).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : REGLAGES_PAR_DEFAUT,
 // fusionnerReglages (moteur/reglages.js), REGLAGES_INTEGRES, NOM_REGLAGES_DE_DEPART,

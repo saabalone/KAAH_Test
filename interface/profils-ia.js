@@ -111,7 +111,7 @@ function enregistrerSousLeNomDeSaVersion(ancienNom, profil) {
   const avant = trouverProfilIA(ancienNom);
   const dejaLa = [...profilsIADeBase(), ...autres, ...(avant && !estProfilIAIntegre(ancienNom) ? [avant] : [])];
   const numeroDePoids = numeroDePoidsDansSaFamille(profil, dejaLa);
-  const nom = nomDisponible(nomAfficheDuProfilIA(profil, numeroDesAjoutsDe(profil.poids), numeroDePoids), nomsPris);
+  const nom = nomDisponible(nomAfficheDuProfilIA(profil, numeroDesAjoutsDe(profil.poids), numeroDePoids, true), nomsPris);
   ecrireProfilsIAPerso([...autres, { ...profil, nom, indice, numeroDePoids }]);
   return nom;
 }
@@ -166,7 +166,7 @@ function garderUneRetoucheACote(profil, valeurs, date, issue, note) {
   const { historique, courante, indice, numeroDePoids, ancienNom, nom: nomDOrigine, ...reste } = profil;
   const nouveau = { ...demarrerHistoriqueIA({ ...reste, ...valeurs, nom: nomDOrigine }, date, note), indice: prochainIndiceProfilIA(autres), issueDuBanc: issue };
   const numero = numeroDePoidsDansSaFamille(nouveau, [...profilsIADeBase(), ...autres]);
-  const nom = nomDisponible(`${nomAfficheDuProfilIA(nouveau, numeroDesAjoutsDe(nouveau.poids), numero)}${issue}`, [...profilsIADeBase(), ...autres].map((existant) => existant.nom));
+  const nom = nomDisponible(`${nomAfficheDuProfilIA(nouveau, numeroDesAjoutsDe(nouveau.poids), numero, true)}${issue}`, [...profilsIADeBase(), ...autres].map((existant) => existant.nom));
   ecrireProfilsIAPerso([...autres, { ...nouveau, nom, numeroDePoids: numero }]);
   return nom;
 }

@@ -17,7 +17,7 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : COORDONNEES_DES_CASES_IA
 // (moteur/ia-evaluation-v3.js), TERMES_DANS_L_ORDRE_IA, termesDesProfils (moteur/essai-ia.js),
 // detailDeLaBille (moteur/bille-ia.js), detailDeLAire, CONTOUR_DU_PLATEAU
-// (moteur/aire-ia.js),
+// (moteur/aire-ia.js), ecrirePosition (moteur/notation.js),
 // NOM_CAMP (rendu/ejections.js), COLONNES_ESSAI_IA (interface/essai-ia.js),
 // listerProfilsIA, libelleProfilIA (interface/profils-ia.js), celluleBille,
 // LIGNES_MESURES_BILLE, lignesMesuresAire, tableauDesTermes, tableauDesMesures,
@@ -55,8 +55,9 @@ const boutonDePanneau = (texte, titre) => {
 
 // `svg` : le plateau ; `obtenirEtat()` : la position affichee ; `poidsPour(camp)` :
 // { nom, poids, version } de la machine qui juge pour ce camp.
-// `caseSurvolValeur` : la coche de Reglages du champ « valeur » du survol, ou null.
-function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null) {
+// `caseSurvolValeur` : la coche de Reglages du champ « valeur » du survol, ou null ; `coupsJoues()` : les
+// demi-coups joues jusqu'a la position affichee (le tour de la notation du Plateau). Renvoie { actualiser }.
+function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null, coupsJoues = () => 0) {
   let choix = lireChoixInfosCase();
   // La bille touchee ({ notation, camp }) ou l'aire de ce camp ({ camp, cases }) ;
   // et le camp de la comparaison (meme aire), ou null.
@@ -145,15 +146,18 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null)
   function contenuPour(camp) {
     const etat = obtenirEtat();
     const sources = sourcesPour(camp);
-    const colonnes = sources.map((source, rang) => ({
-      nom: source.nom,
-      poids: source.poids,
-      actif: rang === 0,
-      detail: montre.cases ? detailDeLAire(etat, montre.cases, camp, source.poids, source.version) : detailDeLaBille(etat, montre.notation, source.poids, source.version),
-    }));
+    // Tout le plateau (saab, 2026-10-27 : « la colonne Seule est fausse car = colonne Avec l'ext. ») : une
+    // seule colonne, l'evaluation de la machine, ejections comprises (l'apport de toutes les billes).
+    const plateau = montre.cases === CONTOUR_DU_PLATEAU;
+    const detailPour = (source) => {
+      if (!montre.cases) return detailDeLaBille(etat, montre.notation, source.poids, source.version);
+      const detail = detailDeLAire(etat, montre.cases, camp, source.poids, source.version);
+      return plateau ? { ...detail, termes: detail.apport, valeur: detail.valeurApport } : detail;
+    };
+    const colonnes = sources.map((source, rang) => ({ nom: source.nom, poids: source.poids, actif: rang === 0, detail: detailPour(source) }));
     if (!montre.cases) colonnes[0].detail.piege = piegeDe(etat, montre.notation, colonnes[0].detail);
     const mesures = montre.cases ? tableauDesMesures(lignesMesuresAire(camp), colonnes[0].detail, {}) : tableauDesMesures(LIGNES_MESURES_BILLE, colonnes[0].detail, choix);
-    return [tableauDesTermes(colonnes, termesDesProfils(sources), choix, Boolean(montre.cases)), mesures];
+    return [tableauDesTermes(colonnes, termesDesProfils(sources), choix, Boolean(montre.cases) && !plateau), mesures];
   }
 
   function remplir() {
@@ -161,7 +165,9 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null)
     // Une case vide pendant qu'on y dessine une aire : montre.camp est deja le camp au trait.
     const surUneBille = obtenirEtat()?.plateau[montre.notation]?.couleur === montre.camp;
     if (montre.cases || (montre.camp && surUneBille)) {
-      principal.titre.textContent = montre.cases ? `Aire · ${NOM_CAMP[montre.camp]}` : `${montre.notation} · ${NOM_CAMP[montre.camp]}`;
+      const plateau = montre.cases === CONTOUR_DU_PLATEAU;
+      principal.titre.textContent = plateau ? `Plateau · ${NOM_CAMP[montre.camp]}` : montre.cases ? `Aire · ${NOM_CAMP[montre.camp]}` : `${montre.notation} · ${NOM_CAMP[montre.camp]}`;
+      if (plateau) morceaux.push(notationDuPlateau());
       morceaux.push(...contenuPour(montre.camp));
     } else {
       principal.titre.textContent = `${montre.notation} · vide`;
@@ -180,6 +186,17 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null)
     comparaison.titre.textContent = `Aire · ${NOM_CAMP[campCompare]}`;
     comparaison.corps.replaceChildren(...contenuPour(campCompare));
     comparaison.collerA(principal);
+  }
+
+  // La position, le camp au trait et le tour (saab, 2026-10-27 : « mettre plutôt la notation complète pour
+  // Plateau, position + camp tr tour (ex. 0b2c2d27e28f29g49h49i89_0c3d3e367f4678g578h78, xtr40) ») : x pour
+  // Noir au trait, y pour Blanc, et le tour qu'il va jouer — comme les noms des fichiers de KAAWA.
+  function notationDuPlateau() {
+    const etat = obtenirEtat();
+    const texte = `${ecrirePosition(etat)}, ${etat.joueurAuTrait === 'noir' ? 'x' : 'y'}tr${Math.floor(coupsJoues() / 2) + 1}`;
+    const ligne = celluleBille('p', texte, 'La position regardée, le camp au trait (x : Noir, y : Blanc) et le tour qu’il va jouer — à sélectionner pour la copier');
+    ligne.className = 'notation-plateau';
+    return ligne;
   }
 
   function fermer() {
@@ -233,6 +250,11 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null)
     campCompare = null;
     remplir();
   });
+  // Le plateau a change (un coup, la navigation ; saab, 2026-10-27 : « Qd Aire Plateau est actif, faire
+  // suivre le tableau si on navigue ») : le Plateau suit ; une aire dessinee aussi, sur ses memes cases.
+  const actualiser = () => {
+    if (montre?.cases && !principal.element.hidden && !aire.enCours()) remplir();
+  };
   document.addEventListener('keydown', (evenement) => {
     if (evenement.key !== 'Escape' || principal.element.hidden) return;
     if (aire.enCours()) {
@@ -240,4 +262,5 @@ function demarrerInfosCase(svg, obtenirEtat, poidsPour, caseSurvolValeur = null)
       remplir();
     } else fermer();
   });
+  return { actualiser };
 }

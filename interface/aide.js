@@ -14,7 +14,8 @@
 // la version, si KAAH marche SANS internet sur cet appareil — ou pourquoi pas.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : aererLeTexte, colorerLesCouleurs
-// (interface/aide-texte.js) viennent d'un fichier charge avant celui-ci.
+// (interface/aide-texte.js), dessinDeLIcone (interface/choix-icones.js) viennent de fichiers charges avant
+// celui-ci.
 
 // Le refus du navigateur a l'enregistrement du service worker (index.html), s'il
 // y en a eu un : sa raison, affichee telle quelle.
@@ -121,7 +122,18 @@ function preparerLEnteteQuiSeReplie(dialogue, lignesGardees) {
 
 // `elements` : { bouton, dialogue, version, horsLigne, fermer, corps } —
 // `fermer` est une LISTE de boutons (en haut et en bas de la boite).
+// Le dessin de chaque icone nommee (saab, 2026-10-27 : « Ce serait bien de mettre les icones dans Aide plutot
+// que seulement leur nom ») : devant chaque nom marque data-icone="<id du bouton de la colonne>", la copie de
+// son icone (interface/choix-icones.js, dessinDeLIcone).
+function illustrerLesIcones(corps) {
+  for (const nom of corps.querySelectorAll('[data-icone]')) {
+    const icone = document.getElementById(nom.dataset.icone);
+    if (icone) nom.before(dessinDeLIcone(icone));
+  }
+}
+
 function demarrerAide(elements) {
+  illustrerLesIcones(elements.corps);
   aererLeTexte(elements.corps);
   colorerLesCouleurs(elements.corps);
   preparerChapitres(elements.corps);

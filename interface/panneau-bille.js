@@ -67,6 +67,8 @@ function lignesMesuresAire(camp) {
   return {
     siennes: [NOM_CAMP[camp], 'Ses billes dans l’aire, bord compris', (d) => `${d.billes[camp].length} : ${d.billes[camp].join(' ')}`],
     adverses: [NOM_CAMP[adverse], 'Les billes adverses dans l’aire, bord compris', (d) => `${d.billes[adverse].length} : ${d.billes[adverse].join(' ') || '—'}`],
+    // Saab, 2026-10-27 : la Compacité de Blanc en bloc paraissait négative — elle compare les deux camps.
+    distances: ['Distance moyenne', 'Entre les billes de chaque camp dans l’aire (la Compacité : celle de l’adversaire moins la sienne ; sans bille adverse dans l’aire, 0 en face)', (d) => `${NOM_CAMP[camp]} ${d.distances[camp].toFixed(2).replace('.', ',')} · ${NOM_CAMP[adverse]} ${d.distances[adverse].toFixed(2).replace('.', ',')}`],
   };
 }
 

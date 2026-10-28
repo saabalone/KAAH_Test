@@ -14,32 +14,65 @@
 // le fichier) est toujours celle proposee — comme `pzl.random_permut_enabled`
 // a faux dans KAAWA.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : tirerPermutationNonResolue
+// Pas d'import ni d'export (voir moteur/plateau.js) : tirerPermutationNonResolue, tirerUneAutrePermutation
 // (moteur/puzzles.js), toutesLesPermutations (moteur/permutations.js) viennent
 // de fichiers charges avant celui-ci.
 
-const CLE_PERMUTATION_ALEATOIRE_ACTIVE = 'kaah-puzzles-permutation-aleatoire';
+// Decochee pour UN PZL seulement (saab, 2026-10-28 : « Mettre aussi Permutation aléatoire des PZL par défaut » ;
+// « on risque d'oublier que normalement c'est aléatoire, donc si on veut on devra la [dé]cocher à chaque
+// changement de PZL, pas si on fait des essais sur le même PZL en continu ») : on retient le nom du PZL pour
+// lequel elle est decochee — le refaire la garde decochee, en charger un autre la recoche. '' : decochee pour le
+// prochain PZL charge (aucun n'etait regarde). Les anciens « décoché » pour tous les PZL
+// ('kaah-puzzles-permutation-aleatoire', puis '…-choix') ne sont plus lus.
+const CLE_PERMUTATION_DECOCHEE_POUR = 'kaah-puzzles-permutation-decochee-pour';
 const CLE_PERMUTATIONS_RESOLUES = 'kaah-puzzles-permutations-resolues';
 // La permutation 0 est toujours celle ecrite dans donnees/kaa-puzzles.js —
 // jamais tiree au hasard quand l'interrupteur est desactive.
 const PERMUTATION_PAR_DEFAUT = 0;
 
-// Vrai par defaut (comme pzl.random_permut_enabled dans KAAWA) : seule une
-// valeur EXPLICITEMENT "false" desactive le tirage.
-function permutationAleatoireActive() {
+function lirePuzzleSansPermutation() {
   try {
-    return window.localStorage.getItem(CLE_PERMUTATION_ALEATOIRE_ACTIVE) !== 'false';
+    return window.localStorage.getItem(CLE_PERMUTATION_DECOCHEE_POUR);
   } catch {
-    return true;
+    return null;
   }
 }
 
-function definirPermutationAleatoireActive(active) {
+// La permutation aleatoire vaut-elle pour le PZL `nomDuPuzzle` (null : aucun) ? Vrai par defaut, comme
+// pzl.random_permut_enabled dans KAAWA.
+function permutationAleatoireActive(nomDuPuzzle) {
+  const decocheePour = lirePuzzleSansPermutation();
+  return decocheePour === null || (decocheePour !== '' && decocheePour !== nomDuPuzzle);
+}
+
+// Cochee : pour tous les PZL ; decochee : pour `nomDuPuzzle` (null : le prochain charge).
+function definirPermutationAleatoireActive(active, nomDuPuzzle) {
   try {
-    window.localStorage.setItem(CLE_PERMUTATION_ALEATOIRE_ACTIVE, String(active));
+    if (active) window.localStorage.removeItem(CLE_PERMUTATION_DECOCHEE_POUR);
+    else window.localStorage.setItem(CLE_PERMUTATION_DECOCHEE_POUR, nomDuPuzzle ?? '');
   } catch {
-    // Tant pis : l'interrupteur restera coche a la prochaine ouverture.
+    // Tant pis : la case sera cochee a la prochaine ouverture, l'etat par defaut.
   }
+}
+
+// Un PZL charge : decochee pour lui (ou pour le prochain), elle le reste ; pour un autre, elle se recoche.
+function retenirLePuzzleCharge(nomDuPuzzle) {
+  if (lirePuzzleSansPermutation() !== null) definirPermutationAleatoireActive(permutationAleatoireActive(nomDuPuzzle), nomDuPuzzle);
+}
+
+// La case de la boite Puzzles : son etat pour le PZL regarde (`nomRegarde()`), un changement qui vaut pour
+// lui ; `surChangement()` : redessiner l'apercu. Renvoie actualiser().
+function brancherCasePermutation(caseACocher, nomRegarde, surChangement) {
+  const actualiser = () => {
+    caseACocher.checked = permutationAleatoireActive(nomRegarde());
+  };
+  caseACocher.addEventListener('change', () => {
+    definirPermutationAleatoireActive(caseACocher.checked, nomRegarde());
+    reinitialiserChoixPermutations();
+    surChangement();
+  });
+  actualiser();
+  return actualiser;
 }
 
 function listerPermutationsResoluesDeTousLesPuzzles() {
@@ -97,13 +130,23 @@ function choisirPermutationPourPuzzle(puzzle) {
   if (choix.has(puzzle.nom)) return choix.get(puzzle.nom);
 
   let resultat = { texteBrut: puzzle.texteBrut, indexPermutation: PERMUTATION_PAR_DEFAUT };
-  if (permutationAleatoireActive()) {
+  if (permutationAleatoireActive(puzzle.nom)) {
     const index = tirerPermutationNonResolue(listerPermutationsResolues(puzzle.nom));
     const permutations = toutesLesPermutations(puzzle.texteBrut);
     resultat = { texteBrut: permutations[index].normale, indexPermutation: index };
   }
   choix.set(puzzle.nom, resultat);
   return resultat;
+}
+
+// La position de depart pour refaire `puzzle` (Same, Revanche) apres l'avoir joue depuis `positionJouee` : une
+// autre orientation quand la permutation aleatoire vaut pour lui (moteur/puzzles.js, tirerUneAutrePermutation),
+// sinon la meme.
+function positionPourRefaireLePuzzle(puzzle, positionJouee) {
+  if (!permutationAleatoireActive(puzzle.nom)) return positionJouee;
+  const permutations = toutesLesPermutations(puzzle.texteBrut);
+  const memes = permutations.filter((permutation) => permutation.normale === positionJouee).map((permutation) => permutation.index);
+  return permutations[tirerUneAutrePermutation(listerPermutationsResolues(puzzle.nom), memes)].normale;
 }
 
 // L'orientation REELLEMENT chargee sur le plateau, retrouvee par comparaison
