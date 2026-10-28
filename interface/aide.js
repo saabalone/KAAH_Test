@@ -101,15 +101,22 @@ function preparerChapitres(corps) {
 // modes) ; le premier clic dans la boite, ou qu'il soit, n'en laisse que les
 // `lignesGardees` (la version et le hors-ligne) — les toucher ensuite montre les autres
 // ou les replie. Renvoie deplier(), a appeler a chaque ouverture.
-function preparerLEnteteQuiSeReplie(dialogue, lignesGardees) {
+// `bouton` : Replier / Déplier (saab, 2026-10-28 : « Pas évident de savoir qu'on peut replier en appuyant
+// seulement sur la ligne 'Version' ») ; son texte dit ce qu'il fera.
+const TEXTES_DU_BOUTON_REPLIER = { replier: '▴ Replier', deplier: '▾ Déplier' };
+function preparerLEnteteQuiSeReplie(dialogue, lignesGardees, bouton) {
   const entete = lignesGardees[0].parentElement;
   let premierClic = true;
+  const montrerLeBouton = () => {
+    bouton.textContent = entete.classList.contains('aide-entete-repliee') ? TEXTES_DU_BOUTON_REPLIER.deplier : TEXTES_DU_BOUTON_REPLIER.replier;
+  };
   dialogue.addEventListener(
     'click',
     (evenement) => {
-      if (premierClic) entete.classList.add('aide-entete-repliee');
-      else if (lignesGardees.includes(evenement.target)) entete.classList.toggle('aide-entete-repliee');
+      if (evenement.target === bouton || (!premierClic && lignesGardees.includes(evenement.target))) entete.classList.toggle('aide-entete-repliee');
+      else if (premierClic) entete.classList.add('aide-entete-repliee');
       premierClic = false;
+      montrerLeBouton();
     },
     // Avant le chapitre touche : il se place d'apres la hauteur de l'en-tete deja replie.
     true
@@ -117,6 +124,7 @@ function preparerLEnteteQuiSeReplie(dialogue, lignesGardees) {
   return function deplier() {
     premierClic = true;
     entete.classList.remove('aide-entete-repliee');
+    montrerLeBouton();
   };
 }
 
@@ -137,7 +145,7 @@ function demarrerAide(elements) {
   aererLeTexte(elements.corps);
   colorerLesCouleurs(elements.corps);
   preparerChapitres(elements.corps);
-  const deplierLEntete = preparerLEnteteQuiSeReplie(elements.dialogue, [elements.version, elements.horsLigne]);
+  const deplierLEntete = preparerLEnteteQuiSeReplie(elements.dialogue, [elements.version, elements.horsLigne], elements.replier);
   function afficherHorsLigne() {
     elements.horsLigne.textContent = 'Hors ligne : vérification...';
     etatHorsLigne()

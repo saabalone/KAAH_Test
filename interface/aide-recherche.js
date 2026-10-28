@@ -39,6 +39,9 @@ function demarrerRechercheAide(elements) {
   let courant = -1;
   let ouvertsParLaRecherche = [];
   let minuterie = null;
+  // Grisees tant que rien n'est trouve (saab, 2026-10-28 : il les prenait pour les fleches qui replient le
+  // bandeau de la version, juste au-dessus — c'est la ligne Version qui le replie).
+  elements.precedent.disabled = elements.suivant.disabled = true;
 
   function effacer() {
     for (const mark of trouves) {

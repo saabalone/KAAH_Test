@@ -781,6 +781,9 @@ const TRADUCTION_ANGLAIS = {
   "Choix des icônes": "Choose the icons",
   "Cocher les icônes à garder dans la colonne ; une icône décochée disparaît (Réglages reste toujours)": "Tick the icons to keep in the column; an unticked icon disappears (Settings always stays)",
   "Simple (défaut)": "Simple (default)",
+  "▴ Replier": "▴ Fold",
+  "▾ Déplier": "▾ Unfold",
+  "Replier ou déplier ces lignes (toucher la ligne Version le fait aussi)": "Fold or unfold these lines (touching the Version line does it too)",
   "Les icônes de la recherche cachées : Variantes, Puzzles, Correspondance (tous trois dans Nouvelle partie), Occurrences, Graphique, Banc d'essais": "The research icons hidden: Variants, Puzzles, Correspondence (all three in New game), Occurrences, Chart, Test bench",
   "Toutes les icônes, pour la recherche": "Every icon, for research",
   // La langue

@@ -800,7 +800,12 @@
         <!-- Saab, 2026-10-24 : la boite d'installation ou de nouvelle version, quand on le veut (index.html, en
              bas) ; sous le hors-ligne, dont il parle (dans les boutons du haut, il poussait Fermer hors de la
              fenetre). Pas .aide-version : il reste quand l'en-tete se replie. -->
-        <button id="bouton-nouvelle-version" class="bouton-dialogue bouton-nouvelle-version" type="button" title="Installer KAAH sur cet appareil, ou voir s'il existe une nouvelle version (vert : une nouvelle version attend)" hidden>Nouvelle version</button>
+        <!-- Saab, 2026-10-28 : « Pas évident de savoir qu'on peut replier en appuyant seulement sur la ligne
+             'Version' » : un vrai bouton (interface/aide.js, preparerLEnteteQuiSeReplie), a cote. -->
+        <div class="boutons-version-aide">
+          <button id="bouton-nouvelle-version" class="bouton-dialogue bouton-nouvelle-version" type="button" title="Installer KAAH sur cet appareil, ou voir s'il existe une nouvelle version (vert : une nouvelle version attend)" hidden>Nouvelle version</button>
+          <button id="bouton-replier-aide" class="bouton-dialogue" type="button" title="Replier ou déplier ces lignes (toucher la ligne Version le fait aussi)">▴ Replier</button>
+        </div>
         <!-- Ordinateur ou telephone (saab, 2026-10-08) : meme fichiers, le seuil
              de 700 px (styles.css) choisit la ligne. -->
         <p class="aide-version banc-ordinateur">Version ordinateur : avec le Banc d'essais, LabAlone (icône 🧪, ou Réglages &gt; Profil IA) pour faire jouer des profils IA contre un profil de référence.</p>
@@ -3169,6 +3174,7 @@
       dialogue: document.getElementById('dialogue-aide'),
       version: document.getElementById('version-kaah'),
       horsLigne: document.getElementById('hors-ligne-kaah'),
+      replier: document.getElementById('bouton-replier-aide'),
       fermer: [document.getElementById('bouton-fermer-aide-haut'), document.getElementById('bouton-fermer-aide')],
       corps: document.querySelector('#dialogue-aide .aide-corps'),
     });
@@ -4917,6 +4923,7 @@
         navigator.serviceWorker
           .register('./service-worker.js', { updateViaCache: 'none' })
           .then((enregistrement) => {
+            enregistrementDuServiceWorker = enregistrement;
             surveillanceDesMisesAJour = surveillerLesMisesAJour(enregistrement, {
               // Gardee, jamais demandee d'office : le bouton Nouvelle version passe au vert.
               proposer: (version, tailleMo, charger) => {
@@ -4944,6 +4951,22 @@
           // Opera : "rien n'indique que c'est installe").
           .catch((erreur) => retenirRefusHorsLigne(erreur));
     }
+    // Regarder de nouveau s'il y a une nouvelle version (saab, 2026-10-28 : « comme Aide était déjà ouvert sur
+    // v34, 'Nouvelle version' ne venait pas ») : avant, seulement au lancement de la page ; aussi en revenant sur
+    // KAAH (un onglet, une appli laissee ouverte) et a chaque ouverture de l'Aide — sans rien demander : le bouton
+    // Nouvelle version passe au vert.
+    let enregistrementDuServiceWorker = null;
+    function verifierSansRienDemander() {
+      if (!enregistrementDuServiceWorker || miseAJourEnAttente) return;
+      enregistrementDuServiceWorker
+        .update()
+        .then(() => surveillanceDesMisesAJour?.verifier())
+        .catch(() => {}); // sans internet : on reessaiera
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') verifierSansRienDemander();
+    });
+    document.getElementById('bouton-aide').addEventListener('click', verifierSansRienDemander);
   </script>
 </body>
 </html>

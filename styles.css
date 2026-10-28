@@ -3856,6 +3856,24 @@ mark.aide-trouve.aide-trouve-courant {
   color: #45b862;
 }
 
+/* Nouvelle version et Replier / Déplier, sur une ligne (saab, 2026-10-28 : interface/aide.js). */
+.aide-entete .boutons-version-aide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 6px;
+}
+.aide-entete .boutons-version-aide .bouton-nouvelle-version {
+  margin: 0;
+}
+
+/* Les fleches de la recherche, grisees tant que rien n'est trouve (interface/aide-recherche.js). */
+#bouton-precedent-aide:disabled,
+#bouton-suivant-aide:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .dialogue-aide .aide-corps > details > summary {
   color: #45b862;
 }
