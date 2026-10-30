@@ -68,6 +68,8 @@ const LIBELLES_REGLAGES_IA = {
   billesPoussablesBord: 'Billes poussables au bord (Bpb)',
   billesEjectables: 'Billes éjectables (Be)',
   billesMultiejectables: 'Billes multiéjectables (Bme)',
+  billesPousseesAEffet: 'Billes poussées à effet (Bpe)',
+  pousseesRetournees: 'Poussées qui se retournent (Pr)',
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.

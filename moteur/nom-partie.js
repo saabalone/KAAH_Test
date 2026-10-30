@@ -53,6 +53,19 @@ function nomJoueurAutorise(saisie) {
     .replace(/[^A-Za-z0-9_+]/g, '');
 }
 
+// L'EVENEMENT d'une partie (saab, 2026-10-30 : « Je ne trouve plus où on choisit le type de partie Amicale ou
+// autre, il me semble qu'on avait une boite de choix » — celle de KAAWA, un texte libre, Amical par defaut ;
+// « ajouter un type Essai (ou Test) qd je teste KAI contre une autre IA ») : ce qui est tape, sans virgule (elle
+// separe les elements du titre) ; vide, Amical. Test : la ligne jouee se corrige (moteur/arbre.js,
+// peutSupprimerNoeud) — une erreur de copie vue plusieurs coups plus tard.
+const EVENEMENT_AMICAL = 'Amical';
+const EVENEMENT_TEST = 'Test';
+function evenementDeLaPartie(saisie) {
+  const propre = String(saisie ?? '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+  return propre || EVENEMENT_AMICAL;
+}
+const lignePrincipaleLibre = (evenement) => evenement === EVENEMENT_TEST;
+
 // Les elements du titre "Br_2608172039, Amical, Marguerite Belge,
 // Player_1-Player_2, -0-0tr2 Player_2, R", dans cet ordre, lus dans les
 // donnees — ce que nomDeFichierKAAWA assemble, et ce que les filtres de Mes

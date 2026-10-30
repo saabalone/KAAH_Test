@@ -1074,6 +1074,12 @@ function demarrerPartie(
       suppressionsInterdites = true;
       actualiserBoutonsNavigation();
     },
+    // Une partie Test (moteur/nom-partie.js, lignePrincipaleLibre) : tout coup de la ligne jouee se supprime.
+    definirLignePrincipaleLibre: (libre) => {
+      arbre = { ...arbre, lignePrincipaleLibre: libre };
+      sequence.actualiser(arbre);
+      actualiserBoutonsNavigation();
+    },
     // Correspondance (phase 24) et Permutations (phase 25, interface/permutations.js) :
     // afficher momentanement une position quelconque, texte compressee
     // (moteur/notation.lirePosition), puis revenir a la partie reelle.

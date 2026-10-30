@@ -306,6 +306,10 @@ const TRADUCTION_ANGLAIS = {
   "Billes poussables au bord (Bpb)": "Pushable balls on the edge (Bpb)",
   "Billes éjectables (Be)": "Ejectable balls (Be)",
   "Billes multiéjectables (Bme)": "Multi-ejectable balls (Bme)",
+  "Billes poussées à effet (Bpe)": "Balls pushed with effect (Bpe)",
+  "Poussées qui se retournent (Pr)": "Pushes that turn around (Pr)",
+  "Ajout Bpe (KAI++) : comme Bp, mais une bille ne compte que si la poussée lui fait mal — juste après, elle est au bord, ou n'a plus aucune des siennes à deux cases ou moins (elle ne peut plus se regrouper en un coup) ; ce poids (négatif), et le rapporte chez l'adversaire": "Ajout Bpe (KAI++): like Bp, but a ball only counts if the push hurts it — right after, it is on the edge, or has none of its own within two cells (it can no longer regroup in one move); this weight (negative), and it brings it in for the opponent",
+  "Ajout Pr (KAI++) : chaque sumito de l'adversaire, sans éjection, après lequel je peux aussitôt pousser une des billes qui viennent de pousser rapporte ce poids ; les miens dans le même cas le coûtent (Sc pour tous les sumitos, vu du défenseur)": "Ajout Pr (KAI++): each opponent sumito, without ejection, after which I can at once push one of the balls that just pushed brings this weight; mine in the same case cost it (Sc for all sumitos, seen from the defender)",
   "L'élagage garde les éjections / poussées (Eg)": "Pruning keeps ejections / pushes (Eg)",
   "Centre tenu (Ct)": "Centre held (Ct)",
   'Nouvelle version': 'New version',
@@ -771,6 +775,11 @@ const TRADUCTION_ANGLAIS = {
   "Choisir un puzzle": "Choose a puzzle",
   "Jouer à distance en s'envoyant des codes KAA1": "Play remotely by sending each other KAA1 codes",
   "Le nom de ce joueur, si vous voulez : vide, il s'appelle Joueur_1 ou Joueur_2, et KAAH proposera de le nommer à la fin": "This player's name, if you like: left empty, it is Player_1 or Player_2, and KAAH will offer to name them at the end",
+  // Le type de la partie (Amical et Test restent tels quels : c'est ce que le titre de la partie ecrit, comme KAAWA)
+  "L'évènement écrit dans le titre de la partie (Amical, Test, Tournoi…) : tapez ce que vous voulez": "The event written in the game's title (Amical = friendly, Test, Tournament…): type whatever you like",
+  "Une partie ordinaire : seul le dernier coup de la partie se reprend": "An ordinary game: only the game's last move can be taken back",
+  "Un essai (une IA contre une autre, recopiée à la main) : n'importe quel coup de la partie se supprime, et une branche peut remonter au-dessus de la partie pour la remplacer — pour corriger une erreur de copie": "A test (one AI against another, copied by hand): any move of the game can be deleted, and a branch can move up above the game to replace it — to fix a copying mistake",
+  "Remonter cette branche : elle devient la partie (partie Test)": "Move this branch up: it becomes the game (Test game)",
   // Les noms demandes a la fin de la partie (interface/noms-fin-de-partie.js)
   "Partie finie : les noms": "Game over: the names",
   "Un champ vide garde son nom (Joueur_1, Joueur_2).": "An empty field keeps its name (Player_1, Player_2).",

@@ -188,8 +188,11 @@ function avancerJusquauProchainChoix(arbre) {
 // jamais un coup plus ancien deja depasse. Regle calquee sur
 // action_annule_move de KAAWA (sa securite « le droit a l'erreur est
 // epuise pour ce tour »).
+// Une partie Test (moteur/nom-partie.js, lignePrincipaleLibre ; saab, 2026-10-30 : « seulement sur ce type, pouvoir
+// supprimer la Br principale car parfois je fais une erreur de copie ») : tout coup de la ligne jouee se supprime.
 function peutSupprimerNoeud(arbre, chemin) {
   if (chemin.length === 0) return false; // jamais la position de depart
+  if (arbre.lignePrincipaleLibre) return true;
   if (!noeudA(arbre, chemin).estOrigine) return true;
   return cheminsEgaux(chemin, arbre.cheminOrigine);
 }
@@ -200,13 +203,31 @@ function peutSupprimerNoeud(arbre, chemin) {
 // possible, SAUF le cas precis ou ce remontee deloguerait l'origine (la
 // ligne REELLEMENT jouee) de sa place de premier enfant — elle doit
 // toujours rester affichee en premier, meme si saab reordonne le reste.
+// Une partie Test (voir peutSupprimerNoeud) : comme les fichiers ANALYSE de KAAWA, rien n'est protege — la
+// branche passe au-dessus de la ligne jouee et devient la partie (voir remonterNoeud).
 function peutRemonterNoeud(arbre, chemin) {
   if (chemin.length === 0) return false; // la racine n'a pas de frere
   const index = chemin[chemin.length - 1];
   if (index === 0) return false; // rien au-dessus pour echanger
-  const parent = noeudA(arbre, chemin.slice(0, -1));
-  if (index === 1 && parent.enfants[0].estOrigine) return false;
-  return true;
+  if (arbre.lignePrincipaleLibre) return true;
+  return !remonteAuDessusDeLOrigine(arbre, chemin);
+}
+
+function remonteAuDessusDeLOrigine(arbre, chemin) {
+  return chemin[chemin.length - 1] === 1 && noeudA(arbre, chemin.slice(0, -1)).enfants[0].estOrigine;
+}
+
+// La ligne jouee passe a une autre branche (saab, 2026-10-30 : une partie recopiee dont la vraie suite est partie
+// en branche apres une erreur de copie) : le noeud et ses premiers enfants jusqu'au bout en deviennent, l'ancienne
+// ligne n'en est plus.
+function sansOrigine(noeud) {
+  return { ...noeud, estOrigine: false, enfants: noeud.enfants.map(sansOrigine) };
+}
+function enOrigine(noeud) {
+  return { ...noeud, estOrigine: true, enfants: noeud.enfants.map((enfant, index) => (index === 0 ? enOrigine(enfant) : enfant)) };
+}
+function cheminJusquAuBout(noeud, chemin) {
+  return noeud.enfants.length === 0 ? chemin : cheminJusquAuBout(noeud.enfants[0], [...chemin, 0]);
 }
 
 // Echange deux enfants adjacents (`indexA`/`indexB`) du noeud designe par
@@ -216,6 +237,14 @@ function peutRemonterNoeud(arbre, chemin) {
 function remonterNoeud(arbre, chemin) {
   const index = chemin[chemin.length - 1];
   const cheminParent = chemin.slice(0, -1);
+  if (remonteAuDessusDeLOrigine(arbre, chemin)) {
+    const racine = remplacerNoeud(arbre.racine, cheminParent, (noeud) => ({
+      ...noeud,
+      enfants: [enOrigine(noeud.enfants[1]), sansOrigine(noeud.enfants[0]), ...noeud.enfants.slice(2)],
+    }));
+    const cheminOrigine = cheminJusquAuBout(noeudA({ racine }, [...cheminParent, 0]), [...cheminParent, 0]);
+    return { ...arbre, racine, chemin: echangerIndexDansChemin(arbre.chemin, cheminParent, index, index - 1), cheminOrigine };
+  }
   const racine = remplacerNoeud(arbre.racine, cheminParent, (noeud) => {
     const enfants = [...noeud.enfants];
     [enfants[index - 1], enfants[index]] = [enfants[index], enfants[index - 1]];

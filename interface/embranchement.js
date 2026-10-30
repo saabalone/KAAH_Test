@@ -67,7 +67,8 @@ function demarrerEmbranchement(elements) {
       remonter.className = 'arbre-repli';
       remonter.textContent = '▲';
       if (branche.peutRemonter) {
-        remonter.title = 'Remonter cette branche';
+        // Au-dessus de la ligne jouee, dans une partie Test (moteur/arbre.js, remonterNoeud) : elle devient la partie.
+        remonter.title = index === 1 && branches[0].estOrigine ? 'Remonter cette branche : elle devient la partie (partie Test)' : 'Remonter cette branche';
         remonter.addEventListener('click', () => {
           coupRemonte = branche.coup;
           surRemonter(index);

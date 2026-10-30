@@ -41,6 +41,8 @@ const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
   billesPoussablesBord: 'Bpb',
   billesEjectables: 'Be',
   billesMultiejectables: 'Bme',
+  billesPousseesAEffet: 'Bpe',
+  pousseesRetournees: 'Pr',
   gainFibonacci: 'Gf',
   perteFibonacci: 'Pf',
   piegeProgressifAdverse: 'Ppa',

@@ -6609,6 +6609,8 @@ label[title] {
 /* Sous le hors-ligne, a gauche (index.html) : sa largeur, pas celle de la colonne. */
 .aide-entete .bouton-nouvelle-version { display: block; justify-self: start; margin: 2px 0 6px; }
 .aide-entete .bouton-nouvelle-version[hidden] { display: none; }
+/* En cours (recherche, chargement, installation ; index.html, marquerLaVersionEnCours) : orange, le signal « actif ». */
+#bouton-nouvelle-version.bouton-en-cours { background: #cc6a00; border-color: #cc6a00; color: #ffffff; }
 #bouton-langue-chargement { margin: 0 0 6px; }
 
 /* LabAl : l'essai en Blanc en blanc, en Noir en gris (interface/banc-essais-page.js) ; une
@@ -6724,6 +6726,26 @@ body.apercu-kaah-test .note-apercu-test { display: block; }
 }
 .section-nouvelle-partie {
   margin-bottom: 6px;
+}
+
+/* Le type de la partie (interface/nouvelle-partie.js) : le champ prend la place, Amical et Test a sa droite. */
+.ligne-type-de-partie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  min-height: var(--hauteur-commande);
+}
+
+.ligne-type-de-partie[hidden] {
+  display: none;
+}
+
+.ligne-type-de-partie input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--hauteur-commande);
+  font-size: 14px;
 }
 
 /* Les noms de fin de partie (interface/noms-fin-de-partie.js ; saab, 2026-10-28 : « en fond blanc pour Blanc et

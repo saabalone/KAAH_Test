@@ -35,6 +35,8 @@
 //     et ejectables (de plusieurs facons) — saab, 2026-10-20, d'apres ULA (moteur/ia-sumito-vide.js) ;
 //   - Pfa, Pfm : le piege de fin de partie — autant de billes piegees que d'ejections qui manquent
 //     pour gagner (moteur/ia-evaluation-v4.js) — saab, 2026-10-23 ;
+//   - Bpe, Pr : ce que les poussees font vraiment — les billes poussees a effet (au bord, ou loin des siennes)
+//     et les poussees qui se retournent (moteur/ia-poussees.js) — saab, 2026-10-30 ;
 //   - Ct : le centre tenu — des que la machine a Ct billes au centre, elle joue le profil du
 //     milieu copie dans le sien ; avant, et si elle le perd, le sien — saab, 2026-10-23
 //     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation).
@@ -42,7 +44,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide, termeDuSumitoContre, termesDesBillesVulnerables
-// (ia-sumito-vide.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
+// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees (ia-poussees.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
 // (regles.js), couleursDuPlateau (partie.js), CASES_VOISINES_IA (ia-evaluation-v2.js) viennent de fichiers
 // charges avant celui-ci.
 
@@ -72,6 +74,8 @@ const OPTIONS_IA = [
   { cle: 'billesMultiejectables', suffixe: 'Bme', terme: true },
   { cle: 'piegeFinAdverse', suffixe: 'Pfa', terme: false },
   { cle: 'piegeFinMien', suffixe: 'Pfm', terme: false },
+  { cle: 'billesPousseesAEffet', suffixe: 'Bpe', terme: true },
+  { cle: 'pousseesRetournees', suffixe: 'Pr', terme: true },
   // Le centre tenu (moteur/ia-phase.js) choisit le profil qui cherche : KAI++ ne le voit jamais.
   { cle: 'centreTenu', suffixe: 'Ct', terme: false, horsDeKaiPlus: true },
 ];
@@ -115,10 +119,14 @@ const GROUPES_SEPARES_PROPOSES = 20;
 const BILLES_VULNERABLES_PROPOSEES = { billesPoussables: -5, billesMultipoussables: -5, billesPoussablesBord: -7, billesEjectables: -15, billesMultiejectables: -15 };
 // Le centre tenu : 4 des 7 cases du centre (une base a regler).
 const CENTRE_TENU_PROPOSE = 4;
+// Une bille poussee a effet vaut une bille poussable de Bp ; une poussee qui se retourne, a peu pres un sumito
+// 3-1 (une base a regler).
+const BILLES_POUSSEES_A_EFFET_PROPOSEES = -5;
+const POUSSEES_RETOURNEES_PROPOSEES = 3;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE },
   ])
 );
 
@@ -157,7 +165,10 @@ function termesDesAjouts(etat, camp, poids) {
   }
   if ('groupesSepares' in poids) termes.groupesSepares = termeDesGroupesSepares(etat, camp, poids);
   if ('sumitoContre' in poids) termes.sumitoContre = termeDuSumitoContre(etat, camp, poids);
-  return { ...termes, ...termesDesBillesVulnerables(etat, camp, poids) };
+  const vulnerables = termesDesBillesVulnerables(etat, camp, poids);
+  if ('billesPousseesAEffet' in poids) vulnerables.billesPousseesAEffet = termeDesBillesPousseesAEffet(etat, camp, poids);
+  if ('pousseesRetournees' in poids) vulnerables.pousseesRetournees = termeDesPousseesRetournees(etat, camp, poids);
+  return { ...termes, ...vulnerables };
 }
 
 // La valeur des ajouts, dans l'ordre de solveur/kai-plus.cpp (evaluer) : un
@@ -174,5 +185,7 @@ function valeurAvecLesAjouts(valeur, etat, camp, poids) {
   if (poids.groupesSepares) total += termeDesGroupesSepares(etat, camp, poids);
   if (poids.sumitoContre) total += termeDuSumitoContre(etat, camp, poids);
   for (const valeur of Object.values(termesDesBillesVulnerables(etat, camp, poids))) total += valeur;
+  if (poids.billesPousseesAEffet) total += termeDesBillesPousseesAEffet(etat, camp, poids);
+  if (poids.pousseesRetournees) total += termeDesPousseesRetournees(etat, camp, poids);
   return total;
 }

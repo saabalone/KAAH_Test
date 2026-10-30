@@ -880,6 +880,7 @@
       <summary>Jouer contre la machine</summary>
       <ul>
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>KAI++</b> (la machine, en C++) — deux machines peuvent jouer l'une contre l'autre, pour comparer deux profils. (KAI, l'ancienne machine en JavaScript, figée et 40 à 80 fois plus lente, ne se choisit plus ; elle rejoue les parties d'avant qui l'avaient.)<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2 ; boutons <b>−</b> / <b>+</b> de palier en palier : 0,5 1 2 3 5 10 15 20 30 45 60 90 120 180 300 s, puis <b>∞</b>, sans limite — le champ vide ; la réflexion <b>proposée</b> pour son niveau est en <b>marron</b> : assez pour finir le niveau d'habitude, même sur un téléphone — elle suit le niveau tant qu'on n'y touche pas). La boîte retient votre dernier choix ; la toute première fois, une machine est proposée en <b>KAI++</b>, <b>niveau 1</b> (pour qu'un débutant puisse gagner : montez ensuite), avec l'IA par défaut.</li>
+        <li><b>Type</b> de la partie (boîtes Nouvelle partie, Variantes, PZL, et <b>Pendule</b> pour le changer en cours de partie) : ce que le titre de la partie écrit après la date (2610300407, <b>Amical</b>, Marguerite Belge…). Tapez ce que vous voulez (Tournoi, Club…), ou touchez <b>Amical</b> ou <b>Test</b>.<br>Une partie <b>Test</b> (une IA contre une autre, recopiée à la main — AbaPro contre KAI++, par exemple) sert à corriger une erreur de copie vue plusieurs coups plus tard :<br>— <b>supprimer n'importe quel coup</b> de la partie (son ✕ dans la Séquence), avec tout ce qui le suit ;<br>— si la vraie suite a été jouée en branche, la faire <b>remonter</b> au-dessus de la partie (le <b>▲</b> du choix de la branche, quand « Coup suivant » arrive à l'embranchement) : elle <b>devient la partie</b>, jusqu'à son bout, et l'ancienne suite devient une branche, à supprimer par son ✕. Le titre suit : <b>Br_</b> tant qu'il reste une branche, plus rien sinon.<br>Dans les autres parties, seul le dernier coup se reprend et la partie reste toujours la première ligne (comme l'« Origine protégée » de KAAWA).<br>Une nouvelle partie propose le type de la précédente (une série de Test reste en Test), jusqu'à ce que vous le changiez ; Revanche et Same le gardent.</li>
         <li><b>Quelle force ?</b> L'IA par défaut, la plus récente (<b>Normal v5ElP5</b>), bat <b>AbaPro niveau 6</b> (6 parties à 4, en KAI++ niveau 6). Si elle est trop forte pour vous, entraînez-vous d'abord contre d'autres IA : un niveau plus bas, ou un autre profil IA (Agressif, Défensif, versions plus anciennes), puis remontez peu à peu.</li>
         <li><b>Élagage (El)</b>, pour chaque machine (boîte du mode de pendule et boîte du nom) : le nombre de coups qu'elle garde à chaque position. Vide (le nombre en <b>marron</b>) : celui de son profil ; un nombre le remplace, quel que soit le profil — pratique pour comparer plusieurs profils au même élagage, contre AbaPro par exemple ; <b>0</b> : sans élagage. Son nom le dit (KAI++6_Nor_30s_v5<b>El4</b>P5).<br><b>Attention : une machine sans élagage peut être très, très longue</b> aux niveaux hauts (sur un ordinateur : quelques secondes par coup au niveau 6, une minute ou plus au niveau 7, et au niveau 8 elle ne finit pratiquement jamais ; un téléphone est plusieurs fois plus lent). À éviter, ou gardez une <b>réflexion max</b> courte : elle joue alors le meilleur coup trouvé dans ce temps (mais voit moins loin). Avec élagage, au niveau 8, quelques secondes par coup suffisent d'habitude ; la réflexion <b>∞</b> (sans limite) la laisse toujours finir son niveau, et son nom le dit (KAI++8_Nor_<b>inf</b>_v5El10P5).</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.<br>Ses couleurs : en <b>marron</b>, ce qui est à sa valeur par défaut (KAI++, le niveau 1, la réflexion proposée pour son niveau, et le style et le profil de l'IA par défaut telle quelle) ; sinon le style (Nor) prend la couleur de ses réglages : <b>orange</b> pour une retouche pas encore validée (un élagage forcé, par exemple), vert ou jaune pour une validation récente ou ancienne.</li>
@@ -1332,6 +1333,9 @@
         <label class="ligne-couleur poids-ajout" title="Ajout Bpb (KAI++, d'après ULA) : une bille poussable qui est sur le bord coûte ce poids (négatif), et le rapporte chez l'adversaire">Billes poussables au bord (Bpb) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesPoussablesBord" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Be (KAI++, d'après ULA) : une bille que l'adversaire peut éjecter coûte ce poids (négatif), et le rapporte chez l'adversaire">Billes éjectables (Be) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesEjectables" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Bme (KAI++, d'après ULA) : une bille que l'adversaire peut éjecter de plusieurs façons coûte ce poids (négatif), et le rapporte chez l'adversaire">Billes multiéjectables (Bme) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesMultiejectables" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-10-30 : ce que les poussees font vraiment (moteur/ia-poussees.js). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Bpe (KAI++) : comme Bp, mais une bille ne compte que si la poussée lui fait mal — juste après, elle est au bord, ou n'a plus aucune des siennes à deux cases ou moins (elle ne peut plus se regrouper en un coup) ; ce poids (négatif), et le rapporte chez l'adversaire">Billes poussées à effet (Bpe) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesPousseesAEffet" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Pr (KAI++) : chaque sumito de l'adversaire, sans éjection, après lequel je peux aussitôt pousser une des billes qui viennent de pousser rapporte ce poids ; les miens dans le même cas le coûtent (Sc pour tous les sumitos, vu du défenseur)">Poussées qui se retournent (Pr) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-pousseesRetournees" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="En plus, par sumito qui éjecte">Menace d'éjection <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-menaceEjection" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito au-delà du premier : l'adversaire ne peut en parer qu'un">Fourchette <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-fourchette" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-10-04 : la version 4 compte les billes du bord enfermees
@@ -1685,6 +1689,15 @@
         <button id="bouton-np-puzzles" class="bouton-dialogue" type="button" title="Choisir un puzzle">PZL…</button>
         <button id="bouton-np-correspondance" class="bouton-dialogue" type="button" title="Jouer à distance en s'envoyant des codes KAA1">Correspondance…</button>
       </div>
+    </div>
+    <!-- Le type de la partie (saab, 2026-10-30 : « mettre le choix du type directement dans Nouvelle partie, et
+         donc pouvoir nommer aussi comme on veut » ; « Oui tu peux ajouter le type dans Pendule et dans
+         Variantes/PZL ») : interface/type-de-partie.js. -->
+    <div id="ligne-type-de-partie" class="ligne-type-de-partie" hidden>
+      <label for="champ-type-de-partie">Type</label>
+      <input id="champ-type-de-partie" type="text" maxlength="30" autocomplete="off" spellcheck="false" title="L'évènement écrit dans le titre de la partie (Amical, Test, Tournoi…) : tapez ce que vous voulez" />
+      <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Amical" title="Une partie ordinaire : seul le dernier coup de la partie se reprend">Amical</button>
+      <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Test" title="Un essai (une IA contre une autre, recopiée à la main) : n'importe quel coup de la partie se supprime, et une branche peut remonter au-dessus de la partie pour la remplacer — pour corriger une erreur de copie">Test</button>
     </div>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-mode-chrono" class="bouton-filtre" type="button" title="Chrono : on compte le temps sans limite">Chrono</button>
@@ -2234,6 +2247,7 @@
   <script src="./moteur/ia-evaluation-v3.js"></script>
   <script src="./moteur/ia-evaluation-v4.js"></script>
   <script src="./moteur/ia-sumito-vide.js"></script>
+  <script src="./moteur/ia-poussees.js"></script>
   <script src="./moteur/ia-etendue.js"></script>
   <script src="./moteur/ia-ajouts.js"></script>
   <!-- Les groupes de l'evaluation : l'ordre des reglages et des termes, avant ceux qui les listent. -->
@@ -2331,6 +2345,7 @@
   <script src="./interface/choix-joueurs.js"></script>
   <script src="./interface/nom-machine-couleurs.js"></script>
   <script src="./interface/pendules-mode.js"></script>
+  <script src="./interface/type-de-partie.js"></script>
   <script src="./interface/nouvelle-partie.js"></script>
   <script src="./interface/ia.js"></script>
   <script src="./interface/creation-partie.js"></script>
@@ -2484,7 +2499,7 @@
 
     // Marguerite Belge : la position de depart par defaut de KAAWA.
     const MARGUERITE_BELGE = '0a12b123c23g78h789i89_0a45b456c56g45h456i56';
-    const EVENEMENT_PAR_DEFAUT = 'Amical';
+    const EVENEMENT_PAR_DEFAUT = EVENEMENT_AMICAL; // moteur/nom-partie.js
     // Reglages par defaut de KAAWA (5 minutes, +2s par coup joue, mode
     // Bonus). Modifiable par le popup de la phase 22bis (Nouvelle partie,
     // ou le bouton pendule de la colonne de gauche) ; Revanche/Same gardent
@@ -2522,7 +2537,8 @@
       // partie", ce qui n'est pas le but).
       const positionChoisie = donneesReprises ? null : prendrePositionDepartSuivante();
       const dateDebut = donneesReprises?.Date ?? formaterDateKAAWA(new Date());
-      const evenement = donneesReprises?.Event ?? EVENEMENT_PAR_DEFAUT;
+      // Le type choisi dans la boite Nouvelle partie (interface/nouvelle-partie.js), sinon Amical.
+      const evenement = donneesReprises?.Event ?? evenementDeLaPartie(positionChoisie?.evenement);
       const variantName = donneesReprises?.VariantName ?? positionChoisie?.nom ?? 'Marguerite Belge';
       const joueurs = donneesReprises
         ? { noir: donneesReprises.Players.P1_black, blanc: donneesReprises.Players.P2_white }
@@ -2582,8 +2598,10 @@
       donneesReprises = null;
       etatDepart = construireDonneesDepart(null);
     }
-    const { positionChoisie, dateDebut, evenement, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines, essai, prefixe } =
+    const { positionChoisie, dateDebut, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines, essai, prefixe } =
       etatDepart;
+    // Le type de la partie : il change en cours de partie par la boite Pendule (changerLeTypeDeLaPartie).
+    let evenement = etatDepart.evenement;
     // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
     const correspondanceActive = correspondanceDesDonnees(donneesReprises);
     // L'Entrainement (phase 36, interface/entrainement-partie.js) : le jeu que
@@ -3088,12 +3106,30 @@
       sauverProfilActif(reglages);
       demarrerRechargement();
     });
+    // La ligne Type de la boite (interface/type-de-partie.js) : Nouvelle partie, Variantes, PZL et Pendule.
+    const typeDePartie = demarrerTypeDePartie({
+      ligne: document.getElementById('ligne-type-de-partie'),
+      champ: document.getElementById('champ-type-de-partie'),
+      rapides: document.querySelectorAll('.bouton-type-de-partie'),
+    });
+    // En cours de partie (saab, 2026-10-30 : « Oui tu peux ajouter le type dans Pendule ») : une partie recopiee,
+    // commencee en Amical, passe en Test pour corriger une erreur de copie ; le titre suit a l'enregistrement.
+    function changerLeTypeDeLaPartie(type) {
+      evenement = type;
+      partie.definirLignePrincipaleLibre(lignePrincipaleLibre(type));
+      sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps());
+    }
     document.getElementById('bouton-mode-pendules').addEventListener('click', async () => {
+      // Une Correspondance garde son type (Corr), comme elle l'echange avec l'adversaire.
+      if (!correspondanceActive) typeDePartie.proposer(evenement);
       // `ouvrir` renvoie toujours des reglages (jamais `null`, voir
       // interface/pendules-mode.js) : les reappliquer ici est un non-evenement
       // si rien n'a change (memes valeurs qu'avant l'ouverture).
       const reglages = await choixModePendules.ouvrir(partie.obtenirPendulesActuelles());
       partie.changerModePendule(reglages);
+      if (correspondanceActive) return;
+      const type = typeDePartie.lire();
+      if (type !== evenement) changerLeTypeDeLaPartie(type);
     });
 
     // Fin de partie : Options (phase 20bis) : voir interface/fin-de-partie.js. Les
@@ -3158,6 +3194,7 @@
             plateauRetourne: suite.plateauRetourne,
             machines: suite.machines,
             optionsPrecedentes: finie,
+            evenement: typeDePartieAReproposer(evenement), // une serie de Test reste en Test (interface/type-de-partie.js)
           });
           if (refaite) supprimerPartieNommee(obtenirIdPartieActive());
           oublierPartieActive();
@@ -3462,6 +3499,8 @@
     );
     // L'Option qui a demarre cette partie se refait encore (voir demarrerFinDePartie).
     partie.definirOptionARefaire(optionAModifier);
+    // Une partie Test (moteur/nom-partie.js) : n'importe quel coup de la ligne jouee se supprime.
+    partie.definirLignePrincipaleLibre(lignePrincipaleLibre(evenement));
 
     // Correspondance (phase 24, moteur/correspondance.js et
     // interface/correspondance.js). Une partie par correspondance ne se joue qu'a
@@ -3811,7 +3850,8 @@
         correspondance: document.getElementById('bouton-np-correspondance'),
       },
       choixModePendules,
-      choixDesJoueurs
+      choixDesJoueurs,
+      typeDePartie
     );
     // Les noms tapes dans la boite, sinon Joueur_1 / Joueur_2 (une machine prend le sien au chargement).
     const joueursTapes = (noms) => ({ noir: noms.noir || NOMS_PAR_DEFAUT.noir, blanc: noms.blanc || NOMS_PAR_DEFAUT.blanc });
@@ -3827,14 +3867,14 @@
       // La position de la partie en cours (saab : « ajouter la variante active ») : la meme, sauf apres un
       // puzzle ou un jeu d'Entrainement (la Marguerite belge).
       const position = puzzleEnCours || entrainementEnCours ? { texte: MARGUERITE_BELGE, nom: 'Marguerite Belge' } : { texte: ecrirePosition(partie.obtenirArbre().racine.etat), nom: variantName };
-      const { machines: machinesChoisies, noms, ailleurs, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: position.nom, choixDeLaPosition: true });
+      const { machines: machinesChoisies, noms, evenement: evenementChoisi, ailleurs, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: position.nom, choixDeLaPosition: true, evenement });
       if (ailleurs) return document.getElementById(BOUTONS_D_UNE_AUTRE_POSITION[ailleurs]).click();
       const demarrer = () => {
         // Meme mecanique que Revanche/Same (interface/sauvegarde.js,
         // definirPositionDepartSuivante) : les reglages choisis survivent
         // au rechargement qui suit, `construireDonneesDepart` plus haut
         // les relit via `positionChoisie.reglagesPendules`.
-        definirPositionDepartSuivante(position.texte, position.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms) });
+        definirPositionDepartSuivante(position.texte, position.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms), evenement: evenementChoisi });
         oublierPartieActive();
         demarrerRechargement();
       };
@@ -4365,9 +4405,9 @@
           // `reglagesChoisis`, jamais `reglagesPendules` : ce nom-la, ceux de la partie en cours, est l'argument
           // (le reprendre ici le masquait, et la boite ne s'ouvrait plus — saab, 2026-10-28 : « Après un PZL,
           // j'ai voulu charger une variante mais elle ne s'affiche pas »).
-          const { machines: machinesChoisies, noms, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: variante.nom });
+          const { machines: machinesChoisies, noms, evenement: evenementChoisi, ...reglagesChoisis } = await nouvellePartie.ouvrir(reglagesPendules, { variante: variante.nom, evenement });
           oublierPartieActive();
-          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms) });
+          definirPositionDepartSuivante(variante.texteBrut, variante.nom, { reglagesPendules: reglagesChoisis, machines: machinesChoisies, joueurs: joueursTapes(noms), evenement: evenementChoisi });
           demarrerRechargement();
         };
         // CORRIGE (saab : "si on clic sur un des 3 btn pendant qu'on a
@@ -4566,11 +4606,13 @@
         // l'autre (voir puzzleEnCours plus haut). Mode de pendule choisi ici
         // aussi (voir le commentaire equivalent sur les variantes plus haut).
         const charger = async () => {
+          typeDePartie.proposerPourUneNouvellePartie(evenement);
           const reglagesPendules = await choixModePendules.ouvrir(REGLAGES_PENDULES_PAR_DEFAUT);
+          const evenementChoisi = typeDePartie.lire();
           // Un autre PZL que celui de la case decochee : elle se recoche (interface/puzzles-permutations.js).
           retenirLePuzzleCharge(puzzle.nom);
           oublierPartieActive();
-          definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom, { reglagesPendules });
+          definirPositionDepartSuivante(puzzle.texteBrut, puzzle.nom, { reglagesPendules, evenement: evenementChoisi });
           demarrerRechargement();
         };
         // Meme securite que Variantes/Nouvelle partie, voir plus haut.
@@ -4821,6 +4863,13 @@
     function montrerLEtatDeLaVersion(etat) {
       boutonNouvelleVersion.textContent = TEXTES_DU_BOUTON_DE_VERSION[etat];
       boutonNouvelleVersion.classList.toggle('bouton-a-faire', etat === 'nouvelle');
+      marquerLaVersionEnCours(false);
+    }
+    // En orange tant que KAAH travaille (saab, 2026-10-28 : « il faudra passer en orange dès qu'on clic 'Nouvelle
+    // version' pour savoir que c'est en cours ») : la recherche, le chargement, l'installation ; un etat final
+    // (montrerLEtatDeLaVersion) ou une reponse l'enleve.
+    function marquerLaVersionEnCours(enCours) {
+      boutonNouvelleVersion.classList.toggle('bouton-en-cours', enCours);
     }
     function installationDejaProposee() {
       try {
@@ -4849,7 +4898,10 @@
       confirmation.demander(
         // Ses mises a la ligne (saab, 2026-10-16) : styles.css, #message-confirmation.
         `Installer KAAH sur cet appareil :\n(${NOM_VERSION_KAAH_TEST}),\npour y jouer ensuite même sans internet ?\nIl télécharge ses fichiers une seule fois (${texteTaille}).\n« Plus tard » : KAAH marche quand même,\navec internet, sans rien installer ;\nAide > Nouvelle version pour installer ensuite.`,
-        installerLeServiceWorker,
+        () => {
+          marquerLaVersionEnCours(true);
+          installerLeServiceWorker();
+        },
         'Installer',
         { texte: 'Plus tard' },
         { enRouge: `(${texteTaille})` }
@@ -4858,14 +4910,23 @@
     function proposerLaMiseAJour({ version, tailleMo, charger }) {
       confirmation.demander(
         `Une nouvelle version de KAAH est disponible (${version}, vous avez ${NOM_VERSION_KAAH_TEST}). La charger maintenant ? Il faut internet, ${tailleMo ? `${tailleMo} Mo` : 'quelques Mo'}. Sinon, Aide > Nouvelle version la proposera de nouveau.`,
-        charger,
+        () => {
+          marquerLaVersionEnCours(true);
+          charger();
+        },
         'Charger'
       );
     }
     boutonNouvelleVersion.addEventListener('click', async () => {
+      // Orange des le clic ; une question (installer, charger) le rend : on attend la reponse, pas KAAH.
+      marquerLaVersionEnCours(true);
       const enregistrement = await navigator.serviceWorker.getRegistration().catch(() => null);
-      if (!enregistrement) return proposerLInstallation();
-      if (miseAJourEnAttente) return proposerLaMiseAJour(miseAJourEnAttente);
+      const demander = (question) => {
+        marquerLaVersionEnCours(false);
+        question();
+      };
+      if (!enregistrement) return demander(proposerLInstallation);
+      if (miseAJourEnAttente) return demander(() => proposerLaMiseAJour(miseAJourEnAttente));
       rechercheDemandee = true;
       bandeauDeMiseAJour("Recherche d'une nouvelle version…");
       await enregistrement.update().catch(() => {});
@@ -4949,7 +5010,10 @@
           // Un refus est retenu pour l'Aide (interface/aide.js, etatHorsLigne) :
           // sans lui, rien ne disait qu'un navigateur n'installe pas KAAH (saab,
           // Opera : "rien n'indique que c'est installe").
-          .catch((erreur) => retenirRefusHorsLigne(erreur));
+          .catch((erreur) => {
+            marquerLaVersionEnCours(false);
+            retenirRefusHorsLigne(erreur);
+          });
     }
     // Regarder de nouveau s'il y a une nouvelle version (saab, 2026-10-28 : « comme Aide était déjà ouvert sur
     // v34, 'Nouvelle version' ne venait pas ») : avant, seulement au lancement de la page ; aussi en revenant sur
