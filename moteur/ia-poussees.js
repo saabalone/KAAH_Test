@@ -9,13 +9,17 @@
 //   - Pr, les poussees qui se retournent : les sumitos de l'adversaire, sans ejection, apres lesquels on peut
 //     aussitot pousser une des billes qui viennent de pousser — Sc (ia-sumito-vide.js) pour tous les sumitos, vu
 //     du defenseur.
-// Joues par KAI++ (solveur/kai-plus.cpp, billes_poussees_a_effet, poussees_retournees) ; tests/kai-plus.test.js
-// les exige egaux. Pur.
+// Puis Mc, la menace de coupure (saab, 2026-11-01 : « Ok fais le ») : contre AP6 (2611012124), apres 4-4, KAI++
+// finissait en 6 a 8 groupes, 28 des 44 sumitos d'AP6 le coupaient. Gs compte les groupes deja separes ; Mc, les
+// sumitos de l'adversaire, sans ejection, apres lesquels le camp aurait un groupe de plus — la coupure avant qu'elle
+// arrive, comme Bp les billes poussables.
+// Joues par KAI++ (solveur/kai-plus.cpp, billes_poussees_a_effet, poussees_retournees, coupures_possibles) ;
+// tests/kai-plus.test.js les exige egaux. Pur.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : DIRECTIONS, RAYON_PLATEAU (plateau.js), couleurAdverse
 // (regles.js), couleursDuPlateau (partie.js), DISTANCE_AU_CENTRE (ia-evaluation.js), CASES_VOISINES_IA,
 // INDEX_DIRECTION_OPPOSEE, sumitosDuCamp (ia-evaluation-v2.js), pousseUneDe (ia-sumito-vide.js) viennent de
-// fichiers charges avant celui-ci.
+// fichiers charges avant celui-ci ; groupesEnPlus (ia-ajouts.js, charge apres) ne sert qu'a l'appel.
 
 // La case a `pas` cases de `depart` dans la direction d'indice `index` (null hors du plateau).
 function caseApresDesPas(depart, index, pas) {
@@ -83,4 +87,18 @@ function termeDesBillesPousseesAEffet(etat, camp, poids) {
 function termeDesPousseesRetournees(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   return poids.pousseesRetournees * (pousseesRetournees(couleurs, camp) - pousseesRetournees(couleurs, couleurAdverse(camp)));
+}
+
+// Les sumitos de l'adversaire, sans ejection (une ejection, la menace d'ejection la compte deja), apres lesquels
+// `camp` aurait un groupe de plus.
+function coupuresPossibles(couleurs, camp) {
+  const lui = couleurAdverse(camp);
+  const avant = groupesEnPlus(couleurs, camp);
+  return sumitosDuCamp(couleurs, lui).filter((sumito) => !sumito.ejection && groupesEnPlus(apresLeSumito(couleurs, lui, sumito).apres, camp) > avant).length;
+}
+
+// Le terme Mc pour `camp` : ses coupures possibles moins celles de l'adversaire, fois le poids (negatif).
+function termeDeLaMenaceDeCoupure(etat, camp, poids) {
+  const couleurs = couleursDuPlateau(etat.plateau);
+  return poids.menaceDeCoupure * (coupuresPossibles(couleurs, camp) - coupuresPossibles(couleurs, couleurAdverse(camp)));
 }

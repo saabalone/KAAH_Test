@@ -94,8 +94,11 @@ function pageDesRecherches(archive) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Recherches de KAI++</title><style>${STYLE_EXPORT_RECHERCHES}</style></head><body><h1>Recherches de KAI++</h1>${morceaux.join('')}${ecrireRecherchesDansLaPage(donnees)}</body></html>`;
 }
 
+// Renvoie le nom du fichier telecharge.
 function exporterLesRecherches(archive) {
-  telechargerTexte(pageDesRecherches(archive), `recherches_kaah_${formaterDateKAAWA(new Date())}.html`, 'text/html');
+  const fichier = `recherches_kaah_${formaterDateKAAWA(new Date())}.html`;
+  telechargerTexte(pageDesRecherches(archive), fichier, 'text/html');
+  return fichier;
 }
 
 // Reimporter une page exportee (saab, 2026-10-06 : « si j'exporte un fichier

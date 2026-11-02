@@ -14,8 +14,9 @@
 // viennent de fichiers charges avant celui-ci.
 
 // `elements` : ceux de la rubrique (style, version, elagage, livre) ; `retoucher()` : un
-// champ a change. Renvoie { ligneDe(cle), afficherValeurs(valeurs), lireValeurs() }.
-function creerLesChampsDesPoidsIA(elements, retoucher) {
+// champ a change ; `pendantLaFrappe()` : un chiffre est en train d'etre tape, pas encore
+// retenu (il ne l'est qu'en quittant le champ). Renvoie { ligneDe(cle), afficherValeurs(valeurs), lireValeurs() }.
+function creerLesChampsDesPoidsIA(elements, retoucher, pendantLaFrappe) {
   const CLES_POIDS = [...CLES_POIDS_IA, ...CLES_POIDS_IA_V2, ...CLES_POIDS_IA_V3, ...CLES_POIDS_IA_V4, ...CLES_POIDS_IA_V5, ...CLES_OPTIONS_IA];
   const champPoids = (cle) => document.getElementById(`poids-ia-${cle}`);
   const champDe = (cle) => ({ version: elements.version, style: elements.style, elagage: elements.elagage, livre: elements.livre })[cle] ?? champPoids(cle);
@@ -115,6 +116,7 @@ function creerLesChampsDesPoidsIA(elements, retoucher) {
   }
   for (const champ of [...CLES_POIDS.map(champPoids), elements.elagage]) {
     champ.addEventListener('change', retoucher);
+    champ.addEventListener('input', pendantLaFrappe);
     // Les boutons - et + (saab, 2026-09-30), comme ceux des tailles d'Affichage.
     for (const bouton of champ.parentElement.querySelectorAll('[data-pas]')) {
       // Un appui prolonge enchaine les pas (interface/appui-prolonge.js).

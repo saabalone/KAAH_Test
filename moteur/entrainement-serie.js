@@ -85,10 +85,17 @@ function parcoursAJour(parcours) {
 // Un parcours enregistre avant le 2026-10-10 n'a pas tous les champs.
 const complet = (parcours) => ({ ...SERIE_A_ZERO, ...parcours });
 
-// Viser `cible` (plus haute que la ceinture acquise) : la serie repart de zero.
+// La serie de la ceinture visee : les champs de SERIE_A_ZERO.
+const serieDuParcours = (parcours) => Object.fromEntries(Object.keys(SERIE_A_ZERO).map((cle) => [cle, parcours[cle] ?? SERIE_A_ZERO[cle]]));
+
+// Viser `cible` (plus haute que la ceinture acquise ; saab, 2026-10-31 : « si je vise une autre ceinture alors que je
+// n'ai pas terminé celle où j'étais, et que je reviens ... le compteur de visée est à 0 ... il faut tjs conserver ceux
+// qu'on a fait ») : la serie de la ceinture quittee est gardee (`seriesGardees`) ; celle de `cible` revient si on
+// l'avait commencee, sinon elle part de zero.
 function viserCeinture(parcours, cible) {
   if (!Number.isInteger(cible) || cible <= parcours.ceinture || cible > CEINTURE_LA_PLUS_HAUTE || cible === parcours.cible) return parcours;
-  return { ...parcours, cible, ...SERIE_A_ZERO };
+  const gardees = { ...parcours.seriesGardees, ...(parcours.cible === null ? {} : { [parcours.cible]: serieDuParcours(parcours) }) };
+  return { ...parcours, cible, ...SERIE_A_ZERO, ...gardees[cible], seriesGardees: sansCle(gardees, String(cible)) };
 }
 
 // Les ceintures a confirmer encore : les sautees, ou celle d'en dessous.
@@ -124,11 +131,14 @@ function ajouterGagne(gagnes, ceinture, nom) {
   return { ...gagnes, [ceinture]: [...(gagnes[ceinture] ?? []).filter((autre) => autre !== nom), nom] };
 }
 
-// La ceinture visee obtenue. `precedente` : la plus haute confirmee, sinon l'acquise.
+// La ceinture visee obtenue. `precedente` : la plus haute confirmee, sinon l'acquise. La serie gardee de la suivante
+// (viserCeinture) revient ; celles d'en dessous ne servent plus.
 function ceintureObtenue(parcours, gagnes, confirmee) {
   const obtenue = parcours.cible;
+  const cible = obtenue === CEINTURE_LA_PLUS_HAUTE ? null : obtenue + 1;
+  const gardees = Object.fromEntries(Object.entries(parcours.seriesGardees ?? {}).filter(([autre]) => Number(autre) > obtenue));
   return {
-    parcours: { ...parcours, ceinture: obtenue, cible: obtenue === CEINTURE_LA_PLUS_HAUTE ? null : obtenue + 1, ...SERIE_A_ZERO, gagnes, precedente: confirmee ? obtenue - 1 : parcours.ceinture === SANS_CEINTURE ? null : parcours.ceinture },
+    parcours: { ...parcours, ceinture: obtenue, cible, ...SERIE_A_ZERO, ...gardees[cible], seriesGardees: sansCle(gardees, String(cible)), gagnes, precedente: confirmee ? obtenue - 1 : parcours.ceinture === SANS_CEINTURE ? null : parcours.ceinture },
     evenement: 'ceinture',
   };
 }

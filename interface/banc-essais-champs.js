@@ -9,16 +9,18 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : CLES_REGLAGES_IA, LIBELLES_REGLAGES_IA
 // (moteur/historique-profil-ia.js), CLES_OPTIONS_IA (moteur/ia-ajouts.js), CLES_CASES_IA_V3
 // (moteur/ia-evaluation-v3.js), GROUPES_DE_L_EVALUATION_IA (moteur/ia-groupes.js),
-// CLE_CASES_BANC, PREFIXE_GROUPE_BANC, REGLAGES_DE_RECHERCHE_BANC (moteur/banc-essais.js), brancherAppuiProlonge
-// (interface/appui-prolonge.js) vient d'un fichier charge avant celui-ci.
+// CLE_CASES_BANC, PREFIXE_GROUPE_BANC, REGLAGES_DE_RECHERCHE_BANC (moteur/banc-essais.js), NIVEAU_MAX_IA
+// (moteur/ia-recherche.js), brancherAppuiProlonge (interface/appui-prolonge.js) viennent de fichiers charges avant
+// celui-ci.
 
-const NIVEAU_MAX_BANC = 8;
+// Les niveaux de la machine, 9 et 10 compris depuis le 2026-11-02 (NIVEAU_MAX_IA, moteur/ia-recherche.js).
+const NIVEAU_MAX_BANC = NIVEAU_MAX_IA;
 const TEMPS_MIN_BANC = 0.5;
 // La reflexion « sans limite » : le niveau est toujours atteint.
 const TEMPS_SANS_LIMITE_BANC = 0;
-// Par defaut, le niveau le plus haut sans limite de temps (saab, 2026-10-18 : « dans LabAl
-// mettre les niveaux à 8 et Réfl à 0 par défaut »).
-const NIVEAU_PAR_DEFAUT_BANC = NIVEAU_MAX_BANC;
+// Par defaut, le niveau 8 sans limite de temps (saab, 2026-10-18 : « dans LabAl mettre les niveaux à 8 et Réfl
+// à 0 par défaut ») — le plus haut d'alors ; 9 et 10 sont deux a quatre fois plus longs.
+const NIVEAU_PAR_DEFAUT_BANC = 8;
 const TEMPS_PAR_DEFAUT_BANC = TEMPS_SANS_LIMITE_BANC;
 
 const niveauDuBanc = (texte, defaut) => {

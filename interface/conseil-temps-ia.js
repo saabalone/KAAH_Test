@@ -7,14 +7,16 @@
 // KAI++ avec Normal v4el (elagage 10) et Normal v4 (sans elagage), sur 23
 // positions de vraies parties (debut, milieu et fin) — [mediane, 80 %] en
 // secondes, une position apres l'autre ; Infinity : plus de 2 minutes (la mesure
-// s'arretait la).
+// s'arretait la). Les niveaux 9 et 10 (saab, 2026-11-02 : « ajouter aussi les niveau 9 et 10 ») : mesures le
+// 2026-11-02 sur le meme PC, KAI++ deux fois plus rapide (v37.17), avec Normal v5ElP5 (elagage 10), sur 24 positions
+// de parties contre AbaPro ; sans elagage, ils ne finissent pas.
 // Un telephone est plusieurs fois plus lent ; KAI (JavaScript) aussi.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js).
 
 const TEMPS_DES_NIVEAUX_KAI_PLUS_S = {
-  avecElagage: { 1: [0, 0], 2: [0, 0.01], 3: [0.01, 0.01], 4: [0.03, 0.04], 5: [0.14, 0.17], 6: [0.38, 0.5], 7: [1.4, 2], 8: [3.44, 5.47] },
-  sansElagage: { 1: [0, 0], 2: [0, 0.01], 3: [0.02, 0.03], 4: [0.09, 0.11], 5: [0.96, 1.21], 6: [2.85, 6.62], 7: [32.1, 71.1], 8: [Infinity, Infinity] },
+  avecElagage: { 1: [0, 0], 2: [0, 0.01], 3: [0.01, 0.01], 4: [0.03, 0.04], 5: [0.14, 0.17], 6: [0.38, 0.5], 7: [1.4, 2], 8: [3.44, 5.47], 9: [12, 18.4], 10: [38.7, 71.2] },
+  sansElagage: { 1: [0, 0], 2: [0, 0.01], 3: [0.02, 0.03], 4: [0.09, 0.11], 5: [0.96, 1.21], 6: [2.85, 6.62], 7: [32.1, 71.1], 8: [Infinity, Infinity], 9: [Infinity, Infinity], 10: [Infinity, Infinity] },
 };
 // KAI (JavaScript) : 40 a 80 fois plus lent que KAI++ (Aide, « KAI et KAI++ »).
 const KAI_PLUS_LENT_QUE_KAI_PLUS = 50;

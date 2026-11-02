@@ -20,7 +20,8 @@
 // libelleProfilIA (interface/profils-ia.js), colorerListeProfilsIA (interface/couleurs-ia.js),
 // lireReglagesActifs (interface/reglages-profils.js), remplirListeProfils,
 // profilDuChoix, styleDuChoix (interface/liste-profils-choix.js)
-// viennent de fichiers charges avant celui-ci.
+// viennent de fichiers charges avant celui-ci ; afficherNomsConnus (interface/noms-connus.js, charge
+// apres) n'est appele qu'a l'ouverture de la boite.
 
 const CLE_DERNIERS_JOUEURS = 'kaah-derniers-joueurs';
 const CAMPS_JOUEURS = ['noir', 'blanc'];
@@ -139,6 +140,9 @@ function brancherChoixMachine(element, surChangement) {
     // Le nom (saab, 2026-10-27) : pour un humain seulement ; une machine a le sien.
     const champNom = element.querySelector('.choix-nom-joueur');
     if (champNom) champNom.hidden = role !== ROLE_HUMAIN;
+    // Ses noms deja donnes (interface/noms-connus.js, remplis par preparer) : pour un humain aussi.
+    const nomsConnusDuCamp = element.querySelector('.noms-connus');
+    if (nomsConnusDuCamp) nomsConnusDuCamp.hidden = role !== ROLE_HUMAIN || nomsConnusDuCamp.childElementCount === 0;
     for (const bouton of element.querySelectorAll('[data-niveau]')) {
       bouton.classList.toggle('bouton-actif', Number(bouton.dataset.niveau) === niveau);
     }
@@ -255,6 +259,14 @@ function demarrerChoixJoueurs(section) {
   function preparer(visible) {
     section.hidden = !visible;
     for (const champ of section.querySelectorAll('.choix-nom-joueur')) champ.value = '';
+    // La liste des noms deja donnes sous chaque nom (saab, 2026-10-31 : « Dans Nouvelle Partie il faut aussi la liste
+    // déroulante des noms des joueurs »), comme dans la boite du nom ; avant `definir`, qui la cache pour une machine.
+    if (visible) {
+      for (const camp of CAMPS_JOUEURS) {
+        const bloc = section.querySelector(`.choix-joueur[data-camp="${camp}"]`);
+        afficherNomsConnus(bloc.querySelector('.noms-connus'), bloc.querySelector('.choix-nom-joueur'));
+      }
+    }
     const choix = lireDerniersJoueurs();
     for (const camp of CAMPS_JOUEURS) blocs[camp].definir({ ...choix[camp], livre: livreDuProfil(choix[camp].profil) });
   }

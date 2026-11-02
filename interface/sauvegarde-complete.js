@@ -5,9 +5,9 @@
 // KAAH de cet appareil, puis recharge la page.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : sauvegardeComplete,
-// lireSauvegardeComplete, PREFIXE_DES_DONNEES_KAAH (moteur/sauvegarde-complete.js),
-// telechargerTexte, demarrerImportation (interface/fichiers.js), formaterDateKAAWA
-// (interface/sauvegarde.js) viennent de fichiers charges avant celui-ci.
+// lireSauvegardeComplete, stockageAvecLaPartie, PREFIXE_DES_DONNEES_KAAH (moteur/sauvegarde-complete.js),
+// telechargerTexte, demarrerImportation (interface/fichiers.js), formaterDateKAAWA, obtenirIdPartieActive,
+// CLE_MES_PARTIES (interface/sauvegarde.js) viennent d'autres fichiers du jeu, appeles seulement a l'usage.
 
 function lireToutLeStockage() {
   const stockage = {};
@@ -29,11 +29,14 @@ function demarrerSauvegardeComplete(elements, confirmer, recharger) {
   elements.rubrique?.addEventListener('toggle', () => {
     if (elements.rubrique.open) elements.occupation.textContent = `Stockage du navigateur (environ 5 000 k en tout) : ${occupationDuStockage()}`;
   });
+  for (const element of elements.ouTrouverLesFichiers) element.textContent = OU_TROUVER_LES_FICHIERS_EXPORTES;
+  elements.exportAutomatique.checked = exportAutomatiqueActif();
+  elements.exportAutomatique.addEventListener('change', () => definirExportAutomatique(elements.exportAutomatique.checked));
   elements.exporter.addEventListener('click', () => {
     const date = formaterDateKAAWA(new Date());
     const fichier = sauvegardeComplete(lireToutLeStockage(), date);
     telechargerTexte(JSON.stringify(fichier), `KAAH_sauvegarde_${date}.json`, 'application/json');
-    elements.note.textContent = `${Object.keys(fichier.donnees).length} sortes de données exportées. Copiez ce fichier sur l’autre appareil (câble, mail, cloud…), puis Importer tout.`;
+    elements.note.textContent = `${Object.keys(fichier.donnees).length} sortes de données exportées dans KAAH_sauvegarde_${date}.json (les Téléchargements de l’appareil). Copiez ce fichier sur l’autre appareil (câble, mail, cloud…), puis Importer tout.`;
   });
   elements.importer.addEventListener('click', () => {
     demarrerImportation(
@@ -82,4 +85,46 @@ function occupationDuStockage() {
   const total = tailles.reduce((somme, [, taille]) => somme + taille, 0);
   const lourdes = tailles.sort((a, b) => b[1] - a[1]).slice(0, CLES_LES_PLUS_LOURDES_MONTREES).map(([cle, taille]) => `  ${cle} : ${enK(taille)}`);
   return `${enK(total)} caractères en tout, dont :\n${lourdes.join('\n')}`;
+}
+
+// Ou retrouver un fichier exporte (saab, 2026-10-31 : « Indiquer où se trouve les fichiers exporter, pour les retrouver
+// facilement ») : la page ne connait pas le dossier, c'est le navigateur qui le choisit — les Telechargements, d'habitude.
+const OU_TROUVER_LES_FICHIERS_EXPORTES = "sur ordinateur, le dossier Téléchargements (ou celui choisi dans les réglages du navigateur) ; sur iPhone et iPad, l'app Fichiers, dossier Téléchargements (dans iCloud Drive ou Sur mon iPhone) ; sur Android, l'app Fichiers, dossier Téléchargements (Download).";
+
+// L'EXPORT AUTOMATIQUE (saab, 2026-10-31 : « ajouter un btn coché par défaut pour exporter automatiquement les parties
+// ou autres fichiers en mémoire qui sature le navigateur pour être sûr de ne rien perdre ; mettre une alerte qd ça se
+// fait et indiquer qu'on peut décocher pour ne pas exporter automatiquement ») : une partie qui ne s'enregistre plus
+// (index.html, actualiserEtatSauvegarde) fait telecharger ce que contient le stockage, elle comprise : le format
+// d'« Exporter tout » (relu par Importer tout), sous un autre nom, KAAH_stockage_plein_<date> (saab : la case et le
+// bouton « un peu confus, on ne sait pas bien la différence »).
+// La case (Reglages > Sauvegarde complete), cochee au depart, est retenue sur cet appareil.
+const CLE_EXPORT_AUTOMATIQUE = 'kaah-export-automatique';
+const EXPORT_AUTOMATIQUE_DECOCHE = 'non';
+
+function exportAutomatiqueActif() {
+  try {
+    return window.localStorage.getItem(CLE_EXPORT_AUTOMATIQUE) !== EXPORT_AUTOMATIQUE_DECOCHE;
+  } catch {
+    return true;
+  }
+}
+
+function definirExportAutomatique(actif) {
+  try {
+    if (actif) window.localStorage.removeItem(CLE_EXPORT_AUTOMATIQUE);
+    else window.localStorage.setItem(CLE_EXPORT_AUTOMATIQUE, EXPORT_AUTOMATIQUE_DECOCHE);
+  } catch {
+    // le choix vaut tant que la page reste ouverte
+  }
+}
+
+// Tout KAAH, avec la partie en cours (`donnees`) a sa place dans Mes parties (moteur/sauvegarde-complete.js,
+// stockageAvecLaPartie) : elle n'a pas pu s'y ecrire. Renvoie le nom du fichier telecharge.
+function exporterToutAvecLaPartieEnCours(donnees) {
+  const date = formaterDateKAAWA(new Date());
+  const id = obtenirIdPartieActive() || `${Date.now()}-export`;
+  const stockage = stockageAvecLaPartie(lireToutLeStockage(), CLE_MES_PARTIES, id, donnees);
+  const nom = `KAAH_stockage_plein_${date}.json`;
+  telechargerTexte(JSON.stringify(sauvegardeComplete(stockage, date)), nom, 'application/json');
+  return nom;
 }

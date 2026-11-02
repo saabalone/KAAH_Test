@@ -178,6 +178,8 @@ const FICHIERS_ESSENTIELS = [
   './interface/entrainement-partie.js',
   './interface/apercu-test.js',
   './interface/sauvegarde-complete.js',
+  './interface/import-parties.js',
+  './interface/stockage-plein.js',
   './interface/objectifs-ceintures.js',
   './interface/entrainement-ceintures.js',
   './interface/entrainement-tableau.js',

@@ -42,8 +42,9 @@
 // niveau n regarde exactement n coups d'avance, KAI comme KAI++ (saab,
 // 2026-10-01 : « IA3 s'arrete a 3 ... rajouter des btn de niveau si on veut 4,
 // 5, n, et c'est le temps qui pourra arreter la recherche si niveau pas
-// atteint ») — voir rechercheEcourtee pour le signaler.
-const NIVEAU_MAX_IA = 8;
+// atteint ») — voir rechercheEcourtee pour le signaler. Jusqu'a 10 depuis le 2026-11-02 (saab : « ajouter aussi
+// les niveau 9 et 10 si c'est possible » — KAI++ deux fois plus rapide, et le niveau 8 bat AbaPro niveau 6).
+const NIVEAU_MAX_IA = 10;
 const NIVEAUX_IA = Object.fromEntries(Array.from({ length: NIVEAU_MAX_IA }, (_, rang) => [rang + 1, { profondeur: rang + 1 }]));
 
 // La reflexion d'une machine (moteur/ia.js) s'est-elle arretee AVANT la

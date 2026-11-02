@@ -9,7 +9,8 @@
 // (ia-evaluation.js), VERSIONS_IA, POIDS_DES_VERSIONS_IA, nomDuProfilIntegre,
 // NOMS_STYLES_IA, lireMachine (ia.js), lireHistoriqueIA, valeursReglagesIA
 // (historique-profil-ia.js) viennent de fichiers charges avant celui-ci ;
-// nomDisponible (corbeille.js), charge apres, ne sert qu'une fois la page chargee.
+// nomDisponible (corbeille.js), charge apres, ne sert qu'une fois la page chargee ; rangDuJeuDAjouts
+// (noms-ia.js), seulement a l'usage.
 
 // Ce que cherche chaque profil integre (saab, 2026-10-03 : « une description
 // de ce qu'il cherche a faire, a mettre partout ou c'est necessaire ») — dit
@@ -84,10 +85,10 @@ const POIDS_NORMAL_V5EL_V7 = {
 // l'Agressif et du Defensif.
 const POIDS_NORMAL_V5EL_V8 = { ...POIDS_NORMAL_V5EL_V7, cohesion: 15, gainFibonacci: 20, perteFibonacci: 20, sumito32: 6, sumito31: 4, sumito21: 2 };
 // L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut) :
-// Normal v5ElP5_k2 depuis le 2026-10-28 (saab : « on passe ce réglage en profil par défaut, car même s'il
-// n'est pas encore bon, il attaque qd même s'il est en bloc ») — le P5 avec la menace a 10 ; avant, Normal
-// v5ElP5 (du 22 au 28/10), et Normal v5ElP4_k4 (du 20 au 22/10).
-const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v11';
+// Normal v5ElP5 de nouveau depuis le 2026-11-02 (saab : « on repasse P5 en défaut » — contre AP6, P5 seul a fait
+// mieux que tous les ajouts essayes, et gagne avec les Noirs) ; avant, Normal v5ElP5_k2 (du 28/10 au 2/11 ; saab :
+// « il attaque qd même s'il est en bloc »), Normal v5ElP5 (du 22 au 28/10), Normal v5ElP4_k4 (du 20 au 22/10).
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v10';
 // Normal v5ElP4_v4 : la compacite a 50, la base des profils P5.
 const POIDS_NORMAL_V5EL_V9 = { ...POIDS_NORMAL_V5EL_V8, compacite: 50 };
 // Les billes poussables d'ULA (Bp, Bmp, Bpb), comme dans le P5 de saab.
@@ -166,29 +167,29 @@ const PROFILS_IA_DE_TRAVAIL = [
   // Le P5 de saab (2026-10-20 : « avec les nouveaux paramètres Bm, etc, KAI++6 gagne enfin AP6 » ;
   // 2026-10-22 : « Ok mets le P5 Agr et Nor ») : v9 avec les billes poussables d'ULA. Au niveau 8
   // sans limite : 8-4 (8 nulles) contre v9, jeu egal contre v9 + cohesion 20 (8-7, 5 nulles).
-  // L'IA par defaut du 22 au 28/10. Le premier jeu de poids de sa famille (P5) : pas de _k.
-  {
-    nom: 'Normal v5el_v10',
-    version: 5,
-    livre: true,
-    elagage: ELAGAGE_PAR_DEFAUT_IA,
-    style: 'normal',
-    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
-    description: "L'IA par défaut du 22 au 28/10/2026 : Normal v5ElP5, le P5 de saab — Normal v5ElP4_k4 et les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7). En KAI++ niveau 6, il a battu AbaPro niveau 6 (AP6) 6-4 avec l'élagage 10 (2026-10-20), puis 6-4 avec l'élagage 20 (2026-10-24). Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_k4.",
-  },
-  // Le P5 avec la menace d'ejection a 10 (essais 32 a 35 ; saab, 2026-10-28 : « on passe ce réglage en profil par
-  // défaut, car même s'il n'est pas encore bon, il attaque qd même s'il est en bloc ») : la menace a 20 valait
-  // presque une bille ejectee, P5 gardait ses menaces au lieu d'ejecter (partie Br_2610250415). Son 2e jeu de
-  // poids de KAAH : _k2. L'IA par defaut.
+  // L'IA par defaut du 22 au 28/10, et de nouveau depuis le 2/11. Le premier jeu de poids de sa famille (P5) : pas de _k.
   {
     nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
     version: 5,
     livre: true,
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'normal',
+    poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
+    description: "L'IA par défaut (du 22 au 28/10/2026, et de nouveau depuis le 2/11) : Normal v5ElP5, le P5 de saab — Normal v5ElP4_k4 et les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7). En KAI++ niveau 6, il a battu AbaPro niveau 6 (AP6) 6-4 avec l'élagage 10 (2026-10-20), puis 6-4 avec l'élagage 20 (2026-10-24) ; le 1/11, en KAI++ niveau 8, il bat AP6 6-5 avec les Blancs et 6-1 avec les Noirs. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_k4.",
+  },
+  // Le P5 avec la menace d'ejection a 10 (essais 32 a 35 ; saab, 2026-10-28 : « on passe ce réglage en profil par
+  // défaut, car même s'il n'est pas encore bon, il attaque qd même s'il est en bloc ») : la menace a 20 valait
+  // presque une bille ejectee, P5 gardait ses menaces au lieu d'ejecter (partie Br_2610250415). Son 2e jeu de
+  // poids de KAAH : _k2. L'IA par defaut du 28/10 au 2/11.
+  {
+    nom: 'Normal v5el_v11',
+    version: 5,
+    livre: true,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style: 'normal',
     numeroDePoids: 2,
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 10 },
-    description: "L'IA par défaut depuis le 2026-10-28 : Normal v5ElP5_k2, le P5 avec la menace d'éjection à 10 au lieu de 20 — il éjecte au lieu de garder ses menaces. Au niveau 6 contre P5 (80 parties, essais 32 et 33) : 51 gagnées, 10 perdues, 19 nulles, contre 35-5-40 pour P5 lui-même ; contre P5 au niveau 7 : 15-17 (8 nulles), P5 au niveau 6 : 14-18.",
+    description: "L'IA par défaut du 28/10 au 2/11/2026 : Normal v5ElP5_k2, le P5 avec la menace d'éjection à 10 au lieu de 20 — il éjecte au lieu de garder ses menaces. Au niveau 6 contre P5 (80 parties, essais 32 et 33) : 51 gagnées, 10 perdues, 19 nulles, contre 35-5-40 pour P5 lui-même ; contre P5 au niveau 7 : 15-17 (8 nulles), P5 au niveau 6 : 14-18.",
   },
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
@@ -332,7 +333,7 @@ function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre =
 // de poids (_v) — une famille reste ensemble —, enfin leur numero et leur version.
 const STYLES_DANS_L_ORDRE_IA = Object.keys(STYLES_IA);
 function profilsIADansLOrdre(profils) {
-  const cle = (profil) => [STYLES_DANS_L_ORDRE_IA.indexOf(profil.style), profil.version, profil.elagage, profil.numeroDesAjouts ?? 0, profil.numeroDePoids ?? 1, profil.indice ?? 0, profil.courante ?? 0];
+  const cle = (profil) => [STYLES_DANS_L_ORDRE_IA.indexOf(profil.style), profil.version, profil.elagage, rangDuJeuDAjouts(profil.numeroDesAjouts), profil.numeroDePoids ?? 1, profil.indice ?? 0, profil.courante ?? 0];
   return [...profils].sort((a, b) => {
     const [cleA, cleB] = [cle(a), cle(b)];
     const rang = cleA.findIndex((valeur, i) => valeur !== cleB[i]);

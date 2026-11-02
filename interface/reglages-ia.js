@@ -55,7 +55,7 @@ function demarrerReglagesIA(elements) {
   let retouchesPrecedentes = [];
   let surRetouche = () => {};
   // Les champs des poids (interface/reglages-ia-poids.js).
-  const { ligneDe, afficherValeurs, lireValeurs } = creerLesChampsDesPoidsIA(elements, () => retoucher());
+  const { ligneDe, afficherValeurs, lireValeurs } = creerLesChampsDesPoidsIA(elements, () => retoucher(), pendantLaFrappe);
 
 
   const profilActuel = () => trouverProfilIA(nomActuel);
@@ -84,6 +84,15 @@ function demarrerReglagesIA(elements) {
     // la retouche suivante ou un autre profil.
     elements.valider.classList.toggle('bouton-a-faire', brouillon !== null);
     if (brouillon !== null) elements.valider.classList.remove('bouton-valide');
+  }
+
+  // Saab, 2026-11-01 : « J'ai mis Perte 200, mais les btn Valider et Abandonner sont grisés » — un
+  // chiffre tape ne devient une retouche qu'en quittant son champ. Pendant la frappe, les deux sont
+  // deja permis, Valider en vert : les toucher quitte le champ, la retouche se fait juste avant.
+  function pendantLaFrappe() {
+    elements.valider.disabled = elements.abandonner.disabled = false;
+    elements.valider.classList.add('bouton-a-faire');
+    elements.valider.classList.remove('bouton-valide');
   }
 
   function remplir() {

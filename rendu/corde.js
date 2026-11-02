@@ -209,7 +209,11 @@ function dessinerCorde(svg, hexFond) {
   const campHaut = sensDuPlateau === 1 ? 'blanc' : 'noir';
   const campBas = campHaut === 'blanc' ? 'noir' : 'blanc';
   const cordes = creerElementSVG('g', { class: 'cordes' });
+  // Le lisere gris (saab, 2026-11-01 : « une petite ligne grise autour de la corde pour voir le coté noir sur fond
+  // noir ») : le meme trajet, un peu plus large, dessine sous chaque demi-corde — il depasse de chaque cote.
   cordes.append(
+    creerElementSVG('path', { d: haut, class: 'lisere-corde' }),
+    creerElementSVG('path', { d: bas, class: 'lisere-corde' }),
     creerElementSVG('path', { d: haut, class: `corde corde-${campHaut}` }),
     creerElementSVG('path', { d: bas, class: `corde corde-${campBas}` })
   );

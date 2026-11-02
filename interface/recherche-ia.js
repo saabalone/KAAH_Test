@@ -129,15 +129,19 @@ function demarrerRechercheIA(boite, sequencePrevue) {
     });
   });
 
-  // Pleine (saab, 2026-10-03 : « une alerte si c'est plein ... sinon demander si
-  // on veut exporter ») : une fois par ouverture, juste avant que les plus
-  // anciennes s'effacent, la proposition de les exporter d'abord.
-  let pleineSignalee = false;
+  // Pleine (saab, 2026-11-01 : « Il faudrait exporter et vider sans bloquer l'IA » — la
+  // question d'avant, une boite, arretait la partie jusqu'a la reponse) : avec l'export
+  // automatique (Reglages > Sauvegarde complete, interface/sauvegarde-complete.js), toutes
+  // partent dans un fichier, puis l'archive se vide ; la page se construit apres le coup,
+  // et le poids dit le fichier. Sans : les plus anciennes s'effacent, sans rien demander.
+  let dernierExport = '';
   function avantDOublier(archive) {
-    if (pleineSignalee) return;
-    pleineSignalee = true;
-    const message = "Les recherches de KAI++ gardées sur cet appareil sont pleines : à partir de maintenant, les plus anciennes s'effacent pour faire de la place aux nouvelles. Les exporter d'abord dans un fichier (pour Excel) ?";
-    if (window.confirm(message)) exporterLesRecherches(archive);
+    if (!exportAutomatiqueActif()) return false;
+    setTimeout(() => {
+      dernierExport = ` · pleines : exportées (${exporterLesRecherches(archive)}, Téléchargements), puis vidées`;
+      afficherPoids();
+    });
+    return true;
   }
 
   // Leur poids sur l'appareil (saab, 2026-10-03 : « afin de savoir si on doit
@@ -145,7 +149,7 @@ function demarrerRechercheIA(boite, sequencePrevue) {
   const poids = boite.querySelector('.poids-recherches');
   function afficherPoids() {
     const caracteres = placeDesRecherches();
-    poids.textContent = `${Math.ceil(caracteres / OCTETS_PAR_KO)} Ko (max ${Math.round(TAILLE_ARCHIVE_RECHERCHES_MAX / OCTETS_PAR_KO)})`;
+    poids.textContent = `${Math.ceil(caracteres / OCTETS_PAR_KO)} Ko (max ${Math.round(TAILLE_ARCHIVE_RECHERCHES_MAX / OCTETS_PAR_KO)})${dernierExport}`;
     // Presque pleine : en orange, pour penser a exporter ou vider.
     poids.classList.toggle('reglage-modifie', caracteres >= TAILLE_ARCHIVE_RECHERCHES_MAX * PART_PRESQUE_PLEINE);
     boite.querySelector('.bouton-vider-recherches').classList.toggle('vider-a-faire', caracteres > TAILLE_ARCHIVE_RECHERCHES_MAX * PART_A_VIDER);
@@ -154,6 +158,7 @@ function demarrerRechercheIA(boite, sequencePrevue) {
     evenement.preventDefault();
     if (!window.confirm('Oublier toutes les recherches de KAI++ gardées sur cet appareil ? (Exporter les garde dans un fichier.)')) return;
     oublierLesRecherches();
+    dernierExport = '';
     afficherPoids();
     if (detailsEnDirect === null) montrerLesGardees();
   });

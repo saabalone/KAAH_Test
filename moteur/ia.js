@@ -18,6 +18,27 @@
 // moins cette fraction des victoires du premier (tri des Conseils) : un peu de
 // variete d'une partie a l'autre, jamais un coup rarement gagnant.
 const FRACTION_DES_VICTOIRES_LIVRE = 0.5;
+// Puis, parmi eux, au POURCENTAGE de victoires (saab, 2026-11-01 : « Ok, pour pourcentage ») : contre AP6, au 3e coup
+// de Blanc, le livre tirait b4d4 (63 victoires sur 129 parties, 49 %) ou g4f5 (37 sur 105, 35 %) — tres joue, g4f5
+// avait assez de victoires, et il a perdu les 3 parties. Seuls comptent les coups joues PARTIES_MINIMUM_LIVRE fois au
+// moins (en dessous, le pourcentage ne dit rien) ; restent ceux a ECART_DE_POURCENTAGE_LIVRE points au plus du
+// meilleur. Parmi les coups qu'il tirait seulement : sur tous, il changerait de repertoire (c6d5, 55 % sur 93 parties,
+// au lieu de a5d5, 47 % sur 4902, des le 2e coup de Blanc).
+const PARTIES_MINIMUM_LIVRE = 20;
+const ECART_DE_POURCENTAGE_LIVRE = 2;
+
+const partiesDuConseil = ({ victoires, defaites, nulles }) => victoires + defaites + nulles;
+const pourcentageDeVictoires = (conseil) => (100 * conseil.victoires) / partiesDuConseil(conseil);
+
+// Les conseils (tries par victoires) que le livre peut tirer.
+function conseilsTiresParLeLivre(conseils) {
+  const meilleur = conseils[0]?.victoires ?? 0;
+  const parVictoires = conseils.filter((conseil) => conseil.victoires > 0 && conseil.victoires >= meilleur * FRACTION_DES_VICTOIRES_LIVRE);
+  const assezJoues = parVictoires.filter((conseil) => partiesDuConseil(conseil) >= PARTIES_MINIMUM_LIVRE);
+  if (assezJoues.length === 0) return parVictoires;
+  const meilleurPourcentage = Math.max(...assezJoues.map(pourcentageDeVictoires));
+  return assezJoues.filter((conseil) => pourcentageDeVictoires(conseil) >= meilleurPourcentage - ECART_DE_POURCENTAGE_LIVRE);
+}
 
 // Un coup du livre pour le camp au trait de `etat`, ou null (pas de base,
 // position inconnue, aucun coup gagnant connu). Memes filtres que les Conseils
@@ -25,9 +46,7 @@ const FRACTION_DES_VICTOIRES_LIVRE = 0.5;
 // pas au plateau reel).
 function coupDuLivre(base, etat, hasard) {
   if (!base) return null;
-  const conseils = conseilsDuCampAuTrait(base, ecrirePosition(etat), etat.joueurAuTrait);
-  const meilleur = conseils[0]?.victoires ?? 0;
-  const candidats = conseils.filter((conseil) => conseil.victoires > 0 && conseil.victoires >= meilleur * FRACTION_DES_VICTOIRES_LIVRE);
+  const candidats = conseilsTiresParLeLivre(conseilsDuCampAuTrait(base, ecrirePosition(etat), etat.joueurAuTrait));
   if (candidats.length === 0) return null;
   const choisi = candidats[Math.floor(hasard() * candidats.length)];
   const coup = lireCoupNacre(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, choisi.coup);
@@ -90,6 +109,10 @@ const SUFFIXE_SANS_LIVRE_NOM_IA = 'Ls';
 const LETTRE_POIDS_KAAH_NOM_IA = 'k';
 const LETTRE_POIDS_PERSO_NOM_IA = 'v';
 const lettreDuJeuDePoids = (personnel) => (personnel ? LETTRE_POIDS_PERSO_NOM_IA : LETTRE_POIDS_KAAH_NOM_IA);
+// Pareil pour le jeu d'ajouts (saab, 2026-10-31) : « 5M1 », la 1re modification a soi du P5 de KAAH (moteur/noms-ia.js).
+const LETTRE_MODIFICATION_DES_AJOUTS = 'M';
+const FORME_JEU_D_AJOUTS_MODIFIE = /^(\d+)M(\d+)$/;
+const estUnJeuDAjoutsModifie = (numero) => typeof numero === 'string' && FORME_JEU_D_AJOUTS_MODIFIE.test(numero);
 const VERSIONS_IA = [1, 2, 3, 4, 5];
 // Les poids de chaque version, et ceux par defaut de chaque style.
 const POIDS_DES_VERSIONS_IA = {
@@ -171,8 +194,9 @@ function lireMachine(brut) {
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
     // La version de son profil (moteur/historique-profil-ia.js), au-dela de la 1re.
     ...(Number.isInteger(brut.versionProfil) && brut.versionProfil > PREMIERE_VERSION_DU_PROFIL_IA ? { versionProfil: brut.versionProfil } : {}),
-    // Les numeros de son nom (saab, 2026-10-16, moteur/noms-ia.js) : Pn, _v, _h.
+    // Les numeros de son nom (saab, 2026-10-16, moteur/noms-ia.js) : Pn (ou PnMm), _v, _h.
     ...Object.fromEntries(['numeroDesAjouts', 'numeroDePoids', 'versionHistorique'].filter((cle) => Number.isInteger(brut[cle]) && brut[cle] > 0).map((cle) => [cle, brut[cle]])),
+    ...(estUnJeuDAjoutsModifie(brut.numeroDesAjouts) ? { numeroDesAjouts: brut.numeroDesAjouts } : {}),
   };
 }
 

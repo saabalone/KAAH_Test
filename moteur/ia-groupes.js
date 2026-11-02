@@ -27,7 +27,7 @@ const GROUPES_DE_L_EVALUATION_IA = [
     termes: ['gain', 'gainScore', 'perte', 'perteScore', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'sumitoContre', 'billesPoussables', 'billesMultipoussables', 'billesPoussablesBord', 'billesEjectables', 'billesMultiejectables', 'billesPousseesAEffet', 'pousseesRetournees', 'menaceEjection', 'fourchette', 'piege'],
     reglages: ['gain', 'gainScore', 'gainFibonacci', 'perte', 'perteScore', 'perteFibonacci', 'sumito', 'sumito32', 'sumito31', 'sumito21', 'sumitoVide', 'sumitoContre', 'billesPoussables', 'billesMultipoussables', 'billesPoussablesBord', 'billesEjectables', 'billesMultiejectables', 'billesPousseesAEffet', 'pousseesRetournees', 'menaceEjection', 'fourchette', 'piege', 'piegeProgressifAdverse', 'piegeProgressifMien', 'piegeGagnantAdverse', 'piegeGagnantMien', 'piegeFinAdverse', 'piegeFinMien'],
   },
-  { cle: 'compacite', libelle: 'Compacité', couleur: '#3a7bd5', termes: ['compacite', 'groupesSepares'], reglages: ['compacite', 'groupesSepares'] },
+  { cle: 'compacite', libelle: 'Compacité', couleur: '#3a7bd5', termes: ['compacite', 'groupesSepares', 'menaceDeCoupure'], reglages: ['compacite', 'groupesSepares', 'menaceDeCoupure'] },
   { cle: 'cohesion', libelle: 'Cohésion', couleur: '#3fbf5a', termes: ['cohesion', 'bordSoi', 'bordAdverse'], reglages: ['cohesion', 'bordSoi', 'bordAdverse'] },
   {
     cle: 'materiel',
@@ -40,7 +40,7 @@ const GROUPES_DE_L_EVALUATION_IA = [
 
 // Les ajouts qui reglent la recherche, pas l'evaluation (er, es, ef, fn) : listes a part,
 // apres les 4 groupes, sans courbe.
-const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau', 'elagageGarde', 'centreTenu'] };
+const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau', 'elagageGarde', 'ejectionTot', 'ejectionTotSansEchange', 'pousseeRetournableJouee', 'pousseeRetournableJoueeMachineSeule', 'centreTenu'] };
 
 // Tous les poids et ajouts, groupe apres groupe.
 const REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA = [...GROUPES_DE_L_EVALUATION_IA, REGLAGE_DE_RECHERCHE_IA].flatMap((groupe) => groupe.reglages);

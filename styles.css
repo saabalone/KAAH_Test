@@ -3118,6 +3118,17 @@ button,
 .corde-noir { stroke: #1f1f1f; }
 .corde-blanc { stroke: #e4e4e4; }
 
+/* Son lisere gris (saab, 2026-11-01 : « pour voir le coté noir sur fond noir ») : sous la corde, plus large
+   qu'elle, il en depasse de chaque cote. */
+.lisere-corde {
+  fill: none;
+  stroke: #8a8a8a;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
 .fond-corde {
   pointer-events: none;
 }
@@ -6784,4 +6795,56 @@ body.apercu-kaah-test .note-apercu-test { display: block; }
 }
 #bouton-valider-noms-fin {
   margin-top: 6px;
+}
+
+/* Importer des parties d'une sauvegarde (interface/import-parties.js) : une ligne par partie, sa case devant ; celles
+   deja dans Mes parties (ou en double) grisees, avec la raison. La liste defile. */
+.liste-import-parties {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  margin: 4px 0;
+}
+.ligne-import-partie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hauteur-ligne-liste);
+  font-size: 13px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.ligne-import-partie input {
+  flex: none;
+}
+.ligne-import-partie.deja-la {
+  color: #8c8c8c;
+  cursor: default;
+}
+.raison-deja-la {
+  font-style: italic;
+  white-space: nowrap;
+}
+.message-import-parties:empty {
+  display: none;
+}
+/* La boite du stockage plein (interface/stockage-plein.js) : ses paragraphes separes par des lignes vides. */
+.texte-stockage-plein {
+  white-space: pre-line;
+}
+
+/* Le lisere gris de la corde (.lisere-corde) autour des cadres qui entourent le plateau (saab, 2026-11-01 : « il en
+   faudrait aussi pour ce qui est autour du plateau, Evaluation, Joueur, etc. ») — ceux des deux camps, pour qu'ils
+   restent pareils. En fin de fichier : il passe apres leurs propres regles (le trait plus fonce des pendules).
+   Aussi fin que celui de la corde (saab : « tu as fait les traits plus épais que celui sur la corde ») : il en
+   depasse de 0,3 de chaque cote ; un trait de cadre est a cheval sur son bord, 0,3 en tout. */
+.nom-fond,
+.nom-tour-cadre,
+.cadre-evaluation-fond,
+.cadre-compte-ejections,
+.cadre-pendule,
+.bouton-annuler-joueur-fond {
+  stroke: #8a8a8a;
+  stroke-width: 0.3;
 }

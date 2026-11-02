@@ -13,9 +13,13 @@
 // Second travail (saab, Opera : "rien n'indique que c'est installe") : dire, sous
 // la version, si KAAH marche SANS internet sur cet appareil — ou pourquoi pas.
 //
+// Troisieme travail (saab, 2026-11-01 : « je ne vois pas l'explication de Mn de PnMn pour mes versions de poids ») :
+// les jeux d'ajouts a soi (P5M1...) n'existent que sur cet appareil — l'Aide les dit en clair a chaque ouverture.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : aererLeTexte, colorerLesCouleurs
 // (interface/aide-texte.js), dessinDeLIcone (interface/choix-icones.js) viennent de fichiers charges avant
-// celui-ci.
+// celui-ci ; jeuxDAjoutsASoi (moteur/noms-ia.js), lireRegistreDesAjouts (interface/noms-profils-ia.js) ne servent
+// qu'a l'ouverture.
 
 // Le refus du navigateur a l'enregistrement du service worker (index.html), s'il
 // y en a eu un : sa raison, affichee telle quelle.
@@ -168,9 +172,15 @@ function demarrerAide(elements) {
       .catch(() => {});
   }
 
+  function afficherJeuxDAjoutsASoi() {
+    const jeux = jeuxDAjoutsASoi(lireRegistreDesAjouts());
+    elements.jeuxDAjoutsASoi.textContent = jeux.length > 0 ? `${jeux.map((jeu) => jeu.texte).join(' ; ')}.` : "aucun pour l'instant.";
+  }
+
   function ouvrir() {
     afficherVersion();
     afficherHorsLigne();
+    afficherJeuxDAjoutsASoi();
     if (!elements.dialogue.open) {
       deplierLEntete();
       elements.dialogue.showModal();

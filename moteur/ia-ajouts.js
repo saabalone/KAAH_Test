@@ -37,6 +37,21 @@
 //     pour gagner (moteur/ia-evaluation-v4.js) — saab, 2026-10-23 ;
 //   - Bpe, Pr : ce que les poussees font vraiment — les billes poussees a effet (au bord, ou loin des siennes)
 //     et les poussees qui se retournent (moteur/ia-poussees.js) — saab, 2026-10-30 ;
+//   - Et : l'ejection au plus tot (KAI++ seulement) — chaque ejection de la machine qui cherche rapporte en
+//     plus Et fois les demi-coups qui restaient a chercher — saab, 2026-11-01 (P5 gardait ses menaces au lieu
+//     d'ejecter : « le pb du bloc qui n'éjecte plus ») ;
+//   - Ech : Et, pas pour un echange (KAI++ seulement) — pas de bonus pour une ejection apres laquelle
+//     l'adversaire peut aussitot ejecter — saab, 2026-11-01 (contre AP6, Et faisait des echanges qu'AP6 reprenait) ;
+//   - Prj : la poussee retournable jouee (KAI++ seulement) — dans la recherche, un sumito sans ejection apres lequel
+//     l'adversaire peut aussitot pousser une des billes qui viennent de pousser coute ce poids a qui le joue, des deux
+//     cotes — saab, 2026-11-01 (contre AP6, KAI++ jouait des sumitos qu'AP6 retournait ; Pr ne compte que les
+//     sumitos possibles, pas celui qui est joue) ;
+//   - Prk : Prj pour la machine seulement (KAI++ seulement) — les sumitos retournables de l'adversaire ne lui coutent
+//     plus — saab, 2026-11-01 (« Ok fais le Prj pour KAI » : contre P5, Prj des deux cotes faisait croire que P5 les
+//     evitait) ;
+//   - Mc : la menace de coupure — chaque sumito de l'adversaire, sans ejection, apres lequel le camp aurait un groupe
+//     de plus coute ce poids, et le rapporte chez l'adversaire (moteur/ia-poussees.js) — saab, 2026-11-01 (contre AP6,
+//     apres 4-4, KAI++ se laissait couper en 6 a 8 groupes) ;
 //   - Ct : le centre tenu — des que la machine a Ct billes au centre, elle joue le profil du
 //     milieu copie dans le sien ; avant, et si elle le perd, le sien — saab, 2026-10-23
 //     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation).
@@ -44,7 +59,7 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide, termeDuSumitoContre, termesDesBillesVulnerables
-// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees (ia-poussees.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
+// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees, termeDeLaMenaceDeCoupure (ia-poussees.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
 // (regles.js), couleursDuPlateau (partie.js), CASES_VOISINES_IA (ia-evaluation-v2.js) viennent de fichiers
 // charges avant celui-ci.
 
@@ -76,6 +91,11 @@ const OPTIONS_IA = [
   { cle: 'piegeFinMien', suffixe: 'Pfm', terme: false },
   { cle: 'billesPousseesAEffet', suffixe: 'Bpe', terme: true },
   { cle: 'pousseesRetournees', suffixe: 'Pr', terme: true },
+  { cle: 'ejectionTot', suffixe: 'Et', terme: false },
+  { cle: 'ejectionTotSansEchange', suffixe: 'Ech', terme: false },
+  { cle: 'pousseeRetournableJouee', suffixe: 'Prj', terme: false },
+  { cle: 'pousseeRetournableJoueeMachineSeule', suffixe: 'Prk', terme: false },
+  { cle: 'menaceDeCoupure', suffixe: 'Mc', terme: true },
   // Le centre tenu (moteur/ia-phase.js) choisit le profil qui cherche : KAI++ ne le voit jamais.
   { cle: 'centreTenu', suffixe: 'Ct', terme: false, horsDeKaiPlus: true },
 ];
@@ -123,10 +143,25 @@ const CENTRE_TENU_PROPOSE = 4;
 // 3-1 (une base a regler).
 const BILLES_POUSSEES_A_EFFET_PROPOSEES = -5;
 const POUSSEES_RETOURNEES_PROPOSEES = 3;
+// Au niveau 6, une ejection tout de suite rapporte 6 fois ce poids en plus, deux demi-coups plus tard 4 fois : il
+// doit couvrir ce que la menace et le bord font perdre en ejectant. 10 plutot que 20 (essai 38, au niveau 6 contre
+// P5 : Et 10 gagne 28, perd 0 ; Et 20 perd 12, Et 40 14 — trop fort, il ejecte en se decouvrant).
+const EJECTION_TOT_PROPOSEE = 10;
+// Ech coche : pas de bonus Et pour une ejection que l'adversaire peut aussitot echanger (solveur/kai-plus.cpp).
+const EJECTION_TOT_SANS_ECHANGE_PROPOSEE = 1;
+// 50 plutot que 20 (une base a regler ; saab : « ceux par défaut sont juste une base ») : contre AP6 (2611011613), au
+// niveau 6, Prj 20 ne change aucun des sumitos qu'AP6 a retournes ; 50 en evite 3 sur 4 (tours 44, 57, 62).
+const POUSSEE_RETOURNABLE_JOUEE_PROPOSEE = 50;
+// Prk coche : Prj pour les seuls coups de la machine qui cherche (solveur/kai-plus.cpp).
+const POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE = 1;
+// Une menace de coupure, un peu moins qu'un groupe separe de plus (Gs 20) : elle n'arrive pas toujours. Contre AP6,
+// AP6 pouvait couper KAI++ 0,2 fois par position dans la victoire 6-4, 1 et 1,8 fois dans la nulle 4-4 et la
+// defaite 3-6 (une base a regler).
+const MENACE_DE_COUPURE_PROPOSEE = -15;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, ejectionTot: EJECTION_TOT_PROPOSEE, ejectionTotSansEchange: EJECTION_TOT_SANS_ECHANGE_PROPOSEE, pousseeRetournableJouee: POUSSEE_RETOURNABLE_JOUEE_PROPOSEE, pousseeRetournableJoueeMachineSeule: POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE, menaceDeCoupure: MENACE_DE_COUPURE_PROPOSEE, centreTenu: CENTRE_TENU_PROPOSE },
   ])
 );
 
@@ -168,6 +203,7 @@ function termesDesAjouts(etat, camp, poids) {
   const vulnerables = termesDesBillesVulnerables(etat, camp, poids);
   if ('billesPousseesAEffet' in poids) vulnerables.billesPousseesAEffet = termeDesBillesPousseesAEffet(etat, camp, poids);
   if ('pousseesRetournees' in poids) vulnerables.pousseesRetournees = termeDesPousseesRetournees(etat, camp, poids);
+  if ('menaceDeCoupure' in poids) vulnerables.menaceDeCoupure = termeDeLaMenaceDeCoupure(etat, camp, poids);
   return { ...termes, ...vulnerables };
 }
 
@@ -187,5 +223,6 @@ function valeurAvecLesAjouts(valeur, etat, camp, poids) {
   for (const valeur of Object.values(termesDesBillesVulnerables(etat, camp, poids))) total += valeur;
   if (poids.billesPousseesAEffet) total += termeDesBillesPousseesAEffet(etat, camp, poids);
   if (poids.pousseesRetournees) total += termeDesPousseesRetournees(etat, camp, poids);
+  if (poids.menaceDeCoupure) total += termeDeLaMenaceDeCoupure(etat, camp, poids);
   return total;
 }

@@ -51,17 +51,22 @@ function ecrireArchiveStockee(archive) {
 }
 
 // `avantDOublier(archive)` : appele AVANT d'ecrire un ajout qui fait oublier
-// des positions (l'archive pleine), avec l'archive encore entiere.
+// des positions (l'archive pleine), avec l'archive encore entiere ; vrai s'il l'a
+// exportee — elle repart alors de la seule nouvelle recherche (videe).
 function garderDansLArchive(cle, recherche, avantDOublier) {
   const avant = lireArchiveRecherches();
   if (!gardeLesRecherches()) {
     archiveDeLaSeance = ajouterRecherche(avant, cle, recherche, TAILLE_ARCHIVE_RECHERCHES_MAX);
     return;
   }
+  let depart = avant;
   let tailleMax = TAILLE_ARCHIVE_RECHERCHES_MAX;
   for (let essai = 0; essai < ESSAIS_D_ECRITURE_ARCHIVE; essai++, tailleMax /= 2) {
-    const apres = ajouterRecherche(avant, cle, recherche, tailleMax);
-    if (essai === 0 && positionsOubliees(avant, apres, cle) > 0) avantDOublier(avant);
+    let apres = ajouterRecherche(depart, cle, recherche, tailleMax);
+    if (essai === 0 && positionsOubliees(avant, apres, cle) > 0 && avantDOublier(avant)) {
+      depart = ARCHIVE_RECHERCHES_VIDE;
+      apres = ajouterRecherche(depart, cle, recherche, tailleMax);
+    }
     if (ecrireArchiveStockee(apres)) return;
   }
 }

@@ -70,6 +70,11 @@ const LIBELLES_REGLAGES_IA = {
   billesMultiejectables: 'Billes multiéjectables (Bme)',
   billesPousseesAEffet: 'Billes poussées à effet (Bpe)',
   pousseesRetournees: 'Poussées qui se retournent (Pr)',
+  ejectionTot: 'Éjection au plus tôt (Et)',
+  ejectionTotSansEchange: 'Et, pas pour un échange (Ech)',
+  pousseeRetournableJouee: 'Poussée retournable jouée (Prj)',
+  pousseeRetournableJoueeMachineSeule: 'Prj, pour la machine seulement (Prk)',
+  menaceDeCoupure: 'Menace de coupure (Mc)',
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.
