@@ -148,12 +148,13 @@ function noeudVersDonnees(noeud, chemin, metadonnees) {
 // fichier), pendulesActuelles (l'instantane en direct, pour Chrono) }.
 // Les reglages de pendule relus dans `Timer` (le format de KAAWA) : ceux de Noir
 // (p1_), et ceux de Blanc (p2_) a part — phase 36, chacun les siens. Le mode
-// choisi n'est pas dans le fichier, meme chez KAAWA : Bonus.
+// choisi n'est pas dans le fichier, meme chez KAAWA : Bonus pour une pendule ; une
+// partie en Chrono reste en Chrono (saab, 2026-11-03 : elle s'affichait Bonus).
 function reglagesPendulesDuFichier(timer) {
   const s = timer.settings;
   return {
     mode: timer.mode,
-    modeChoisi: 'bonus',
+    modeChoisi: timer.mode === 'chrono' ? 'chrono' : 'bonus',
     tempsInitial: s.p1_initial,
     bonusParCoup: s.p1_bonus,
     bonusParEjection: s.p1_bonus_eject,

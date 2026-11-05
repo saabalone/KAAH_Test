@@ -188,8 +188,10 @@ function lireMachine(brut) {
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
     elagage,
-    // Le profil du milieu (l'ajout Ct, moteur/ia-phase.js) : seulement avec Ct.
-    ...('centreTenu' in poids && brut.milieu && typeof brut.milieu === 'object' ? { milieu: lireProfilDuMilieu(brut.milieu) } : {}),
+    // Les copies des phases (les ajouts Ct et Ph, moteur/ia-phase.js) : le milieu avec l'un ou l'autre, la fin seulement avec Ph.
+    ...(('centreTenu' in poids || 'phasesAuScore' in poids) && brut.milieu && typeof brut.milieu === 'object' ? { milieu: lireProfilDuMilieu(brut.milieu) } : {}),
+    ...('phasesAuScore' in poids && brut.fin && typeof brut.fin === 'object' ? { fin: lireProfilDuMilieu(brut.fin) } : {}),
+    ...('phasesAuScore' in poids && brut.finEnAvance && typeof brut.finEnAvance === 'object' ? { finEnAvance: lireProfilDuMilieu(brut.finEnAvance) } : {}),
     // L'indice de son profil (moteur/profils-ia.js), s'il en a un.
     ...(Number.isInteger(brut.indiceProfil) && brut.indiceProfil > 0 ? { indiceProfil: brut.indiceProfil } : {}),
     // La version de son profil (moteur/historique-profil-ia.js), au-dela de la 1re.
@@ -204,9 +206,9 @@ function lireMachine(brut) {
 // reglages (saab, 2026-10-23 : « lance Copie » — le changer ou le supprimer ensuite ne touche plus
 // la machine), sans son propre Ct : jamais de bascule en chaine.
 function lireProfilDuMilieu(brut) {
-  const { profil, version, elagage, style, poids } = lireMachine({ ...brut, milieu: undefined });
-  const { centreTenu, ...sansLeCentreTenu } = poids;
-  return { profil, version, elagage, style, poids: sansLeCentreTenu };
+  const { profil, version, elagage, style, poids } = lireMachine({ ...brut, milieu: undefined, fin: undefined, finEnAvance: undefined });
+  const { centreTenu, phasesAuScore, ...sansBascule } = poids;
+  return { profil, version, elagage, style, poids: sansBascule };
 }
 
 // Les machines d'une partie : { noir, blanc }, chacune un reglage ou null (un
@@ -237,7 +239,7 @@ function formaterTempsReflexion(secondes) {
 // « v4El10Sv » : la version, l'elagage et les ajouts en clair (saab, 2026-10-07 : les
 // ajouts en suffixe, apres l'elagage) — l'infobulle d'un profil montre ce que son Pn cache.
 function suffixeDeVersionIA({ version, elagage, poids }) {
-  return `v${version}${elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${elagage}` : ''}${codeDesAjouts(poids)}`;
+  return `v${version}${elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${elagage}` : ''}${codeDesAjoutsDansLeNom(poids)}`;
 }
 
 // Le nom que prend le camp d'une machine (saab) : KAI, son niveau, son style en
@@ -245,27 +247,41 @@ function suffixeDeVersionIA({ version, elagage, poids }) {
 // version 2 et les suivantes l'ajoutent (KAI2_Nor_5s_v2), la 1 garde son nom ; un
 // elagage, « El » et le nombre de coups gardes (KAI2_Nor_5s_v2El10). Saab, 2026-10-16 :
 // les ajouts par leur numero Pn (moteur/noms-ia.js) — en clair s'il n'en a pas
-// (SvEc) — puis le numero du jeu de poids de sa famille (_v3) et, pour une ancienne
-// version de son profil, son numero dans l'historique (_h4) : KAI++8_Nor_30s_v5El10P2_v3.
+// (SvEc) — puis le numero du jeu de poids de sa famille (_v3) et, pour un profil retouche, son numero dans
+// l'historique (_h4) : KAI++8_Nor_30s_v5El10P2_v3_h4.
 // Lettres, chiffres et « _ » seulement (moteur/nom-partie.js, nomJoueurAutorise).
 function nomDeLaMachine(machine) {
   return morceauxDuNomDeLaMachine(machine).map(({ texte }) => texte).join('');
+}
+
+// `nom` est-il celui que cette machine prend d'elle-meme, ou un nom tape a la main ? Une partie lancee avant que le nom dise le seuil des
+// phases (2026-11-05) porte encore le nom sans lui : il doit continuer a suivre le choix (interface/noms-joueurs.js).
+function estLeNomDeLaMachine(nom, machine) {
+  const { phasesAuScore, ...sansLeSeuil } = machine.poids;
+  return nom === nomDeLaMachine(machine) || nom === nomDeLaMachine({ ...machine, poids: sansLeSeuil });
+}
+
+// La version du profil dans le nom : une ancienne version choisie (versionHistorique), sinon la version courante d'un
+// profil retouche (saab, 2026-11-03 : « Oui la 1, c'est logique » — deux parties « P5M8_v2 » n'avaient pas les memes
+// poids, ni Pn ni _v ne changeant avec la valeur d'un poids) ; rien pour un profil jamais retouche.
+const SUFFIXE_VERSION_DU_PROFIL_NOM_IA = '_h';
+function suffixeDeLaVersionDuProfil({ versionHistorique, versionProfil }) {
+  if (versionHistorique) return `${SUFFIXE_VERSION_DU_PROFIL_NOM_IA}${versionHistorique}`;
+  return versionProfil > PREMIERE_VERSION_DU_PROFIL_IA ? `${SUFFIXE_VERSION_DU_PROFIL_NOM_IA}${versionProfil}` : '';
 }
 
 // Le meme nom en morceaux { cle, texte } — moteur, niveau, style, temps, profil (la version,
 // l'elagage, les ajouts, le jeu de poids, l'historique), et les « _ » entre eux : l'affichage
 // colore chacun (saab, 2026-10-22 : sa valeur par defaut en marron).
 function morceauxDuNomDeLaMachine(machine) {
-  const code = codeDesAjouts(machine.poids);
-  const ajouts = code && machine.numeroDesAjouts ? `P${machine.numeroDesAjouts}` : code;
+  const ajouts = codeDesAjouts(machine.poids) && machine.numeroDesAjouts ? `P${machine.numeroDesAjouts}${seuilDesPhasesDansLeNom(machine.poids)}` : codeDesAjoutsDansLeNom(machine.poids);
   const livre = machine.livre === false ? SUFFIXE_SANS_LIVRE_NOM_IA : SUFFIXE_AVEC_LIVRE_NOM_IA;
   const tete = `v${machine.version}${machine.elagage ? `${SUFFIXE_ELAGAGE_NOM_IA}${machine.elagage}` : ''}${livre}${ajouts}`;
   // La version 1 sans elagage ni ajout, avec le livre : le nom la tait.
   const version = tete !== `v${VERSION_IA}${SUFFIXE_AVEC_LIVRE_NOM_IA}` ? `_${tete}` : '';
   // Le profil d'une machine perso a un indice (moteur/profils-ia.js, machineDuProfil) ; un profil de KAAH, non.
   const poids = machine.numeroDePoids > 1 ? `_${lettreDuJeuDePoids(Boolean(machine.indiceProfil))}${machine.numeroDePoids}` : '';
-  const historique = machine.versionHistorique ? `_h${machine.versionHistorique}` : '';
-  const profil = `${version}${poids}${historique}`;
+  const profil = `${version}${poids}${suffixeDeLaVersionDuProfil(machine)}`;
   return [
     { cle: 'moteur', texte: PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai'] },
     { cle: 'niveau', texte: String(machine.niveau) },

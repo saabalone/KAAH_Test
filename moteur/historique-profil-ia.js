@@ -61,6 +61,7 @@ const LIBELLES_REGLAGES_IA = {
   elagageFinNiveau: "ef jusqu'au niveau (fn)",
   elagageGarde: "L'élagage garde les éjections / poussées (Eg)",
   centreTenu: 'Centre tenu, puis le profil du milieu (Ct)',
+  phasesAuScore: 'Phases au score : billes sorties pour le milieu (Ph)',
   groupesSepares: 'Groupes séparés (Gs)',
   sumitoContre: 'Sumito 3/2 contré (Sc)',
   billesPoussables: 'Billes poussables (Bp)',
@@ -75,6 +76,9 @@ const LIBELLES_REGLAGES_IA = {
   pousseeRetournableJouee: 'Poussée retournable jouée (Prj)',
   pousseeRetournableJoueeMachineSeule: 'Prj, pour la machine seulement (Prk)',
   menaceDeCoupure: 'Menace de coupure (Mc)',
+  anglesDeTriangles: 'Angles de triangles (At)',
+  billesHorsDuGroupePrincipal: 'Hors du groupe principal (Hp)',
+  billesHorsDuGroupeSelonLEcart: "Hors du groupe, par bille d'écart au score (He)",
   cohesion: 'Cohésion',
   compacite: 'Compacité',
   // Pas un reglage : le terme des cases, une colonne de l'Essai.
@@ -95,16 +99,18 @@ const NOTE_AVANT_HISTORIQUE_IA = NOTE_AVANT_HISTORIQUE;
 
 // Version, livre, elagage, style et poids, ramenes a des valeurs sures (moteur/ia.js).
 function valeursReglagesIA(brut) {
-  const { version, livre, elagage, style, poids, milieu } = lireMachine(brut);
-  return { version, livre, elagage, style, poids, ...(milieu ? { milieu } : {}) };
+  const machine = lireMachine(brut);
+  const { version, livre, elagage, style, poids } = machine;
+  return { version, livre, elagage, style, poids, ...Object.fromEntries(CLES_DES_COPIES_DES_PHASES.filter((cle) => machine[cle]).map((cle) => [cle, machine[cle]])) };
 }
 
-// Le profil du milieu (l'ajout Ct, moteur/ia-phase.js) : un reglage de plus pour l'historique — sa
+// Les copies des phases (les ajouts Ct et Ph, moteur/ia-phase.js) : un reglage de plus chacune pour l'historique — sa
 // copie entiere, qu'une autre copie (un autre profil, ou le meme retouche) change.
-const CLE_PROFIL_DU_MILIEU = 'milieu';
-const LIBELLE_PROFIL_DU_MILIEU = 'Profil du milieu';
-const valeurDuProfilDuMilieu = (valeurs) => (valeurs.milieu ? JSON.stringify(valeurs.milieu) : undefined);
-const nomDuProfilDuMilieu = (valeur) => (valeur === undefined ? '—' : JSON.parse(valeur).profil);
+const LIBELLES_DES_COPIES_DES_PHASES = { milieu: 'Profil du milieu', fin: 'Profil de fin', finEnAvance: 'Profil de fin, en avance' };
+const CLES_DES_COPIES_DES_PHASES = Object.keys(LIBELLES_DES_COPIES_DES_PHASES);
+const estUneCopieDePhase = (cle) => CLES_DES_COPIES_DES_PHASES.includes(cle);
+const valeurDUneCopieDePhase = (valeurs, cle) => (valeurs[cle] ? JSON.stringify(valeurs[cle]) : undefined);
+const nomDUneCopieDePhase = (valeur) => (valeur === undefined ? '—' : JSON.parse(valeur).profil);
 
 function valeurReglageIA(valeurs, cle) {
   return REGLAGES_IA_HORS_POIDS.includes(cle) ? valeurs[cle] : valeurs.poids[cle];
@@ -129,18 +135,19 @@ function lignesDesReglagesIA(profil) {
     if (groupe && groupe !== groupeEnCours) lignes.push(`── ${groupe.libelle} ──`);
     groupeEnCours = groupe;
     lignes.push(`${LIBELLES_REGLAGES_IA[cle]} : ${texteReglageIA(cle, valeurReglageIA(valeurs, cle))}`);
-    if (cle === 'centreTenu') lignes.push(`${LIBELLE_PROFIL_DU_MILIEU} : ${valeurs.milieu?.profil ?? 'aucun (il garde le sien)'}`);
+    if (cle === 'centreTenu') lignes.push(`${LIBELLES_DES_COPIES_DES_PHASES.milieu} : ${valeurs.milieu?.profil ?? 'aucun (il garde le sien)'}`);
+    if (cle === 'phasesAuScore') for (const copie of CLES_DES_COPIES_DES_PHASES) lignes.push(`${LIBELLES_DES_COPIES_DES_PHASES[copie]} : ${valeurs[copie]?.profil ?? 'aucun'}`);
   }
   return lignes;
 }
 
 // Ce qu'un profil IA retient, pour le moteur commun des versions.
 const DESCRIPTION_REGLAGES_IA = {
-  cles: [...CLES_REGLAGES_IA, CLE_PROFIL_DU_MILIEU],
+  cles: [...CLES_REGLAGES_IA, ...CLES_DES_COPIES_DES_PHASES],
   valeurs: valeursReglagesIA,
-  valeur: (valeurs, cle) => (cle === CLE_PROFIL_DU_MILIEU ? valeurDuProfilDuMilieu(valeurs) : valeurReglageIA(valeurs, cle)),
-  libelle: (cle) => (cle === CLE_PROFIL_DU_MILIEU ? LIBELLE_PROFIL_DU_MILIEU : LIBELLES_REGLAGES_IA[cle]),
-  texte: (cle, valeur) => (cle === CLE_PROFIL_DU_MILIEU ? nomDuProfilDuMilieu(valeur) : texteReglageIA(cle, valeur)),
+  valeur: (valeurs, cle) => (estUneCopieDePhase(cle) ? valeurDUneCopieDePhase(valeurs, cle) : valeurReglageIA(valeurs, cle)),
+  libelle: (cle) => (estUneCopieDePhase(cle) ? LIBELLES_DES_COPIES_DES_PHASES[cle] : LIBELLES_REGLAGES_IA[cle]),
+  texte: (cle, valeur) => (estUneCopieDePhase(cle) ? nomDUneCopieDePhase(valeur) : texteReglageIA(cle, valeur)),
 };
 
 const memesReglagesIA = (a, b) => memesReglages(DESCRIPTION_REGLAGES_IA, a, b);
@@ -153,6 +160,61 @@ const choisirVersionIA = (profil, numero) => choisirVersion(DESCRIPTION_REGLAGES
 const differencesReglagesIA = (avant, apres) => differencesReglages(DESCRIPTION_REGLAGES_IA, avant, apres);
 const lignesHistoriqueIA = (profil) => lignesHistorique(DESCRIPTION_REGLAGES_IA, profil);
 const lireHistoriqueIA = (brut) => lireHistorique(DESCRIPTION_REGLAGES_IA, brut);
+
+// Le _v d'une version (saab, 2026-11-04 : « je ne retrouve plus le profile v5El10LsP5M9_v4_h9, avec histo
+// IA je vois v5El10LsP5M9_h9, pourquoi _v4 n'y est pas ? ») : le numero du jeu de poids dans sa famille
+// change avec les ajouts, le profil ne porte que celui de sa version courante. Une version le retient donc
+// quand le profil la quitte.
+const retenirLeNumeroDePoidsDeLaVersionIA = (historique, numero, numeroDePoids) => historique.map((version) => (version.numero === numero ? { ...version, numeroDePoids } : version));
+
+function memesPoidsQueLaVersionIA(machine, version) {
+  const { poids } = lireMachine(machine);
+  return REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA.every((cle) => poids[cle] === version.poids[cle]);
+}
+
+// La machine d'une partie jouee par cette version, a sa version courante d'alors. Une ancienne version
+// choisie (versionHistorique) portait le _v du profil de ce moment, pas le sien ; les poids ecartent un
+// indice repris depuis par un autre profil (moteur/profils-ia.js, prochainIndiceProfilIA).
+function machineJoueeALaVersionIA(machine, profil, version) {
+  if (!machine?.numeroDePoids || machine.versionHistorique || machine.indiceProfil !== profil.indice) return false;
+  if ((machine.versionProfil ?? PREMIERE_VERSION_DU_PROFIL_IA) !== version.numero) return false;
+  return memesPoidsQueLaVersionIA(machine, version);
+}
+
+// Le profil d'une machine en jeu, null s'il n'existe plus (saab, 2026-11-05 : « je viens de changer en ph2 dans Réglages IA, puis dans
+// boite joueur IA je vois profil IA avec ph1 mais pas de ph2 ») : valider une retouche peut renommer le profil, sa machine garde l'ancien
+// nom. Alors son indice, si la version qu'elle joue y a les memes poids : un indice peut avoir ete repris par un autre profil.
+function profilDeLaMachine(machine, profils) {
+  const deCeNom = profils.find((profil) => profil.nom === machine.profil);
+  if (deCeNom || !machine.indiceProfil) return deCeNom ?? null;
+  const numero = machine.versionProfil ?? PREMIERE_VERSION_DU_PROFIL_IA;
+  return (
+    profils.find((profil) => {
+      const version = profil.indice === machine.indiceProfil ? profil.historique?.find((autre) => autre.numero === numero) : null;
+      return version && memesPoidsQueLaVersionIA(machine, version);
+    }) ?? null
+  );
+}
+
+// Le _v de la version `numero`, ou null si rien ne le dit. Une version quittee avant qu'on le retienne le
+// retrouve dans la derniere partie qu'elle a jouee (son fichier garde la machine entiere). `lireParties()` :
+// Mes parties, lues seulement s'il le faut.
+function numeroDePoidsDeLaVersionIA(profil, numero, lireParties) {
+  const version = versionIA(profil, numero);
+  if (!version) return null;
+  if (version.numeroDePoids) return version.numeroDePoids;
+  let trouve = null;
+  let dateTrouvee = '';
+  for (const { donnees } of lireParties()) {
+    for (const machine of Object.values(donnees.Machines ?? {})) {
+      if (machineJoueeALaVersionIA(machine, profil, version) && donnees.Date >= dateTrouvee) {
+        trouve = machine.numeroDePoids;
+        dateTrouvee = donnees.Date;
+      }
+    }
+  }
+  return trouve;
+}
 
 // Le nom d'un profil d'Entrainement a sa version `numero` (saab, 2026-10-02 : valider une
 // retouche change aussi le nom) : le nom de base, suivi de _v<numero> au-dela de la

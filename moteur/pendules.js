@@ -162,6 +162,23 @@ function changerModePendules(pendules, nouveauxReglages) {
   };
 }
 
+// Les reglages des pendules EN COURS (saab, 2026-11-03 : « Pour la Revanche, les pendules ne sont pas restées en
+// Chrono ») : le mode, le delai et les bonus tels que la partie les a maintenant (un changement en cours de partie,
+// changerModePendules), le temps de depart de chaque camp tel que la partie l'a commencee — les pendules ne le portent
+// pas. Des reglages, jamais les compteurs du direct.
+function reglagesDesPendulesEnCours(reglagesDeDepart, pendules) {
+  const reglagesDuCampEnCours = (camp) => ({ tempsInitial: reglagesDuCamp(reglagesDeDepart, camp).tempsInitial, ...pendules.camps[camp] });
+  return {
+    ...reglagesDeDepart,
+    mode: pendules.mode,
+    modeChoisi: pendules.modeChoisi,
+    delai: pendules.delai,
+    bonusParCoup: pendules.bonusParCoup,
+    bonusParEjection: pendules.bonusParEjection,
+    camps: { noir: reglagesDuCampEnCours('noir'), blanc: reglagesDuCampEnCours('blanc') },
+  };
+}
+
 // Le texte affiche sous chaque pendule (phase 22bis), tel que KAAWA le
 // construit (kaa_board_widget_ClO_Co.py) : uniquement a partir de ce que
 // `pendules` porte deja sur elle (jamais un etat separe qui pourrait

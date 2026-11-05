@@ -17,7 +17,7 @@
 // l'application, jamais modifie). `lireVariantes` ci-dessous est donc
 // deliberement pure : elle ne modifie jamais l'objet qu'on lui passe.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition vient
+// Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition et ecrirePosition viennent
 // de moteur/notation.js, charge avant celui-ci dans index.html.
 
 const BILLES_MAX_PAR_CAMP = 14;
@@ -89,4 +89,19 @@ function lireVariantes(donnees, estMy = false) {
       entree,
     };
   });
+}
+
+// Le nom de la variante dont `texte` est la position (saab, 2026-11-03 : une partie creee d'une suite de coups collee
+// s'appelait Game_0a12b123c23g78h au lieu de Marguerite Belge), ou null. Les deux positions sont relues puis reecrites :
+// l'ordre des cases dans le texte ne compte pas. Une position illisible, meme a moitie tapee (le champ Titre de
+// Creer une partie affiche ce nom pendant la saisie) : null, jamais une erreur.
+function nomDeLaVarianteDeLaPosition(variantes, texte) {
+  if (erreurDePosition(texte)) return null;
+  let voulue;
+  try {
+    voulue = ecrirePosition(lirePosition(texte));
+  } catch {
+    return null;
+  }
+  return variantes.find((variante) => ecrirePosition(variante.position) === voulue)?.nom ?? null;
 }

@@ -97,6 +97,8 @@ function machineDuProfilDuBanc(profil, livre) {
     livre,
     elagage: profil.elagage,
     ...(profil.milieu ? { milieu: profil.milieu } : {}),
+    ...(profil.fin ? { fin: profil.fin } : {}),
+    ...(profil.finEnAvance ? { finEnAvance: profil.finEnAvance } : {}),
   };
 }
 

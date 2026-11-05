@@ -42,6 +42,11 @@ function viderLeGenre(corbeille, genre) {
   return corbeille.filter((entree) => entree.genre !== genre);
 }
 
+// Efface pour de bon les entrees cochees (saab, 2026-11-04 : « ajoute Supprimer dans la corbeille car là
+// on ne peut que vider et pas choisir d'en supprimer qq unes ») : elles sortent comme pour une
+// restauration, mais ne retournent nulle part.
+const supprimerPlusieurs = (corbeille, rangs) => restaurerPlusieurs(corbeille, rangs).corbeille;
+
 // Renomme `nomSouhaite` s'il est deja dans `nomsExistants`, en ajoutant
 // " (2)", " (3)"... jusqu'a un nom libre. Sert a l'import (voir
 // moteur/positions-my.js, fusionnerEntreesMy) : ecart assume avec KAAWA

@@ -243,8 +243,8 @@ function machineDuChoix(choix) {
 }
 
 // Un elagage tape dans la boite remplace celui du profil, quel qu'il soit : celui du profil du
-// milieu aussi (l'ajout Ct, moteur/ia-phase.js).
-const avecLElagageForce = (machine, elagage) => ({ ...machine, elagage, ...(machine.milieu ? { milieu: { ...machine.milieu, elagage } } : {}) });
+// milieu et ceux de fin aussi (les ajouts Ct et Ph, moteur/ia-phase.js).
+const avecLElagageForce = (machine, elagage) => ({ ...machine, elagage, ...Object.fromEntries(CLES_DES_COPIES_DES_PHASES.filter((cle) => machine[cle]).map((cle) => [cle, { ...machine[cle], elagage }])) });
 
 // `section` : la rubrique (#section-adversaire), un bloc `.choix-joueur` par
 // camp (data-camp). Renvoie { preparer(visible), lire() } : preparer affiche (ou

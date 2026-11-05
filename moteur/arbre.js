@@ -365,15 +365,20 @@ function marquerPendulesSnapshot(arbre, chemin, instantane) {
 // meme (voir `peutSupprimerNoeud`) : comme `appliquerCoup` fait confiance
 // a `coupsDepuis`, c'est a l'appelant de ne demander une suppression que
 // pour un noeud autorise.
+// Une partie Test (voir peutSupprimerNoeud ; saab, 2026-11-03 : « si je supprime la Br principale, la Br qui est juste
+// devrait passer en Br principale, alors que là, la Br reste au lieu de fusionner et le titre reste en Br ») : un coup de
+// la ligne jouee supprime, sa premiere voisine devient la ligne jouee, jusqu'a son bout (comme remonterNoeud).
 function supprimerBranche(arbre, chemin) {
   if (chemin.length === 0) return arbre;
 
   const cheminParent = chemin.slice(0, -1);
   const indexASupprimer = chemin[chemin.length - 1];
-  const racine = remplacerNoeud(arbre.racine, cheminParent, (n) => ({
-    ...n,
-    enfants: n.enfants.filter((_, i) => i !== indexASupprimer),
-  }));
+  const voisineReprendLaLigne = arbre.lignePrincipaleLibre && noeudA(arbre, chemin).estOrigine && noeudA(arbre, cheminParent).enfants.length > 1;
+  const racine = remplacerNoeud(arbre.racine, cheminParent, (n) => {
+    const enfants = n.enfants.filter((_, i) => i !== indexASupprimer);
+    return { ...n, enfants: voisineReprendLaLigne ? [enOrigine(enfants[0]), ...enfants.slice(1)] : enfants };
+  });
+  const cheminDeLaVoisine = [...cheminParent, 0];
   // `{ ...arbre, ... }` : voir jouerDansArbre plus haut, meme raison
   // (ne jamais reconstruire l'objet a la main, sous peine d'y oublier un
   // champ). "Annuler" un coup ne doit JAMAIS effacer `nullesRefusees` —
@@ -383,7 +388,9 @@ function supprimerBranche(arbre, chemin) {
     ...arbre,
     racine,
     chemin: ajusterCheminApresSuppression(arbre.chemin, cheminParent, indexASupprimer),
-    cheminOrigine: ajusterCheminApresSuppression(arbre.cheminOrigine, cheminParent, indexASupprimer),
+    cheminOrigine: voisineReprendLaLigne
+      ? cheminJusquAuBout(noeudA({ racine }, cheminDeLaVoisine), cheminDeLaVoisine)
+      : ajusterCheminApresSuppression(arbre.cheminOrigine, cheminParent, indexASupprimer),
   };
 }
 

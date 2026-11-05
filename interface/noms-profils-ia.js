@@ -6,9 +6,10 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : registreAvecLesAjouts,
 // nomAfficheDuProfilIA, familleDuProfilIA, numeroDePoidsSuivant (moteur/noms-ia.js),
 // codeDesAjouts (moteur/ia-ajouts.js), suffixeDeVersionIA (moteur/ia.js), profilsIADansLOrdre
-// (moteur/profils-ia.js), listerProfilsIA, nomDuProfilIAParDefaut (interface/profils-ia.js) viennent de
-// fichiers charges avant celui-ci ; lireNomAuteurIA (interface/fichiers-profils-ia.js) ne
-// sert qu'une fois la page chargee.
+// (moteur/profils-ia.js), listerProfilsIA, nomDuProfilIAParDefaut (interface/profils-ia.js), choisirVersionIA,
+// numeroDePoidsDeLaVersionIA (moteur/historique-profil-ia.js), suffixeDeLaVersionDuProfil (moteur/ia.js) viennent de
+// fichiers charges avant celui-ci ; lireNomAuteurIA (interface/fichiers-profils-ia.js), listerPartiesEnregistrees
+// (interface/sauvegarde.js) ne servent qu'une fois la page chargee.
 
 // Le registre des Pn (moteur/noms-ia.js) : jeu d'ajouts -> numero, sur cet appareil
 // (« Exporter tout » l'emporte, comme toute donnee « kaah- ») ; ceux des profils integres
@@ -40,12 +41,42 @@ function numeroDesAjoutsDe(poids) {
 
 const familleDe = (profil) => familleDuProfilIA(profil, numeroDesAjoutsDe(profil.poids));
 
-// Le numero du prochain jeu de poids de la famille de `profil`, d'apres `autres` (un
-// profil de base compte pour le premier).
-function numeroDePoidsDansSaFamille(profil, autres) {
+// Les numeros de jeu de poids deja pris dans la famille de `profil` (un profil de base compte
+// pour le premier).
+function numerosDePoidsPris(profil, autres) {
   const famille = familleDe(profil);
-  const pris = autres.filter((autre) => familleDe(autre) === famille).map((autre) => autre.numeroDePoids ?? 1);
-  return numeroDePoidsSuivant(pris);
+  return autres.filter((autre) => familleDe(autre) === famille).map((autre) => autre.numeroDePoids ?? 1);
+}
+
+// Le numero du prochain jeu de poids de la famille de `profil`, d'apres `autres`.
+const numeroDePoidsDansSaFamille = (profil, autres) => numeroDePoidsSuivant(numerosDePoidsPris(profil, autres));
+
+// Mes parties, pour retrouver le _v d'une version quittee avant qu'elle le retienne (moteur/
+// historique-profil-ia.js) : lues une seule fois. Ces parties-la sont toutes deja jouees, et
+// seuls leur date et leurs machines servent : pas la peine de garder les coups en memoire.
+let partiesDesNumerosDePoids = null;
+function lirePartiesDesNumerosDePoids() {
+  partiesDesNumerosDePoids ??= listerPartiesEnregistrees().map(({ donnees }) => ({ donnees: { Date: donnees?.Date, Machines: donnees?.Machines } }));
+  return partiesDesNumerosDePoids;
+}
+
+// Le _v de `profil` quand il arrive a sa version courante. Une version deja numerotee reprend le
+// sien : le nom revient a l'identique (saab, 2026-11-04), sauf si un autre profil l'a pris depuis.
+// Sinon, le suivant, sans reprendre celui d'une autre version du profil. `avant` : ce profil tel
+// qu'il etait (null s'il est nouveau).
+function numeroDePoidsDeSaVersion(profil, avant, autres) {
+  if (avant && profil.courante === avant.courante) return avant.numeroDePoids;
+  const sien = numeroDePoidsDeLaVersionIA(profil, profil.courante, lirePartiesDesNumerosDePoids);
+  if (sien && !numerosDePoidsPris(profil, autres).includes(sien)) return sien;
+  const versionsNumerotees = profil.historique.filter((version) => version.numeroDePoids);
+  return numeroDePoidsDansSaFamille(profil, [...autres, ...(avant ? [avant] : []), ...versionsNumerotees]);
+}
+
+// Le profil a sa version `numero`, sous le _v de cette version : aucun si rien ne le dit, plutot
+// que celui d'une autre (le _h suffit alors a la reconnaitre).
+function profilASaVersion(profil, numero) {
+  const numeroDePoids = numero === profil.courante ? profil.numeroDePoids : numeroDePoidsDeLaVersionIA(profil, numero, lirePartiesDesNumerosDePoids) ?? undefined;
+  return { ...choisirVersionIA(profil, numero), numeroDePoids };
 }
 
 // Le nom d'avant les noms de 2026-10-16 : « Normal v5el_v2 (P7) » (P : son indice).
@@ -62,12 +93,21 @@ function libelleProfilIA(profil) {
   return profil.auteur && profil.auteur !== lireNomAuteurIA() ? `${profil.auteur}_${nom}` : nom;
 }
 
+// Son nom et sa version, comme le nom de sa machine (moteur/ia.js, suffixeDeLaVersionDuProfil) : sous « Normal v5ElP5M12_v2_h2 »,
+// « ↳ h1 » se comprend (saab, 2026-11-05 : « je vois profil IA avec ph1 mais pas de ph2 »).
+const libelleAvecSaVersion = (profil) =>
+  `${libelleProfilIA(profil)}${suffixeDeLaVersionDuProfil({ versionHistorique: profil.versionHistorique, versionProfil: profil.courante })}`;
+
+// Le profil d'une machine en jeu, sur cet appareil (moteur/historique-profil-ia.js).
+const retrouverProfilDeLaMachine = (machine) => profilDeLaMachine(machine, listerProfilsIA());
+
 // Son infobulle, partout ou il se montre (saab : « montrer tous les suffixes cachés par
 // Pn ») : ses ajouts en clair, son ancien nom, puis tous ses reglages en une colonne
-// (saab, 2026-10-18 ; moteur/historique-profil-ia.js, lignesDesReglagesIA).
+// (saab, 2026-10-18 ; moteur/historique-profil-ia.js, lignesDesReglagesIA). Une ancienne version
+// (versionHistorique) : son nom avec son _h, et jamais les notes de la version courante.
 function infobulleDuProfilIA(profil) {
-  const ancien = `${profil.ancienNom && profil.ancienNom !== libelleProfilIA(profil) ? ` — ancien nom : ${profil.ancienNom}` : ''}${profil.nom === nomDuProfilIAParDefaut() ? ' — IA par défaut' : ''}`;
-  return `${libelleProfilIA(profil)} = ${profil.style === 'agressif' ? 'Agr' : profil.style === 'defensif' ? 'Def' : 'Nor'} ${suffixeDeVersionIA(profil)}${ancien}\n\n${lignesDesReglagesIA(profil).join('\n')}`;
+  const ancien = profil.versionHistorique ? '' : `${profil.ancienNom && profil.ancienNom !== libelleProfilIA(profil) ? ` — ancien nom : ${profil.ancienNom}` : ''}${profil.nom === nomDuProfilIAParDefaut() ? ' — IA par défaut' : ''}`;
+  return `${libelleAvecSaVersion(profil)} = ${profil.style === 'agressif' ? 'Agr' : profil.style === 'defensif' ? 'Def' : 'Nor'} ${suffixeDeVersionIA(profil)}${ancien}\n\n${lignesDesReglagesIA(profil).join('\n')}`;
 }
 
 // L'IA par defaut en couleur, partout ou un profil se montre (saab, 2026-10-18 : « mettre en

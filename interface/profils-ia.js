@@ -66,10 +66,11 @@ function ecrireProfilsIAPerso(profils) {
 // Les profils de base : les integres, plus, dans une version de travail
 // seulement, les meilleurs de saab (moteur/profils-ia.js, PROFILS_IA_DE_TRAVAIL :
 // des ajouts pas encore publies).
-// Publiee (KAAH_Test), seule l'IA par defaut s'ajoute aux profils integres (saab, 2026-10-18 :
-// « quand on publiera, on mettra la meilleure IA par défaut ») ; les autres profils de travail
-// restent dans la version de travail.
-const profilsIADeBase = () => [...PROFILS_IA_INTEGRES, ...PROFILS_IA_DE_TRAVAIL.filter((profil) => SUFFIXE_VERSION_KAAH_TEST !== '' || profil.nom === NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL)];
+// Publiee (KAAH_Test), seuls s'ajoutent aux profils integres l'IA par defaut (saab, 2026-10-18 :
+// « quand on publiera, on mettra la meilleure IA par défaut »), son Agressif et son Defensif
+// (moteur/profils-ia.js, NOMS_PROFILS_IA_PUBLIES) ; les autres profils de travail restent dans
+// la version de travail.
+const profilsIADeBase = () => [...PROFILS_IA_INTEGRES, ...PROFILS_IA_DE_TRAVAIL.filter((profil) => SUFFIXE_VERSION_KAAH_TEST !== '' || NOMS_PROFILS_IA_PUBLIES.includes(profil.nom))];
 // L'IA proposee par defaut (un joueur machine, Conseils, le Graphique, les ceintures) : le
 // meilleur profil de saab (moteur/profils-ia.js), sinon Normal.
 const nomDuProfilIAParDefaut = () => (profilsIADeBase().some((profil) => profil.nom === NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL) ? NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL : MACHINE_PAR_DEFAUT.profil);
@@ -108,11 +109,12 @@ function enregistrerSousLeNomDeSaVersion(ancienNom, profil) {
   const autres = lireProfilsIAPerso().filter((existant) => existant.nom !== ancienNom);
   const nomsPris = [...profilsIADeBase(), ...autres].map((existant) => existant.nom);
   const indice = profil.indice ?? prochainIndiceProfilIA(autres);
-  const avant = trouverProfilIA(ancienNom);
-  const dejaLa = [...profilsIADeBase(), ...autres, ...(avant && !estProfilIAIntegre(ancienNom) ? [avant] : [])];
-  const numeroDePoids = numeroDePoidsDansSaFamille(profil, dejaLa);
+  const avant = estProfilIAIntegre(ancienNom) ? null : trouverProfilIA(ancienNom);
+  const numeroDePoids = numeroDePoidsDeSaVersion(profil, avant, [...profilsIADeBase(), ...autres]);
   const nom = nomDisponible(nomAfficheDuProfilIA(profil, numeroDesAjoutsDe(profil.poids), numeroDePoids, true), nomsPris);
-  ecrireProfilsIAPerso([...autres, { ...profil, nom, indice, numeroDePoids }]);
+  // La version qu'il quitte garde son _v (moteur/historique-profil-ia.js) ; sans historique, il etait a sa premiere.
+  const historique = avant && profil.historique ? { historique: retenirLeNumeroDePoidsDeLaVersionIA(profil.historique, avant.courante ?? PREMIERE_VERSION_DU_PROFIL_IA, avant.numeroDePoids) } : {};
+  ecrireProfilsIAPerso([...autres, { ...profil, ...historique, nom, indice, numeroDePoids }]);
   return nom;
 }
 

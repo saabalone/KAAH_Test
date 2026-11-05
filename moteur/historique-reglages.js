@@ -109,6 +109,8 @@ function lireHistorique(description, brut) {
       date: typeof entree.date === 'string' ? entree.date : '',
       note: typeof entree.note === 'string' ? entree.note : '',
       ...description.valeurs(entree),
+      // Le _v d'une version de profil IA (moteur/historique-profil-ia.js) : un entier positif ou rien.
+      ...(Number.isInteger(entree.numeroDePoids) && entree.numeroDePoids > 0 ? { numeroDePoids: entree.numeroDePoids } : {}),
     });
   }
   if (!vus.has(brut.courante)) return null;

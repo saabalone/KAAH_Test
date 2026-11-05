@@ -27,8 +27,10 @@ function lireEvaluationsVisibles() {
 // Le profil que joue une machine qui a l'ajout Ct (moteur/ia-phase.js ; saab, 2026-10-23 : « il
 // faut savoir tjs quelle phase il joue, donc l'indiquer quelque part sur le plateau ») : le style
 // abrege du sien au debut (« Def »), une fleche vers celui du milieu ensuite (« →Agr ») ; rien sans Ct.
+// Avec Ph (moteur/ia-phase.js, MARQUES_DES_PHASES_AU_SCORE) : la phase du score.
 function marqueDeLaBascule(machine, bascule) {
   if (!bascule) return '';
+  if ('phasesAuScore' in machine.poids) return ` ${MARQUES_DES_PHASES_AU_SCORE[bascule]}`;
   return bascule === 'milieu' ? ` →${ABREVIATIONS_STYLES_IA[machine.milieu?.style] ?? '?'}` : ` ${ABREVIATIONS_STYLES_IA[machine.style]}`;
 }
 

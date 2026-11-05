@@ -6759,6 +6759,19 @@ body.apercu-kaah-test .note-apercu-test { display: block; }
   font-size: 14px;
 }
 
+/* Le debut du nom de la partie, colle sous le champ Titre (interface/creation-partie.js) ; un long nom va a la ligne. */
+.apercu-nom-creation {
+  margin: -6px 0 10px;
+  overflow-wrap: anywhere;
+}
+
+/* Dans Creer une partie, le libelle comme ceux de Titre, Noir et Blanc (.ligne-creation). */
+.corps-creation-partie .ligne-type-de-partie {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #c4c4c4;
+}
+
 /* Les noms de fin de partie (interface/noms-fin-de-partie.js ; saab, 2026-10-28 : « en fond blanc pour Blanc et
    noir pour Noir ») : chaque camp sur sa couleur, comme dans la boite Nouvelle partie. */
 .ligne-nom-fin {
@@ -6848,3 +6861,30 @@ body.apercu-kaah-test .note-apercu-test { display: block; }
   stroke: #8a8a8a;
   stroke-width: 0.3;
 }
+
+/* La ligne de l ajout Ph (moteur/ia-phase.js) : ses deux listes de profils de fin sur leur propre ligne, sinon elles debordent. */
+.ligne-couleur.ligne-phases { flex-wrap: wrap; }
+.listes-des-phases { flex: 0 0 100%; width: 100%; min-width: 0; display: flex; gap: 4px; }
+.listes-des-phases select { flex: 1 1 0; width: 0; min-width: 0; }
+
+/* Une colonne par phase (interface/reglages-ia-phases.js) : les chiffres seuls, alignes a droite ; ce qui est comme l'ouverture, en retrait. */
+.champ-de-phase[hidden], .titres-des-phases, .titres-des-phases span[hidden] { display: none; }
+.avec-colonnes-de-phases .ligne-groupe-ia { justify-content: flex-start; flex-wrap: wrap; }
+.avec-colonnes-de-phases .ligne-groupe-ia .nombre-avec-boutons { margin-left: auto; }
+.avec-colonnes-de-phases .ligne-groupe-ia .bouton-pas { display: none; }
+.avec-colonnes-de-phases .ligne-groupe-ia .nombre-avec-boutons { gap: 8px; flex-shrink: 0; }
+.avec-colonnes-de-phases .ligne-groupe-ia input[type='number'] { width: 44px; }
+.avec-colonnes-de-phases .titre-groupe-ia { display: flex; align-items: center; }
+.avec-colonnes-de-phases .titres-des-phases { display: inline-flex; gap: 8px; margin-left: auto; }
+.avec-colonnes-de-phases .titres-des-phases span { width: 45px; text-align: right; font-weight: normal; }
+.champ-de-phase.comme-l-ouverture { opacity: 0.55; }
+.champ-de-phase::placeholder { opacity: 0.45; }
+.poids-machine-nom th { padding-left: 12px; text-align: right; font-weight: normal; }
+.poids-machine-nom td + td { padding-left: 12px; text-align: right; }
+.poids-machine-nom td + td + td.poids-comme-l-ouverture { opacity: 0.55; }
+.poids-machine-nom .ligne-titre-groupe-ia th { padding-left: 0; text-align: left; }
+
+/* La marque d'export d'une partie (interface/mes-parties.js) : verte, le fichier est a jour ; orange, comme toute retouche, modifiee depuis. */
+.marque-export { flex: 0 0 auto; width: 22px; text-align: center; color: #6a6a6a; font: bold 15px sans-serif; }
+.marque-export.export-a-jour { color: #3fcf7a; }
+.marque-export.export-modifiee { color: #e0832a; }

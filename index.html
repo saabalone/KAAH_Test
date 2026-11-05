@@ -614,6 +614,7 @@
     <div class="barre-parties">
       <input id="case-tout-corbeille" type="checkbox" class="case-partie" title="Tout sélectionner / tout désélectionner" aria-label="Tout sélectionner" />
       <button id="bouton-restaurer-corbeille" class="bouton-dialogue" type="button" disabled title="Remet les éléments cochés à leur place">Restaurer la sélection</button>
+      <button id="bouton-supprimer-corbeille" class="bouton-dialogue" type="button" disabled title="Efface définitivement les éléments cochés">Supprimer la sélection</button>
     </div>
     <div id="liste-corbeille" class="liste-dialogue"></div>
     <div class="boutons-dialogue-cote-a-cote">
@@ -858,6 +859,7 @@
         <li><b>Réorganiser la colonne</b> : Réglages, « Réorganiser les groupes » — chaque groupe d'icônes reçoit ▲ et ▼ pour monter ou descendre ; touchez le <b>✓</b> vert en haut de la colonne pour finir.<br>L'ordre est retenu sur cet appareil ; « Ordre d'origine » (dans Réglages) le remet comme au départ.<br>« Choix des icônes » : une case par icône ; décochée, l'icône quitte la colonne (Réglages reste toujours). Deux préréglages : <b>Simple</b> (au départ : Variantes, Puzzles et Correspondance — tous trois dans Nouvelle partie —, Occurrences, Graphique et le Banc d'essais cachés) et <b>LabAlone</b> (toutes les icônes, pour la recherche). Dans un groupe dont des icônes sont cachées, l'infobulle de ses icônes dit lesquelles (sur téléphone : un appui long).</li>
         <li><b data-icone="bouton-nouvelle-partie">Nouvelle partie</b> : la partie en cours reste dans Mes parties.</li>
         <li><b data-icone="bouton-correspondance">Correspondance</b> : jouer à distance, comme dans KAAWA.<br>Créez la partie, puis après chaque coup un code <b>KAA1</b> s'affiche : envoyez-le (SMS, courriel…). Collez ici le code reçu de l'adversaire pour voir son coup.<br>On ne joue qu'à son tour ; le bouton Nulle y devient une proposition.<br>Le nombre dans l'enveloppe est celui de vos parties par correspondance en cours ; le bouton est vert dès qu'il y en a une, et <b>En cours</b> (en haut de la boîte) les liste : touchez-en une pour l'ouvrir.<br>Chaque appareil tient <b>un seul camp</b> d'une partie : pour essayer seul les deux camps, utilisez deux navigateurs différents (l'appli installée et son navigateur partagent la même mémoire).</li>
+        <li>Devant chaque ligne de Mes parties : <b>✓ vert</b>, exportée et le fichier est à jour ; <b>✓ orange</b>, modifiée depuis l'export ; <b>○</b>, jamais exportée. La marque ne se touche pas : seul un fichier de partie la pose (Exporter, Importer), pas « Exporter tout ». Le filtre ▶ les sépare, et supprimer le rappelle.</li>
         <li>Le titre de Mes parties, Variantes, Puzzles et Corbeille donne le <b>nombre</b> de lignes affichées et leur <b>volume</b>, ex. « Mes parties (11, 10k) » (k = mille octets, M = million).</li>
         <li><b data-icone="bouton-mes-parties">Mes parties</b> : les parties enregistrées automatiquement. Un premier toucher montre un aperçu, le second charge la partie.<br>Un badge sur l'icône (vert, puis rouge) indique le nombre de parties enregistrées quand il devient important — supprimez-en (bouton <b>Supprimer la sélection</b>), elles restent quand même retrouvables dans la <b>Corbeille</b> (voir plus bas).<br><b>Exporter</b> (vert) : un fichier par partie cochée (le format de KAAWA, nommé comme dans la liste), à garder ou à envoyer ; <b>Supprimer la sélection</b> passe en rouge.<br>Le petit bouton <b>▶</b> à côté de la case « tout » déplie un <b>filtre</b> : un champ par élément du titre (date, événement, variante, joueurs, score, tours, vainqueur, statut, branches Br_) à remplir ou cocher ; le vainqueur s'écrit <b>x</b> (Noir), <b>n</b> (Nulle) ou <b>y</b> (Blanc), comme dans le titre, et se cherche aussi par ce mot ou par le nom du joueur ; seules les parties qui correspondent restent affichées, et « tout » ne coche qu'elles.<br>Le ▶ devient orange tant qu'un filtre cache des parties.<br><b>Joueurs</b> : l'historique de chaque joueur, humain ou machine (🤖) — parties, gagnées, nulles, perdues (au total, en Noir, en Blanc), séries, records (victoire la plus courte, la plus longue, la plus large, et les mêmes en défaite, chacun avec <b>Voir</b> pour rouvrir la partie si elle est encore dans la liste), bilan contre chaque adversaire et par variante. Il garde les parties même supprimées de la liste. Seuls les joueurs <b>nommés</b> y sont : un nom par défaut (Joueur_1…) n'est pas suivi. Dans la boîte du nom (touchez le nom sur le plateau), les noms déjà donnés s'affichent en boutons : un toucher le remet.</li>
         <li><b data-icone="bouton-variantes">Variantes</b> et <b data-icone="bouton-puzzles">Puzzles</b> : positions de départ et puzzles de KAAWA (aperçu au premier toucher, chargement au second).<br>Une rangée de boutons les classe (Équilibrées, Handi, types ; Easy, Medium...), le choix est retenu.<br>En bas : <b>Nouvelle</b> / <b>Modifier</b> créent vos propres positions (« My », exportables pour KAAWA) ; <b>Supprimer</b> (seulement sur une position « My ») l'envoie dans la Corbeille ; <b>Importer My</b> ajoute celles d'un fichier <code>KAA_variants_my.json</code> / <code>KAA_PZL_my.json</code> reçu d'un autre joueur (un nom déjà pris est renommé automatiquement, jamais perdu) ; <b>Créer partie</b> rejoue une suite de coups collée (Nacre ou AbaPro) depuis la position choisie — aussi dans Mes parties.<br>Dans Puzzles, un interrupteur en bas propose une <b>orientation aléatoire</b> à chaque ouverture (voir « Permutations » plus bas).</li>
@@ -883,13 +885,13 @@
       <ul>
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>KAI++</b> (la machine, en C++) — deux machines peuvent jouer l'une contre l'autre, pour comparer deux profils. (KAI, l'ancienne machine en JavaScript, figée et 40 à 80 fois plus lente, ne se choisit plus ; elle rejoue les parties d'avant qui l'avaient.)<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2 ; boutons <b>−</b> / <b>+</b> de palier en palier : 0,5 1 2 3 5 10 15 20 30 45 60 90 120 180 300 s, puis <b>∞</b>, sans limite — le champ vide ; la réflexion <b>proposée</b> pour son niveau est en <b>marron</b> : assez pour finir le niveau d'habitude, même sur un téléphone — elle suit le niveau tant qu'on n'y touche pas). La boîte retient votre dernier choix ; la toute première fois, une machine est proposée en <b>KAI++</b>, <b>niveau 1</b> (pour qu'un débutant puisse gagner : montez ensuite), avec l'IA par défaut.</li>
         <li><b>Type</b> de la partie (boîtes Nouvelle partie, Variantes, PZL, et <b>Pendule</b> pour le changer en cours de partie) : ce que le titre de la partie écrit après la date (2610300407, <b>Amical</b>, Marguerite Belge…). Tapez ce que vous voulez (Tournoi, Club…), ou touchez <b>Amical</b> ou <b>Test</b>.<br>Une partie <b>Test</b> (une IA contre une autre, recopiée à la main — AbaPro contre KAI++, par exemple) sert à corriger une erreur de copie vue plusieurs coups plus tard :<br>— <b>supprimer n'importe quel coup</b> de la partie (son ✕ dans la Séquence), avec tout ce qui le suit ;<br>— si la vraie suite a été jouée en branche, la faire <b>remonter</b> au-dessus de la partie (le <b>▲</b> du choix de la branche, quand « Coup suivant » arrive à l'embranchement) : elle <b>devient la partie</b>, jusqu'à son bout, et l'ancienne suite devient une branche, à supprimer par son ✕. Le titre suit : <b>Br_</b> tant qu'il reste une branche, plus rien sinon.<br>Dans les autres parties, seul le dernier coup se reprend et la partie reste toujours la première ligne (comme l'« Origine protégée » de KAAWA).<br>Une nouvelle partie propose le type de la précédente (une série de Test reste en Test), jusqu'à ce que vous le changiez ; Revanche et Same le gardent.</li>
-        <li><b>Quelle force ?</b> L'IA par défaut, la plus récente (<b>Normal v5ElP5</b>), bat <b>AbaPro niveau 6</b> (6 parties à 4, en KAI++ niveau 6). Si elle est trop forte pour vous, entraînez-vous d'abord contre d'autres IA : un niveau plus bas, ou un autre profil IA (Agressif, Défensif, versions plus anciennes), puis remontez peu à peu.</li>
+        <li><b>Quelle force ?</b> L'IA par défaut, la plus récente (<b>Normal v5ElP6Ph2</b>), bat <b>AbaPro niveau 6</b> dans les 2 camps (6-3 et 6-2, en KAI++ niveau 6, sans livre) et <b>AbaPro niveau 8</b> en Noir (6-2) ; en Blanc, le niveau 8 la bat encore (2-6). Si elle est trop forte pour vous, entraînez-vous d'abord contre d'autres IA : un niveau plus bas, ou un autre profil IA (Agressif, Défensif, versions plus anciennes), puis remontez peu à peu.</li>
         <li><b>Élagage (El)</b>, pour chaque machine (boîte du mode de pendule et boîte du nom) : le nombre de coups qu'elle garde à chaque position. Vide (le nombre en <b>marron</b>) : celui de son profil ; un nombre le remplace, quel que soit le profil — pratique pour comparer plusieurs profils au même élagage, contre AbaPro par exemple ; <b>0</b> : sans élagage. Son nom le dit (KAI++6_Nor_30s_v5<b>El4</b>P5).<br><b>Attention : une machine sans élagage peut être très, très longue</b> aux niveaux hauts (sur un ordinateur : quelques secondes par coup au niveau 6, une minute ou plus au niveau 7, et au niveau 8 elle ne finit pratiquement jamais ; un téléphone est plusieurs fois plus lent). À éviter, ou gardez une <b>réflexion max</b> courte : elle joue alors le meilleur coup trouvé dans ce temps (mais voit moins loin). Avec élagage, au niveau 8, quelques secondes par coup suffisent d'habitude (au niveau 9, 10 à 20 s ; au niveau 10, environ une minute) ; la réflexion <b>∞</b> (sans limite) la laisse toujours finir son niveau, et son nom le dit (KAI++8_Nor_<b>inf</b>_v5El10P5).</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.<br>Ses couleurs : en <b>marron</b>, ce qui est à sa valeur par défaut (KAI++, le niveau 1, la réflexion proposée pour son niveau, et le style et le profil de l'IA par défaut telle quelle) ; sinon le style (Nor) prend la couleur de ses réglages : <b>orange</b> pour une retouche pas encore validée (un élagage forcé, par exemple), vert ou jaune pour une validation récente ou ancienne.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.<br><b>Version 3</b> (version de travail, jouée par KAI++ ; KAI aussi, mais lentement) : la 2, plus trois choses. <b>Les cases</b> : chacune des 9 cases distinctes du plateau (<b>e5 d4 c4 c3 b4 b2 a3 a2 a1</b>, chacune valant aussi pour les cases qui lui ressemblent par rotation ou miroir) a une valeur en plus du Centre, pour une bille à soi, l'opposé pour une bille adverse ; au départ, les 2 couronnes éjectables sont négatives (b : −5, a : −10, coin a1 : −12). <b>La compacité</b> : la distance moyenne, en coups, entre ses billes deux à deux — plus elle est petite, plus le bloc est compact ; son poids compte par coup de distance de moins que l'adversaire. <b>Gain et Perte (score)</b> : chaque éjection déjà faite rend la suivante plus précieuse (la 2e prise rapporte Gain + Gain (score), la 3e Gain + 2 × Gain (score)…), de même pour les pertes : en fin de partie, la machine sait s'il vaut mieux attaquer ou se défendre. Profils <b>Agressif v3</b>, <b>Normal v3</b>, <b>Défensif v3</b> ; version <b>3el</b> pour élaguer.<br>Chaque poids a aussi sa <b>case</b> : décochée, il ne compte plus (0), recochée, il reprend sa valeur. <b>Version 5</b> (version de travail) : la 4, le poids <b>Sumito</b> séparé en trois, un par sorte de poussée — <b>Sumito 3/2</b>, <b>3/1</b>, <b>2/1</b> ; par défaut chacun vaut le Sumito de la 4, pour qu'elle joue d'abord exactement comme elle (profils … v5 et … v5el). <b>Version 4</b> (version de travail) : la 3, plus le <b>Piège</b> — chaque bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant : le triangle a3 contre b3 b4 c4) rapporte ce poids, chacune des siennes le coûte. Le vrai piège (les deux camps jouent) est trop long pour chaque position : la version 4 n'en regarde que l'immobilité. Profils <b>Agressif v4</b>, <b>Normal v4</b>, <b>Défensif v4</b> ; version <b>4el</b> pour élaguer.<br>Dans le choix d'une machine (début de partie, boîte du nom), la petite liste devant le profil n'en montre qu'un <b>style</b> (Agr, Nor, Déf ou Tous), et chaque profil à vous est suivi de ses <b>anciennes versions</b> (« ↳ h2 · 03/10 14:10 »), jouables telles quelles (la machine s'appelle alors …_h2). Les boutons du bas de ces boîtes restent toujours visibles. Les profils de base sont rangés <b>par style</b>, puis par force : Agressif, Agressif v2, v2el, v3, v3el, v4, v4el, puis Normal…, puis Défensif… — pour opposer deux machines du même style en ne changeant que la version. Chaque version à partir de la 2 a son profil « el », qui garde ce marqueur quand on le retouche (Normal v3el_v2).<br><b>Livre d'ouvertures</b> : chaque profil dit s'il s'en sert (case Livre, coche par défaut) ; choisir le profil au début de la partie reprend sa case, que Réglages > Machine > Livre d'ouvertures peut interdire à toutes les machines.<br><b>Comparer</b> : tous les profils côte à côte ; les cases e5 à a1 y montrent la <b>valeur totale</b> d'une bille à soi sur elles (Centre × ses pas, plus sa valeur propre en version 3 ; le bord a ses poids à part) ; toucher le titre <b>Centre</b> cache ou montre les cases d4 à a2 (e5 et a1 restent) ; tirer le bord droit d'un titre élargit ou rétrécit sa colonne.<br><b>Sur ordinateur</b>, survoler une case affiche sa notation, ses coordonnées axiales et ce qui l'occupe ; le <b>clic droit</b> sur une bille ouvre son panneau, à côté du plateau sur la ligne e (à déplacer par son titre) : ce qu'elle apporte à chaque terme, de Gain à Fourchette (l'évaluation avec elle moins sans elle) et leur <b>total</b>, pour la machine et pour d'autres profils IA côte à côte ; puis sa distance moyenne aux siennes, la bille adverse la plus proche, si elle est poussée ou éjectable, et, pour une bille des couronnes b et a, son <b>Piège</b> : KAI++ cherche, les deux camps jouant (l'adversaire peut lui couper la route), si elle sort de la zone éjectable en 4 de ses coups au plus quoi que fasse l'adversaire — « sort en 2 coups, d'abord … », « piégée : aucune sortie en 4 coups », ou « piégée sur 3 coups (au-delà : trop long) » ; quelques secondes au plus, sans gêner la machine qui joue. La <b>Course</b> en est la mesure rapide, sans réponse de l'adversaire (les autres billes ne bougent pas). Le bouton <b>Aire</b> (vert ; orange pendant le dessin) : appuyer (bouton gauche ou droit de la souris) sur une case et glisser jusqu'à relâcher — 2 cases suffisent (une ligne, un sumito) —, le trait suit les cases survolées (et celles que la souris saute, en ligne droite : les 6 coins suffisent pour tout le plateau), le lien de fermeture apparaît en revenant sur la première, relâcher le ferme ; le bouton <b>Plateau</b> prend tout le plateau d'un coup (Échap annule ; le plateau ne joue pas pendant ce temps). Les billes des deux camps dans l'aire forment une position, évaluée terme par terme pour le camp de la bille — tout le plateau donne exactement l'évaluation de la machine. Pour chaque profil, deux colonnes : <b>seule</b> (l'aire comme si rien d'autre n'existait, ni les éjections de la partie : Gain et Perte y valent 0) et <b>avec l'ext.</b> (ce que les billes de l'aire apportent à toute la position : avec elles moins sans elles ; Gain et Perte : les éjections déjà faites dans la partie ; le réglage de chaque terme en gris, « +5000/+1000 ») — tout le plateau (bouton <b>Plateau</b>) y donne l'évaluation de la machine ; depuis une case vide, l'aire est celle du camp au trait ; le profil de la machine en orange. Un clic droit sur une bille adverse ouvre la même aire pour son camp, dans un 2e panneau collé au 1er. Les panneaux s'agrandissent ou rétrécissent par leur coin en bas à droite. Le bouton ⚙ choisit les termes, les profils, les mesures et les champs du survol.<br><b>Affiner les IA, c'est sur ordinateur</b> : le <b>Graphique</b> (son icône, avec Séquence/Commentaires/Occurrences, ou Réglages > Profil IA ; au-dessus de la Séquence) montre les courbes (chaque éjection en pointillé vertical : vert quand l'adversaire du camp choisi perd une bille, rouge quand c'est le camp choisi) et, sous elles, les <b>barres</b> du coup (chaque terme, sa valeur et sa part de l'évaluation) ; sa <b>poignée de gauche</b> élargit la colonne de droite aux dépens du plateau (comme celle de la Séquence), son coin en bas à droite l'allonge, et les barres se détachent par leur poignée pour se poser où l'on veut. Sur téléphone, trop petit, seulement un aperçu : les courbes, sans les barres.</li>
         <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI++ si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
-        <li>Le <b>nom d'un profil IA</b> se calcule de ses réglages : <b>Normal v5ElP2_v3</b> — le style, la version, <b>El</b> s'il élague, <b>P2</b> son jeu d'<b>ajouts</b> (chaque suffixe a sa majuscule : Sv, Ec, Ef… ; un même jeu garde toujours le même numéro, quelle que soit la version : si P2 = EcEf, alors v4ElP2 a aussi Ec et Ef), puis <b>_v3</b> son jeu de <b>poids</b> dans cette famille (le premier n'en a pas ; valider une retouche des poids prend le suivant, changer les ajouts change de P). La machine reprend ce nom : <b>KAI++8_Nor_30s_v5El10P2_v3</b> (niveau, réflexion, élagage) ; <b>_h2</b> : une ancienne version de l'historique du profil (« ↳ h2 » dans les listes). Survoler un profil montre ses ajouts en clair et, pour un profil d'avant ces noms, son ancien nom. Les numéros P des jeux d'ajouts des profils intégrés sont <b>les mêmes sur tous les appareils</b> (P1 à P5 : l'IA par défaut est partout Normal v5ElP5), pour comparer ; vos propres jeux d'ajouts, eux, s'appellent P<i>n</i>M<i>m</i> (ci-dessous). Au banc, ce qu'on fait varier s'abrège : ScGain80, E5+30, A1-10, Sv sans.</li>
+        <li>Le <b>nom d'un profil IA</b> se calcule de ses réglages : <b>Normal v5ElP2_v3</b> — le style, la version, <b>El</b> s'il élague, <b>P2</b> son jeu d'<b>ajouts</b> (chaque suffixe a sa majuscule : Sv, Ec, Ef… ; un même jeu garde toujours le même numéro, quelle que soit la version : si P2 = EcEf, alors v4ElP2 a aussi Ec et Ef), puis <b>_v3</b> son jeu de <b>poids</b> dans cette famille (le premier n'en a pas ; valider une retouche des poids prend le suivant, changer les ajouts change de P). Avec les phases au score (l'IA change de réglages selon le score : ouverture, milieu, fin), le seuil suit le P : <b>P6Ph2</b> (le milieu dès 2 billes sorties) ; Ph 1 et Ph 2 gardent le même P. La machine reprend ce nom : <b>KAI++8_Nor_30s_v5El10P2_v3</b> (niveau, réflexion, élagage) ; <b>_h2</b> : la version 2 de l'historique d'un profil retouché — la courante, ou une ancienne jouée telle quelle (« ↳ h2 » dans les listes) ; deux parties au même nom ont ainsi toujours les mêmes réglages. Survoler un profil montre ses ajouts en clair et, pour un profil d'avant ces noms, son ancien nom. Les numéros P des jeux d'ajouts des profils intégrés sont <b>les mêmes sur tous les appareils</b> (P1 à P6 : l'IA par défaut est partout Normal v5ElP6Ph2), pour comparer ; vos propres jeux d'ajouts, eux, s'appellent P<i>n</i>M<i>m</i> (ci-dessous). Au banc, ce qu'on fait varier s'abrège : ScGain80, E5+30, A1-10, Sv sans.</li>
         <!-- Saab, 2026-11-01 : « Au fait dans le tableau des suffixes et dans Aide, je ne vois pas l'explication de Mn de
              PnMn pour mes versions de poids » — un paragraphe a lui, et ceux de l'appareil en clair (interface/aide.js). -->
         <li><b>Vos jeux d'ajouts : P<i>n</i>M<i>m</i></b>. Cocher ou décocher des ajouts sur un profil (Réglages > Machine, chaque ajout écrit sur sa ligne : Pr, Et, Ech…) en fait un jeu à vous. Il prend le nom du jeu de KAAH le plus proche (P1 à P5), puis <b>M</b> et son numéro sur cet appareil : <b>P5M1</b> est la 1re modification de P5 vue ici, <b>P5M2</b> la 2e… (comme _k et _v pour les poids). La suite P1, P2… reste celle de KAAH : un jeu à vous que KAAH adopte devient le P suivant. Ces M sont propres à cet appareil (« Exporter tout » les emporte ; un profil importé reçoit ceux d'ici). Ceux de cet appareil, chacun avec ce qu'il retire (−) ou ajoute (+) à son P : <span id="aide-jeux-d-ajouts-a-soi"></span></li>
@@ -950,7 +952,7 @@
         <li>Supprimer une partie (Mes parties) ou une position « My » (Variantes/Puzzles) ne l'efface jamais tout de suite : elle part dans la <b>Corbeille</b> de sa boîte.<br>Un bouton <b>Corbeille</b> en bas de Mes parties, de Variantes et de Puzzles, chacune ne montrant que ce que cette boîte a supprimé ; le bouton dit combien elle en contient, ex. « Corbeille (3) ».</li>
         <li>Seules vos positions « My » se suppriment : les variantes et puzzles de KAAWA ne s'effacent jamais.</li>
         <li>Cochez une ou plusieurs lignes (ou la case du haut pour tout sélectionner), puis <b>Restaurer la sélection</b> : elles reviennent exactement comme elles étaient.<br>La boîte reste ouverte ; la page se recharge une seule fois, en la fermant.</li>
-        <li><b>Vider la corbeille</b> est la seule action définitive (seulement pour la boîte ouverte) — une confirmation le rappelle.</li>
+        <li><b>Supprimer la sélection</b> (les lignes cochées) et <b>Vider la corbeille</b> (tout ce que montre la boîte ouverte) sont les seules actions définitives — une confirmation le rappelle.</li>
       </ul>
     </details>
 
@@ -1248,7 +1250,7 @@
           <input id="case-livre-ia" type="checkbox" />
           Livre d'ouvertures (base de coups)
         </label>
-        <label class="ligne-couleur" title="Lire le nom d'un profil, ex. « Normal v5ElP2_v3 » : Normal = le style ; v5 = la version de l'évaluation (les termes qu'elle sait compter) ; El = avec élagage ; P2 = son jeu d'AJOUTS n° 2 (par ex. SvEcEf), toujours le même numéro pour les mêmes ajouts, quelle que soit la version ; _v3 = son 3e jeu de POIDS dans cette famille (style, version, El, P) — le premier n'en a pas. Survoler un profil montre ses ajouts en clair et son ancien nom. Dans le nom d'une machine, ex. KAI++8_Nor_30s_v5El10P2_v3 : niveau 8, réflexion 30 s, élagage 10, puis P2 et _v3 ; _h2 : une ancienne version de son historique.">Profil IA <select id="select-profil-ia" aria-label="Profil IA"></select></label>
+        <label class="ligne-couleur" title="Lire le nom d'un profil, ex. « Normal v5ElP2_v3 » : Normal = le style ; v5 = la version de l'évaluation (les termes qu'elle sait compter) ; El = avec élagage ; P2 = son jeu d'AJOUTS n° 2 (par ex. SvEcEf), toujours le même numéro pour les mêmes ajouts, quelle que soit la version ; _v3 = son 3e jeu de POIDS dans cette famille (style, version, El, P) — le premier n'en a pas. Survoler un profil montre ses ajouts en clair et son ancien nom. Dans le nom d'une machine, ex. KAI++8_Nor_30s_v5El10P2_v3 : niveau 8, réflexion 30 s, élagage 10, puis P2 et _v3 ; _h2 : la version 2 de son historique, pour un profil retouché (la courante, ou une ancienne jouée telle quelle).">Profil IA <select id="select-profil-ia" aria-label="Profil IA"></select></label>
         <!-- Ce que cherche le profil (saab, 2026-10-03) : fixe pour un profil
              integre, a ecrire pour les siens (interface/reglages-ia.js). -->
         <label class="ligne-description-profil-ia">Ce qu'il cherche <textarea id="description-profil-ia" rows="2" maxlength="400" placeholder="Ce que ce profil cherche à faire (attaquer le bord, tenir le centre…)"></textarea></label>
@@ -1331,13 +1333,22 @@
              malus_de_la_poussee_retournable) : contre P5, Prj des deux cotes lui faisait croire que P5 evitait ces sumitos. -->
         <label class="ligne-couleur poids-ajout" title="Ajout Prk (KAI++), avec Prj : seuls les sumitos retournables de la machine qui cherche coûtent Prj ; ceux de l'adversaire ne coûtent rien (il les joue peut-être). 1 : oui ; 0 : Prj des deux côtés">Prj, pour la machine seulement (Prk) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-pousseeRetournableJoueeMachineSeule" class="nombre-reglage" type="number" step="1" min="0" max="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-10-23 : l'ajout Ct, le centre tenu (moteur/ia-phase.js) — et la copie du profil du milieu. -->
-        <label class="ligne-couleur poids-ajout" title="Ajout Ct (centre tenu) : tant que la machine a moins de Ct billes sur e5 et ses 6 voisines, elle joue ce profil ; dès qu'elle les a, le profil du milieu choisi à côté (une copie : le changer ou le supprimer ensuite ne change rien ici) ; elle revient à ce profil si elle perd le centre. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit lequel elle joue">Centre tenu (Ct) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centreTenu" class="nombre-reglage" type="number" step="1" min="1" max="7" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <select id="select-profil-milieu-ia" title="Le profil du milieu : ses réglages sont copiés dans ce profil quand on le choisit"></select></label>
+        <label class="ligne-couleur poids-ajout ligne-phases" title="Ajout Ct (centre tenu) : tant que la machine a moins de Ct billes sur e5 et ses 6 voisines, elle joue ce profil ; dès qu'elle les a, le profil du milieu choisi à côté (une copie : le changer ou le supprimer ensuite ne change rien ici) ; elle revient à ce profil si elle perd le centre. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit lequel elle joue">Centre tenu (Ct) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centreTenu" class="nombre-reglage" type="number" step="1" min="1" max="7" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <span class="listes-des-phases"><select id="select-profil-milieu-ia" title="Le profil du milieu : ses réglages sont copiés dans ce profil quand on le choisit"></select></span></label>
+        <!-- Saab, 2026-11-04 : l'ajout Ph, les phases au score (moteur/ia-phase.js) — et les copies des profils de fin. -->
+        <label class="ligne-couleur poids-ajout ligne-phases" title="Ajout Ph (phases au score) : ce profil joue l'ouverture, jusqu'à Ph billes sorties, les deux camps ensemble (1 : la première bille sortie la finit ; 2 : elle en fait encore partie). Ensuite le profil du milieu (la liste de Centre tenu, juste au-dessus). Dès qu'un camp a perdu 4 billes, le profil de fin, ou celui de fin en avance si le camp qui joue mène ; ce dernier aussi dès 3 billes d'avance en bonne position (groupé, au plus 1 bille dehors, face à un camp coupé). Des copies : les changer ou les supprimer ensuite ne change rien ici. Sans copie pour une phase, celle de la phase d'avant. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit laquelle il joue">Phases au score (Ph) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-phasesAuScore" class="nombre-reglage" type="number" step="1" min="1" max="2" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <span class="listes-des-phases"><select id="select-profil-fin-ia" title="Le profil de fin : ses réglages sont copiés dans ce profil quand on le choisit"></select> <select id="select-profil-fin-avance-ia" title="Le profil de fin quand le camp qui joue mène : ses réglages sont copiés dans ce profil quand on le choisit"></select></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-3" title="La distance moyenne, en coups, entre ses billes deux à deux : plus elle est petite, plus le bloc est compact. Ce poids par coup de distance en moins que l'adversaire">Compacité <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-compacite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Gs (KAI++) : chaque groupe de billes voisines en plus du premier (une bille seule compte pour un groupe) coûte ce poids, et le rapporte chez l'adversaire — pour ne pas se disperser">Groupes séparés (Gs) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-groupesSepares" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-11-01 : « Ok fais le » — l'ajout Mc, la menace de coupure (moteur/ia-poussees.js) : contre AP6,
              apres 4-4, KAI++ se laissait couper en 6 a 8 groupes. -->
         <label class="ligne-couleur poids-ajout" title="Ajout Mc (KAI++) : chaque sumito de l'adversaire, sans éjection, après lequel mes billes seraient en un groupe de plus coûte ce poids (négatif), et le rapporte chez l'adversaire — Gs compte les groupes déjà séparés, Mc la coupure avant qu'elle arrive">Menace de coupure (Mc) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-menaceDeCoupure" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-11-03 : « mettre un poids At (Angle triangle) » — l'ajout At (moteur/ia-triangles.js) : contre AP6,
+             KAI++ tenait 2 a 8 fois moins de triangles. -->
+        <label class="ligne-couleur poids-ajout" title="Ajout At (KAI++) : chaque triangle de côté 2 (3 billes à 2 pas l'une de l'autre, comme a1 a3 c3, ou a1 c1 c3) dont les 3 angles sont à moi rapporte ce poids, et le coûte chez l'adversaire — rempli de ses 3 milieux, c'est le triangle de 6 billes, solide en défense et en poussée">Angles de triangles (At) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-anglesDeTriangles" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-11-04 : « le pb c'est qu'il a son groupe isolé au bord » ; « Ok pour Hp » — l'ajout Hp
+             (moteur/ia-groupe-principal.js). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Hp (KAI++) : chaque bille en dehors de mon plus grand groupe de billes voisines coûte ce poids (négatif), et le rapporte chez l'adversaire — Gs ne paie que la réunion complète, Hp chaque bille ramenée">Hors du groupe principal (Hp) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesHorsDuGroupePrincipal" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout He (KAI++) : Hp qui grandit avec l'écart au score : chaque bille hors du groupe principal coûte encore ce poids (négatif) par bille d'écart, et le rapporte chez l'adversaire ; à égalité au score, il ne compte pas. Avec Hp −20 et He −20 : −40 à 1 bille d'écart, −60 à 2, −80 à 3">Hors du groupe, par bille d'écart au score (He) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesHorsDuGroupeSelonLEcart" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les miennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-sumito" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1489,7 +1500,7 @@
         <p class="banc-titre banc-mode-parties">Contre</p>
         <p class="banc-titre banc-mode-puzzles">Défense</p>
         <p class="note-reglages banc-mode-puzzles">La référence défend chaque puzzle, sans élagage, en voyant jusqu'à 6 demi-coups (au plus jusqu'à la fin du puzzle ; toujours, avec « Défense jusqu'à la fin ») : la défense qui retarde le plus la défaite.</p>
-        <div class="ligne-reglage banc-ligne-profil banc-hors-ceintures"><label title="Lire le nom d'un profil, ex. « Normal v5ElP2_v3 » : Normal = le style ; v5 = la version de l'évaluation (les termes qu'elle sait compter) ; El = avec élagage ; P2 = son jeu d'AJOUTS n° 2 (par ex. SvEcEf), toujours le même numéro pour les mêmes ajouts, quelle que soit la version ; _v3 = son 3e jeu de POIDS dans cette famille (style, version, El, P) — le premier n'en a pas. Survoler un profil montre ses ajouts en clair et son ancien nom. Dans le nom d'une machine, ex. KAI++8_Nor_30s_v5El10P2_v3 : niveau 8, réflexion 30 s, élagage 10, puis P2 et _v3 ; _h2 : une ancienne version de son historique.">Référence <select id="banc-reference"></select></label><span id="banc-recherche-reference" class="banc-recherche-reference"></span></div>
+        <div class="ligne-reglage banc-ligne-profil banc-hors-ceintures"><label title="Lire le nom d'un profil, ex. « Normal v5ElP2_v3 » : Normal = le style ; v5 = la version de l'évaluation (les termes qu'elle sait compter) ; El = avec élagage ; P2 = son jeu d'AJOUTS n° 2 (par ex. SvEcEf), toujours le même numéro pour les mêmes ajouts, quelle que soit la version ; _v3 = son 3e jeu de POIDS dans cette famille (style, version, El, P) — le premier n'en a pas. Survoler un profil montre ses ajouts en clair et son ancien nom. Dans le nom d'une machine, ex. KAI++8_Nor_30s_v5El10P2_v3 : niveau 8, réflexion 30 s, élagage 10, puis P2 et _v3 ; _h2 : la version 2 de son historique, pour un profil retouché (la courante, ou une ancienne jouée telle quelle).">Référence <select id="banc-reference"></select></label><span id="banc-recherche-reference" class="banc-recherche-reference"></span></div>
         <div class="banc-mode-parties">
           <label class="ligne-reglage" title="Décochée : la référence ne prend dans le livre que ses coups au hasard (pour varier les ouvertures), ensuite elle cherche elle-même"><input id="banc-livre" type="checkbox" checked /> avec le livre</label>
           <label class="ligne-reglage" title="Cochée : l'essai aussi joue les coups du livre tant que la position y est (pas les coups au hasard de la référence) — les deux camps à égalité ; décochée : l'essai cherche toujours lui-même, ce qui l'avantage quand la référence tire ses premiers coups au hasard"><input id="banc-livre-essai" type="checkbox" /> l'essai aussi avec le livre</label>
@@ -1671,8 +1682,31 @@
     <div class="corps-creation-partie">
       <label class="ligne-creation">
         Titre
-        <input id="champ-titre-creation" type="text" placeholder="(facultatif)" autocomplete="off" />
+        <input id="champ-titre-creation" type="text" autocomplete="off" title="Le nom de la variante dans le nom de la partie ; vide : celui de la position de départ" />
       </label>
+      <!-- Saab, 2026-11-03 : « Il faudrait indiquer dans le champ du Titre ce qui se remplit depuis les autres champs
+           sinon on risque d'écrire en doublon » (interface/creation-partie.js). -->
+      <p id="apercu-nom-creation" class="note-reglages apercu-nom-creation"></p>
+      <!-- Saab, 2026-11-03 : « il faut ouvrir chaque boite de nom pour les remplir, pourquoi ne pas mettre aussi ces
+           champs dans créer ? » — les noms des deux camps, et sous chacun ceux deja donnes (interface/noms-connus.js). -->
+      <label class="ligne-creation">
+        Noir
+        <input id="champ-noir-creation" type="text" maxlength="30" autocomplete="off" placeholder="Joueur_1" title="Le nom de Noir ; vide : Joueur_1" />
+      </label>
+      <div id="noms-connus-noir-creation" class="noms-connus" hidden></div>
+      <label class="ligne-creation">
+        Blanc
+        <input id="champ-blanc-creation" type="text" maxlength="30" autocomplete="off" placeholder="Joueur_2" title="Le nom de Blanc ; vide : Joueur_2" />
+      </label>
+      <div id="noms-connus-blanc-creation" class="noms-connus" hidden></div>
+      <!-- Saab, 2026-11-03 : « Mets aussi le type si on a besoin c'est pratique » — la meme ligne que celle de la
+           Nouvelle partie (interface/type-de-partie.js). -->
+      <div id="ligne-type-creation" class="ligne-type-de-partie">
+        <label for="champ-type-creation">Type</label>
+        <input id="champ-type-creation" type="text" maxlength="30" autocomplete="off" spellcheck="false" title="L'évènement écrit dans le titre de la partie (Amical, Test, Tournoi…) : tapez ce que vous voulez" />
+        <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Amical" title="Une partie ordinaire : seul le dernier coup de la partie se reprend">Amical</button>
+        <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Test" title="Un essai (une IA contre une autre, recopiée à la main) : n'importe quel coup de la partie se supprime, sa branche voisine reprenant alors la partie, et une branche peut remonter au-dessus de la partie pour la remplacer — pour corriger une erreur de copie">Test</button>
+      </div>
       <label class="ligne-creation">
         Position de départ
         <input id="champ-position-creation" type="text" spellcheck="false" autocomplete="off" />
@@ -1723,7 +1757,7 @@
       <label for="champ-type-de-partie">Type</label>
       <input id="champ-type-de-partie" type="text" maxlength="30" autocomplete="off" spellcheck="false" title="L'évènement écrit dans le titre de la partie (Amical, Test, Tournoi…) : tapez ce que vous voulez" />
       <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Amical" title="Une partie ordinaire : seul le dernier coup de la partie se reprend">Amical</button>
-      <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Test" title="Un essai (une IA contre une autre, recopiée à la main) : n'importe quel coup de la partie se supprime, et une branche peut remonter au-dessus de la partie pour la remplacer — pour corriger une erreur de copie">Test</button>
+      <button class="bouton-filtre bouton-type-de-partie" type="button" data-type="Test" title="Un essai (une IA contre une autre, recopiée à la main) : n'importe quel coup de la partie se supprime, sa branche voisine reprenant alors la partie, et une branche peut remonter au-dessus de la partie pour la remplacer — pour corriger une erreur de copie">Test</button>
     </div>
     <div class="boutons-dialogue-cote-a-cote">
       <button id="bouton-mode-chrono" class="bouton-filtre" type="button" title="Chrono : on compte le temps sans limite">Chrono</button>
@@ -1894,6 +1928,8 @@
         <button id="bouton-suggestion-nom-joueur" class="bouton-dialogue" type="button" title="Ce que jouerait la machine choisie (IA) ici, sans changer de joueur : affiché dans Réflexion IA, et mis en commentaire du coup que vous jouerez">Suggestion</button>
       </div>
       <div id="choix-ia-nom-joueur" class="choix-joueur" hidden>
+        <!-- Saab, 2026-11-04 : changer le profil avant Same changeait le titre de la partie finie, sans rien dire. -->
+        <p id="note-partie-finie-nom-joueur" class="note-reglages" hidden>Partie finie : elle garde son titre et la machine qui l'a jouée. Votre choix vaudra pour une branche et pour la partie suivante (Same, Revanche).</p>
         <div class="ligne-choix-machine">
           <span>Joueur</span>
           <button class="bouton-filtre" type="button" data-role="humain" title="Ce joueur est un humain">Humain</button>
@@ -2292,6 +2328,7 @@
   <script src="./moteur/sauvegarde.js"></script>
   <script src="./moteur/nom-partie.js"></script>
   <script src="./moteur/filtre-parties.js"></script>
+  <script src="./moteur/parties-exportees.js"></script>
   <script src="./moteur/creation-partie.js"></script>
   <script src="./moteur/copie-sequence.js"></script>
   <script src="./moteur/correspondance.js"></script>
@@ -2306,6 +2343,8 @@
   <script src="./moteur/ia-evaluation-v4.js"></script>
   <script src="./moteur/ia-sumito-vide.js"></script>
   <script src="./moteur/ia-poussees.js"></script>
+  <script src="./moteur/ia-triangles.js"></script>
+  <script src="./moteur/ia-groupe-principal.js"></script>
   <script src="./moteur/ia-etendue.js"></script>
   <script src="./moteur/ia-ajouts.js"></script>
   <!-- Les groupes de l'evaluation : l'ordre des reglages et des termes, avant ceux qui les listent. -->
@@ -2442,6 +2481,7 @@
   <script src="./interface/fichiers.js"></script>
   <script src="./interface/compte-titre.js"></script>
   <script src="./interface/filtre-parties.js"></script>
+  <script src="./interface/parties-exportees.js"></script>
   <script src="./interface/mes-parties.js"></script>
   <script src="./interface/filtres-classement.js"></script>
   <script src="./interface/variantes.js"></script>
@@ -2524,6 +2564,7 @@
   <script src="./interface/survol-case.js"></script>
   <script src="./interface/piege-panneau.js"></script>
   <script src="./interface/infos-case.js"></script>
+  <script src="./interface/reglages-ia-phases.js"></script>
   <script src="./interface/reglages-ia-poids.js"></script>
   <script src="./interface/reglages-ia.js"></script>
   <script src="./interface/reglages.js"></script>
@@ -2660,6 +2701,8 @@
     }
     const { positionChoisie, dateDebut, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines, essai, prefixe } =
       etatDepart;
+    // Le nom et la machine qui ont joue une partie finie, quand on change ensuite de machine (moteur/revanche.js).
+    let identiteGardee = RIEN_DE_GARDE;
     // Le type de la partie : il change en cours de partie par la boite Pendule (changerLeTypeDeLaPartie).
     let evenement = etatDepart.evenement;
     // Partie par correspondance (phase 24, interface/correspondance.js), ou null.
@@ -3191,7 +3234,8 @@
     const typeDePartie = demarrerTypeDePartie({
       ligne: document.getElementById('ligne-type-de-partie'),
       champ: document.getElementById('champ-type-de-partie'),
-      rapides: document.querySelectorAll('.bouton-type-de-partie'),
+      rapides: document.querySelectorAll('#ligne-type-de-partie .bouton-type-de-partie'),
+      chrono: document.getElementById('bouton-mode-chrono'),
     });
     // En cours de partie (saab, 2026-10-30 : « Oui tu peux ajouter le type dans Pendule ») : une partie recopiee,
     // commencee en Amical, passe en Test pour corriger une erreur de copie ; le titre suit a l'enregistrement.
@@ -3271,7 +3315,9 @@
           const depart = ecrirePosition(partie.obtenirArbre().racine.etat);
           definirPositionDepartSuivante(puzzleOriginal ? positionPourRefaireLePuzzle(puzzleOriginal, depart) : depart, variantName, {
             joueurs: suite.joueurs,
-            reglagesPendules,
+            // Les pendules telles qu'elles sont au bout de la partie (saab, 2026-11-03 : « Pour la Revanche, les
+            // pendules ne sont pas restées en Chrono ») — moteur/pendules.js.
+            reglagesPendules: reglagesDesPendulesEnCours(reglagesPendules, partie.obtenirPendulesActuelles()),
             plateauRetourne: suite.plateauRetourne,
             machines: suite.machines,
             optionsPrecedentes: finie,
@@ -3727,17 +3773,22 @@
     // Exporter et "Mes parties" : une seule fonction plutot que trois
     // objets litteraux a garder synchronises.
     function metadonneesActuelles(finDePartie) {
+      // Une partie finie garde qui l'a jouee (moteur/revanche.js) ; `joueurs` et `machines`, eux, restent le
+      // choix du moment, celui des branches et de la partie suivante. Plus finie : ce choix joue la suite.
+      const finie = finDeLaPartie(partie.obtenirArbre()) !== null;
+      if (!finie) identiteGardee = RIEN_DE_GARDE;
+      const identite = identiteAEcrire(finie, joueurs, machines, identiteGardee);
       return {
         date: dateDebut,
         event: evenement,
         variantName,
-        joueurs,
+        joueurs: identite.joueurs,
         // `tempsInitial` vient toujours du DEPART (jamais dans l'etat des
         // pendules elles-memes, voir moteur.creerPendules) ; mode/bonus/
         // delai, eux, viennent du DIRECT — un changement de mode en cours
         // de partie (phase 22bis, bouton pendule) doit se retrouver dans la
-        // sauvegarde, jamais les reglages d'avant le changement.
-        reglagesPendules: { ...reglagesPendules, ...partie.obtenirPendulesActuelles() },
+        // sauvegarde, jamais les reglages d'avant le changement (moteur/pendules.js).
+        reglagesPendules: reglagesDesPendulesEnCours(reglagesPendules, partie.obtenirPendulesActuelles()),
         finDePartie,
         plateauRetourne,
         // Les deux compteurs EN DIRECT, ecrits dans `Chrono` (voir
@@ -3748,7 +3799,7 @@
         // Les champs corr_* de KAAWA doivent survivre a chaque sauvegarde.
         correspondance: correspondanceActive,
         // Contre la machine (phases 29 et 32) : leurs reglages survivent a chaque sauvegarde.
-        machines: machines.noir || machines.blanc ? machines : null,
+        machines: identite.machines.noir || identite.machines.blanc ? identite.machines : null,
         essai,
         prefixe,
       };
@@ -3975,6 +4026,8 @@
     document.getElementById('bouton-exporter').addEventListener('click', () => {
       const donnees = arbreVersDonnees(partie.obtenirArbre(), metadonneesActuelles(partie.obtenirPerteAuTemps()));
       telechargerPartie(donnees, `${variantName}_${dateDebut}`);
+      const idDeLaPartie = obtenirIdPartieActive();
+      if (idDeLaPartie) retenirPartiesExportees([{ id: idDeLaPartie, donnees }]);
     });
     // La partie, et si on l'a, sa page de recherches 1er coup, choisies ensemble
     // (saab, 2026-10-06 : « qd on importe une partie, demander si on le fait
@@ -4035,6 +4088,8 @@
           return;
         }
         definirIdPartieActive(id);
+        // Elle vient d'un fichier : son export est a jour (interface/parties-exportees.js).
+        retenirPartiesExportees([{ id, donnees: prefixeRecu ? { ...sansPrefixe, Prefixe: prefixeRecu } : sansPrefixe }]);
         // Confirmation explicite avant de recharger : un rechargement
         // silencieux peut donner l'impression que rien ne s'est passe
         // (signale par saab, "je ne sais pas faire").
@@ -4057,6 +4112,16 @@
       {
         dialogue: document.getElementById('dialogue-creation-partie'),
         titre: document.getElementById('champ-titre-creation'),
+        apercuNom: document.getElementById('apercu-nom-creation'),
+        nomNoir: document.getElementById('champ-noir-creation'),
+        nomBlanc: document.getElementById('champ-blanc-creation'),
+        nomsConnusNoir: document.getElementById('noms-connus-noir-creation'),
+        nomsConnusBlanc: document.getElementById('noms-connus-blanc-creation'),
+        type: {
+          ligne: document.getElementById('ligne-type-creation'),
+          champ: document.getElementById('champ-type-creation'),
+          rapides: document.querySelectorAll('#ligne-type-creation .bouton-type-de-partie'),
+        },
         position: document.getElementById('champ-position-creation'),
         sequence: document.getElementById('champ-sequence-creation'),
         notationAuto: document.getElementById('bouton-notation-auto'),
@@ -4068,9 +4133,13 @@
         valider: document.getElementById('bouton-valider-creation'),
       },
       {
-        creerLaPartie: (arbre, titre, texteDePosition) =>
-          // Nom par defaut identique a KAAWA (open_game_creation_popup).
-          creerEtOuvrirLaPartie(arbre, { variantName: titre || `Game_${texteDePosition.slice(0, 15)}` }),
+        creerLaPartie: (arbre, titre, joueurs, evenementChoisi) => creerEtOuvrirLaPartie(arbre, { variantName: titre, joueurs, evenement: evenementChoisi }),
+        // Sans titre : le nom de sa variante si la position en est une (saab, 2026-11-03 : « Pourquoi le titre
+        // n'indique pas la variante mBelg ») — moteur/variantes.js ; sinon le nom par defaut de KAAWA
+        // (open_game_creation_popup).
+        titreParDefaut: (texteDePosition) => nomDeLaVarianteDeLaPosition(variantesDisponibles, texteDePosition) || `Game_${texteDePosition.slice(0, 15)}`,
+        // Comme la Nouvelle partie : une serie de Test recopiee reste en Test.
+        typeAProposer: () => typeDePartieAReproposer(evenement),
       }
     );
 
@@ -4199,6 +4268,7 @@
         champ: document.getElementById('champ-nom-joueur'),
         nomsConnus: document.getElementById('noms-connus-nom-joueur'),
         messageNom: document.getElementById('message-nom-joueur'),
+        notePartieFinie: document.getElementById('note-partie-finie-nom-joueur'),
         valider: document.getElementById('bouton-valider-nom-joueur'),
         fermer: document.getElementById('bouton-fermer-nom-joueur'),
         marcheMachine: document.getElementById('bouton-marche-machine'),
@@ -4214,7 +4284,8 @@
       () => sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps()),
       // Saab, 2026-10-08 : « interdire de se servir de l'IA pour les PZL dans
       // KAAH_Test » — permise seulement dans une version de travail.
-      () => !optionsEntrainement?.interdireIA && (!puzzleEnCours || SUFFIXE_VERSION_KAAH_TEST !== '')
+      () => !optionsEntrainement?.interdireIA && (!puzzleEnCours || SUFFIXE_VERSION_KAAH_TEST !== ''),
+      () => finDeLaPartie(partie.obtenirArbre()) !== null
     );
     // Les noms, demandes a la FIN de la partie (saab, 2026-10-27 : « L'obligation de mettre les noms en
     // début de partie est gênant, on va le demander en fin de partie, avec btn vert donnant la possibilité
@@ -4321,6 +4392,7 @@
         liste: document.getElementById('liste-corbeille'),
         caseTout: document.getElementById('case-tout-corbeille'),
         restaurer: document.getElementById('bouton-restaurer-corbeille'),
+        supprimer: document.getElementById('bouton-supprimer-corbeille'),
         vider: document.getElementById('bouton-vider-corbeille'),
         fermer: document.getElementById('bouton-fermer-corbeille'),
       },
@@ -4849,7 +4921,14 @@
         ),
         evaluations,
       });
-      nomsJoueurs.definirCommandeMachines(commandeMachines);
+      nomsJoueurs.definirCommandeMachines({
+        ...commandeMachines,
+        // Avant le changement : `joueurs` et `machines` disent encore qui a joue la partie finie.
+        definirMachine: (camp, machine) => {
+          if (finDeLaPartie(partie.obtenirArbre()) !== null) identiteGardee = garderLaMachineDeLaPartieFinie(identiteGardee, camp, joueurs[camp], machines[camp]);
+          commandeMachines.definirMachine(camp, machine);
+        },
+      });
       // Conseils : la reflexion de l'IA, sans le livre (interface/conseil-ia.js).
       demarrerConseilIA(
         {

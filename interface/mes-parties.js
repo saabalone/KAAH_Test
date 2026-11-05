@@ -71,6 +71,8 @@
 // <svg> totalement independant du plateau principal).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) :
+// etatDExport, exportCorrespond, nombreSansExportAJour (moteur/parties-exportees.js), lirePartiesExportees, retenirPartiesExportees
+// (interface/parties-exportees.js),
 // listerPartiesEnregistrees, obtenirIdPartieActive, definirIdPartieActive,
 // oublierPartieActive, supprimerPartieNommee, definirRepriseDejaConfirmee
 // (interface/sauvegarde.js), nomDeFichierKAAWA, possedeUneBranche
@@ -106,6 +108,12 @@ const ECART_ENTRE_TELECHARGEMENTS_MS = 300;
 // `surSuppression` (facultatif, phase 12ter) : appele apres toute suppression
 // — la jauge du nombre de parties (interface/jauge-mes-parties.js) s'en sert
 // pour se mettre a jour sans attendre le prochain coup joue ailleurs.
+const TITRES_DES_MARQUES_D_EXPORT = {
+  jamais: 'Jamais exportée',
+  'a-jour': 'Exportée, le fichier est à jour',
+  modifiee: 'Modifiée depuis l’export : le fichier n’est plus à jour',
+};
+
 function demarrerListeParties(elements, demarrerRechargement, demanderConfirmation, surSuppression) {
   // Identifiant (pas l'objet) de l'entree previsualisee : `parties` est
   // relu a chaque rafraichissement depuis localStorage (JSON.parse produit
@@ -161,9 +169,10 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
   // main) ne reste visible que sans filtre, comme nomAffiche plus bas.
   function partiesFiltrees() {
     const valeur = filtre.valeur();
+    const exportees = lirePartiesExportees();
     return listerPartiesEnregistrees().filter((entree) => {
       try {
-        return partieCorrespond(elementsDuTitre(entree.donnees), valeur);
+        return partieCorrespond(elementsDuTitre(entree.donnees), valeur) && exportCorrespond(etatDExport(exportees, entree.id, entree.donnees), valeur.exports);
       } catch {
         return !filtre.estActif();
       }
@@ -191,9 +200,11 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     const ids = [...idsSelectionnes];
     if (ids.length === 0) return;
     const contientLaPartieEnCours = ids.includes(obtenirIdPartieActive());
-    const volume = formaterVolume(volumeEnOctets(listerPartiesEnregistrees().filter((entree) => idsSelectionnes.has(entree.id))));
+    const choisies = listerPartiesEnregistrees().filter((entree) => idsSelectionnes.has(entree.id));
+    const volume = formaterVolume(volumeEnOctets(choisies));
+    const sansFichier = nombreSansExportAJour(lirePartiesExportees(), choisies);
     demanderConfirmation(
-      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} (${volume}) ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} ${ids.length > 1 ? 'Elles iront' : 'Elle ira'} dans la corbeille.`,
+      `Supprimer ${ids.length} partie${ids.length > 1 ? 's' : ''} (${volume}) ?${contientLaPartieEnCours ? ' La partie en cours en fait partie.' : ''} ${ids.length > 1 ? 'Elles iront' : 'Elle ira'} dans la corbeille.${sansFichier > 0 ? ` ${sansFichier} sans fichier exporté à jour.` : ''}`,
       () => supprimerSelection(ids),
       'Supprimer'
     );
@@ -208,6 +219,8 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     entrees.forEach((entree, rang) =>
       setTimeout(() => telechargerPartie(entree.donnees, nomDeFichierKAAWA(entree.donnees)), rang * ECART_ENTRE_TELECHARGEMENTS_MS)
     );
+    retenirPartiesExportees(entrees);
+    rafraichir();
   });
 
   // Phase 26 (corbeille) : chaque partie supprimee y part intacte AVANT
@@ -319,6 +332,18 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
     }
   }
 
+  // La marque d'export (moteur/parties-exportees.js ; saab, 2026-11-04 : « mettre une couleur ou coche ou les 2 ») : une coche qui se lit sans
+  // couleur, verte ou orange selon que le fichier est a jour. Elle ne se touche pas (saab, 2026-11-05 : « on peut se tromper au lieu de vouloir
+  // l'exporter […] elle aurait été faussement notée, de plus c'est inutile puisque elle se coche automatiquement ») : seul un export la pose.
+  function creerMarqueDExport(entree) {
+    const etat = etatDExport(lirePartiesExportees(), entree.id, entree.donnees);
+    const marque = document.createElement('span');
+    marque.className = `marque-export export-${etat}`;
+    marque.textContent = etat === 'jamais' ? '○' : '✓';
+    marque.title = TITRES_DES_MARQUES_D_EXPORT[etat];
+    return marque;
+  }
+
   function creerLigne(entree, estActive) {
     const estPrevisualisee = entree.id === idPrevisualise;
     const ligne = document.createElement('div');
@@ -337,6 +362,7 @@ function demarrerListeParties(elements, demarrerRechargement, demanderConfirmati
       actualiserBarre();
     });
     ligne.appendChild(coche);
+    ligne.appendChild(creerMarqueDExport(entree));
 
     const texte = document.createElement('span');
     texte.className = 'ligne-liste-texte';

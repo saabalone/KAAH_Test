@@ -62,7 +62,7 @@ function afficherLesOriginesDuBanc(elements, profils) {
 // `livre` : la serie le decide, pour la reference et pour les essais (La ou Ls dans le nom, moteur/ia.js) ; un
 // profil perso a un indice (son jeu de poids en _v, ceux de KAAH en _k).
 function nomDeMachineDuBanc(profil, livre = true) {
-  const machine = nomDeLaMachine({ moteur: 'kai++', niveau: profil.niveau, style: profil.style, reflexionMax: profil.temps, version: profil.version, elagage: profil.elagage, livre, poids: profil.poids, numeroDesAjouts: numeroDesAjoutsDe(profil.poids), numeroDePoids: profil.numeroDePoids, indiceProfil: profil.indice });
+  const machine = nomDeLaMachine({ moteur: 'kai++', niveau: profil.niveau, style: profil.style, reflexionMax: profil.temps, version: profil.version, elagage: profil.elagage, livre, poids: profil.poids, numeroDesAjouts: numeroDesAjoutsDe(profil.poids), numeroDePoids: profil.numeroDePoids, indiceProfil: profil.indice, versionProfil: profil.versionProfil });
   const variation = profil.nom.includes(' · ') ? `_${profil.nom.slice(profil.nom.indexOf(' · ') + 3).replace(/[^\p{L}\p{N},+-]+/gu, '')}` : '';
   const sansLivre = profil.nom.includes(' sans livre') ? '_sansLivre' : '';
   return `${machine}${sansLivre}${variation}`;

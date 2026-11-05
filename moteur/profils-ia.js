@@ -85,14 +85,55 @@ const POIDS_NORMAL_V5EL_V7 = {
 // l'Agressif et du Defensif.
 const POIDS_NORMAL_V5EL_V8 = { ...POIDS_NORMAL_V5EL_V7, cohesion: 15, gainFibonacci: 20, perteFibonacci: 20, sumito32: 6, sumito31: 4, sumito21: 2 };
 // L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut) :
-// Normal v5ElP5 de nouveau depuis le 2026-11-02 (saab : « on repasse P5 en défaut » — contre AP6, P5 seul a fait
-// mieux que tous les ajouts essayes, et gagne avec les Noirs) ; avant, Normal v5ElP5_k2 (du 28/10 au 2/11 ; saab :
-// « il attaque qd même s'il est en bloc »), Normal v5ElP5 (du 22 au 28/10), Normal v5ElP4_k4 (du 20 au 22/10).
-const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v10';
+// Normal v5ElP6Ph2 depuis le 2026-11-05 (saab : « passer la Nor en défaut avant de publier » — elle bat AP6 sans livre
+// dans les 2 camps) ; avant, Normal v5ElP5 (du 2 au 5/11 ; saab : « on repasse P5 en défaut »), Normal v5ElP5_k2 (du
+// 28/10 au 2/11 ; saab : « il attaque qd même s'il est en bloc »), Normal v5ElP5 (du 22 au 28/10), Normal v5ElP4_k4
+// (du 20 au 22/10).
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v12';
+// Les profils de travail publies pour les testeurs (saab, 2026-11-05 : « On pourra publier aussi Agr et Def, de toutes façons on est tjs en test donc autant
+// faire tester ») : l'IA par defaut, son Agressif et son Defensif ; les autres restent dans la version de travail.
+const NOMS_PROFILS_IA_PUBLIES = [NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL, 'Agressif v5el_v11', 'Défensif v5el_v11'];
 // Normal v5ElP4_v4 : la compacite a 50, la base des profils P5.
 const POIDS_NORMAL_V5EL_V9 = { ...POIDS_NORMAL_V5EL_V8, compacite: 50 };
 // Les billes poussables d'ULA (Bp, Bmp, Bpb), comme dans le P5 de saab.
 const BILLES_POUSSABLES_DU_P5 = { billesPoussables: -5, billesMultipoussables: -5, billesPoussablesBord: -7 };
+
+// Les profils aux phases de P6 (saab, 2026-11-04 : « il faut des phases Ouv/Mil/Fin » ; 2026-11-05 : « faire le profile ph2 en Agr et Def ») : les poids de
+// la machine qui a battu AP6 dans les 2 camps sans livre (parties 2611050032 et 2611050040). Le milieu d'abord : les autres phases n'en different que par un poids ou deux.
+const sansLEtendue = ({ etendueCentre, etendueCases, ...poids }) => poids;
+const POIDS_DU_MILIEU_P6 = { ...sansLEtendue({ ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 }), gain: 300, perte: 300, caseE5: 20, caseD4: 15, caseC4: 10, caseC3: 10, anglesDeTriangles: 20, billesHorsDuGroupePrincipal: -20, billesHorsDuGroupeSelonLEcart: -10 };
+const PHASES_AU_SCORE_DU_P6 = 2;
+// L'ouverture : tout pour se regrouper au centre. La fin : une bille perdue compte plus, sauf quand on mene : 300, comme au milieu (saab, 2026-11-05 : « ça marche
+// en Noir, donc on mets ce réglage en défaut ») — contre AP8, perte 150 menait 5-0 au tour 21 et perdait 5-6 ; perte 300, meme partie jusqu'au tour 20, gagne 6-2 au tour 30.
+const COMPACITE_DE_L_OUVERTURE_P6 = 150;
+const CENTRE_DE_L_OUVERTURE_P6 = 20;
+const PERTE_DE_LA_FIN_P6 = 450;
+const PERTE_DE_LA_FIN_EN_AVANCE_P6 = 300;
+// Les recettes du style, les memes que de P5 a l'Agressif P5 et au Défensif P5, a chaque phase : `compacite` la multiplie.
+const RECETTES_DES_STYLES_P6 = {
+  normal: { poids: {}, compacite: 1 },
+  agressif: { poids: { menaceEjection: 25, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 }, compacite: 1 },
+  defensif: { poids: { cohesion: 20 }, compacite: 1.2 },
+};
+
+function profilAuxPhasesDuP6(nom, style, description) {
+  const { poids: duStyle, compacite } = RECETTES_DES_STYLES_P6[style];
+  const milieu = { ...POIDS_DU_MILIEU_P6, ...duStyle, compacite: POIDS_DU_MILIEU_P6.compacite * compacite };
+  const copie = (profil, poids) => ({ profil, version: 5, elagage: ELAGAGE_PAR_DEFAUT_IA, style, poids });
+  return {
+    nom,
+    version: 5,
+    livre: false,
+    elagage: ELAGAGE_PAR_DEFAUT_IA,
+    style,
+    poids: { ...milieu, compacite: COMPACITE_DE_L_OUVERTURE_P6 * compacite, centre: CENTRE_DE_L_OUVERTURE_P6, phasesAuScore: PHASES_AU_SCORE_DU_P6 },
+    milieu: copie(`Milieu comp${milieu.compacite} centre${milieu.centre}`, milieu),
+    fin: copie(`Fin perte${PERTE_DE_LA_FIN_P6}`, { ...milieu, perte: PERTE_DE_LA_FIN_P6 }),
+    finEnAvance: copie(`Fin en avance perte${PERTE_DE_LA_FIN_EN_AVANCE_P6}`, { ...milieu, perte: PERTE_DE_LA_FIN_EN_AVANCE_P6 }),
+    description,
+  };
+}
+
 const PROFILS_IA_DE_TRAVAIL = [
   {
     nom: 'Normal v5el_v4',
@@ -167,15 +208,15 @@ const PROFILS_IA_DE_TRAVAIL = [
   // Le P5 de saab (2026-10-20 : « avec les nouveaux paramètres Bm, etc, KAI++6 gagne enfin AP6 » ;
   // 2026-10-22 : « Ok mets le P5 Agr et Nor ») : v9 avec les billes poussables d'ULA. Au niveau 8
   // sans limite : 8-4 (8 nulles) contre v9, jeu egal contre v9 + cohesion 20 (8-7, 5 nulles).
-  // L'IA par defaut du 22 au 28/10, et de nouveau depuis le 2/11. Le premier jeu de poids de sa famille (P5) : pas de _k.
+  // L'IA par defaut du 22 au 28/10, et du 2 au 5/11. Le premier jeu de poids de sa famille (P5) : pas de _k.
   {
-    nom: NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    nom: 'Normal v5el_v10',
     version: 5,
     livre: true,
     elagage: ELAGAGE_PAR_DEFAUT_IA,
     style: 'normal',
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5 },
-    description: "L'IA par défaut (du 22 au 28/10/2026, et de nouveau depuis le 2/11) : Normal v5ElP5, le P5 de saab — Normal v5ElP4_k4 et les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7). En KAI++ niveau 6, il a battu AbaPro niveau 6 (AP6) 6-4 avec l'élagage 10 (2026-10-20), puis 6-4 avec l'élagage 20 (2026-10-24) ; le 1/11, en KAI++ niveau 8, il bat AP6 6-5 avec les Blancs et 6-1 avec les Noirs. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_k4.",
+    description: "L'IA par défaut du 22 au 28/10/2026, et du 2 au 5/11 : Normal v5ElP5, le P5 de saab — Normal v5ElP4_k4 et les billes poussables d'ULA (Bp −5, Bmp −5, Bpb −7). En KAI++ niveau 6, il a battu AbaPro niveau 6 (AP6) 6-4 avec l'élagage 10 (2026-10-20), puis 6-4 avec l'élagage 20 (2026-10-24) ; le 1/11, en KAI++ niveau 8, il bat AP6 6-5 avec les Blancs et 6-1 avec les Noirs. Au niveau 8 sans limite : 8 gagnées, 4 perdues, 8 nulles contre Normal v5ElP4_k4.",
   },
   // Le P5 avec la menace d'ejection a 10 (essais 32 a 35 ; saab, 2026-10-28 : « on passe ce réglage en profil par
   // défaut, car même s'il n'est pas encore bon, il attaque qd même s'il est en bloc ») : la menace a 20 valait
@@ -191,6 +232,12 @@ const PROFILS_IA_DE_TRAVAIL = [
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 10 },
     description: "L'IA par défaut du 28/10 au 2/11/2026 : Normal v5ElP5_k2, le P5 avec la menace d'éjection à 10 au lieu de 20 — il éjecte au lieu de garder ses menaces. Au niveau 6 contre P5 (80 parties, essais 32 et 33) : 51 gagnées, 10 perdues, 19 nulles, contre 35-5-40 pour P5 lui-même ; contre P5 au niveau 7 : 15-17 (8 nulles), P5 au niveau 6 : 14-18.",
   },
+  // Le Ph 2 de saab (2026-11-05 : « Ah, enfin ça gagne dans les 2 camps ») : l'IA par defaut depuis le 5/11. Le premier jeu de poids de sa famille (P6).
+  profilAuxPhasesDuP6(
+    NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    'normal',
+    "L'IA par défaut depuis le 5/11/2026 : Normal v5ElP6Ph2, sans livre. Elle change de réglages selon le score : se regrouper au centre jusqu'à 2 billes sorties, puis attaquer ; quand un camp a perdu 4 billes, une bille perdue compte plus, sauf si elle mène. En KAI++ niveau 6, elle bat AbaPro niveau 6 dans les 2 camps (6-3 en Noir, 6-2 en Blanc) et le niveau 8 en Noir (6-2) ; en Blanc, le niveau 8 la bat encore (2-6). Au niveau 6 contre Normal v5ElP5, avec une bille perdue à 150 quand elle mène : 31 gagnées, 4 perdues, 5 nulles."
+  ),
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
   // — le gain x1,25 fait courir apres les ejections et perd (4-15 au niveau 8), x1,5 aussi (7-10).
@@ -227,8 +274,14 @@ const PROFILS_IA_DE_TRAVAIL = [
     style: 'agressif',
     numeroDePoids: 2,
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 12.5, sumito32: 8, sumito31: 5, sumito21: 3, bordAdverse: 19 },
-    description: "L'Agressif de l'IA par défaut (2026-10-28) : l'Agressif P5 avec la menace d'éjection à 12,5 au lieu de 25 — la moitié, comme Normal v5ElP5_k2 (et 1,25 fois sa menace à 10, le rapport de l'Agr). Pas encore essayé au banc.",
+    description: "L'Agressif de Normal v5ElP5_k2 (2026-10-28) : l'Agressif P5 avec la menace d'éjection à 12,5 au lieu de 25 — la moitié, comme Normal v5ElP5_k2 (et 1,25 fois sa menace à 10, le rapport de l'Agr). Pas encore essayé au banc.",
   },
+  // L'Agressif du Ph 2 (saab, 2026-11-05 : « faire le profile ph2 en Agr et Def ») : la recette de l'Agressif P5, a chaque phase.
+  profilAuxPhasesDuP6(
+    'Agressif v5el_v11',
+    'agressif',
+    "L'Agressif de l'IA par défaut (2026-11-05) : Normal v5ElP6Ph2 avec, à chaque phase, la pression de l'Agr (menace d'éjection 25, sumitos 8, 5, 3, bord adverse 19), sans livre. Pas encore essayé au banc."
+  ),
   // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
   // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le
   // livre pour les deux camps, 6 gagnees, 2 perdues, 12 nulles contre elle.
@@ -263,8 +316,14 @@ const PROFILS_IA_DE_TRAVAIL = [
     style: 'defensif',
     numeroDePoids: 2,
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, cohesion: 20, compacite: 60, menaceEjection: 10 },
-    description: "Le Défensif de l'IA par défaut (2026-10-28) : le Défensif P5 avec la menace d'éjection à 10 au lieu de 20, comme Normal v5ElP5_k2 — cohésion 20, compacité 60. Pas encore essayé au banc.",
+    description: "Le Défensif de Normal v5ElP5_k2 (2026-10-28) : le Défensif P5 avec la menace d'éjection à 10 au lieu de 20, comme Normal v5ElP5_k2 — cohésion 20, compacité 60. Pas encore essayé au banc.",
   },
+  // Le Defensif du Ph 2 (saab, 2026-11-05 : « faire le profile ph2 en Agr et Def ») : la recette du Defensif P5, a chaque phase.
+  profilAuxPhasesDuP6(
+    'Défensif v5el_v11',
+    'defensif',
+    "Le Défensif de l'IA par défaut (2026-11-05) : Normal v5ElP6Ph2 avec, à chaque phase, un bloc plus serré (cohésion 20, compacité 180 à l'ouverture, 60 ensuite), sans livre. Pas encore essayé au banc."
+  ),
 ];
 
 // Un profil relu (stockage, fichier importe), ou null s'il n'a pas de nom. Les
@@ -323,7 +382,7 @@ function nomDuProfilImporte(nom, auteur, nomsPris, moi = '') {
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
 // `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
 function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, milieu: profil.milieu, reflexionMax, livre });
+  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, milieu: profil.milieu, fin: profil.fin, finEnAvance: profil.finEnAvance, reflexionMax, livre });
 }
 
 // Les profils dans l'ordre (saab, 2026-10-16 : « mets ces profils dans l'ordre Agr/Nor/Def

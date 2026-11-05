@@ -18,11 +18,13 @@
 // corbeille.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : mettreALaCorbeille,
-// restaurerPlusieurs, viderLeGenre (moteur/corbeille.js), libelleNombreEtVolume,
-// volumeEnOctets (moteur/compte-volume.js),
+// restaurerPlusieurs, viderLeGenre, supprimerPlusieurs (moteur/corbeille.js), libelleNombreEtVolume,
+// formaterVolume, volumeEnOctets (moteur/compte-volume.js),
 // ajouterEntreeMy (interface/positions-my.js), listerPartiesEnregistrees,
 // ecrirePartiesEnregistrees (interface/sauvegarde.js), nomDeFichierKAAWA
-// (moteur/nom-partie.js) viennent de fichiers charges avant celui-ci.
+// (moteur/nom-partie.js) viennent de fichiers charges avant celui-ci ; pluriel
+// (interface/fin-entrainement.js), nombreSansExportAJour (moteur/parties-exportees.js), lirePartiesExportees
+// (interface/parties-exportees.js) ne servent qu'une fois la page chargee.
 
 const CLE_CORBEILLE = 'kaah-corbeille';
 
@@ -84,6 +86,10 @@ function viderLeGenreStocke(genre) {
   return ecrireCorbeille(viderLeGenre(listerCorbeille(), genre));
 }
 
+function supprimerEntreesCorbeille(rangs) {
+  return ecrireCorbeille(supprimerPlusieurs(listerCorbeille(), rangs));
+}
+
 // --- Dialogue "Corbeille" -------------------------------------------------------
 
 // (GENRE_CORBEILLE_PROFILS_ENTRAINEMENT, restaurerProfilEntrainement : interface/profils-entrainement.js.)
@@ -114,7 +120,7 @@ function nomAfficheCorbeille({ genre, donnees }) {
 // (les listes Variantes et Puzzles sont lues au demarrage).
 //
 // `elements` : { ouvertures ([{ bouton, genre }]), dialogue, titre, liste,
-// caseTout, restaurer, vider, fermer }. `rappels` : { demanderConfirmation
+// caseTout, restaurer, supprimer, vider, fermer }. `rappels` : { demanderConfirmation
 // (interface/confirmation.js), demarrerRechargement (index.html) }.
 function demarrerCorbeille(elements, rappels) {
   let genre = 'parties';
@@ -172,9 +178,34 @@ function demarrerCorbeille(elements, rappels) {
     rafraichir();
   });
 
+  // Les entrees cochees (rangs dans la corbeille entiere).
+  const entreesCochees = () => listerCorbeille().filter((_, rang) => rangsCoches.has(rang));
+
+  // Une partie effacee ici est perdue si elle n'a pas de fichier a jour : la confirmation le dit (moteur/parties-exportees.js).
+  function rappelDesFichiers(entrees) {
+    if (genre !== 'parties') return '';
+    const sansFichier = nombreSansExportAJour(lirePartiesExportees(), entrees.map((entree) => entree.donnees));
+    return sansFichier > 0 ? ` ${sansFichier} sans fichier exporté à jour.` : '';
+  }
+
+  // Le meme geste que Supprimer la selection de Mes parties, mais definitif : la corbeille est le dernier recours.
+  elements.supprimer.addEventListener('click', () => {
+    const rangs = [...rangsCoches];
+    if (rangs.length === 0) return;
+    rappels.demanderConfirmation(
+      `Supprimer définitivement ${pluriel(rangs.length, 'élément')} (${formaterVolume(volumeEnOctets(entreesCochees()))}) ? Cette action est irréversible.${rappelDesFichiers(entreesCochees())}`,
+      () => {
+        supprimerEntreesCorbeille(rangs);
+        rangsCoches = new Set();
+        rafraichir();
+      },
+      'Supprimer'
+    );
+  });
+
   elements.vider.addEventListener('click', () => {
     rappels.demanderConfirmation(
-      `Vider la corbeille (${TITRE_CORBEILLE[genre].split('— ')[1]}) ? Cette action est irréversible.`,
+      `Vider la corbeille (${TITRE_CORBEILLE[genre].split('— ')[1]}) ? Cette action est irréversible.${rappelDesFichiers(entreesDuGenre(genre))}`,
       () => {
         viderLeGenreStocke(genre);
         rangsCoches = new Set();
@@ -188,6 +219,8 @@ function demarrerCorbeille(elements, rappels) {
     const n = rangsCoches.size;
     elements.restaurer.disabled = n === 0;
     elements.restaurer.textContent = n === 0 ? 'Restaurer la sélection' : `Restaurer la sélection (${n})`;
+    elements.supprimer.disabled = n === 0;
+    elements.supprimer.textContent = n === 0 ? 'Supprimer la sélection' : `Supprimer la sélection ${libelleNombreEtVolume(n, volumeEnOctets(entreesCochees()))}`;
     elements.vider.disabled = nombre === 0;
     elements.caseTout.disabled = nombre === 0;
     elements.caseTout.checked = nombre > 0 && n === nombre;

@@ -9,8 +9,7 @@
 // CLES_POIDS_IA_V5 (moteur/ia-evaluation-v5.js), CLES_OPTIONS_IA, POIDS_PROPOSES_OPTIONS_IA
 // (moteur/ia-ajouts.js), POIDS_DES_VERSIONS_IA, SUFFIXE_ELAGAGE_IA, ELAGAGE_PAR_DEFAUT_IA
 // (moteur/ia.js), rangerLesLignesParGroupe (interface/groupes-ia.js), brancherAppuiProlonge
-// (interface/appui-prolonge.js), copieDuProfilDuMilieu (moteur/ia-phase.js), listerProfilsIA
-// (interface/profils-ia.js), listerProfilsIADansLOrdre, libelleProfilIA (interface/noms-profils-ia.js)
+// (interface/appui-prolonge.js), creerLesCopiesDesPhases (interface/reglages-ia-phases.js)
 // viennent de fichiers charges avant celui-ci.
 
 // `elements` : ceux de la rubrique (style, version, elagage, livre) ; `retoucher()` : un
@@ -58,37 +57,19 @@ function creerLesChampsDesPoidsIA(elements, retoucher, pendantLaFrappe) {
       const present = cle in valeurs.poids;
       // Un ajout se montre toujours (sa case le met) ; un poids, avec sa version.
       ligneDe(cle).hidden = !present && !estUnAjout(cle);
-      cases[cle].checked = present && valeurs.poids[cle] !== 0;
+      // Un ajout a 0 reste un ajout : son suffixe compte dans le Pn du profil. Le decocher en silence ferait changer ce Pn a la prochaine
+      // retouche, sans rien changer au jeu (saab, 2026-11-05 : Ph de 1 a 2 faisait passer P5M12 a un autre Pn, Ec et Ea etant a 0).
+      cases[cle].checked = present && (estUnAjout(cle) || valeurs.poids[cle] !== 0);
       champPoids(cle).disabled = !cases[cle].checked;
       if (present) champPoids(cle).value = valeurs.poids[cle];
       else if (estUnAjout(cle)) champPoids(cle).value = valeurProposee(cle);
     }
     actualiserLesGroupes();
-    afficherLeMilieu(valeurs.milieu);
+    copiesDesPhases.afficher(valeurs);
   }
 
-  // Le profil du milieu de l'ajout Ct (moteur/ia-phase.js ; saab, 2026-10-23 : « lance Copie ») :
-  // choisi dans la liste, ses reglages sont copies ; tant qu'on ne le change pas, la copie reste —
-  // meme si ce profil a change depuis, ou n'existe plus (il reste alors dans la liste, « copie »).
-  const listeDuMilieu = document.getElementById('select-profil-milieu-ia');
-  let milieuAffiche = null;
-  listeDuMilieu.addEventListener('change', () => retoucher());
-  function afficherLeMilieu(milieu) {
-    milieuAffiche = milieu ?? null;
-    const profils = listerProfilsIADansLOrdre();
-    // Chacun sous le nom des listes (« Agressif v5ElP5 ») : c'est lui que la copie garde.
-    const choix = [['', '— profil du milieu —'], ...profils.map((profil) => [libelleProfilIA(profil), libelleProfilIA(profil)])];
-    if (milieu && !choix.some(([valeur]) => valeur === milieu.profil)) choix.push([milieu.profil, `${milieu.profil} (copie)`]);
-    listeDuMilieu.replaceChildren(...choix.map(([valeur, texte]) => Object.assign(document.createElement('option'), { value: valeur, textContent: texte })));
-    listeDuMilieu.value = milieu?.profil ?? '';
-    listeDuMilieu.disabled = !cases.centreTenu.checked;
-  }
-  function milieuLu() {
-    if (!cases.centreTenu.checked || listeDuMilieu.value === '') return undefined;
-    if (milieuAffiche?.profil === listeDuMilieu.value) return milieuAffiche;
-    const profil = listerProfilsIA().find((autre) => libelleProfilIA(autre) === listeDuMilieu.value);
-    return profil ? copieDuProfilDuMilieu({ ...profil, nom: libelleProfilIA(profil) }) : milieuAffiche;
-  }
+  // Les copies des phases et leurs colonnes (interface/reglages-ia-phases.js).
+  const copiesDesPhases = creerLesCopiesDesPhases({ cases, ligneDe, clesDesPoids: CLES_POIDS, rubrique: elements.rubrique, retoucher, pendantLaFrappe });
 
   // Ce que montrent les champs : { style, version, livre, elagage, poids } — un poids
   // decoche vaut 0, un ajout decoche n'y est plus.
@@ -103,7 +84,7 @@ function creerLesChampsDesPoidsIA(elements, retoucher, pendantLaFrappe) {
       poids: Object.fromEntries(
         CLES_POIDS.filter((cle) => !ligneDe(cle).hidden && (cases[cle].checked || !estUnAjout(cle))).map((cle) => [cle, cases[cle].checked ? Number(champPoids(cle).value) : 0])
       ),
-      ...(milieuLu() ? { milieu: milieuLu() } : {}),
+      ...copiesDesPhases.lire(),
     };
   }
 

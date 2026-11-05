@@ -13,9 +13,18 @@
 // une liste (charger d'abord une variante par sa boite : sa position arrive ici
 // pre-remplie) et les permutations (phase 27).
 //
+// Les noms des deux camps (saab, 2026-11-03 : « il faut ouvrir chaque boite de nom pour les remplir, pourquoi ne pas
+// mettre aussi ces champs dans créer ? ») : vides, Joueur_1 et Joueur_2 ; sous chacun, les noms deja donnes. Et
+// le type (saab : « Mets aussi le type si on a besoin c'est pratique ») : la ligne de la Nouvelle partie.
+// Sous le titre, le debut du nom de la partie tel que ces champs l'ecrivent deja (saab : « sinon on risque d'écrire
+// en doublon ») ; dans le titre vide, le nom pris par defaut, comme Joueur_1 dans un nom vide.
+//
 // Pas d'import ni d'export (voir moteur/plateau.js) : lirePosition
 // (moteur/notation.js), detecterNotation, construirePartieDepuisSequence
-// (moteur/creation-partie.js) viennent de fichiers charges avant celui-ci.
+// (moteur/creation-partie.js), nomJoueurAutorise (moteur/nom-partie.js), NOMS_PAR_DEFAUT
+// (moteur/revanche.js), demarrerTypeDePartie (interface/type-de-partie.js), formaterDateKAAWA
+// (interface/sauvegarde.js) viennent de fichiers charges avant celui-ci ; afficherNomsConnus, retenirNomConnu
+// (interface/noms-connus.js) ne servent qu'a l'ouverture et a la validation.
 
 // Le message d'erreur, en toutes lettres, d'un resultat de
 // construirePartieDepuisSequence. La branche n'est citee que s'il y en a
@@ -27,15 +36,36 @@ function messageErreurCreation(erreur, plusieursBranches) {
   return `${ou} : coup impossible dans cette position.`;
 }
 
-// `elements` : { dialogue, titre, position, sequence, notationAuto,
-// notationNacre, notationAbaPro, notationReconnue, erreur, annuler, valider }.
-// `rappels` : { creerLaPartie(arbre, titre, texteDePosition) (l'enregistre et
-// l'affiche, voir index.html ; `texteDePosition` tel que saisi, pour le nom par
-// defaut de KAAWA) }. Renvoie { ouvrir(texteDePosition) } : la boite s'ouvre
-// depuis Mes parties, Variantes et Puzzles (demande de saab : une icone de moins
+// `elements` : { dialogue, titre, apercuNom, nomNoir, nomBlanc, nomsConnusNoir, nomsConnusBlanc, type (la ligne
+// Type : { ligne, champ, rapides }), position, sequence, notationAuto, notationNacre, notationAbaPro,
+// notationReconnue, erreur, annuler, valider }.
+// `rappels` : { creerLaPartie(arbre, titre, joueurs, evenement) (l'enregistre et l'affiche, voir index.html ;
+// `joueurs` : { noir, blanc }), titreParDefaut(texteDePosition) (le titre d'un champ vide, la position telle que
+// saisie), typeAProposer() }. Renvoie { ouvrir(texteDePosition) } : la boite
+// s'ouvre depuis Mes parties, Variantes et Puzzles (demande de saab : une icone de moins
 // dans la colonne), pre-remplie avec la position de la ligne choisie.
 function demarrerCreationPartie(elements, rappels) {
   let notationForcee = null; // null = Auto
+  const typeDePartie = demarrerTypeDePartie(elements.type);
+
+  // Un espace devient « _ », comme dans la boite du nom (interface/noms-joueurs.js) ; vide : le nom par defaut.
+  function joueursDesChamps() {
+    const nomDe = (champ, camp) => nomJoueurAutorise(champ.value.trim().replace(/\s/g, '_')) || NOMS_PAR_DEFAUT[camp];
+    return { noir: nomDe(elements.nomNoir, 'noir'), blanc: nomDe(elements.nomBlanc, 'blanc') };
+  }
+
+  const titreDesChamps = () => elements.titre.value.trim() || rappels.titreParDefaut(elements.position.value.trim());
+
+  // Le debut du nom (moteur/nom-partie.js, nomDeFichierKAAWA) : la suite — score, tours, vainqueur — vient des coups.
+  function afficherLeNomDeLaPartie() {
+    elements.titre.placeholder = rappels.titreParDefaut(elements.position.value.trim());
+    const joueurs = joueursDesChamps();
+    const evenement = evenementDeLaPartie(elements.type.champ.value);
+    elements.apercuNom.textContent = `Nom : ${formaterDateKAAWA(new Date())}, ${evenement}, ${titreDesChamps()}, ${joueurs.noir}-${joueurs.blanc}, …`;
+  }
+  // Tout ce qui change un champ : la saisie, un nom connu ou Amical/Test touches (leur clic remonte jusqu'ici).
+  elements.dialogue.addEventListener('input', afficherLeNomDeLaPartie);
+  elements.dialogue.addEventListener('click', afficherLeNomDeLaPartie);
 
   const boutonsNotation = [
     [elements.notationAuto, null],
@@ -100,17 +130,28 @@ function demarrerCreationPartie(elements, rappels) {
       afficherErreur(messageErreurCreation(resultat.erreur, elements.sequence.value.includes('|')));
       return;
     }
+    const joueurs = joueursDesChamps();
+    retenirNomConnu(joueurs.noir);
+    retenirNomConnu(joueurs.blanc);
+    const titre = titreDesChamps();
+    const evenement = typeDePartie.lire();
     elements.dialogue.close();
-    rappels.creerLaPartie(resultat.arbre, elements.titre.value.trim(), elements.position.value.trim());
+    rappels.creerLaPartie(resultat.arbre, titre, joueurs, evenement);
   });
 
   function ouvrir(texteDePosition) {
     elements.titre.value = '';
+    elements.nomNoir.value = '';
+    elements.nomBlanc.value = '';
+    afficherNomsConnus(elements.nomsConnusNoir, elements.nomNoir);
+    afficherNomsConnus(elements.nomsConnusBlanc, elements.nomBlanc);
+    typeDePartie.proposer(rappels.typeAProposer());
     elements.position.value = texteDePosition;
     elements.sequence.value = '';
     notationForcee = null;
     afficherNotation();
     afficherErreur(null);
+    afficherLeNomDeLaPartie();
     elements.dialogue.showModal();
     elements.sequence.focus();
   }

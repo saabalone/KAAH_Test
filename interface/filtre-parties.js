@@ -45,6 +45,22 @@ function demarrerFiltreParties(panneau, surChangement) {
   }
   panneau.appendChild(ligneBranches);
 
+  // Saab, 2026-11-04 : ce qu'on peut supprimer sans rien perdre (moteur/parties-exportees.js).
+  const ligneExports = document.createElement('div');
+  ligneExports.className = 'filtre-parties-branches';
+  for (const [valeur, libelle] of [['toutes', 'Toutes'], ['sans', 'Sans fichier à jour'], ['avec', 'Exportées, à jour']]) {
+    const etiquette = document.createElement('label');
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'filtre-exports-parties';
+    radio.value = valeur;
+    radio.checked = valeur === 'toutes';
+    radio.addEventListener('change', surChangement);
+    etiquette.append(radio, ` ${libelle}`);
+    ligneExports.appendChild(etiquette);
+  }
+  panneau.appendChild(ligneExports);
+
   for (const { champ, libelle, exemple } of CHAMPS_DU_FILTRE_PARTIES) {
     const ligne = document.createElement('label');
     ligne.className = 'filtre-parties-ligne';
@@ -88,7 +104,8 @@ function demarrerFiltreParties(panneau, surChangement) {
 
   function valeur() {
     const branches = panneau.querySelector('input[name="filtre-branches-parties"]:checked').value;
-    const filtre = { ...FILTRE_VIDE, branches };
+    const exports = panneau.querySelector('input[name="filtre-exports-parties"]:checked').value;
+    const filtre = { ...FILTRE_VIDE, branches, exports };
     for (const { champ } of CHAMPS_DU_FILTRE_PARTIES) {
       filtre[champ] = { actif: cases[champ].checked, valeur: saisies[champ].value };
     }
@@ -99,12 +116,13 @@ function demarrerFiltreParties(panneau, surChangement) {
     const filtre = valeur();
     return (
       filtre.branches !== 'toutes' ||
+      filtre.exports !== 'toutes' ||
       CHAMPS_DU_FILTRE_PARTIES.some(({ champ }) => filtre[champ].actif && filtre[champ].valeur.trim() !== '')
     );
   }
 
   function reinitialiser() {
-    panneau.querySelector('input[value="toutes"]').checked = true;
+    for (const radio of panneau.querySelectorAll('input[value="toutes"]')) radio.checked = true;
     for (const { champ } of CHAMPS_DU_FILTRE_PARTIES) {
       cases[champ].checked = false;
       saisies[champ].value = '';

@@ -52,14 +52,21 @@
 //   - Mc : la menace de coupure — chaque sumito de l'adversaire, sans ejection, apres lequel le camp aurait un groupe
 //     de plus coute ce poids, et le rapporte chez l'adversaire (moteur/ia-poussees.js) — saab, 2026-11-01 (contre AP6,
 //     apres 4-4, KAI++ se laissait couper en 6 a 8 groupes) ;
+//   - At : les angles des triangles — chaque triangle de cote 2 dont les 3 angles sont au camp rapporte ce poids, et le
+//     coute chez l'adversaire (moteur/ia-triangles.js) — saab, 2026-11-03 (contre AP6, KAI++ en tenait 2 a 8 fois moins) ;
+//   - Hp : les billes hors du groupe principal — chaque bille hors du plus grand groupe du camp coute ce poids, et le
+//     rapporte chez l'adversaire (moteur/ia-groupe-principal.js) — saab, 2026-11-04 (contre AP6, son groupe isole au bord) ;
 //   - Ct : le centre tenu — des que la machine a Ct billes au centre, elle joue le profil du
 //     milieu copie dans le sien ; avant, et si elle le perd, le sien — saab, 2026-10-23
-//     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation).
+//     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation) ;
+//   - He : Hp qui grandit avec l'ecart au score (moteur/ia-groupe-principal.js) — saab, 2026-11-04 ;
+//   - Ph : les phases au score — apres Ph billes sorties, la machine joue la copie du milieu, puis celle de la fin — saab, 2026-11-04
+//     (moteur/ia-phase.js ; comme Ct, il choisit le profil).
 // `terme` : il a sa colonne (Essai, panneaux) ; da, ep, gf, pf et ceux du piege n'en ont pas, ils changent d'autres termes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide, termeDuSumitoContre, termesDesBillesVulnerables
-// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees, termeDeLaMenaceDeCoupure (ia-poussees.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
+// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees, termeDeLaMenaceDeCoupure (ia-poussees.js), termeDesAnglesDeTriangles (ia-triangles.js), termeDesBillesHorsDuGroupePrincipal (ia-groupe-principal.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
 // (regles.js), couleursDuPlateau (partie.js), CASES_VOISINES_IA (ia-evaluation-v2.js) viennent de fichiers
 // charges avant celui-ci.
 
@@ -96,8 +103,13 @@ const OPTIONS_IA = [
   { cle: 'pousseeRetournableJouee', suffixe: 'Prj', terme: false },
   { cle: 'pousseeRetournableJoueeMachineSeule', suffixe: 'Prk', terme: false },
   { cle: 'menaceDeCoupure', suffixe: 'Mc', terme: true },
+  { cle: 'anglesDeTriangles', suffixe: 'At', terme: true },
+  { cle: 'billesHorsDuGroupePrincipal', suffixe: 'Hp', terme: true },
+  { cle: 'billesHorsDuGroupeSelonLEcart', suffixe: 'He', terme: true },
   // Le centre tenu (moteur/ia-phase.js) choisit le profil qui cherche : KAI++ ne le voit jamais.
   { cle: 'centreTenu', suffixe: 'Ct', terme: false, horsDeKaiPlus: true },
+  // Les phases au score, de meme (moteur/ia-phase.js).
+  { cle: 'phasesAuScore', suffixe: 'Ph', terme: false, horsDeKaiPlus: true },
 ];
 // Chaque suffixe avec sa majuscule (saab, 2026-10-16 : « v5elecef est un peu confus, il
 // vaudrait mieux repérer chaque suffixe par une majuscule, v5ElEcEf »).
@@ -109,6 +121,13 @@ const CLES_OPTIONS_KAI_PLUS = OPTIONS_IA.filter((option) => !option.horsDeKaiPlu
 // moteur/noms-ia.js.
 const codeDesAjouts = (poids) => OPTIONS_IA.filter((option) => option.cle in poids).map((option) => option.suffixe).join('');
 const CLES_TERMES_OPTIONS_IA = OPTIONS_IA.filter((option) => option.terme).map((option) => option.cle);
+
+// Le seuil des phases dans un nom, « Ph2 » (saab, 2026-11-05 : « oui ajoute la ph dans le nom ») : ni Pn ni _v ne le disent. Jamais dans
+// codeDesAjouts : Ph 1 et Ph 2 sont le meme jeu d'ajouts, donc le meme Pn.
+const SUFFIXE_DES_PHASES_AU_SCORE = OPTIONS_IA.find((option) => option.cle === 'phasesAuScore').suffixe;
+const seuilDesPhasesDansLeNom = (poids) => ('phasesAuScore' in poids ? `${SUFFIXE_DES_PHASES_AU_SCORE}${poids.phasesAuScore}` : '');
+// Le code en clair dans un nom : le seuil a la place de son suffixe.
+const codeDesAjoutsDansLeNom = (poids) => codeDesAjouts(poids).replace(SUFFIXE_DES_PHASES_AU_SCORE, seuilDesPhasesDansLeNom(poids));
 
 // Le poids propose quand on coche un ajout (une base, saab : « ceux par defaut
 // sont juste une base a ameliorer ») : le sumito vide annule un sumito de la
@@ -158,10 +177,19 @@ const POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE = 1;
 // AP6 pouvait couper KAI++ 0,2 fois par position dans la victoire 6-4, 1 et 1,8 fois dans la nulle 4-4 et la
 // defaite 3-6 (une base a regler).
 const MENACE_DE_COUPURE_PROPOSEE = -15;
+// Un triangle de plus vaut un groupe separe de moins (Gs 20) : une base a regler.
+const ANGLES_DE_TRIANGLES_PROPOSES = 20;
+// Une bille ramenee au groupe principal vaut la moitie d'un groupe separe de moins (Gs 20) : une base a regler.
+const BILLES_HORS_DU_GROUPE_PRINCIPAL_PROPOSEES = -10;
+// Avec Hp -20 : -40 a 1 bille d'ecart, -60 a 2, -80 a 3. Dans 2611040956, les coups changent a 4-1 a partir de -60 a -80
+// (tours 36, 40, 43, 44). Une base a regler.
+const BILLES_HORS_DU_GROUPE_SELON_L_ECART_PROPOSEES = -20;
+// La 1re bille sortie finit l'ouverture ; 2 la laisse encore dans l'ouverture (saab : « les 2 possibilités »).
+const PHASES_AU_SCORE_PROPOSEES = 1;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, ejectionTot: EJECTION_TOT_PROPOSEE, ejectionTotSansEchange: EJECTION_TOT_SANS_ECHANGE_PROPOSEE, pousseeRetournableJouee: POUSSEE_RETOURNABLE_JOUEE_PROPOSEE, pousseeRetournableJoueeMachineSeule: POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE, menaceDeCoupure: MENACE_DE_COUPURE_PROPOSEE, centreTenu: CENTRE_TENU_PROPOSE },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, ejectionTot: EJECTION_TOT_PROPOSEE, ejectionTotSansEchange: EJECTION_TOT_SANS_ECHANGE_PROPOSEE, pousseeRetournableJouee: POUSSEE_RETOURNABLE_JOUEE_PROPOSEE, pousseeRetournableJoueeMachineSeule: POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE, menaceDeCoupure: MENACE_DE_COUPURE_PROPOSEE, anglesDeTriangles: ANGLES_DE_TRIANGLES_PROPOSES, billesHorsDuGroupePrincipal: BILLES_HORS_DU_GROUPE_PRINCIPAL_PROPOSEES, billesHorsDuGroupeSelonLEcart: BILLES_HORS_DU_GROUPE_SELON_L_ECART_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE, phasesAuScore: PHASES_AU_SCORE_PROPOSEES },
   ])
 );
 
@@ -204,6 +232,9 @@ function termesDesAjouts(etat, camp, poids) {
   if ('billesPousseesAEffet' in poids) vulnerables.billesPousseesAEffet = termeDesBillesPousseesAEffet(etat, camp, poids);
   if ('pousseesRetournees' in poids) vulnerables.pousseesRetournees = termeDesPousseesRetournees(etat, camp, poids);
   if ('menaceDeCoupure' in poids) vulnerables.menaceDeCoupure = termeDeLaMenaceDeCoupure(etat, camp, poids);
+  if ('anglesDeTriangles' in poids) vulnerables.anglesDeTriangles = termeDesAnglesDeTriangles(etat, camp, poids);
+  if ('billesHorsDuGroupePrincipal' in poids) vulnerables.billesHorsDuGroupePrincipal = termeDesBillesHorsDuGroupePrincipal(etat, camp, poids);
+  if ('billesHorsDuGroupeSelonLEcart' in poids) vulnerables.billesHorsDuGroupeSelonLEcart = termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids);
   return { ...termes, ...vulnerables };
 }
 
@@ -224,5 +255,8 @@ function valeurAvecLesAjouts(valeur, etat, camp, poids) {
   if (poids.billesPousseesAEffet) total += termeDesBillesPousseesAEffet(etat, camp, poids);
   if (poids.pousseesRetournees) total += termeDesPousseesRetournees(etat, camp, poids);
   if (poids.menaceDeCoupure) total += termeDeLaMenaceDeCoupure(etat, camp, poids);
+  if (poids.anglesDeTriangles) total += termeDesAnglesDeTriangles(etat, camp, poids);
+  if (poids.billesHorsDuGroupePrincipal) total += termeDesBillesHorsDuGroupePrincipal(etat, camp, poids);
+  if (poids.billesHorsDuGroupeSelonLEcart) total += termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids);
   return total;
 }

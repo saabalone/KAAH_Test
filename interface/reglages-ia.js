@@ -66,9 +66,10 @@ function demarrerReglagesIA(elements) {
   // l'Historique et le titre de la rubrique prennent la plus forte.
   function marquerCouleurs() {
     const couleurs = couleursDesReglagesIA(profilActuel(), brouillon);
-    // Le profil du milieu n'a pas de ligne a lui : il est sur celle de Ct (moteur/ia-phase.js).
-    const { [CLE_PROFIL_DU_MILIEU]: couleurDuMilieu, ...parLigne } = couleurs;
+    // Les copies des phases n'ont pas de ligne a elles : le milieu est sur celle de Ct, et avec la fin sur celle de Ph (moteur/ia-phase.js).
+    const { milieu: couleurDuMilieu, fin: couleurDeLaFin, finEnAvance: couleurDeLaFinEnAvance, ...parLigne } = couleurs;
     parLigne.centreTenu = couleurLaPlusForte([parLigne.centreTenu, couleurDuMilieu]);
+    parLigne.phasesAuScore = couleurLaPlusForte([parLigne.phasesAuScore, couleurDuMilieu, couleurDeLaFin, couleurDeLaFinEnAvance]);
     for (const [cle, couleur] of Object.entries(parLigne)) poserCouleurIA(ligneDe(cle), couleur);
     const duProfil = couleurLaPlusForte(Object.values(couleurs));
     poserCouleurIA(elements.select.closest('label'), duProfil);
@@ -108,7 +109,7 @@ function demarrerReglagesIA(elements) {
       ...profils.map((profil) => {
         const option = document.createElement('option');
         option.value = profil.nom;
-        option.textContent = libelleProfilIA(profil);
+        option.textContent = libelleAvecSaVersion(profil);
         option.title = infobulleDuProfilIA(profil);
         marquerSiProfilParDefaut(option, profil.nom);
         return option;

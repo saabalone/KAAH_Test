@@ -28,6 +28,8 @@ const NUMEROS_FIXES_DES_AJOUTS = Object.freeze({
   SvEcEaEpEfFn: 3,
   SvEcEaEpEfFnGfPfPpaPpmPgaPgm: 4,
   SvEcEaEpEfFnGfPfPpaPpmPgaPgmBpBmpBpb: 5,
+  // Le P5M13 de saab, adopte (2026-11-05 : « passer la Nor en défaut ») : P5 sans l'etendue, avec At, Hp, He et Ph.
+  SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHePh: 6,
 });
 
 // Un jeu d'ajouts A SOI (saab, 2026-10-31 : « On pourrait faire comme v et k pour P, càd si je modifie Pn il devient
@@ -106,9 +108,9 @@ function rangDuJeuDAjouts(numero) {
 // Le nom d'un profil : « Normal v5ElP2_k3 » (un profil de KAAH), « Normal v5ElP2_v3 » (`personnel` : un profil
 // perso, moteur/ia.js, lettreDuJeuDePoids) ; la version 1 sans elagage ni ajout, le style seul (comme le profil
 // integre « Normal »). Le livre n'y est pas : c'est la machine qui le choisit (moteur/ia.js, nomDeLaMachine).
-function nomAfficheDuProfilIA({ style, version, elagage }, numeroDesAjouts, numeroDePoids, personnel = false) {
+function nomAfficheDuProfilIA({ style, version, elagage, poids = {} }, numeroDesAjouts, numeroDePoids, personnel = false) {
   const nu = version === VERSION_IA && !elagage && !numeroDesAjouts;
-  const base = nu ? NOMS_STYLES_IA[style] : `${NOMS_STYLES_IA[style]} v${version}${elagage ? SUFFIXE_ELAGAGE_NOM_IA : ''}${numeroDesAjouts ? `P${numeroDesAjouts}` : ''}`;
+  const base = nu ? NOMS_STYLES_IA[style] : `${NOMS_STYLES_IA[style]} v${version}${elagage ? SUFFIXE_ELAGAGE_NOM_IA : ''}${numeroDesAjouts ? `P${numeroDesAjouts}${seuilDesPhasesDansLeNom(poids)}` : ''}`;
   return numeroDePoids > 1 ? `${base}_${lettreDuJeuDePoids(personnel)}${numeroDePoids}` : base;
 }
 

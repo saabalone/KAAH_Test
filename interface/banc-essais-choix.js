@@ -56,13 +56,14 @@ function creerChoixDuBanc(elements, obtenirJeux) {
     profil: profil.nom, // son nom d'origine (Valider le profil, interface/banc-essais-reglage.js)
     style: profil.style,
     numeroDePoids: profil.numeroDePoids, // le _v de son nom (moteur/noms-ia.js)
+    versionProfil: profil.courante, // le _h d'un profil retouche (moteur/ia.js, suffixeDeLaVersionDuProfil)
     version: profil.version,
     elagage: profil.elagage ?? 0,
     niveau: niveauDuBanc(tapes.niveau ?? '', parDefaut().niveau),
     temps: tempsDuBanc(String(tapes.temps ?? '').replace(',', '.'), parDefaut().temps),
     poids: lireMachine({ version: profil.version, style: profil.style, elagage: profil.elagage, poids: profil.poids }).poids,
-    // Son profil du milieu (l'ajout Ct, moteur/ia-phase.js), s'il en a un.
-    ...(lireMachine(profil).milieu ? { milieu: lireMachine(profil).milieu } : {}),
+    // Les copies de ses phases (les ajouts Ct et Ph, moteur/ia-phase.js), s'il en a.
+    ...Object.fromEntries(CLES_DES_COPIES_DES_PHASES.filter((cle) => lireMachine(profil)[cle]).map((cle) => [cle, lireMachine(profil)[cle]])),
   });
 
   const variations = () =>

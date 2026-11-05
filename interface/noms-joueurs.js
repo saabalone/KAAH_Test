@@ -27,14 +27,14 @@
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : afficherNomJoueur
 // (rendu/ligne-joueur.js), NOM_CAMP (rendu/ejections.js), nomJoueurAutorise
-// (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine
+// (moteur/nom-partie.js), PREFIXES_MOTEURS_IA, nomDeLaMachine, lireMachine, ELAGAGE_PAR_DEFAUT_IA
 // (moteur/ia.js), memesReglagesIA, CLES_REGLAGES_IA, LIBELLES_REGLAGES_IA
 // (moteur/historique-profil-ia.js), couleursDeLaMachineIA
-// (moteur/couleurs-profil-ia.js), trouverProfilIA, retenirProfilIAMontre (interface/profils-ia.js),
+// (moteur/couleurs-profil-ia.js), colonnesDesPhases (moteur/ia-phase.js), trouverProfilIA, retenirProfilIAMontre (interface/profils-ia.js),
 // poserCouleurIA (interface/couleurs-ia.js), nomColoreDeLaMachine (interface/nom-machine-couleurs.js), groupeDuReglage
 // (moteur/ia-groupes.js), groupesQuiCommencent, colorerSelonLeGroupe, ligneDeTitreDeGroupe
 // (interface/groupes-ia.js),
-// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil,
+// brancherChoixMachine, machineDuChoix, lireDerniersJoueurs, livreDuProfil, profilDuChoix,
 // valeurDuProfilDeLaMachine (interface/liste-profils-choix.js),
 // ROLE_HUMAIN, reflexionDuChoix (interface/choix-joueurs.js), afficherNomsConnus, retenirNomConnu
 // (interface/noms-connus.js) viennent de fichiers charges avant celui-ci,
@@ -61,7 +61,7 @@ function brancherSaisieNomJoueur(champ) {
 }
 
 // `elements` : { dialogue, titre, champ, nomsConnus (interface/noms-connus.js),
-// messageNom (le nom est obligatoire), valider (vert quand il attend), fermer (rouge s'il laisse sans nom), marcheMachine, boutonIA, suggestion,
+// messageNom (le nom est obligatoire), notePartieFinie, valider (vert quand il attend), fermer (rouge s'il laisse sans nom), marcheMachine, boutonIA, suggestion,
 // choixIA (le choix d'un camp, interface/choix-joueurs.js), descriptionMachine,
 // poidsMachine (<table>) }. `nomsParDefaut` : { noir, blanc }. Renvoie
 // { definirCommandeMachines, ouvrir, nommer } : la partie branche dans le premier celle des machines
@@ -71,11 +71,28 @@ function brancherSaisieNomJoueur(champ) {
 // `machinePermise()` : faux pendant un puzzle dans la version publiee (saab,
 // 2026-10-08 : « interdire de se servir de l'IA pour les PZL ») — les boutons IA
 // et Suggestion sont alors grises, et les toucher le dit.
-// Le tableau des poids de la machine : le reglage, sa valeur.
-const COLONNES_DES_POIDS_DE_LA_MACHINE = 2;
 const MESSAGE_MACHINE_PUZZLE = "Pas de machine dans les puzzles : à vous de trouver la solution !";
 
-function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true) {
+// Ce que la boite propose pour un humain : le dernier choix de Nouvelle partie, mais l'elagage par defaut (saab, 2026-11-04 :
+// « Dans la boite des noms pour IA mettre Elagage 10 par défaut car là il est à 20 » — un 20 tape un jour restait retenu). Null :
+// c'est deja celui du profil, en marron.
+function choixProposeDansLaBoite(camp) {
+  const dernier = lireDerniersJoueurs()[camp];
+  const elagage = profilDuChoix(dernier.profil)?.elagage === ELAGAGE_PAR_DEFAUT_IA ? null : ELAGAGE_PAR_DEFAUT_IA;
+  return { ...dernier, livre: livreDuProfil(dernier.profil), elagage };
+}
+
+// Le seuil de ses phases, que ni Pn ni _v ne disent (saab, 2026-11-05 : « comment savoir que le profile est en ph1 ou 2 ... pas d'indication
+// claire » ; moteur/ia-phase.js, phaseAuScore).
+function texteDuSeuilDesPhases({ poids }) {
+  if (!('phasesAuScore' in poids)) return '';
+  const billes = poids.phasesAuScore;
+  return ` Phases au score : milieu dès ${billes} ${billes > 1 ? 'billes sorties' : 'bille sortie'}.`;
+}
+
+// `partieFinie()` : la boite le dit, car une partie finie garde son titre et sa machine (saab, 2026-11-04 : « il n'y a
+// rien [...] qui alerte de ce changement » ; moteur/revanche.js, identiteAEcrire).
+function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true, partieFinie = () => false) {
   let campEnCours = null;
   let commandeMachines = null;
   brancherSaisieNomJoueur(elements.champ);
@@ -90,7 +107,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const enJeu = machineEnJeu();
     if (choix.role === ROLE_HUMAIN) return null;
     if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) {
-      const elagage = choix.elagage ?? trouverProfilIA(enJeu.profil)?.elagage ?? enJeu.elagage;
+      const elagage = choix.elagage ?? retrouverProfilDeLaMachine(enJeu)?.elagage ?? enJeu.elagage;
       const machine = lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, elagage });
       return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
     }
@@ -119,34 +136,44 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
       elements.poidsMachine.replaceChildren();
       return;
     }
-    const profil = trouverProfilIA(machine.profil);
+    const profil = retrouverProfilDeLaMachine(machine);
     // Reglages s'ouvrira sur ce profil (saab, 2026-10-07 : « faire le focus sur
     // le profil IA du joueur qui demande » ; interface/reglages-ia.js).
     if (profil) retenirProfilIAMontre(profil.nom);
-    // Un elagage force (la boite le dit deja) n'est pas une retouche du profil.
-    const retouche = profil && !memesReglagesIA(profil, { ...machine, elagage: profil.elagage }) ? ' Le profil a été retouché depuis : elle garde les poids du début de partie.' : '';
+    // Un elagage force ou un livre decoche (la boite les dit deja) ne sont pas une retouche du profil. Une ancienne version
+    // choisie (versionHistorique) non plus : ses poids sont ceux qu'on a demandes, pas ceux du debut de partie (saab, 2026-11-04).
+    const retouche = profil && !machine.versionHistorique && !memesReglagesIA(profil, { ...machine, elagage: profil.elagage, livre: profil.livre });
     // Les couleurs de ses poids (saab, 2026-10-02 : de la valeur jusqu'a son fichier) ; son nom
     // en morceaux colores (interface/nom-machine-couleurs.js).
     const couleurs = couleursDeLaMachineIA(machine, profil);
     elements.descriptionMachine.replaceChildren(
       ...nomColoreDeLaMachine(machine),
-      ` : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${retouche}`
+      ` : ${PREFIXES_MOTEURS_IA[machine.moteur]}, IA version ${machine.version}, ${machine.livre ? "avec" : "sans"} livre d'ouvertures.${texteDuSeuilDesPhases(machine)}`,
+      ...(retouche ? [Object.assign(document.createElement('span'), { className: 'legende-modifie', textContent: ` Le profil est passé à ${libelleAvecSaVersion(profil)} : elle garde les poids du début de partie. Choisissez-le dans la liste pour qu'elle le joue.` })] : [])
     );
     // Dans l'ordre de Reglages, profil IA (saab, 2026-10-07), groupe apres groupe, chacun sous son
     // titre et dans sa couleur (saab, 2026-10-21 : « mettre aussi les couleurs des groupes dans IA
     // joueur » ; interface/groupes-ia.js) ; la ligne garde la couleur de sa validation.
-    const cles = CLES_REGLAGES_IA.filter((cle) => cle in machine.poids);
+    // Une colonne par phase (saab, 2026-11-04 : « il en faudrait autant que de phase » ; moteur/ia-phase.js, colonnesDesPhases).
+    const colonnes = colonnesDesPhases(machine);
+    const cles = CLES_REGLAGES_IA.filter((cle) => colonnes.some((colonne) => cle in colonne.poids));
     const debuts = groupesQuiCommencent(cles, groupeDuReglage);
+    const entete = document.createElement('tr');
+    entete.append(document.createElement('th'), ...colonnes.map(({ titre }) => Object.assign(document.createElement('th'), { textContent: titre })));
     elements.poidsMachine.replaceChildren(
+      ...(colonnes.length > 1 ? [entete] : []),
       ...cles.flatMap((cle, rang) => {
         const tr = document.createElement('tr');
         const libelle = colorerSelonLeGroupe(document.createElement('td'), groupeDuReglage(cle));
-        const nombre = document.createElement('td');
         libelle.textContent = LIBELLES_REGLAGES_IA[cle];
-        nombre.textContent = machine.poids[cle];
-        tr.append(libelle, nombre);
+        const nombres = colonnes.map((colonne) => {
+          const nombre = Object.assign(document.createElement('td'), { textContent: colonne.poids[cle] ?? '—' });
+          nombre.classList.toggle('poids-comme-l-ouverture', colonnes.length > 1 && colonne.poids[cle] === colonnes[0].poids[cle]);
+          return nombre;
+        });
+        tr.append(libelle, ...nombres);
         poserCouleurIA(tr, couleurs[cle]);
-        return debuts[rang] ? [ligneDeTitreDeGroupe(debuts[rang], COLONNES_DES_POIDS_DE_LA_MACHINE), tr] : [tr];
+        return debuts[rang] ? [ligneDeTitreDeGroupe(debuts[rang], colonnes.length + 1), tr] : [tr];
       })
     );
   }
@@ -162,12 +189,13 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     }
     elements.choixIA.hidden = !machine;
     // Son elagage s'affiche force s'il n'est pas celui de son profil.
-    const elagageDuProfil = machine ? trouverProfilIA(machine.profil)?.elagage ?? 0 : 0;
+    const profilDuJeu = machine ? retrouverProfilDeLaMachine(machine) : null;
+    const elagageDuProfil = profilDuJeu?.elagage ?? 0;
     choixIA.definir(
       machine
         ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre, elagage: machine.elagage === elagageDuProfil ? null : machine.elagage }
-        : { ...lireDerniersJoueurs()[campEnCours], role: ROLE_HUMAIN, livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) },
-      machine?.profil
+        : { ...choixProposeDansLaBoite(campEnCours), role: ROLE_HUMAIN },
+      profilDuJeu ? profilDuJeu.nom : machine?.profil
     );
     afficherMachineChoisie();
     if (!machine) return;
@@ -183,7 +211,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   // affiche (sinon le dernier moteur choisi, KAI++ au debut) : le joueur ne change pas.
   elements.suggestion.addEventListener('click', () => {
     if (!machinePermise()) return window.alert(MESSAGE_MACHINE_PUZZLE);
-    const choix = elements.choixIA.hidden ? { ...lireDerniersJoueurs()[campEnCours], livre: livreDuProfil(lireDerniersJoueurs()[campEnCours].profil) } : choixIA.lire();
+    const choix = elements.choixIA.hidden ? choixProposeDansLaBoite(campEnCours) : choixIA.lire();
     commandeMachines.suggerer(machineDuChoix({ ...choix, role: choix.role === ROLE_HUMAIN ? choix.moteur : choix.role }));
     elements.dialogue.close();
   });
@@ -211,12 +239,13 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   function ouvrir(camp) {
     campEnCours = camp;
     elements.messageNom.hidden = true;
+    elements.notePartieFinie.hidden = !partieFinie();
     elements.champ.value = joueurs[campEnCours];
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
     elements.titre.textContent = `Joueur ${NOM_CAMP[campEnCours]}`;
     elements.dialogue.classList.toggle('dialogue-retourne', campEnCours === 'blanc' && document.body.classList.contains('face-a-face'));
     const enJeu = machineEnJeu();
-    nomSuitLeChoix = !enJeu || joueurs[campEnCours] === nomDeLaMachine(enJeu);
+    nomSuitLeChoix = !enJeu || estLeNomDeLaMachine(joueurs[campEnCours], enJeu);
     nomPropose = joueurs[campEnCours];
     afficherMachine();
     afficherNomsConnus(elements.nomsConnus, elements.champ);
@@ -254,7 +283,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     // Joueur 2 ») : les noms se demandent a la fin de la partie (index.html, demanderLesNomsALaFin).
     let nom = nomJoueurAutorise(elements.champ.value) || nomsParDefaut[campEnCours];
     if (machineChangee) {
-      const nomGarde = nom !== joueurs[campEnCours] || (avant && joueurs[campEnCours] !== nomDeLaMachine(avant));
+      const nomGarde = nom !== joueurs[campEnCours] || (avant && !estLeNomDeLaMachine(joueurs[campEnCours], avant));
       if (!nomGarde) nom = apres ? nomDeLaMachine(apres) : nomsParDefaut[campEnCours];
       commandeMachines.definirMachine(campEnCours, apres);
     }

@@ -9,9 +9,9 @@
 // La valeur d'une ancienne version : le nom du profil, puis « #v » et son numero.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : NOMS_STYLES_IA
-// (moteur/ia.js), choisirVersionIA, libelleDateHistoriqueIA
+// (moteur/ia.js), libelleDateHistoriqueIA
 // (moteur/historique-profil-ia.js), listerProfilsIA, trouverProfilIA,
-// libelleProfilIA, nomDuProfilIAParDefaut (interface/profils-ia.js), colorerListeProfilsIA
+// libelleProfilIA, profilASaVersion, nomDuProfilIAParDefaut (interface/profils-ia.js), colorerListeProfilsIA
 // (interface/couleurs-ia.js) viennent de fichiers charges avant celui-ci.
 
 const SEPARATEUR_VERSION_PROFIL = '#v';
@@ -23,15 +23,16 @@ function profilDuChoix(valeur) {
   const [nom, numero] = String(valeur).split(SEPARATEUR_VERSION_PROFIL);
   const profil = trouverProfilIA(nom);
   if (!profil) return null;
-  return numero && Number(numero) !== profil.courante ? profilPourUneMachine(choisirVersionIA(profil, Number(numero)), Number(numero)) : profilPourUneMachine(profil);
+  return numero && Number(numero) !== profil.courante ? profilPourUneMachine(profilASaVersion(profil, Number(numero)), Number(numero)) : profilPourUneMachine(profil);
 }
 
-// La valeur de la liste pour une machine deja en jeu : son profil, a la version
-// qu'elle joue si ce n'est plus la courante.
+// La valeur de la liste pour une machine deja en jeu : son profil, meme renomme depuis, a la
+// version qu'elle joue si ce n'est plus la courante.
 function valeurDuProfilDeLaMachine(machine) {
-  const profil = trouverProfilIA(machine.profil);
+  const profil = retrouverProfilDeLaMachine(machine);
+  if (!profil) return machine.profil;
   const numero = machine.versionProfil ?? 1;
-  return profil?.historique && profil.courante !== numero ? `${machine.profil}${SEPARATEUR_VERSION_PROFIL}${numero}` : machine.profil;
+  return profil.historique && profil.courante !== numero ? `${profil.nom}${SEPARATEUR_VERSION_PROFIL}${numero}` : profil.nom;
 }
 
 function optionDeProfil(valeur, texte) {
@@ -52,7 +53,7 @@ function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
   // Dans l'ordre de Profils IA compares (interface/noms-profils-ia.js).
   for (const profil of listerProfilsIADansLOrdre()) {
     if (filtreStyle !== TOUS_LES_STYLES_IA && profil.style !== filtreStyle) continue;
-    const option = optionDeProfil(profil.nom, libelleProfilIA(profil));
+    const option = optionDeProfil(profil.nom, libelleAvecSaVersion(profil));
     option.title = infobulleDuProfilIA(profil);
     marquerSiProfilParDefaut(option, profil.nom);
     options.push(option);
@@ -60,7 +61,13 @@ function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
     for (const version of anciennes) {
       const date = version.date ? ` · ${libelleDateHistoriqueIA(version.date)}` : '';
       // « h » : l'historique (le _h du nom de sa machine), jamais le _v des jeux de poids.
-      options.push(optionDeProfil(`${profil.nom}${SEPARATEUR_VERSION_PROFIL}${version.numero}`, `   ↳ h${version.numero}${date}`));
+      // Son seuil des phases aussi (saab, 2026-11-05 : « je vois profil IA avec ph1 mais pas de ph2 ») : deux h n'ont pas forcement le meme.
+      const seuil = version.poids && 'phasesAuScore' in version.poids ? ` ${seuilDesPhasesDansLeNom(version.poids)}` : '';
+      const ancienne = optionDeProfil(`${profil.nom}${SEPARATEUR_VERSION_PROFIL}${version.numero}`, `   ↳ h${version.numero}${seuil}${date}`);
+      // Saab, 2026-11-04 : « dans la boite des Joueur il n'y a pas le profile au survole des histo, il y a
+      // juste l'infobulle sur les profiles nommés ».
+      ancienne.title = infobulleDuProfilIA(profilPourUneMachine(profilASaVersion(profil, version.numero), version.numero));
+      options.push(ancienne);
     }
   }
   select.replaceChildren(...options);

@@ -62,6 +62,24 @@ function partieSuivante(choix, { joueurs, plateauRetourne, machines = null }) {
   return { joueurs, plateauRetourne, machines };
 }
 
+// Une partie FINIE garde qui l'a jouee (saab, 2026-11-04 : « Parfois je change le profil avant de
+// faire Same pour mes essais et donc ça change le titre de la dernière partie, et il n'y a rien pour
+// annuler ») : changer de machine y reste permis, pour une branche et pour la partie suivante, mais
+// son fichier, et donc son titre, gardent le nom et la machine d'avant le premier changement.
+const RIEN_DE_GARDE = { joueurs: {}, machines: {} };
+
+function garderLaMachineDeLaPartieFinie(gardee, camp, nom, machine) {
+  if (camp in gardee.joueurs) return gardee;
+  return { joueurs: { ...gardee.joueurs, [camp]: nom }, machines: { ...gardee.machines, [camp]: machine } };
+}
+
+// Ce que le fichier doit ecrire. Une partie qui n'est plus finie (sa fin retiree dans une partie Test)
+// reprend les choix du moment : c'est eux qui jouent la suite.
+function identiteAEcrire(partieFinie, joueurs, machines, gardee) {
+  if (!partieFinie) return { joueurs, machines };
+  return { joueurs: { ...joueurs, ...gardee.joueurs }, machines: { ...machines, ...gardee.machines } };
+}
+
 // Une partie demarree par une Option (Revanche, Same) la laisse rechoisir tant
 // que personne n'y a vraiment joue (saab, 2026-10-02 : « pouvoir faire une
 // revanche si on s'est trompe dans l'Option, car par ex. on avait clic
