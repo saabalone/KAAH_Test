@@ -29,10 +29,11 @@ function prochainJeuDuParcours(parcours, propositions, regles) {
 
 // Apres un jeu (`evenement` d'apresUnResultat, le parcours `avant` et `apres`) : le
 // passage continue ({ fini: false }) ou s'arrete — { fini, ceinture (la plus haute
-// obtenue), raison }. Il s'arrete a la premiere regression (la ceinture d'avant est la
-// sienne), au sommet, ou sur un jeu refuse (jamais attendu : plutot que tourner en rond).
+// obtenue), raison }. Il s'arrete au premier ECHEC de la serie (saab, 2026-11-06 : « ce n'est
+// pas vraiment une régression c'est juste un ECHEC » : sa ceinture reste la sienne), au sommet,
+// ou sur un jeu refuse (jamais attendu : plutot que tourner en rond).
 function suiteDuPassage(evenement, avant, apres) {
-  if (evenement === 'regression') return { fini: true, ceinture: avant.ceinture, raison: 'régression' };
+  if (evenement === 'echec') return { fini: true, ceinture: avant.ceinture, raison: 'échec' };
   if (evenement === 'refuse') return { fini: true, ceinture: avant.ceinture, raison: 'jeu refusé' };
   if (apres.cible === null) return { fini: true, ceinture: apres.ceinture, raison: 'sommet' };
   return { fini: false };
@@ -48,10 +49,10 @@ function parcoursPourTester(grade) {
 }
 
 // L'issue de la serie d'un grade teste a part, d'apres l'evenement d'un jeu : 'réussie'
-// (la serie est complete : la confirmation ne se joue pas), 'ratée' (assez d'essais
-// rates pour redescendre), ou null tant qu'elle continue.
+// (la serie est complete : la confirmation ne se joue pas), 'ratée' (l'echec : assez
+// d'essais rates), ou null tant qu'elle continue.
 function issueDeLaSerieTestee(evenement) {
   if (evenement === 'confirmation' || evenement === 'ceinture') return 'réussie';
-  if (evenement === 'regression' || evenement === 'refuse') return 'ratée';
+  if (evenement === 'echec' || evenement === 'refuse') return 'ratée';
   return null;
 }

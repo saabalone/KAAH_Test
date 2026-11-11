@@ -37,8 +37,10 @@
 // commentaires de chaque branche si on ne les essaie pas toutes ???").
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : numeroDeTour vient
-// de moteur/arbre.js, texteDuCoup et classeCouleur de
-// rendu/arbre-ligne.js — tous charges avant celui-ci dans index.html.
+// de moteur/arbre.js, gardeDansLeResume et estUneBrancheDeBranche de
+// moteur/resume-sequence.js (et separerCommentaire, recomposerCommentaire), texteDuCoup et classeCouleur de
+// rendu/arbre-ligne.js, creerNomsDesMachines de rendu/arbre-html.js — tous
+// charges avant celui-ci dans index.html.
 
 // `etat` : { cheminsReplies: Set (branches masquees, meme Set que la
 // Sequence — repartagee, voir interface/commentaires.js), cheminsDeplies:
@@ -57,6 +59,8 @@ function dessinerCommentaires(conteneur, arbre, etat, rappels) {
 }
 
 function marcherNoeud(conteneur, noeud, chemin, aDesFreres, arbre, etat, rappels) {
+  // Les branches de branche masquees, comme dans la Sequence (moteur/resume-sequence.js, estUneBrancheDeBranche).
+  if (etat.masquerBrDeBr && estUneBrancheDeBranche(chemin)) return;
   const cle = chemin.join('.');
   const parties = etat.etiquettesOccurrences.get(cle) ?? []; // [{ texte, seuilAtteint }], voir interface/commentaires.js
   const commentaire = noeud.commentaire ?? '';
@@ -68,12 +72,16 @@ function marcherNoeud(conteneur, noeud, chemin, aDesFreres, arbre, etat, rappels
   // reste simplement absente ; ses enfants, eux, restent des lignes
   // independantes (liste a plat, pas une vraie imbrication DOM) et
   // continuent de s'afficher normalement s'ils correspondent.
+  // `seulementCommentes` (saab, 2026-11-10 : « rechercher tous les coups qui ont un commentaire ») : les coups au
+  // commentaire non vide, en plus du texte cherche.
   const correspond =
-    !etat.filtreTexte ||
-    commentaire.toLowerCase().includes(etat.filtreTexte) ||
-    texteDesParties.toLowerCase().includes(etat.filtreTexte);
+    (!etat.seulementCommentes || commentaire.trim() !== '') &&
+    (!etat.filtreTexte || commentaire.toLowerCase().includes(etat.filtreTexte) || texteDesParties.toLowerCase().includes(etat.filtreTexte));
 
-  if (correspond) {
+  // Le resume, comme la Sequence (moteur/resume-sequence.js, gardeDansLeResume) : un nom d'IA, un debut de branche, une
+  // fin, le coup regarde — et toujours le depart, et un coup replie (son triangle reste a portee).
+  const garde = !etat.resume || chemin.length === 0 || etat.cheminsReplies.has(cle) || gardeDansLeResume(noeud, aDesFreres ? 2 : 1, chemin, arbre.chemin);
+  if (correspond && garde) {
     conteneur.appendChild(creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, etat, rappels));
   }
 
@@ -98,6 +106,8 @@ function creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, e
     repli.className = 'bouton-repli-commentaire';
     repli.textContent = etat.cheminsReplies.has(cle) ? '▶' : '▼'; // les memes que la Sequence (rendu/arbre-ligne.js)
     repli.title = etat.cheminsReplies.has(cle) ? 'Déplier cette branche' : 'Replier cette branche';
+    // Vert pour deplier, orange pour replier, comme la Sequence (rendu/arbre-ligne.js).
+    repli.classList.add(etat.cheminsReplies.has(cle) ? 'arbre-repli-deplier' : 'arbre-repli-replier');
     repli.addEventListener('click', () => rappels.surClicRepli(cle));
     ligne.appendChild(repli);
   } else {
@@ -145,6 +155,24 @@ function creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, e
     etiquette.appendChild(document.createTextNode(']'));
   }
 
+  // Le score d'un coup qui finit la partie, et les noms des IA de son commentaire dans la couleur de leur resultat, comme le
+  // resume de la Sequence (saab, 2026-11-11 : « Tu n'as pas mis les couleurs ni le score dans Commentaire ») : calcules a
+  // l'affichage (rendu/arbre-html.js, creerNomsDesMachines), comme les tags Occ — jamais ecrits dans le commentaire.
+  // Sous la ligne, sur toute sa largeur (styles.css, .noms-ia-commentaire) : le coup lui-meme n'a que 40 % de la place.
+  const finie = Boolean(noeud.etat.vainqueur) || ['N', 'T', 'D', 'R'].includes(noeud.statutFin);
+  const noms = creerNomsDesMachines(arbre, [{ noeud, chemin }], 'span', 'noms-ia-commentaire');
+  let dessous = noms;
+  if (chemin.length > 0 && finie && noeud.enfants.length === 0) {
+    const score = document.createElement('span');
+    score.className = 'score-fin-commentaire';
+    score.textContent = `Fin -${noeud.etat.billesEjecteesNoires}-${noeud.etat.billesEjecteesBlanches}tr${numeroDeTour(chemin.length)}`;
+    if (!dessous) {
+      dessous = document.createElement('span');
+      dessous.className = 'noms-ia-commentaire';
+    }
+    dessous.prepend(score);
+  }
+
   ligne.appendChild(etiquette);
 
   const deplie = etat.cheminsDeplies.has(cle);
@@ -161,10 +189,15 @@ function creerLigneCommentaire(noeud, chemin, cle, aDesFreres, parties, arbre, e
   // Une suggestion de la machine (interface/ia.js) : en rouge (saab, 2026-10-01).
   zone.classList.toggle('texte-commentaire-suggestion', /^Suggestion /m.test(noeud.commentaire ?? ''));
   zone.placeholder = 'Aucun commentaire';
-  zone.value = noeud.commentaire ?? '';
+  // Seulement le texte libre : les noms des IA et le score, ecrits par KAAH, s'affichent deja dessous, en couleur (saab,
+  // 2026-11-11 : « ça fait doublon ») ; ils restent dans le commentaire du fichier, remis apres le texte a chaque
+  // modification (moteur/resume-sequence.js, separerCommentaire, recomposerCommentaire).
+  const { libre, generees } = separerCommentaire(noeud.commentaire);
+  zone.value = libre;
   zone.rows = deplie ? 3 : 1;
-  zone.addEventListener('change', () => rappels.surCommentaireModifie(chemin, zone.value));
+  zone.addEventListener('change', () => rappels.surCommentaireModifie(chemin, recomposerCommentaire(zone.value, generees)));
   ligne.appendChild(zone);
+  if (dessous) ligne.appendChild(dessous);
 
   return ligne;
 }

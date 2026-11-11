@@ -9,8 +9,8 @@
 // independant du plateau principal, comme l'apercu des Variantes (voir
 // interface/variantes.js) — l'interdiction de CLAUDE.md ne vise que LE plateau.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau, poserBille
-// (rendu/plateau-svg.js), dessinerEjectionsApercu (rendu/ejections-apercu.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau, poserBille,
+// dessinerNoirEnBas (rendu/plateau-svg.js), dessinerEjectionsApercu (rendu/ejections-apercu.js),
 // depuisNotation (moteur/plateau.js), saisieDepuisPosition, positionDeLaSaisie,
 // basculerCase, EJECTIONS_MAX_AU_DEPART (moteur/positions-my.js) viennent de
 // fichiers charges avant celui-ci.
@@ -33,12 +33,15 @@ function demarrerEditeurPosition(elements, surChangement) {
   // taper (le curseur de saisie sauterait a la fin a chaque touche).
   function afficher(depuisLeTexte = false) {
     elements.plateau.innerHTML = '';
-    dessinerPlateau(elements.plateau);
-    for (const [notation, couleur] of Object.entries(saisie.couleurs)) {
-      const { q, r } = depuisNotation(notation);
-      poserBille(elements.plateau, { id: `editeur-${notation}`, q, r, couleur });
-    }
-    dessinerEjectionsApercu(elements.plateau, saisie.ejectionsNoires, saisie.ejectionsBlanches);
+    // Noir en bas, comme la partie que la position ouvrira (rendu/plateau-svg.js, dessinerNoirEnBas).
+    dessinerNoirEnBas(() => {
+      dessinerPlateau(elements.plateau);
+      for (const [notation, couleur] of Object.entries(saisie.couleurs)) {
+        const { q, r } = depuisNotation(notation);
+        poserBille(elements.plateau, { id: `editeur-${notation}`, q, r, couleur });
+      }
+      dessinerEjectionsApercu(elements.plateau, saisie.ejectionsNoires, saisie.ejectionsBlanches);
+    });
 
     if (!depuisLeTexte) elements.position.value = positionDeLaSaisie(saisie);
     elements.position.classList.toggle('champ-invalide', !texteLisible);

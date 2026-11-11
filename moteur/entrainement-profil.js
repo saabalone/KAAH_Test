@@ -29,12 +29,13 @@ const GROUPES_REGLES_ENTRAINEMENT = [
       // Saab, 2026-10-10 : « 3 séries ratées on réinitialise, n réinitialisations on
       // redescend » (la cle garde son ancien nom : les versions deja validees la relisent).
       ['seriesRatees', 'Essais ratés sur un jeu avant de le recommencer à zéro (décochée : jamais)', 'nombre', D_ENTRAINEMENT.serie.essaisAvantReinitialisation, true],
-      ['reinitialisations', 'Jeux recommencés à zéro avant de redescendre d’une ceinture (décochée : jamais)', 'nombre', D_ENTRAINEMENT.serie.reinitialisationsAvantDeRedescendre, true],
-      // Saab, 2026-10-10 : une pause trop longue, et le grade acquis est a reconfirmer.
+      // Saab, 2026-11-06 : « Oui, ECHEC suffit » — on ne redescend plus (moteur/entrainement-serie.js, reinitialiser).
+      ['reinitialisations', 'Jeux recommencés à zéro avant l’échec de la ceinture visée : sa série repart de zéro, on garde sa ceinture (décochée : jamais)', 'nombre', D_ENTRAINEMENT.serie.reinitialisationsAvantLEchec, true],
+      // Saab, 2026-11-06 : une pause trop longue, et l'on redescend d'une ceinture, une seule fois (90 jours, 30 avant).
       // Saab, 2026-10-15 : « on ajoutera une partie en fin de tentatives ... si c'est encore
       // Nulle c'est réussi » (moteur/entrainement-serie.js, suiteDUnEssai).
       ['rattrapageSurNulle', 'Essais ratés sur un jeu avec au moins une nulle : une partie de plus, réussie par une nulle (décochée : le jeu repart de zéro)', 'case', D_ENTRAINEMENT.serie.rattrapageSurNulle, true],
-      ['joursSansJouer', 'Jours sans jouer à son grade (ou plus haut) avant de devoir le reconfirmer (décochée : jamais)', 'nombre', D_ENTRAINEMENT.serie.joursAvantReconfirmation, true],
+      ['joursSansJouer', 'Jours sans jouer à son grade (ou plus haut) avant de redescendre d’une ceinture, une seule fois (décochée : jamais)', 'nombre', D_ENTRAINEMENT.serie.joursAvantRegression, true],
       ['nulleDefaite', 'Une nulle compte comme une défaite (décochée : elle ne compte pas)', 'case', true, true],
       ['nonJoueeIgnoree', 'Une partie où le joueur n’a pas joué ne compte pas', 'case', true, true],
     ],

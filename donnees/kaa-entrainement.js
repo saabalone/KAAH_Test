@@ -13,7 +13,7 @@ const KAA_ENTRAINEMENT_SAAB = {
     "seriesRatees": 3,
     "reinitialisations": 3,
     "rattrapageSurNulle": true,
-    "joursSansJouer": 30,
+    "joursSansJouer": 90,
     "nonJoueeIgnoree": true,
     "pauses": 3,
     "bloquerConseils": true,

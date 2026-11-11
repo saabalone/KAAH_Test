@@ -1,7 +1,7 @@
 // Saisie du nom d'un joueur : un clic sur le cadre de son nom ouvre une petite
 // boite avec un champ, dont le texte grise (le "placeholder") dit
 // "Nom du Joueur (Noir)" ou "(Blanc)" — la couleur de SES billes (saab). Un nom
-// vide redonne le nom par defaut plutot qu'un joueur sans nom.
+// vide redonne le nom par defaut plutot qu'un joueur sans nom (une machine : son nom automatique).
 //
 // Le nom vit dans `joueurs` (index.html : { noir, blanc }), ecrit tel quel dans
 // la sauvegarde (Players, moteur/sauvegarde.js) : changer un nom demande donc
@@ -92,7 +92,9 @@ function texteDuSeuilDesPhases({ poids }) {
 
 // `partieFinie()` : la boite le dit, car une partie finie garde son titre et sa machine (saab, 2026-11-04 : « il n'y a
 // rien [...] qui alerte de ce changement » ; moteur/revanche.js, identiteAEcrire).
-function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true, partieFinie = () => false) {
+// `avantDeRenommer(camp, ancienNom)` : juste avant de changer un nom (index.html : une partie finie garde le sien,
+// moteur/revanche.js, garderLeNomDeLaPartieFinie).
+function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangement, machinePermise = () => true, partieFinie = () => false, avantDeRenommer = () => {}) {
   let campEnCours = null;
   let commandeMachines = null;
   brancherSaisieNomJoueur(elements.champ);
@@ -121,8 +123,13 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   let nomSuitLeChoix = false;
   let nomPropose = null;
 
+  // Un nom efface suit de nouveau le choix (saab, 2026-11-07 : une machine nommee « t » par erreur gardait ce nom au
+  // changement de niveau — un nom donne a la main a une machine reste, mais on peut l'effacer pour revenir au nom
+  // automatique).
   function proposerLeNom(machine) {
-    if (!nomSuitLeChoix || elements.champ.value !== nomPropose) return;
+    const efface = elements.champ.value.trim() === '';
+    if (!efface && (!nomSuitLeChoix || elements.champ.value !== nomPropose)) return;
+    nomSuitLeChoix = true;
     nomPropose = machine ? nomDeLaMachine(machine) : machineEnJeu() ? nomsParDefaut[campEnCours] : joueurs[campEnCours];
     elements.champ.value = nomPropose;
   }
@@ -251,7 +258,13 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     afficherNomsConnus(elements.nomsConnus, elements.champ);
     commandeMachines?.suspendre(true);
     elements.dialogue.showModal();
-    elements.champ.select();
+    // Un humain : son nom selectionne, pour en taper un autre d'un coup. Une machine : le curseur a la fin, rien de
+    // selectionne — son nom est automatique, et une touche tapee a l'ouverture remplacait tout (saab, 2026-11-07 :
+    // « si je change le niveau de KAI /Valider le nom devient 't' »).
+    if (enJeu) {
+      elements.champ.focus();
+      elements.champ.setSelectionRange(elements.champ.value.length, elements.champ.value.length);
+    } else elements.champ.select();
     actualiserLesBoutons();
   }
   // Les couleurs de la boite (saab, 2026-10-19 : « Valider doit passer en vert dès que j'ai mis
@@ -281,7 +294,8 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const machineChangee = JSON.stringify(apres) !== JSON.stringify(avant);
     // Joueur_1 et Joueur_2 permis (saab, 2026-10-27 : « retirer l'interdiction des noms Joueur 1 et
     // Joueur 2 ») : les noms se demandent a la fin de la partie (index.html, demanderLesNomsALaFin).
-    let nom = nomJoueurAutorise(elements.champ.value) || nomsParDefaut[campEnCours];
+    // Un nom efface : le nom automatique, celui de la machine qui jouera (sinon le nom par defaut).
+    let nom = nomJoueurAutorise(elements.champ.value) || (apres ? nomDeLaMachine(apres) : nomsParDefaut[campEnCours]);
     if (machineChangee) {
       const nomGarde = nom !== joueurs[campEnCours] || (avant && !estLeNomDeLaMachine(joueurs[campEnCours], avant));
       if (!nomGarde) nom = apres ? nomDeLaMachine(apres) : nomsParDefaut[campEnCours];
@@ -297,6 +311,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
   function nommer(camp, nom) {
     retenirNomConnu(nom);
     if (nom === joueurs[camp]) return false;
+    avantDeRenommer(camp, joueurs[camp]);
     joueurs[camp] = nom;
     afficherNomJoueur(svg, camp, nom);
     return true;

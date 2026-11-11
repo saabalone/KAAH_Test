@@ -114,11 +114,8 @@
 // afficherPause et masquerPause viennent tous des
 // fichiers charges avant celui-ci dans index.html (demarrerAffichageOccurrences
 // utilise lui-meme actualiserCompteurOccurrences, rendu/ejections.js, pour
-// le compteur affiche sur le plateau).
-
-function cheminEgal(a, b) {
-  return a.length === b.length && a.every((valeur, index) => valeur === b[index]);
-}
+// le compteur affiche sur le plateau). cheminEgal vient de rendu/arbre-ligne.js (une seule fois :
+// tests/noms-globaux.test.js).
 
 // Met en place une partie interactive sur `svg`, a partir de `etatInitial`
 // (voir moteur/notation.lirePosition).
@@ -280,15 +277,24 @@ function demarrerPartie(
   // une partie reprise part d'une autre position que celle par defaut.
   const texteEnTete = ecrirePosition(arbre.racine.etat);
 
-  const sequence = demarrerAffichageSequence(elementsArbre, texteEnTete, {
-    surClicNoeud: sauterVersNoeud,
-    surClicSupprimer: (chemin) => {
-      if (suppressionsInterdites) return;
-      demanderConfirmation('Supprimer ce coup et tout ce qui en dépend ? Cette action est irréversible.', () =>
-        naviguer((a) => supprimerBranche(a, chemin))
-      );
+  // Les replis et les branches de branche, PARTAGES par la Sequence et les Commentaires (saab, 2026-11-08 : « il faudrait
+  // avoir les même Br ouvertes que je regarde dans Séquence et Commentaire ») : un changement d'un cote redessine l'autre.
+  const affichageArbre = { cheminsReplies: new Set(), masquerBrDeBr: false, resume: false };
+  const sequence = demarrerAffichageSequence(
+    elementsArbre,
+    texteEnTete,
+    {
+      surClicNoeud: sauterVersNoeud,
+      surClicSupprimer: (chemin) => {
+        if (suppressionsInterdites) return;
+        demanderConfirmation('Supprimer ce coup et tout ce qui en dépend ? Cette action est irréversible.', () =>
+          naviguer((a) => supprimerBranche(a, chemin))
+        );
+      },
+      surAffichageChange: () => commentaires.actualiser(arbre),
     },
-  });
+    affichageArbre
+  );
 
   // Phase 18 : meme mecanique de clic-pour-naviguer que la Sequence
   // juste au-dessus. Modifier un commentaire n'affecte ni le plateau ni
@@ -298,14 +304,19 @@ function demarrerPartie(
   // PROPRE arbre d'avant l'edition — recherche et "Tout replier" auraient
   // alors ignore le commentaire tout juste tape, jusqu'au prochain coup ou
   // navigation qui l'aurait rafraichi par ailleurs.
-  const commentaires = demarrerAffichageCommentaires(elementsCommentaires, {
-    surClicNoeud: sauterVersNoeud,
-    surCommentaireModifie: (chemin, texte) => {
-      arbre = marquerCommentaire(arbre, chemin, texte);
-      commentaires.actualiser(arbre);
-      notifierChangement();
+  const commentaires = demarrerAffichageCommentaires(
+    elementsCommentaires,
+    {
+      surClicNoeud: sauterVersNoeud,
+      surCommentaireModifie: (chemin, texte) => {
+        arbre = marquerCommentaire(arbre, chemin, texte);
+        commentaires.actualiser(arbre);
+        notifierChangement();
+      },
+      surAffichageChange: () => sequence.actualiser(arbre),
     },
-  });
+    affichageArbre
+  );
 
   // Panneau "Occurrences" (phase 18, suite) : a part, jamais partage.
   // `svg` (phase 18, correctif) : le compteur Occ/Ref/Br_Occ/Br_Ref sur le
@@ -528,6 +539,15 @@ function demarrerPartie(
   // action_end_to_Nacre : "avance a la fin, s'arrete a chaque bifurcation
   // avec popup, puis continue").
   elementsNavigation.fin.addEventListener('click', avancerJusquauBoutEnDemandant);
+  // L'ejection precedente et suivante sur la ligne regardee (saab, 2026-11-10 : « ajouter dans la barre de navigation les 2
+  // btn pour aller à l'éject précédente/suivante » ; moteur/resume-sequence.js, cheminDeLEjection).
+  const allerALEjection = (sens) => {
+    if (navigationBloquee()) return;
+    const chemin = cheminDeLEjection(arbre, sens);
+    if (chemin) naviguer((a) => allerAuNoeud(a, chemin));
+  };
+  elementsNavigation.ejectionPrecedente?.addEventListener('click', () => allerALEjection(-1));
+  elementsNavigation.ejectionSuivante?.addEventListener('click', () => allerALEjection(1));
   function avancerJusquauBoutEnDemandant() {
     if (navigationBloquee()) return;
     naviguer(avancerJusquauProchainChoix);
@@ -736,6 +756,30 @@ function demarrerPartie(
     if (arbre.racine !== arbreAvant.racine) arbre = marquerPendulesSnapshot(arbre, arbre.chemin, pendules.etatActuel());
     if (reflexionIA && arbre.racine !== arbreAvant.racine) arbre = marquerReflexionIA(arbre, arbre.chemin, reflexionIA);
     if (commentaire && arbre.racine !== arbreAvant.racine) arbre = marquerCommentaire(arbre, arbre.chemin, commentaire);
+    // En partie Test, le nom du profil qui joue (moteur/arbre.js, commentaireDuProfil) — meme sur un coup deja joue, ou un
+    // autre profil ajoute sa ligne.
+    // Une branche ouverte depuis son coup precedent (ce coup ou celui d'avant n'est pas le 1er enfant) : son nom au debut de la
+    // branche (saab, 2026-11-08 : « je ne les vois [...] seulement sur le 1er coup, pas sur les Br ? Il faudrait donc le mettre
+    // sur le début des Br, et aussi en fin de partie »).
+    if (arbre.lignePrincipaleLibre && reflexionIA?.machine) {
+      const noeud = noeudCourant(arbre);
+      const brancheOuverte = arbre.chemin.slice(-2).some((indice) => indice !== 0);
+      const precedente = arbre.chemin.length >= 2 && !brancheOuverte ? (noeudA(arbre, arbre.chemin.slice(0, -2)).reflexionIA?.machine ?? null) : null;
+      const texte = commentaireDuProfil(noeud.commentaire ?? '', reflexionIA.machine, precedente, noeud.reflexionIA?.machine ?? null);
+      if (texte !== null) arbre = marquerCommentaire(arbre, arbre.chemin, texte);
+    }
+    // En fin de partie, la machine de cette branche (celle de ce coup, ou du coup d'avant si c'est l'humain qui finit).
+    if (arbre.lignePrincipaleLibre && resultat.etat.vainqueur && arbre.chemin.length >= 1) {
+      const parent = noeudA(arbre, arbre.chemin.slice(0, -1));
+      // Et le score final (saab, 2026-11-10 : « ajoute aussi le score final dans le commentaire »), comme dans le titre
+      // des parties : « Fin -3-6tr37 ».
+      const { billesEjecteesNoires, billesEjecteesBlanches } = resultat.etat;
+      const score = `Fin -${billesEjecteesNoires}-${billesEjecteesBlanches}tr${numeroDeTour(arbre.chemin.length)}`;
+      for (const ligne of [...new Set([reflexionIA?.machine, parent.reflexionIA?.machine].filter(Boolean)), score]) {
+        const texte = commentaireDuProfil(noeudCourant(arbre).commentaire ?? '', ligne, null, ligne);
+        if (texte !== null) arbre = marquerCommentaire(arbre, arbre.chemin, texte);
+      }
+    }
     // Nulle par repetition (phase 17) : APRES un coup REEL seulement, jamais en
     // navigant (voir interface/nulle.js). La position est retenue comme refusee
     // tout de suite ; la question n'est posee qu'une fois l'affichage a jour.

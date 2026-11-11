@@ -61,7 +61,7 @@ function messageDEntrainement({ evenement, parcours, avant, regles }, jeu) {
     case 'jeu reussi':
       return `${jeu.nom} réussi, il reste acquis ! Série : ${parcours.valides.length} jeu(x) sur ${regles.jeuxParSerie} pour la ceinture ${nomDeCeinture(parcours.cible)}. Choisissez le suivant dans « Autre jeu ».`;
     case 'confirmation':
-      return `Série complète ! Pour obtenir la ceinture ${nomDeCeinture(parcours.cible)}, confirmez : un jeu gagné${regles.revancheDeConfirmation ? ' (aller et revanche)' : ''} sur la ceinture ${ceinturesAConfirmer(parcours).map(nomDeCeinture).join(', ')}${parcours.aReconfirmer ? ` (la ${nomDeCeinture(parcours.ceinture)} : plus de ${regles.joursAvantReconfirmation} jours sans y jouer)` : ''}. Choisissez dans « Autre jeu ».`;
+      return `Série complète ! Pour obtenir la ceinture ${nomDeCeinture(parcours.cible)}, confirmez : un jeu gagné${regles.revancheDeConfirmation ? ' (aller et revanche)' : ''} sur la ceinture ${ceinturesAConfirmer(parcours).map(nomDeCeinture).join(', ')}. Choisissez dans « Autre jeu ».`;
     case 'ceinture confirmee':
       return `Ceinture ${nomDeCeinture(jeu.ceinture)} confirmée. Reste à confirmer : ${ceinturesAConfirmer(parcours).map(nomDeCeinture).join(', ')}.`;
     case 'ceinture':
@@ -73,9 +73,10 @@ function messageDEntrainement({ evenement, parcours, avant, regles }, jeu) {
     case 'rattrapage':
       return `Essais finis sur ${jeu.nom}, mais avec une nulle : une partie de plus. Une nulle (ou une victoire) la réussit ; perdue, ce jeu repart de zéro.`;
     case 'jeu reinitialise':
-      return `Perdu : ${pluriel(regles.essaisAvantReinitialisation, 'essai')} raté(s), ${avant.aConfirmer ? 'les confirmations repartent' : `${jeu.nom} repart`} de zéro${regles.reinitialiserTousLesJeux ? ' (toute la série aussi)' : ''}. Remis à zéro : ${parcours.reinitialisations} sur ${regles.reinitialisationsAvantDeRedescendre} avant de redescendre.`;
-    case 'regression':
-      return `Trop de jeux recommencés : vous redescendez de la ceinture ${nomDeCeinture(avant.ceinture)} à la ${nomDeCeinture(parcours.ceinture)}.`;
+      return `Perdu : ${pluriel(regles.essaisAvantReinitialisation, 'essai')} raté(s), ${avant.aConfirmer ? 'les confirmations repartent' : `${jeu.nom} repart`} de zéro${regles.reinitialiserTousLesJeux ? ' (toute la série aussi)' : ''}. Remis à zéro : ${parcours.reinitialisations} sur ${regles.reinitialisationsAvantLEchec} avant l'échec de la ceinture ${nomDeCeinture(parcours.cible)}.`;
+    case 'echec':
+      // Saab, 2026-11-06 : « Oui, ECHEC suffit » — la ceinture acquise reste, la visee se retente.
+      return `Échec sur la ceinture ${nomDeCeinture(parcours.cible)} : trop de jeux recommencés, sa série repart de zéro.${parcours.ceinture >= 0 ? ` Vous gardez la ${nomDeCeinture(parcours.ceinture)}.` : ''} Retentez-la quand vous voulez.`;
     default:
       return 'Ce jeu ne comptait pas pour la série en cours.';
   }

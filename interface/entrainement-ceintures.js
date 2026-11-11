@@ -11,7 +11,8 @@
 
 const LIBELLES_DES_SENS = {
   variantes: { aller: 'Noir', revanche: 'Blanc' },
-  pzl: { aller: 'Noir', revanche: 'Blanc' },
+  // En PZL, la couleur depend du puzzle : l'aller attaque avec le camp gagnant, la revanche defend (moteur/entrainement.js, campDansLePuzzle).
+  pzl: { aller: 'Attaque', revanche: 'Défense' },
 };
 const echapperCeinture = (texte) => String(texte).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
 

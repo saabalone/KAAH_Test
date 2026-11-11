@@ -30,6 +30,23 @@ const TITRES_DES_MODES = {
   entrainement: ['Entraînement', 'Choisissez une ceinture, un jeu, et jouez : pour vous exercer, sans rien perdre ni gagner.'],
   ceinture: ['Ceinture', 'Visez une ceinture et réussissez sa série pour l’obtenir.'],
 };
+// Le nom : obligatoire en Ceinture, les ceintures proposees sont les siennes ; en Entrainement, il peut attendre la fin du
+// jeu (saab, 2026-11-06 : « faire comme pour les parties, càd le redemander à la fin » ; index.html,
+// nommerLeJoueurDEntrainement). Un jeu lance sans nom a le joueur JOUEUR_SANS_NOM.
+const JOUEUR_SANS_NOM = '';
+const NOM_SELON_LE_MODE = {
+  entrainement: { exemple: 'Votre nom (ou à la fin du jeu)', message: 'Sans nom, il vous sera demandé à la fin du jeu (laissé vide : la date).' },
+  ceinture: { exemple: 'Votre nom (obligatoire)', message: 'Donnez votre nom (pas Joueur_1) : chacun a ses ceintures.' },
+};
+
+// La boite s'ouvrira avec ce nom (le dernier joueur).
+function retenirJoueurDEntrainement(nom) {
+  try {
+    window.localStorage.setItem(CLE_JOUEUR_ENTRAINEMENT, nom);
+  } catch {
+    // le nom sera simplement a retaper
+  }
+}
 
 // `elements` : { bouton (l'icone), choix ({ dialogue, entrainement, ceinture, fermer } :
 // la boite du choix du mode), dialogue, titre, explication, champ, nomsConnus,
@@ -65,6 +82,7 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
     const nom = nomJoueurAutorise(elements.champ.value);
     return nom && !estUnNomParDefaut(nom) ? nom : null;
   }
+  const sansNomPermis = () => mode === 'entrainement';
 
   const tousLesJeux = () => (sorte === 'variantes' ? variantes : puzzles);
 
@@ -102,7 +120,9 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
     const lignes = CEINTURES.map((_, grade) => {
       const bilan = bilanDeLaCeinture(nom, mode, sorte, grade);
       const compte = mode === 'ceinture' ? (parcours.gagnes[grade]?.length ? `${parcours.gagnes[grade].length} gagné(s)` : '') : bilan.reussis + bilan.rates ? `<span class="resultat-reussi">${bilan.reussis} ✓</span> <span class="resultat-rate">${bilan.rates} ✗</span>` : '';
-      const etat = mode === 'ceinture' ? etatEnModeCeinture(parcours, grade, regles, aConfirmer) : `<button class="bouton-dialogue${grade === ouverte ? ' bouton-actif' : ''}" type="button" data-ouvrir="${grade}">Choisir</button>`;
+      // Sous une ceinture acquise : quand, dans quelle version, contre quelle machine (interface/entrainement-historique.js).
+      const obtention = mode === 'ceinture' && grade <= parcours.ceinture ? texteDeLObtention(obtentionDeLaCeinture(nom, sorte, grade)) : '';
+      const etat = mode === 'ceinture' ? etatEnModeCeinture(parcours, grade, regles, aConfirmer) + obtention : `<button class="bouton-dialogue${grade === ouverte ? ' bouton-actif' : ''}" type="button" data-ouvrir="${grade}">Choisir</button>`;
       const estOuverte = grade === ouverte && (mode === 'entrainement' || aConfirmer.includes(grade) || (grade === parcours.cible && !parcours.aConfirmer));
       const vue = { mode, sorte };
       const jeux = estOuverte ? etatsDesJeux(vue, grade, parcours, regles, propositions(grade, reglages), reglages.ceintures[grade][sorte]?.imposes ?? []) : [];
@@ -135,14 +155,17 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
     elements.proprietaire.checked = Boolean(nom) && nom === proprietaireCoche();
     elements.proprietaire.disabled = !nom;
     colorerIconeEntrainement(elements.bouton);
+    elements.champ.placeholder = NOM_SELON_LE_MODE[mode].exemple;
+    elements.message.textContent = NOM_SELON_LE_MODE[mode].message;
     elements.message.hidden = Boolean(nom);
-    elements.tableau.hidden = !nom;
-    if (nom) afficherTableau(nom);
+    // Sans nom, l'Entrainement montre les ceintures d'un nouveau joueur.
+    elements.tableau.hidden = !nom && !sansNomPermis();
+    if (!elements.tableau.hidden) afficherTableau(nom ?? JOUEUR_SANS_NOM);
   }
 
   elements.tableau.addEventListener('click', (evenement) => {
     const cible = evenement.target.closest('[data-viser], [data-ouvrir], [data-jeu], [data-sens]');
-    if (!cible || !joueur()) return;
+    if (!cible || (!joueur() && !sansNomPermis())) return;
     if (cible.dataset.sens) return lancerLeJeu(cible);
     if (cible.dataset.jeu) choisi = cible.dataset.jeu;
     else {
@@ -157,14 +180,11 @@ function demarrerEntrainement(elements, variantes, puzzles, lancer, historique, 
   function lancerLeJeu(bouton) {
     const position = tousLesJeux().find((jeu) => jeu.nom === bouton.dataset.nom);
     if (!position) return;
-    try {
-      window.localStorage.setItem(CLE_JOUEUR_ENTRAINEMENT, joueur());
-    } catch {
-      // le nom sera simplement a retaper
-    }
-    retenirNomConnu(joueur());
+    const nom = joueur() ?? JOUEUR_SANS_NOM;
+    retenirJoueurDEntrainement(nom);
+    retenirNomConnu(nom);
     elements.dialogue.close();
-    lancer({ joueur: joueur(), mode, sorte, ceinture: Number(bouton.dataset.ceinture), sens: bouton.dataset.sens }, position);
+    lancer({ joueur: nom, mode, sorte, ceinture: Number(bouton.dataset.ceinture), sens: bouton.dataset.sens }, position);
   }
 
   for (const onglet of elements.onglets) {

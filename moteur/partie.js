@@ -9,15 +9,12 @@
 // legalite, il se contente de l'executer. Il ne revalide rien.
 //
 // Pas d'import ni d'export (voir plateau.js) : caseDansLaDirection vient de
-// plateau.js, charge avant celui-ci dans index.html.
+// plateau.js, couleurAdverse de regles.js (une seule fois : tests/noms-globaux.test.js),
+// charges avant celui-ci dans index.html.
 
 // Regle d'Abalone : le premier camp qui fait sortir 6 billes adverses du
 // plateau gagne la partie.
 const EJECTIONS_POUR_GAGNER = 6;
-
-function couleurAdverse(couleur) {
-  return couleur === 'noir' ? 'blanc' : 'noir';
-}
 
 // regles.js ne s'interesse qu'aux couleurs : les identifiants de billes ne
 // changent rien a la legalite d'un coup. Cette projection donne le plateau

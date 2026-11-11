@@ -129,6 +129,13 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     if (leJouer) coup.jouerLeCoup();
   }
   partie.definirClicSurPendule((camp, enPause) => {
+    // En relance sur une position deja jouee, la pendule montre l'instantane fige du coup et refuse la pause
+    // (interface/pendules.js) : la toucher arrete la relance (saab, 2026-11-08 : « En replay, à un moment, je ne
+    // pouvais plus mettre en pause, j'ai dû passer par les boîtes Joueur pour arrêter les IA ») ; Relancer la reprend.
+    if (relance !== null && partie.peutEnvisagerUnCoup()) {
+      relance = null;
+      return true;
+    }
     if (!pauseDeLaMachine || enPause || !machines[camp]) return false;
     if (coupEnAttente?.camp === camp) lacherLeCoupEnAttente(true);
     else demanderLaPause(camp);
@@ -262,7 +269,8 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         finir();
         if (!encoreValable || !texte) return;
         if (genre !== 'suggestion' && machines[camp] !== machine) return; // la boite du nom l'a remplacee entre-temps
-        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau, ...(bascule ? { bascule } : {}) };
+        // `machine` : son nom, pour savoir qui a joue (moteur/arbre.js, commentaireDuProfil ; et l'analyse des parties de saab).
+        const reflexionIA = { source, profondeur, evaluation, noeuds, duree, sequence, phase, niveau: machine.niveau, machine: nomDeLaMachine(machine), ...(bascule ? { bascule } : {}) };
         if (genre === 'suggestion') {
           const ligne = `Suggestion ${commentaireDeReflexion(`${nomDeLaMachine(machine)} (profil ${machine.profil})`, reflexionIA)}`;
           suggestions.set(etat, { ...reflexionIA, etat, camp, coupsJoues, coup: texte, hypothese: true, suggestion: true, ligne, jouer: () => partie.jouerCoupTexte(texte) });
@@ -304,23 +312,38 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
     // recherche qui ne va pas plus loin que le dernier coup de l'attaquant.
     const aide = genre === 'jeu' ? aideDuPuzzle(arbre, camp) : null;
     if (aide?.coup) return jouer({ texte: aide.coup, source: 'solution', profondeur: 0, evaluation: 0, noeuds: 0, sequence: [] });
-    // Hors PZL, une position calme (personne ne peut pousser) : quelques secondes suffisent
-    // (moteur/position-calme.js ; saab, 2026-10-19 : « le bloc fait chercher trop longtemps »).
-    // Sans limite (moteur/ia.js) : un temps qui ne finit jamais avant elle.
-    // Dans un PZL, ef a tous les niveaux (moteur/ia.js, poidsPourUnPuzzle).
-    // L'ajout Ct (moteur/ia-phase.js) : le profil du milieu des qu'elle tient le centre — jamais dans un PZL.
-    bascule = aide ? null : phaseDuReglage(machine, etat);
-    reflexionEnCours.bascule = bascule; // le cadre de son evaluation le dit pendant qu'elle cherche
-    const jouee = aide ? machine : reglageDeLaPhase(machine, etat);
-    const sansLimite = { ...jouee, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
-    const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
+    // En ceinture, le SOLVEUR joue la machine d'un PZL (saab, 2026-11-10 : « en ceinture il faut que se soit tjs le solver qui
+    // joue ») : sa defense la plus resistante, ou son gain le plus court (index.html, aideDuPuzzle). Rien de lui (plus de gain
+    // dans les tours, ou trop long) : KAI++ cherche, comme avant.
+    if (aide?.solveur) {
+      aide.solveur().then((trouve) => {
+        if (!positionInchangee(etat, genre)) return finir();
+        if (trouve) return jouer({ texte: trouve.coup, source: 'solveur', profondeur: trouve.sequence.length, evaluation: 0, noeuds: 0, sequence: trouve.sequence });
+        chercherAvecLaMachine();
+      });
+      return;
+    }
+    chercherAvecLaMachine();
 
-    const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };
-    if (machine.moteur === 'kai++') {
-      kaiPlus ??= creerKaiPlus();
-      reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
-    } else {
-      reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, genre) && (genre === 'suggestion' || machines[camp] === machine) });
+    function chercherAvecLaMachine() {
+      // Hors PZL, une position calme (personne ne peut pousser) : quelques secondes suffisent
+      // (moteur/position-calme.js ; saab, 2026-10-19 : « le bloc fait chercher trop longtemps »).
+      // Sans limite (moteur/ia.js) : un temps qui ne finit jamais avant elle.
+      // Dans un PZL, ef a tous les niveaux (moteur/ia.js, poidsPourUnPuzzle).
+      // L'ajout Ct (moteur/ia-phase.js) : le profil du milieu des qu'elle tient le centre — jamais dans un PZL.
+      bascule = aide ? null : phaseDuReglage(machine, etat);
+      reflexionEnCours.bascule = bascule; // le cadre de son evaluation le dit pendant qu'elle cherche
+      const jouee = aide ? machine : reglageDeLaPhase(machine, etat);
+      const sansLimite = { ...jouee, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
+      const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
+
+      const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };
+      if (machine.moteur === 'kai++') {
+        kaiPlus ??= creerKaiPlus();
+        reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
+      } else {
+        reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, genre) && (genre === 'suggestion' || machines[camp] === machine) });
+      }
     }
   }
 

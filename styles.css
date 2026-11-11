@@ -1651,6 +1651,8 @@ button,
 
 #commentaires-repli-tout,
 #commentaires-copier,
+#commentaires-seulement,
+#commentaires-resume,
 #sequence-barre button {
   flex: 0 0 auto;
   min-height: 24px;
@@ -1691,6 +1693,21 @@ button,
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap; /* le score et les noms des IA passent dessous (.noms-ia-commentaire) */
+}
+
+/* Sous une ligne de commentaire, sur toute sa largeur (rendu/commentaires-html.js) : le score d'un coup qui finit la
+   partie, puis un nom d'IA par ligne dans la couleur de son resultat (.resume-ia, comme le resume de la Sequence). */
+.noms-ia-commentaire {
+  flex: 0 0 100%;
+  padding: 0 0 2px 22px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.score-fin-commentaire {
+  display: block;
+  color: #d9b62b;
+  font-weight: bold;
 }
 
 .bouton-repli-commentaire,
@@ -2383,6 +2400,65 @@ button,
     border-left: 1px solid #3a3a3a;
   }
 
+  /* Le Solveur (interface/solveur-position.js), sous les Conseils : meme traitement. */
+  #panneau-solveur-position {
+    flex: 0 1 auto;
+    min-width: 176px;
+    max-height: 50vh;
+    border-top: 1px solid #3a3a3a;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  /* La poignee de hauteur au bas des Conseils, du Solveur et des Occurrences (saab, 2026-11-06 : « en mettre une sur
+     tout ce qui est dans la colonne de droite » ; interface/sequence.js, activerRedimensionnementHauteur), comme
+     celle de la Sequence. Une hauteur choisie l'emporte sur la hauteur maximale de chaque panneau, et sa liste la
+     remplit. Pas en face-a-face, ou ces panneaux se partagent l'epaisseur de la colonne tournee. */
+  .poignee-hauteur-panneau {
+    display: block;
+    flex: 0 0 auto;
+    height: 8px;
+    margin-top: 2px;
+    cursor: ns-resize;
+    background: #3a3a3a;
+    touch-action: none;
+  }
+  body.face-a-face .poignee-hauteur-panneau {
+    display: none;
+  }
+  /* Et la largeur de la colonne (« la poignée doit être aussi sur la largeur de la colonne »), a cheval sur le bord
+     gauche du panneau, comme celles de la Sequence et de Reflexion IA : visible au survol, ou quand on la tient. */
+  #panneau-conseils,
+  #panneau-solveur-position,
+  #panneau-occurrences {
+    position: relative;
+  }
+  body:not(.face-a-face) .poignee-largeur-panneau {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -4px;
+    width: 8px;
+    cursor: ew-resize;
+    touch-action: none;
+    z-index: 2;
+  }
+  body:not(.face-a-face) .poignee-largeur-panneau:hover,
+  body:not(.face-a-face) .poignee-largeur-panneau:active {
+    background: #3a3a3a;
+  }
+  #panneau-conseils.hauteur-choisie,
+  #panneau-solveur-position.hauteur-choisie,
+  #panneau-occurrences.hauteur-choisie {
+    flex: 0 0 auto;
+    max-height: none;
+  }
+  .hauteur-choisie > .liste-dialogue {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+
   /* Sur ordinateur, la sequence RESTE masquable (saab : "penser a
      rajouter le bouton Sequence aussi sur pc et tel paysage, ca peut
      servir" — pour liberer toute la largeur au plateau quand on regarde
@@ -2724,7 +2800,9 @@ button,
    — la poignee de largeur, ajoutee plus tard, suit direct le meme moule. */
 @media (max-width: 699px) {
   #arbre-poignee-hauteur,
-  #arbre-poignee-largeur {
+  #arbre-poignee-largeur,
+  .poignee-hauteur-panneau,
+  .poignee-largeur-panneau {
     display: none;
   }
 }
@@ -2806,6 +2884,50 @@ button,
 .arbre-repli {
   color: #e4e4e4;
 }
+
+/* Les triangles (saab, 2026-11-10 : « mettre aussi les triangles pour déplier en vert, et replier en orange ») :
+   rendu/arbre-ligne.js et rendu/commentaires-html.js ; le bouton « Br de Br » et « Tout replier » des Commentaires
+   suivent le meme code (interface/sequence.js, interface/commentaires.js). */
+.arbre-repli.arbre-repli-deplier,
+.bouton-repli-commentaire.arbre-repli-deplier,
+#sequence-barre button.arbre-repli-deplier,
+#commentaires-repli-tout.arbre-repli-deplier {
+  color: #45b862;
+}
+.arbre-repli.arbre-repli-replier,
+.bouton-repli-commentaire.arbre-repli-replier,
+#sequence-barre button.arbre-repli-replier,
+#commentaires-repli-tout.arbre-repli-replier {
+  color: #e0832a;
+}
+/* Resume et « Commentés » actifs : orange, le signal « actif ». */
+#sequence-barre button.bouton-actif,
+#commentaires-seulement.bouton-actif,
+#commentaires-resume.bouton-actif {
+  background: #cc6a00;
+  border-color: #cc6a00;
+  color: #ffffff;
+}
+
+/* La Sequence resumee (rendu/arbre-html.js, ajouterNomsDesMachines) : sous une ligne, les noms des IA, chacun dans la
+   couleur de son resultat dans la suite — vert gagne, rouge perd, bleu nulle, violet des fins differentes. Sur toute la
+   largeur de la grille. */
+.arbre-resume-ia {
+  grid-column: 1 / -1;
+  padding: 0 0 2px 22px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+/* Un nom par ligne (saab, 2026-11-11 : « Dans Résumé, il faut aller à la ligne pour les noms »). */
+.resume-ia {
+  display: block;
+  font-weight: bold;
+}
+.resume-ia-gagne { color: #3fcf7a; }
+.resume-ia-perd { color: #e05a5a; }
+.resume-ia-nulle { color: #4aa8ff; }
+.resume-ia-mixte { color: #b070e0; }
+.resume-ia-inconnu { color: #9a9a9a; font-weight: normal; }
 
 .arbre-supprimer {
   color: #a33;
@@ -4214,6 +4336,7 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
   }
 
   body.face-a-face #panneau-conseils,
+  body.face-a-face #panneau-solveur-position,
   body.face-a-face #panneau-occurrences {
     width: 100%;
     min-width: 0;
@@ -4541,6 +4664,12 @@ body.face-a-face .cadre-evaluation-en-haut .cadre-evaluation-texte {
 .recherche-ia > summary {
   cursor: pointer;
   min-height: var(--hauteur-ligne-liste);
+}
+
+/* La liste des recherches gardees : jamais plus large que la colonne (son option la plus longue, le nom de la
+   machine et la date, la faisait deborder de la fenetre — voir body:not(.face-a-face), plus bas). */
+.choix-recherche-ia {
+  max-width: 100%;
 }
 
 .note-recherche-ia {
@@ -4908,10 +5037,20 @@ body.face-a-face > #barre-annuler {
     margin-left: 0;
   }
 
+  /* La page elle-meme ne defile jamais ici (saab, 2026-11-08, fenetre du PC reduite : « si je mets Reflexion IA, la
+     colonne de droite n'est pas fixe, à chaque coup elle augmente et revient, et donc le plateau diminue et revient ») :
+     pendant chaque coup, la colonne de droite depasse un instant de la fenetre (sa barre de navigation sur deux lignes,
+     avant que interface/hauteurs-colonne.js ne refasse les hauteurs) ; la page prenait alors une barre de defilement
+     de 15 px, prise sur le plateau, puis la rendait. Chaque colonne defile deja sur elle-meme (icones, tableaux). */
+  body:not(.face-a-face) {
+    overflow: hidden;
+  }
+
   body:not(.face-a-face) #colonne-droite > #entete-partie,
   body:not(.face-a-face) #colonne-droite > .reflexion-ia,
   body:not(.face-a-face) #colonne-droite > #arbre-panneau,
   body:not(.face-a-face) #colonne-droite > #panneau-conseils,
+  body:not(.face-a-face) #colonne-droite > #panneau-solveur-position,
   body:not(.face-a-face) #colonne-droite > #panneau-occurrences {
     width: auto;
     max-width: none;
@@ -5923,6 +6062,11 @@ body.cacher-evaluation :is(#reflexion-ia, .cadre-evaluation) {
 .liste-noms-connus.liste-repliee .ligne-nom-connu:not(:first-child) {
   display: none;
 }
+/* Cachee (aucun nom connu, ou le champ d'un camp qui n'a pas a etre nomme a la fin de la partie) : display: block
+   ci-dessus l'emportait sur l'attribut hidden. */
+.liste-noms-connus[hidden] {
+  display: none;
+}
 .ligne-nom-connu {
   cursor: pointer;
   min-height: var(--hauteur-ligne-liste);
@@ -5931,6 +6075,19 @@ body.cacher-evaluation :is(#reflexion-ia, .cadre-evaluation) {
 }
 .ligne-nom-connu:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+/* La ✕ d'un nom connu : discrete comme l'etoile, puis rouge au premier toucher (« Retirer ? »), comme ce qui
+   peut effacer (les couleurs des boutons, plus bas). Element + 2 classes : plus specifique que .ligne-liste button. */
+.ligne-liste button.bouton-retirer-nom {
+  min-width: var(--hauteur-ligne-liste);
+  font-size: 13px;
+  line-height: 1;
+  color: #8a8a8a;
+}
+.ligne-liste.nom-a-retirer button.bouton-retirer-nom {
+  background: #7c2424;
+  border-color: #9c3a3a;
+  color: #fff;
 }
 
 /* L'icone ceinture, un peu plus grande que les autres. */
@@ -6084,7 +6241,19 @@ body.bloque-annuler :is(#nav-annuler, .bouton-annuler-joueur) {
 .sens-jeu-entrainement { display: flex; flex-direction: column; gap: 6px; }
 .resultat-reussi { color: #3fbf5a; font-weight: bold; }
 .resultat-rate { color: #e04848; font-weight: bold; }
+.resultat-nul { color: #4aa8ff; font-weight: bold; }
+/* La suite d'un jeu des ceintures des IA (interface/banc-essais-ceintures-page.js) ; les memes
+   couleurs dans la page exportee (STYLE_PAGE_BANC, interface/banc-essais-page.js). */
+.suite-reussie { color: #3fbf5a; }
+.suite-ratee { color: #e0832a; }
+.suite-reinitialisee { color: #e04848; font-weight: bold; }
+.suite-ceinture,
+.suite-regression { font-weight: bold; padding: 0 4px; border-radius: 3px; }
+.suite-ceinture { background: #d9b62b; color: #1e1e1e; }
+.suite-regression { background: #c62828; color: #fff; }
 .titre-jeu-historique { font-size: 11px; word-break: break-all; }
+/* Sous « ✓ obtenue » (interface/entrainement-historique.js, texteDeLObtention) : quand, dans quelle version, contre qui. */
+.obtention-ceinture { font-size: 11px; color: #9a9a9a; word-break: break-all; }
 /* La liste des jeux d'un grade (interface/entrainement-listes.js). */
 .ligne-liste-jeu { display: flex; align-items: center; gap: 8px; min-height: var(--hauteur-ligne-liste); font-size: 13px; }
 .ligne-liste-jeu .case-inclus { flex: 1; }
@@ -6213,6 +6382,12 @@ body:not(.version-locale) .bouton-version-locale { display: none; }
    de l'essai) en violet, comme dans le tableau des resultats (saab, 2026-10-23 : « mets le titre en violet
    qd elle est vue »). */
 .partie-labalone-vue td:nth-child(3) { color: #b070e0; }
+/* Ses lignes centrees en hauteur, le bouton Voir en face de sa partie ; et Voir aussi en violet une fois
+   vue (saab, 2026-11-08 : « il faut centrer les lignes [...] on dirait que le btn Voir semble décalé (le
+   passer aussi en violet qd vu car pas évident de savoir quelle partie on a vu, le violet Essai est à
+   l'opposé) »). */
+.tableau-revoir-labalone td { vertical-align: middle; }
+.partie-labalone-vue [data-voir-partie] { background: #7a3fb0; border-color: #b070e0; color: #ffffff; }
 
 /* Les groupes de l'evaluation a l'ecran (interface/groupes-ia.js) : leur titre, et le
    filet de leur couleur devant chaque reglage (le texte garde la couleur de validation). */
@@ -6463,6 +6638,34 @@ button[id^='bouton-vider']:not(:disabled), button[id^='bouton-supprimer']:not(:d
 
 /* Ce qui n'existe que dans une version de travail (jamais dans KAAH_Test, ni dans son apercu). */
 body:not(.version-de-travail) .seulement-version-de-travail { display: none; }
+
+/* Le panneau Solveur (interface/solveur-position.js) : MEME traitement que #panneau-conseils — un panneau docke de la
+   colonne de droite, jamais une popup (placement : media query ordinateur ; banc-ordinateur le cache sur telephone).
+   La position et la sequence sont de longs textes sans espace (ou presque) : ils passent a la ligne plutot que
+   d'elargir la colonne, et se selectionnent pour etre copies. Le tableau defile seul. */
+#panneau-solveur-position {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px;
+  background: #1a1a1a;
+  color: #e4e4e4;
+  font: 13px/1.2 sans-serif;
+}
+#panneau-solveur-position h2 { margin: 0 0 4px; font-size: 14px; }
+/* Meme piege de specificite que #panneau-conseils[hidden]. */
+#panneau-solveur-position[hidden] { display: none; }
+.ligne-solveur-position { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+.position-solveur-position,
+.resultat-solveur-position { margin: 0 0 4px; overflow-wrap: anywhere; user-select: text; }
+.ligne-resultat-solveur { margin: 2px 0; }
+.ligne-solveur { display: grid; grid-template-columns: 6ch 1fr; gap: 6px; align-items: start; }
+.ligne-solveur-valide { color: #3fbf5a; }
+/* Une ligne qui a sa sequence : un clic la montre sur le petit plateau (interface/solveur-position-tableau.js). */
+.ligne-solveur-sequence { cursor: pointer; }
+.ligne-solveur-sequence:hover { background: #2a2a2a; }
+#liste-solveur-position { min-height: 0; overflow-y: auto; }
 .actions-type-jeux { display: flex; align-items: center; gap: 6px; }
 
 /* Les mises a la ligne d'un message de confirmation (« \n », ex. l'installation) se voient. */

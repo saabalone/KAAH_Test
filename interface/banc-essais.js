@@ -33,8 +33,9 @@
 // { variantes, puzzles } (les ceintures des IA) ; `ouvrirUnePartie(partie)` : revoir une
 // partie d'un fichier exporte (interface/banc-essais-revoir.js) ; `montrerUnePartie(position,
 // coups, titre, options)` : une partie de la serie sur le petit plateau et dans le Graphique ;
-// `montrerLaReflexion(texte)` : ce que fait la machine de la partie suivie.
-function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie, montrerUnePartie, montrerLaReflexion) {
+// `montrerLaReflexion(texte)` : ce que fait la machine de la partie suivie ; `demanderConfirmation(message,
+// surConfirmation, texteConfirmer)` : la boite de confirmation de KAAH (interface/confirmation.js, demander).
+function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie, montrerUnePartie, montrerLaReflexion, demanderConfirmation) {
   const choix = creerChoixDuBanc(elements, obtenirJeux);
   // La retouche de l essai validee toute seule en fin de serie (interface/banc-essais-reglage.js).
   const validerLaRetouche = brancherValidationDuProfil(elements.validationAuto, choix.reglage);
@@ -43,6 +44,7 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
   let nomDuDernier = null; // nomDuDernier(date) : le nom de son fichier (sans « .html »)
   let donneesDuDernier = null; // donneesDuDernier() : ses parties, pour les revoir
   let exporte = false; // le dernier banc a ete exporte
+  let exporteEnCours = false; // la serie qui tourne a deja ete exportee une fois
   let recolte = { entrees: [], date: '', ajoutee: false }; // les puzzles recoltes
   let serieAffichee = null; // la serie du tableau, pour en regarder une partie
   let suiviActif = null; // les parties en cours (interface/banc-essais-suivi.js)
@@ -59,6 +61,7 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     if (enCours && html !== dernier) exporte = false;
     dernier = html;
     elements.exporter.disabled = false;
+    couleursDExporter(Boolean(enCours));
     elements.progres.textContent = `${fait} / ${total} ${unite}${enCours?.arret ? ' (arrêté)' : enCours?.pause ? ' (en pause)' : fait === total ? ' — fini' : ''}`;
     // Un tableau de resultats, reconstruit a chaque partie (jamais le plateau).
     elements.resultats.innerHTML = html;
@@ -75,12 +78,8 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
   // exporté, sinon on ne sait pas si on l'a fait ») : Exporter vert et Lancer gris
   // tant qu'elle n'est pas exportee, puis Exporter orange et Lancer de nouveau vert.
   function boutonsPendant(lance) {
-    const resteAExporter = !lance && dernier !== null && !exporte;
-    elements.lancer.classList.toggle('bouton-attend', !lance && !resteAExporter);
-    elements.lancer.classList.toggle('bouton-grise', resteAExporter);
+    couleursDExporter(lance);
     elements.lancer.classList.toggle('bouton-actif', lance);
-    elements.exporter.classList.toggle('bouton-a-faire', resteAExporter);
-    elements.exporter.classList.toggle('deja-exporte', dernier !== null && exporte);
     elements.pause.disabled = !lance;
     elements.pause.textContent = 'Pause';
     elements.pause.classList.remove('bouton-actif');
@@ -88,6 +87,17 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     elements.arreter.classList.remove('bouton-actif');
     elements.exporter.disabled = dernier === null;
     rendreCachable();
+  }
+
+  // Pendant la serie, Exporter repasse au vert des qu'un resultat s'ajoute apres un export (saab,
+  // 2026-11-05 : « si des parties s'ajoutent il faudrait qu'il passe en vert pour indiquer qu'on avait
+  // pas exporté toutes les parties ») ; jamais exportee, elle attend sa fin pour le vert, comme avant.
+  function couleursDExporter(lance) {
+    const resteAExporter = dernier !== null && !exporte && (!lance || exporteEnCours);
+    elements.lancer.classList.toggle('bouton-attend', !lance && !resteAExporter);
+    elements.lancer.classList.toggle('bouton-grise', !lance && resteAExporter);
+    elements.exporter.classList.toggle('bouton-a-faire', resteAExporter);
+    elements.exporter.classList.toggle('deja-exporte', dernier !== null && exporte);
   }
 
   // Cacher les resultats se peut des qu'il y a quelque chose a cacher : le tableau d'une
@@ -121,7 +131,7 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     const serie = serieDonnee ?? serieDesChoix();
     if (!serie) return;
     const { taches, jouer, rendu, fait, unite, libelle } = serie;
-    [nomDuDernier, donneesDuDernier, exporte] = [serie.nomDuFichier ?? null, serie.donnees ?? null, false];
+    [nomDuDernier, donneesDuDernier, exporte, exporteEnCours] = [serie.nomDuFichier ?? null, serie.donnees ?? null, false, false];
     serieAffichee = serie;
     regard.oublierTout();
     // Une serie longue (les ceintures des IA) redessine son tableau apres chaque jeu.
@@ -191,18 +201,25 @@ function demarrerBancEssais(elements, obtenirBase, obtenirJeux, ouvrirUnePartie,
     elements.pause.classList.toggle('bouton-actif', enCours.pause);
     if (!enCours.pause) enCours.reprendre?.();
   });
-  elements.arreter.addEventListener('click', () => {
+  // Arreter se confirme (saab, 2026-11-06 : « Le btn Arrêter n'a pas d'alerte, si on se trompe on perd tout ») : la
+  // confirmation en rouge, le refus en vert.
+  const arreter = () => {
     if (!enCours) return;
     enCours.arret = true;
     elements.arreter.classList.add('bouton-actif');
     enCours.reprendre?.();
     for (const kai of enCours.machines) kai.interrompre();
+  };
+  elements.arreter.addEventListener('click', () => {
+    if (!enCours) return;
+    demanderConfirmation('Arrêter la série ? Les parties en cours sont perdues et la série ne pourra pas reprendre. Les résultats déjà affichés restent, à exporter.', arreter, 'Arrêter');
   });
   // Le fichier porte un nom qui dit l'essai (moteur/banc-noms.js) ; Exporter reste orange.
   elements.exporter.addEventListener('click', () => {
     if (!dernier) return;
     exporte = true;
-    boutonsPendant(Boolean(enCours));
+    exporteEnCours ||= Boolean(enCours);
+    couleursDExporter(Boolean(enCours));
     // Apres l'affichage de l'orange : la page se fabrique d'un bloc et figerait l'ecran avant.
     requestAnimationFrame(() =>
       setTimeout(() => {

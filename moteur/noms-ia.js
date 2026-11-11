@@ -30,6 +30,11 @@ const NUMEROS_FIXES_DES_AJOUTS = Object.freeze({
   SvEcEaEpEfFnGfPfPpaPpmPgaPgmBpBmpBpb: 5,
   // Le P5M13 de saab, adopte (2026-11-05 : « passer la Nor en défaut ») : P5 sans l'etendue, avec At, Hp, He et Ph.
   SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHePh: 6,
+  // Le P6 avec Co 15 a chaque phase, adopte (2026-11-07 : « Ok, adopte ») : l'IA par defaut, son Agressif et son Defensif.
+  SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHeCoPh: 7,
+  // Le P6 sans Co, avec Nr, Cc et Fa, adopte (2026-11-11 : « On va déjà publier avec nouveau P7 par défaut ») : l'IA par defaut, son
+  // Agressif et son Defensif.
+  SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHeNrCcPhFa: 8,
 });
 
 // Un jeu d'ajouts A SOI (saab, 2026-10-31 : « On pourrait faire comme v et k pour P, càd si je modifie Pn il devient

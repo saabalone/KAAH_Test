@@ -163,9 +163,10 @@ function demarrerFormulairePositionMy(elements, rappels) {
     genre = nouveauGenre;
     source = formulaire?.source ?? null;
     const estPuzzle = genre === 'puzzles';
-    elements.titre.textContent = formulaire
-      ? `Modifier ${estPuzzle ? 'le puzzle' : 'la variante'} (copie dans My)`
-      : estPuzzle ? 'Nouveau puzzle (My)' : 'Nouvelle variante (My)';
+    // `formulaire.titre` : un formulaire rempli ailleurs qu'a partir d'un original (le Solveur, interface/solveur-position.js).
+    elements.titre.textContent =
+      formulaire?.titre ??
+      (formulaire ? `Modifier ${estPuzzle ? 'le puzzle' : 'la variante'} (copie dans My)` : estPuzzle ? 'Nouveau puzzle (My)' : 'Nouvelle variante (My)');
     elements.sectionVariante.hidden = estPuzzle;
     elements.sectionPuzzle.hidden = !estPuzzle;
 

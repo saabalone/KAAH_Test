@@ -11,7 +11,8 @@
 // appliquerCoup (partie.js), ecrirePosition (notation.js), lireCoupNacre
 // (notation.js), obtenirConseils, conseilsDuCampAuTrait, coupGagnantOuEgal (next-move.js), SEUIL_NULLE_PAR_DEFAUT,
 // compterOccurrences (nulle.js), coupDuLivre (ia.js), CLES_CASES_IA_V3 (ia-evaluation-v3.js), GROUPES_DE_L_EVALUATION_IA,
-// multiplierUnGroupe (ia-groupes.js) viennent de fichiers charges avant celui-ci.
+// multiplierUnGroupe (ia-groupes.js), lirePosition (notation.js), billesHorsDuGroupePrincipal (ia-groupe-principal.js)
+// viennent de fichiers charges avant celui-ci.
 
 // 150 tours : au-dela, nulle (une partie entre machines qui tourne en rond).
 const COUPS_MAX_BANC = 300;
@@ -136,14 +137,53 @@ function dansLeLivre(livre, etat, coup) {
   });
 }
 
+// La NULLE DES BLOCS (saab, 2026-11-06 : « dès qu'une partie se trouve en 2 blocs sans différence de score >2 après 100 tours (ou
+// moins, à vérifier ?), il faudrait déclarer Nulle car normalement il n'y a pas d'issue à moins d'erreur ») : a la fin d'un tour (apres
+// Blanc), des le tour TOURS_AVANT_LA_NULLE_DES_BLOCS, si les TOURS_EN_BLOCS_POUR_LA_NULLE derniers tours ont fini deux camps en bloc
+// (aucune bille hors du groupe principal, moteur/ia-groupe-principal.js), au meme score, a ECART_MAX_DE_LA_NULLE_DES_BLOCS billes au
+// plus. Mesure sur 2 664 parties differentes des fichiers LabAl : 23 parties la declenchent, toutes finies nulles ; avec une bille
+// dehors permise, ou 10 tours seulement, des parties gagnees l'auraient ete.
+const TOURS_AVANT_LA_NULLE_DES_BLOCS = 60;
+const TOURS_EN_BLOCS_POUR_LA_NULLE = 20;
+const ECART_MAX_DE_LA_NULLE_DES_BLOCS = 2;
+const COUPS_PAR_TOUR_BANC = 2;
+
+const enBlocs = (etat) => ['noir', 'blanc'].every((camp) => billesHorsDuGroupePrincipal(couleursDuPlateau(etat.plateau), camp) === 0);
+
+function nulleDesBlocs(historique, nombreDeCoups) {
+  if (nombreDeCoups % COUPS_PAR_TOUR_BANC !== 0 || nombreDeCoups / COUPS_PAR_TOUR_BANC < TOURS_AVANT_LA_NULLE_DES_BLOCS) return false;
+  const rangs = Array.from({ length: TOURS_EN_BLOCS_POUR_LA_NULLE }, (_, tour) => historique.length - 1 - COUPS_PAR_TOUR_BANC * tour);
+  if (rangs.at(-1) < 0) return false; // un historique trop court : rien a juger
+  const finsDeTours = rangs.map((rang) => lirePosition(historique[rang]));
+  const [derniere] = finsDeTours;
+  if (Math.abs(derniere.billesEjecteesNoires - derniere.billesEjecteesBlanches) > ECART_MAX_DE_LA_NULLE_DES_BLOCS) return false;
+  return finsDeTours.every((fin) => fin.billesEjecteesNoires === derniere.billesEjecteesNoires && fin.billesEjecteesBlanches === derniere.billesEjecteesBlanches && enBlocs(fin));
+}
+
+// Les PREMIERS COUPS VARIES de la machine d'une ceinture (saab, 2026-11-06 : « Le mieux est de varier ces 1 ou 2 1er coups ») : sans
+// eux, les essais d'un meme jeu redonnaient la meme partie (les deux KAI++ sont deterministes). Ses PREMIERS_COUPS_VARIES premiers coups
+// sont tires parmi les bons : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES
+// (interface/banc-essais-partie.js), ceux a MARGE_DES_COUPS_VARIES points au plus du meilleur. Mesure au depart de 7 variantes : a 10
+// ou 20 points, seulement le meilleur et son symetrique (la meme partie en miroir) ; a 50, 2 a 4 coups vraiment differents.
+const PREMIERS_COUPS_VARIES = 2;
+const PROFONDEUR_DES_COUPS_VARIES = 3;
+const MARGE_DES_COUPS_VARIES = 50;
+
+// `valeurs` : [{ coup, valeur (pour le camp qui joue) }].
+function bonsCoupsDuDepart(valeurs) {
+  const meilleure = Math.max(...valeurs.map(({ valeur }) => valeur));
+  return valeurs.filter(({ valeur }) => valeur >= meilleure - MARGE_DES_COUPS_VARIES);
+}
+
 // La fin de la partie : 'noir' ou 'blanc' (6 ejections), la nulle par
-// repetition (SEUIL_NULLE_PAR_DEFAUT fois la meme position, moteur/nulle.js) ou
-// par la limite de coups ; null si elle continue. `historique` : les positions
-// ecrites, la derniere comprise.
+// repetition (SEUIL_NULLE_PAR_DEFAUT fois la meme position, moteur/nulle.js), celle
+// des blocs ou celle de la limite de coups ; null si elle continue. `historique` : les
+// positions ecrites, celle de depart et la derniere comprises.
 function finDeLaPartieDuBanc(etat, historique, nombreDeCoups) {
   if (etat.vainqueur) return etat.vainqueur;
   const derniere = historique.at(-1);
   if (derniere !== undefined && compterOccurrences(historique, derniere) >= SEUIL_NULLE_PAR_DEFAUT) return 'nulle (répétition)';
+  if (nulleDesBlocs(historique, nombreDeCoups)) return 'nulle (blocs)';
   if (nombreDeCoups >= COUPS_MAX_BANC) return 'nulle (limite)';
   return null;
 }

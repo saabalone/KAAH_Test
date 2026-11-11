@@ -13,8 +13,9 @@
 //     a `jeuxParSerie` jeux reussis ;
 //   - une defaite est un ESSAI RATE sur ce jeu, le reste est garde ; au bout de
 //     `essaisAvantReinitialisation`, le jeu repart de zero (ou toute la serie,
-//     `reinitialiserTousLesJeux`) ; au bout de `reinitialisationsAvantDeRedescendre`
-//     reinitialisations, on redescend d'une ceinture ;
+//     `reinitialiserTousLesJeux`) ; au bout de `reinitialisationsAvantLEchec`
+//     reinitialisations, c'est l'ECHEC de la ceinture visee : sa serie repart de zero, on
+//     garde sa ceinture (saab, 2026-11-06 : « Oui, ECHEC suffit » ; avant, on redescendait) ;
 //   - puis la CONFIRMATION : une victoire sur chaque ceinture sautee (saab : « il faut
 //     valider toutes les ceintures sautées »), ou, sans saut, sur celle d'en dessous ;
 //     une ceinture a confirmer qui a des jeux imposes (sautee, ou celle d'en dessous) se
@@ -24,9 +25,9 @@
 //     « faire jouer seulement celles qui diffèrent ... donc on fait la B » ; « si on saute de
 //     Blanche à Jaune, on devra confirmer tous ceux de Blanche, car Jaune fait les
 //     complémentaires ») — tous deja gagnes : confirmee d'office ;
-//   - apres une pause de plus de `joursAvantReconfirmation` jours sans jouer a son grade
-//     ou plus haut, le grade acquis est a reconfirmer aussi (saab : « il refera Noire 1
-//     dan pour valider Noire 2 Dan ; s'il échoue 3 fois cette paire, il descend »).
+//   - apres une pause de plus de `joursAvantRegression` jours sans jouer a son grade ou
+//     plus haut, on REDESCEND d'une ceinture, une seule fois pour une meme pause, et la
+//     ceinture perdue devient la visee (regressionApresUnePause).
 //
 // Les jeux proposes (saab : « Standard/mBelg/Alien, avec mBelg imposée ... dès qu'on
 // aura réussi une des 2, on aura obligatoirement mBelg ») : `regles.imposes` gardent
@@ -50,17 +51,17 @@ const REGLES_DE_SERIE_PAR_DEFAUT = Object.freeze({
   revancheDeConfirmation: true,
   essaisAvantReinitialisation: 3,
   reinitialiserTousLesJeux: false,
-  reinitialisationsAvantDeRedescendre: 3,
-  joursAvantReconfirmation: 30,
+  reinitialisationsAvantLEchec: 3,
+  // Saab, 2026-11-06 : « on va laisser plus de temps pour la régression si pas joué, on met 90 jours » (30 avant).
+  joursAvantRegression: 90,
   rattrapageSurNulle: true,
 });
 const MS_PAR_JOUR = 24 * 60 * 60 * 1000;
 const SENS_DU_JEU = ['aller', 'revanche'];
 // `aConfirmerCeintures` : les ceintures a confirmer, fixees quand la serie est complete ;
-// `aReconfirmer` : une pause trop longue, le grade acquis sera a reconfirmer ;
 // `aFaireEnConfirmation` : { ceinture a confirmer : les jeux imposes a y gagner } (voir
 // plus haut), fixes eux aussi ; `jeuxConfirmes` : { ceinture : ceux deja gagnes }.
-const SERIE_A_ZERO = Object.freeze({ enCours: {}, valides: [], reinitialisations: 0, aConfirmer: false, confirmees: [], enConfirmation: {}, aConfirmerCeintures: [], aReconfirmer: false, aFaireEnConfirmation: {}, jeuxConfirmes: {} });
+const SERIE_A_ZERO = Object.freeze({ enCours: {}, valides: [], reinitialisations: 0, aConfirmer: false, confirmees: [], enConfirmation: {}, aConfirmerCeintures: [], aFaireEnConfirmation: {}, jeuxConfirmes: {} });
 
 // Pas encore de ceinture (au depart) : la blanche est la premiere a viser.
 const SANS_CEINTURE = -1;
@@ -143,17 +144,27 @@ function ceintureObtenue(parcours, gagnes, confirmee) {
   };
 }
 
-// Un essai rate de trop : le jeu (ou toute la serie) repart de zero, et peut-etre on redescend.
+// Un essai rate de trop : le jeu (ou toute la serie) repart de zero ; trop de fois, c'est l'ECHEC de la ceinture
+// visee (saab, 2026-11-06 : « ce n'est pas vraiment une régression c'est juste un ECHEC car je dois juste retenter
+// la Noire 4 ») : sa serie repart de zero, la ceinture acquise reste.
 function reinitialiser(parcours, garde, regles) {
   const reinitialisations = parcours.reinitialisations + 1;
-  if (reinitialisations >= regles.reinitialisationsAvantDeRedescendre) {
-    // La blanche obtenue ne se perd plus ; sans ceinture, on ne descend pas plus bas.
-    const redescendue = parcours.ceinture <= CEINTURE_BLANCHE ? parcours.ceinture : parcours.ceinture - 1;
-    const precedente = redescendue === parcours.ceinture ? parcours.precedente : parcours.ceinture;
-    return { parcours: { ...parcours, ceinture: redescendue, cible: redescendue + 1, ...SERIE_A_ZERO, precedente }, evenement: 'regression' };
-  }
+  if (reinitialisations >= regles.reinitialisationsAvantLEchec) return { parcours: { ...parcours, ...SERIE_A_ZERO }, evenement: 'echec' };
   const suite = regles.reinitialiserTousLesJeux ? { ...parcours, ...SERIE_A_ZERO } : { ...parcours, ...garde };
   return { parcours: { ...suite, reinitialisations }, evenement: 'jeu reinitialise' };
+}
+
+// La REGRESSION apres une pause (saab, 2026-11-06 : « on met 90 jours et on ne régresse qu'une fois, si le joueur a duré
+// trop longtemps (180 jours ou plus) sans jouer il n'aura à refaire que celle où il a régressé pour retenter celle qu'il a
+// perdue ») : plus de `jours` jours depuis son dernier jeu a son grade ou plus haut (`derniereDate`, ms), on redescend d'une
+// ceinture et la perdue devient la visee ; la serie qu'on visait est gardee pour plus tard (viserCeinture). Une seule fois
+// pour une meme pause (`pauseRegressee` : la date de ce dernier jeu), et la blanche ne se perd pas.
+function regressionApresUnePause(parcours, derniereDate, maintenant, jours) {
+  if (!(parcours.ceinture > CEINTURE_BLANCHE) || !Number.isFinite(derniereDate) || !Number.isFinite(jours)) return parcours;
+  if (maintenant - derniereDate <= jours * MS_PAR_JOUR || parcours.pauseRegressee === derniereDate) return parcours;
+  const perdue = parcours.ceinture;
+  const gardees = { ...parcours.seriesGardees, ...(parcours.cible === null ? {} : { [parcours.cible]: serieDuParcours(parcours) }) };
+  return { ...parcours, ceinture: perdue - 1, cible: perdue, ...SERIE_A_ZERO, ...gardees[perdue], seriesGardees: sansCle(gardees, String(perdue)), precedente: perdue, pauseRegressee: derniereDate };
 }
 
 const sansCle = (objet, cle) => Object.fromEntries(Object.entries(objet).filter(([autre]) => autre !== cle));
@@ -192,7 +203,7 @@ function resultatDeSerie(parcours, nom, sens, gagne, regles) {
   }
   const suite = { ...parcours, gagnes, enCours: sansCle(parcours.enCours, nom), valides: [...parcours.valides, nom] };
   if (suite.valides.length < regles.jeuxParSerie) return { parcours: suite, evenement: 'jeu reussi' };
-  const aConfirmer = [...new Set([...(suite.aReconfirmer ? [suite.ceinture] : []), ...(regles.confirmation === false ? [] : ceinturesSauteesOuDessous(suite))])];
+  const aConfirmer = regles.confirmation === false ? [] : ceinturesSauteesOuDessous(suite);
   if (aConfirmer.length === 0) return ceintureObtenue(suite, gagnes, false);
   const aFaireEnConfirmation = jeuxDesCeinturesAConfirmer(suite, aConfirmer, gagnes, regles);
   const confirmation = { ...suite, enCours: {}, aConfirmer: true, aConfirmerCeintures: aConfirmer, aFaireEnConfirmation, confirmees: confirmeesDOffice(aFaireEnConfirmation) };
@@ -266,24 +277,22 @@ function resultatDeConfirmation(parcours, ceinture, nom, sens, gagne, regles) {
 // ne compte pas maintenant), 'reste la revanche' (ou l'aller), 'victoire', 'jeu
 // reussi', 'confirmation' (place aux confirmations), 'ceinture confirmee', 'ceinture'
 // (obtenue), 'essai rate', 'rattrapage' (une partie de plus, suiteDUnEssai), 'jeu
-// reinitialise', 'regression'. `gagne` : vrai, faux, ou RESULTAT_NULLE. `contexte` : { date,
-// derniereActivite } (ms) — le jeu, et le dernier joue avant lui a ce grade ou plus haut.
-function apresUnResultat(parcours, ceinture, nom, sens, gagne, regles = REGLES_DE_SERIE_PAR_DEFAUT, { date, derniereActivite } = {}) {
+// reinitialise', 'echec' (la serie visee repart de zero). `gagne` : vrai, faux, ou RESULTAT_NULLE.
+function apresUnResultat(parcours, ceinture, nom, sens, gagne, regles = REGLES_DE_SERIE_PAR_DEFAUT) {
   const refuse = { parcours, evenement: 'refuse' };
   if (!ceinturesJouables(parcours).includes(ceinture) || !SENS_DU_JEU.includes(sens)) return refuse;
-  const pause = !parcours.aConfirmer && Number.isFinite(derniereActivite) && date - derniereActivite > (regles.joursAvantReconfirmation ?? Infinity) * MS_PAR_JOUR;
-  const entier = { ...complet(parcours), ...(pause ? { aReconfirmer: true } : {}) };
+  const entier = complet(parcours);
   const issue = entier.aConfirmer ? resultatDeConfirmation(entier, ceinture, nom, sens, gagne, regles) : resultatDeSerie(entier, nom, sens, gagne, regles);
   return issue ?? refuse;
 }
 
-// Les JOURS RESTANTS avant de devoir reconfirmer son grade (saab, 2026-10-17 : « une
-// alerte pour le temps restant sur ceinture ») : la regle « Jours sans jouer » (`jours`),
-// depuis le dernier jeu a ce grade ou plus haut (`derniereDate`, en ms) ; 0 si c'est deja
-// depasse ; null s'il n'y a rien a garder (pas encore de ceinture, deja a reconfirmer,
-// jamais joue, ou regle decochee).
-function joursAvantReconfirmation(parcours, derniereDate, maintenant, jours) {
-  if (!(parcours.ceinture > 0) || parcours.aConfirmer || !Number.isFinite(derniereDate) || !Number.isFinite(jours)) return null;
+// Les JOURS RESTANTS avant de redescendre (saab, 2026-10-17 : « une alerte pour le temps
+// restant sur ceinture ») : la regle « Jours sans jouer » (`jours`), depuis le dernier jeu a
+// ce grade ou plus haut (`derniereDate`, en ms) ; 0 si c'est deja depasse ; null s'il n'y a
+// rien a perdre (la blanche ou pas de ceinture, deja redescendu pour cette pause, jamais
+// joue, ou regle decochee).
+function joursAvantLaRegression(parcours, derniereDate, maintenant, jours) {
+  if (!(parcours.ceinture > CEINTURE_BLANCHE) || !Number.isFinite(derniereDate) || !Number.isFinite(jours) || parcours.pauseRegressee === derniereDate) return null;
   return Math.max(0, Math.ceil(jours - (maintenant - derniereDate) / MS_PAR_JOUR));
 }
 

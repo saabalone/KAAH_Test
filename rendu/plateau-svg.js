@@ -56,6 +56,21 @@ function orienterPlateau(retourne) {
   sensDuPlateau = retourne ? -1 : 1;
 }
 
+// Les petits plateaux d'une position A CHARGER dans une partie neuve — l'editeur My (interface/editeur-position.js),
+// les apercus des Variantes et des Puzzles — se dessinent toujours Noir en bas, comme la partie qu'ils ouvriront, meme
+// quand celle en cours est retournee (saab, 2026-11-06 : Co_1, posee bille par bille sur le mini plateau pendant une
+// ceinture jouee avec Blanc, plateau retourne, revenait tournee de 180 degres). `dessiner` : tout le dessin, d'un seul
+// trait — l'orientation de la partie en cours est rendue juste apres.
+function dessinerNoirEnBas(dessiner) {
+  const sensDeLaPartie = sensDuPlateau;
+  sensDuPlateau = 1;
+  try {
+    dessiner();
+  } finally {
+    sensDuPlateau = sensDeLaPartie;
+  }
+}
+
 function creerElementSVG(nom, attributs) {
   const element = document.createElementNS(ESPACE_NOM_SVG, nom);
   for (const [cle, valeur] of Object.entries(attributs)) {

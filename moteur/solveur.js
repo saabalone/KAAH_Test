@@ -26,6 +26,23 @@ function lireReponseSolveur(texte) {
   return { verdict: 'erreur', raison, rang: null, coup: null };
 }
 
+// Une reponse de kaah_sequence (solveur/kaah-solveur.cpp ; saab, 2026-11-06 : « Ok ajoute ») : "SEQUENCE <demi-coups>"
+// puis une ligne "<nacre> <position apres le coup>" par coup | "AUCUNE" (pas de gain) | "INDETERMINE" | "ERREUR ...".
+// Renvoie { verdict, demiCoups, coups: [{ nacre, position }] }.
+function lireSequenceDuSolveur(texte) {
+  const [entete, ...lignes] = String(texte).trim().split('\n');
+  const [mot, demiCoups] = entete.trim().split(/\s+/);
+  const vide = { demiCoups: null, coups: [] };
+  if (mot === 'AUCUNE') return { verdict: 'invalide', ...vide };
+  if (mot === 'INDETERMINE') return { verdict: 'indetermine', ...vide };
+  if (mot !== 'SEQUENCE') return { verdict: 'erreur', ...vide };
+  const coups = lignes.map((ligne) => {
+    const [nacre, position] = ligne.trim().split(/\s+/);
+    return { nacre, position };
+  });
+  return { verdict: 'valide', demiCoups: Number(demiCoups), coups };
+}
+
 // _sol_branch_to_compact : les coups joues (gagnant et perdant alternes, Noir
 // d'abord) deviennent "1.e6c6/b6a5 2.d5d7/d8e9 3.d7b5". `decalageDuGagnant` :
 // 0 si Noir gagne, 1 si Blanc gagne — le coup du perdant range au tour N est

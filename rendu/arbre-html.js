@@ -41,18 +41,24 @@
 // Pas d'import ni d'export (voir moteur/plateau.js) : creerEtiquette,
 // creerEtiquetteVide, creerBoutonSupprimer, creerBoutonRepli, creerNumero,
 // creerSuffixes, creerSuffixesVide et texteDuCoup viennent de
-// rendu/arbre-ligne.js, charge avant celui-ci dans index.html.
+// rendu/arbre-ligne.js ; nomsDesMachines, resultatDeLaMachine, campDeLaMachine,
+// gardeDansLeResume et estUneBrancheDeBranche de moteur/resume-sequence.js —
+// tous charges avant celui-ci dans index.html.
 
 // `arbre` : voir moteur/arbre.js. `cheminsReplies` : un Set de chemins
 // (chaque chemin encode en texte, ex. "0.1") dont la branche ne doit pas
 // s'afficher. `datesParChemin` : Map chemin-texte -> date deja formatee,
 // pour les feuilles dont on connait l'instant de creation (voir
 // interface/saisie.js). `rappels` : { surClicNoeud(chemin),
-// surClicRepli(cle), surClicSupprimer(chemin) }.
-function dessinerArbre(conteneur, arbre, cheminsReplies, datesParChemin, rappels) {
+// surClicRepli(cle), surClicSupprimer(chemin) }. `options` (saab, 2026-11-10) :
+// { resume : seulement les lignes qui portent un nom de machine, un debut de
+// branche, une fin ou le coup regarde, et sous chacune les noms colores par le
+// resultat de la machine (moteur/resume-sequence.js) ; masquerBrDeBr : sans les
+// branches ouvertes a l'interieur d'une branche }.
+function dessinerArbre(conteneur, arbre, cheminsReplies, datesParChemin, rappels, options = {}) {
   const grille = document.createElement('div');
   grille.className = 'arbre-lignes';
-  dessinerTour(grille, arbre.racine.enfants, arbre.racine.etat, [], 1, arbre, cheminsReplies, datesParChemin, rappels);
+  dessinerTour(grille, arbre.racine.enfants, arbre.racine.etat, [], 1, arbre, cheminsReplies, datesParChemin, rappels, options);
   conteneur.replaceChildren(grille);
 }
 
@@ -87,48 +93,57 @@ function ajouterSegment(conteneur, info, arbre, rappels, datesParChemin) {
   conteneur.appendChild(creerBoutonSupprimer(chemin, arbre, rappels));
 }
 
+// Le resume (options.resume) : sous une ligne, les noms de machines de ses
+// coups, chacun dans la couleur de son resultat dans la suite
+// (moteur/resume-sequence.js) — vert gagne, rouge perd, bleu nulle, violet des
+// fins differentes selon les branches. `coups` : [{ noeud, chemin }].
+const LIBELLES_RESULTAT_MACHINE = { gagne: 'gagne', perd: 'perd', nulle: 'nulle', mixte: 'des fins différentes selon les branches' };
+// Les noms colores des machines de `coups` dans un element `balise` de classe `classe`, ou null s'il n'y en a aucun —
+// partage avec les Commentaires (rendu/commentaires-html.js).
+function creerNomsDesMachines(arbre, coups, balise, classe) {
+  const noms = coups.flatMap(({ noeud, chemin }) => nomsDesMachines(noeud.commentaire).map((nom) => ({ nom, noeud, chemin })));
+  if (noms.length === 0) return null;
+  const bloc = document.createElement(balise);
+  bloc.className = classe;
+  for (const { nom, noeud, chemin } of noms) {
+    const resultat = resultatDeLaMachine(noeud, campDeLaMachine(arbre, chemin, nom));
+    const span = document.createElement('span');
+    span.className = `resume-ia resume-ia-${resultat ?? 'inconnu'}`;
+    span.textContent = nom;
+    span.title = resultat ? `${nom} : ${LIBELLES_RESULTAT_MACHINE[resultat]}` : `${nom} : pas encore de fin`;
+    bloc.appendChild(span);
+  }
+  return bloc;
+}
+function ajouterNomsDesMachines(conteneur, arbre, coups) {
+  const bloc = creerNomsDesMachines(arbre, coups, 'div', 'arbre-resume-ia');
+  if (bloc) conteneur.appendChild(bloc);
+}
+
 // Dessine un tour complet : chaque enfant NOIR de `enfantsNoirs` (tous au
 // meme niveau — plusieurs s'il y a une branche a ce point), avec, pour
 // chacun, sa ou ses reponses BLANCHES sur la meme ligne (ou une ligne
 // chacune s'il y en a plusieurs). Recurse ensuite au tour suivant.
 // `etatParentDesNoirs` sert a detecter une ejection sur le coup noir
-// lui-meme (voir rendu/arbre-ligne.js, suffixeEjection).
-function dessinerTour(conteneur, enfantsNoirs, etatParentDesNoirs, cheminParent, numeroTour, arbre, cheminsReplies, datesParChemin, rappels) {
+// lui-meme (voir rendu/arbre-ligne.js, suffixeEjection). En resume, une
+// ligne sans rien a garder n'est pas dessinee, mais sa suite l'est ; un coup
+// replie l'est toujours (son triangle reste a portee).
+function dessinerTour(conteneur, enfantsNoirs, etatParentDesNoirs, cheminParent, numeroTour, arbre, cheminsReplies, datesParChemin, rappels, options) {
+  const garde = (noeud, freres, chemin, replie) => !options.resume || replie || gardeDansLeResume(noeud, freres, chemin, arbre.chemin);
   enfantsNoirs.forEach((noeudNoir, indexNoir) => {
     const cheminNoir = [...cheminParent, indexNoir];
+    if (options.masquerBrDeBr && estUneBrancheDeBranche(cheminNoir)) return;
     const cleNoir = cheminNoir.join('.');
     const texteNoir = texteDuCoup(noeudNoir, true, enfantsNoirs.length > 1);
     const enfantsBlancs = noeudNoir.enfants;
-
-    if (enfantsBlancs.length === 0) {
-      // Feuille : ni repli (rien a masquer) ni reponse blanche.
-      ajouterSegment(
-        conteneur,
-        {
-          cheminRepli: cleNoir,
-          aDesEnfantsPourRepli: false,
-          replie: false,
-          numeroTexte: numeroTour,
-          noeud: noeudNoir,
-          chemin: cheminNoir,
-          texte: texteNoir,
-          etatParent: etatParentDesNoirs,
-        },
-        arbre,
-        rappels,
-        datesParChemin
-      );
-      ajouterSegment(conteneur, null, arbre, rappels, datesParChemin);
-      return;
-    }
-
     // Le repli de Noir masque TOUTES ses reponses blanches (et tout ce
     // qui suit) : independant du repli de chaque reponse blanche, qui ne
     // masque que sa propre suite (voir plus bas).
-    const replieNoir = cheminsReplies.has(cleNoir);
+    const replieNoir = enfantsBlancs.length > 0 && cheminsReplies.has(cleNoir);
+    const gardeNoir = garde(noeudNoir, enfantsNoirs.length, cheminNoir, replieNoir);
     const segmentNoir = {
       cheminRepli: cleNoir,
-      aDesEnfantsPourRepli: true,
+      aDesEnfantsPourRepli: enfantsBlancs.length > 0,
       replie: replieNoir,
       numeroTexte: numeroTour,
       noeud: noeudNoir,
@@ -137,41 +152,52 @@ function dessinerTour(conteneur, enfantsNoirs, etatParentDesNoirs, cheminParent,
       etatParent: etatParentDesNoirs,
     };
 
-    if (replieNoir) {
+    // Une feuille, ou Noir replie : la ligne n'a que Noir.
+    if (enfantsBlancs.length === 0 || replieNoir) {
+      if (!gardeNoir) return;
       ajouterSegment(conteneur, segmentNoir, arbre, rappels, datesParChemin);
       ajouterSegment(conteneur, null, arbre, rappels, datesParChemin);
+      if (options.resume) ajouterNomsDesMachines(conteneur, arbre, [{ noeud: noeudNoir, chemin: cheminNoir }]);
       return;
     }
 
     enfantsBlancs.forEach((noeudBlanc, indexBlanc) => {
       const cheminBlanc = [...cheminNoir, indexBlanc];
+      if (options.masquerBrDeBr && estUneBrancheDeBranche(cheminBlanc)) return;
       const texteBlanc = texteDuCoup(noeudBlanc, false, enfantsBlancs.length > 1);
-      const replieeBlanc = cheminsReplies.has(cheminBlanc.join('.'));
+      const replieeBlanc = noeudBlanc.enfants.length > 0 && cheminsReplies.has(cheminBlanc.join('.'));
+      const noirSurLaLigne = indexBlanc === 0;
 
-      ajouterSegment(conteneur, indexBlanc === 0 ? segmentNoir : null, arbre, rappels, datesParChemin);
-      ajouterSegment(
-        conteneur,
-        {
-          cheminRepli: cheminBlanc.join('.'),
-          aDesEnfantsPourRepli: noeudBlanc.enfants.length > 0,
-          replie: replieeBlanc,
-          // Le numero n'est repete sur Blanc QUE quand Noir n'est pas
-          // affiche sur cette ligne (une deuxieme branche au meme tour) —
-          // sinon Noir l'a deja montre juste a cote (voir l'en-tete du
-          // fichier).
-          numeroTexte: indexBlanc === 0 ? '' : numeroTour,
-          noeud: noeudBlanc,
-          chemin: cheminBlanc,
-          texte: texteBlanc,
-          etatParent: noeudNoir.etat,
-        },
-        arbre,
-        rappels,
-        datesParChemin
-      );
+      if (garde(noeudBlanc, enfantsBlancs.length, cheminBlanc, replieeBlanc) || (noirSurLaLigne && gardeNoir)) {
+        ajouterSegment(conteneur, noirSurLaLigne ? segmentNoir : null, arbre, rappels, datesParChemin);
+        ajouterSegment(
+          conteneur,
+          {
+            cheminRepli: cheminBlanc.join('.'),
+            aDesEnfantsPourRepli: noeudBlanc.enfants.length > 0,
+            replie: replieeBlanc,
+            // Le numero n'est repete sur Blanc QUE quand Noir n'est pas
+            // affiche sur cette ligne (une deuxieme branche au meme tour) —
+            // sinon Noir l'a deja montre juste a cote (voir l'en-tete du
+            // fichier).
+            numeroTexte: noirSurLaLigne ? '' : numeroTour,
+            noeud: noeudBlanc,
+            chemin: cheminBlanc,
+            texte: texteBlanc,
+            etatParent: noeudNoir.etat,
+          },
+          arbre,
+          rappels,
+          datesParChemin
+        );
+        if (options.resume) {
+          const coups = [...(noirSurLaLigne ? [{ noeud: noeudNoir, chemin: cheminNoir }] : []), { noeud: noeudBlanc, chemin: cheminBlanc }];
+          ajouterNomsDesMachines(conteneur, arbre, coups);
+        }
+      }
 
       if (!replieeBlanc && noeudBlanc.enfants.length > 0) {
-        dessinerTour(conteneur, noeudBlanc.enfants, noeudBlanc.etat, cheminBlanc, numeroTour + 1, arbre, cheminsReplies, datesParChemin, rappels);
+        dessinerTour(conteneur, noeudBlanc.enfants, noeudBlanc.etat, cheminBlanc, numeroTour + 1, arbre, cheminsReplies, datesParChemin, rappels, options);
       }
     });
   });

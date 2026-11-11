@@ -53,7 +53,7 @@ function contenuDuFichierDesParties({ parties }) {
 // Qui gagne, ecrit comme dans les resultats (saab, 2026-10-23 : « c'est pas clair pour voir si c'est
 // l'essai ou la ref qui gagne, pourquoi tu ne reprends pas ce que tu faisais avant ? » ; interface/
 // banc-essais-page.js, partiesHtmlDuBanc) : « essai (Noir) » en vert gras, « référence (Blanc) » en rouge,
-// une nulle en bleu (classeDuResultatBanc) ; l'issue d'un jeu des ceintures (« ✓ réussi ») telle quelle.
+// une nulle en bleu (classeDuResultatBanc) ; l'issue d'un jeu des ceintures (« ✓ réussi ») telle quelle, en vert ou en rouge.
 function gagnantDeLaPartieHtml({ fin, essaiNoir }) {
   const classe = classeDuResultatBanc(fin, essaiNoir);
   const gagnant = fin !== 'noir' && fin !== 'blanc' ? fin : (fin === 'noir') === essaiNoir ? `essai (${essaiNoir ? 'Noir' : 'Blanc'})` : `référence (${essaiNoir ? 'Blanc' : 'Noir'})`;
@@ -100,8 +100,8 @@ function brancherRevueDesFichiers(elements, estOccupe, ouvrirUnePartie, surAffic
     const aucune = cochees.length === 0 ? ' disabled' : '';
     const actions = `<p class="actions-type-jeux"><button class="bouton-dialogue bouton-a-faire" type="button" data-exporter-cochees${aucune} title="Les parties cochées dans un nouveau fichier (…_choix<date>.html), que Revoir reprend ; leur numéro et leur titre restent">Exporter les cochées (${cochees.length})</button><button class="bouton-dialogue bouton-a-faire" type="button" data-copier-cochees${aucune} title="Les parties cochées dans Mes parties, sans en ouvrir aucune (leur titre commence par le préfixe du fichier, sa date et leur numéro), puis enlevées de la liste">Copier dans Mes parties</button><button class="bouton-dialogue bouton-danger" type="button" data-supprimer-cochees${aucune} title="Les enlève de cette liste ; le fichier lui-même ne change pas (exportez ce qui reste pour le remplacer)">Supprimer les cochées</button></p>`;
     const toutes = fichier.parties.length > 0 && cochees.length === fichier.parties.length;
-    elements.resultats.innerHTML = `<h3>Revoir : ${echapperBanc(fichier.nom)}</h3><p class="note-reglages">Référence : ${echapperBanc(fichier.parties[0]?.reference ?? '?')}. ✓, et son essai en violet : partie déjà vue. Voir l'ouvre sur le plateau. Cochez des parties pour les exporter dans un nouveau fichier, les copier dans Mes parties, ou les enlever de la liste.</p>${actions}
-<table class="banc-tableau"><tr><th><input type="checkbox" data-cocher-toutes${toutes ? ' checked' : ''} title="Toutes cochées, ou aucune"></th><th>N°</th><th>Essai</th><th>Variante, jeu</th><th>L'essai joue</th><th>Gagnant</th><th>Score</th><th>Coups</th><th></th></tr>${lignes.join('')}</table>`;
+    elements.resultats.innerHTML = `<h3>Revoir : ${echapperBanc(fichier.nom)}</h3><p class="note-reglages">Référence : ${echapperBanc(fichier.parties[0]?.reference ?? '?')}. ✓, son essai et son bouton Voir en violet : partie déjà vue. Voir l'ouvre sur le plateau. Cochez des parties pour les exporter dans un nouveau fichier, les copier dans Mes parties, ou les enlever de la liste.</p>${actions}
+<table class="banc-tableau tableau-revoir-labalone"><tr><th><input type="checkbox" data-cocher-toutes${toutes ? ' checked' : ''} title="Toutes cochées, ou aucune"></th><th>N°</th><th>Essai</th><th>Variante, jeu</th><th>L'essai joue</th><th>Gagnant</th><th>Score</th><th>Coups</th><th></th></tr>${lignes.join('')}</table>`;
     return true;
   }
 

@@ -146,6 +146,8 @@ function creerBoutonRepli(cle, aDesEnfants, replie, rappels) {
   }
   bouton.textContent = replie ? '▶' : '▼';
   bouton.title = replie ? 'Déplier cette branche' : 'Replier cette branche';
+  // Vert pour deplier, orange pour replier (saab, 2026-11-10 ; styles.css).
+  bouton.classList.add(replie ? 'arbre-repli-deplier' : 'arbre-repli-replier');
   bouton.addEventListener('click', (evenement) => {
     evenement.stopPropagation();
     rappels.surClicRepli(cle);

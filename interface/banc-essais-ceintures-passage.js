@@ -14,7 +14,7 @@
 // (donnees/kaa-puzzles-solutions.js), reglesDeSerieDuGrade, nomsProposablesDuGrade,
 // nombreDeJeuxProposes (moteur/entrainement-lecture.js), reglagesDeLEntrainement
 // (interface/profils-entrainement.js), jouerLaVarianteDuPassage, jouerLePuzzleDuPassage,
-// JEUX_MAX_DU_PASSAGE, ESSAIS_SUR_UNE_NULLE (interface/banc-essais-ceintures.js) viennent de fichiers charges avant.
+// JEUX_MAX_DU_PASSAGE, marqueDuResultatDuPassage (interface/banc-essais-ceintures.js) viennent de fichiers charges avant.
 
 // Ce qui joue les jeux d'une IA dans `sorte` : `jeux` = { variantes, puzzles, base (le
 // livre d'ouvertures) }. Renvoie jouerLeSuivant(parcours) : le jeu que l'IA choisit
@@ -47,8 +47,11 @@ function joueurDesCeintures(candidat, sorte, jeux, kai, controle, suivi, renfort
     const position = tous.find((autre) => autre.nom === jeu.nom);
     const joue =
       sorte === 'variantes'
-        ? await jouerLaVarianteDuPassage(jeu, position, candidat, reglages.ceintures[jeu.ceinture], jeux.base ?? null, Number.isFinite(regles.essaisAvantReinitialisation) ? regles.essaisAvantReinitialisation : ESSAIS_SUR_UNE_NULLE, machine, controle, suiviDuJeu)
+        ? await jouerLaVarianteDuPassage(jeu, position, candidat, reglages.ceintures[jeu.ceinture], jeux.base ?? null, machine, controle, suiviDuJeu)
         : await jouerLePuzzleDuPassage(jeu, position, candidat, reglages.options, machine, controle, suiviDuJeu);
+    // Fini avant l'autre sens (le renfort : les deux se rangent ensemble) : sa ligne le dit et son temps
+    // s'arrete (saab, 2026-11-05 : « elle est en mini plateau à -4-6 tr 87 mais le temps tourne tjs »).
+    if (joue) suiviDuJeu({ etape: `jeu fini, ${marqueDuResultatDuPassage(joue.reussi)} ${joue.issue} ; attend l'autre sens` });
     return joue && { ...joue, numero: suiviDuJeu.numero?.() };
   }
   // Le resultat d'un jeu range dans `parcours` : { ligne, apres }.
@@ -104,7 +107,7 @@ async function passerLesCeintures(candidat, sorte, jeux, kai, controle, suivi, s
     for (const { ligne, apres } of joue.etapes) {
       journal.push(ligne);
       const suite = suiteDuPassage(ligne.evenement, parcours, apres);
-      if (suite.fini && ligne.evenement === 'regression' && cibleDeDepart !== null && parcours.ceinture === SANS_CEINTURE && parcours.cible > CEINTURE_BLANCHE) {
+      if (suite.fini && ligne.evenement === 'echec' && cibleDeDepart !== null && parcours.ceinture === SANS_CEINTURE && parcours.cible > CEINTURE_BLANCHE) {
         parcours = viserCeinture({ ...parcoursNeuf(), gagnes: apres.gagnes }, parcours.cible - 1);
         redescendu = true;
         surJeu({ ceinture: parcours.ceinture, journal });

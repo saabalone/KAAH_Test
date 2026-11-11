@@ -17,7 +17,7 @@
 // puzzle (choisirPermutationPourPuzzle), jamais forcement celle ecrite dans
 // donnees/kaa-puzzles.js — ce fichier-ci n'a pas besoin d'en savoir plus.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau,
+// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau, dessinerNoirEnBas,
 // poserBille (rendu/plateau-svg.js), dessinerEjectionsApercu
 // (rendu/ejections-apercu.js), depuisNotation (moteur/plateau.js),
 // lirePosition (moteur/notation.js), choisirPermutationPourPuzzle,
@@ -206,15 +206,18 @@ function demarrerSelectionPuzzles(elements, puzzles, surChargement, surPrevisual
   function afficherApercu(puzzle) {
     const position = lirePosition(choisirPermutationPourPuzzle(puzzle).texteBrut);
     elements.apercu.innerHTML = '';
-    dessinerPlateau(elements.apercu);
-    for (const [notation, bille] of Object.entries(position.plateau)) {
-      const { q, r } = depuisNotation(notation);
-      poserBille(elements.apercu, { id: `apercu-puzzle-${bille.id}`, q, r, couleur: bille.couleur });
-    }
-    // Utile surtout ici : une position a handicap (CLAUDE.md) demarre deja
-    // avec un compteur a 3, 4 ou 5 — sans ces colonnes, l'apercu d'un tel
-    // puzzle semblait commencer a zero.
-    dessinerEjectionsApercu(elements.apercu, position.billesEjecteesNoires, position.billesEjecteesBlanches);
+    // Noir en bas, comme la partie que le puzzle ouvrira (rendu/plateau-svg.js, dessinerNoirEnBas).
+    dessinerNoirEnBas(() => {
+      dessinerPlateau(elements.apercu);
+      for (const [notation, bille] of Object.entries(position.plateau)) {
+        const { q, r } = depuisNotation(notation);
+        poserBille(elements.apercu, { id: `apercu-puzzle-${bille.id}`, q, r, couleur: bille.couleur });
+      }
+      // Utile surtout ici : une position a handicap (CLAUDE.md) demarre deja
+      // avec un compteur a 3, 4 ou 5 — sans ces colonnes, l'apercu d'un tel
+      // puzzle semblait commencer a zero.
+      dessinerEjectionsApercu(elements.apercu, position.billesEjecteesNoires, position.billesEjecteesBlanches);
+    });
   }
 }
 

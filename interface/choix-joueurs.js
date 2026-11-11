@@ -88,7 +88,10 @@ function lireDerniersJoueurs() {
     const brut = JSON.parse(window.localStorage.getItem(CLE_DERNIERS_JOUEURS) ?? 'null');
     // Un choix retenu avant KAI++ disait seulement { machine: vrai|faux }.
     const role = (retenu) => roleChoisi(retenu?.role ?? (retenu?.machine ? MOTEUR_PROPOSE_IA : ROLE_HUMAIN));
-    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA, ...profilQuiSuitLeDefaut(brut?.[camp]) }]));
+    // L'elagage du profil (10), jamais un elagage force retenu d'une partie d'avant (saab, 2026-11-07 : « je viens de voir
+    // que El est à 20, j'avais demandé de mettre 10 par défaut dans la boite Joueur, non ? » — un El 20 tape en octobre
+    // dans Nouvelle partie revenait encore) : on peut toujours le forcer, pour cette partie.
+    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA, ...profilQuiSuitLeDefaut(brut?.[camp]), elagage: null }]));
   } catch {
     return { noir: { ...CHOIX_JOUEUR_PAR_DEFAUT }, blanc: { ...CHOIX_JOUEUR_PAR_DEFAUT } };
   }
@@ -196,23 +199,27 @@ function brancherChoixMachine(element, surChangement) {
   };
   for (const bouton of element.querySelectorAll('[data-role]')) bouton.addEventListener('click', () => changer({ role: bouton.dataset.role }));
   for (const bouton of element.querySelectorAll('[data-niveau]')) {
-    bouton.addEventListener('click', () => changer({ niveau: Number(bouton.dataset.niveau) }));
+    // La reflexion revient a celle proposee pour le niveau (saab, 2026-11-10 : « si on est niveau 10 il ne faut pas qu'il
+    // reste à 2s ») ; de meme d'un profil ou d'un elagage a l'autre, plus bas.
+    bouton.addEventListener('click', () => changer({ niveau: Number(bouton.dataset.niveau), reflexionMax: null }));
   }
   element.querySelector('.choix-profil-ia').addEventListener('change', (evenement) => {
     colorerListeProfilsIA(evenement.target);
-    changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value) });
+    changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value), reflexionMax: null });
   });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
   // Vide : celui du profil ; garde d'un profil a l'autre (pour les comparer au meme El).
   element.querySelector('.choix-elagage').addEventListener('change', (evenement) => {
     const valeur = evenement.target.value.trim();
-    changer({ elagage: valeur === '' ? null : Math.max(0, Math.round(Number(valeur)) || 0) });
+    changer({ elagage: valeur === '' ? null : Math.max(0, Math.round(Number(valeur)) || 0), reflexionMax: null });
   });
   listeStyles.addEventListener('change', () => {
     const avant = choix.profil;
     choix.filtreStyle = listeStyles.value;
+    // Son homologue dans le nouveau style (moteur/profils-ia.js, profilHomologue), plutot que le premier de la liste.
+    choix.profil = profilHomologue(avant, choix.filtreStyle, listerProfilsIA()) ?? avant;
     remplirProfils();
-    changer(choix.profil === avant ? {} : { livre: livreDuProfil(choix.profil) });
+    changer(choix.profil === avant ? {} : { livre: livreDuProfil(choix.profil), reflexionMax: null });
   });
 
   return {

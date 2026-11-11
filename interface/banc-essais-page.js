@@ -91,10 +91,13 @@ function resumeHtmlDuBanc(essais, resume, parametres) {
 
 // La couleur du resultat d'une partie, vu de l'essai (saab, 2026-10-27 : « comme les parties 'essai' gagnées
 // sont en vert, il faudrait mettre les perdues en rouge et nulles en bleu ») : ici et dans le fichier des
-// parties (interface/banc-essais-revoir.js, gagnantDeLaPartieHtml). Une fin d'un autre genre : sans couleur.
+// parties (interface/banc-essais-revoir.js, gagnantDeLaPartieHtml). L'issue d'un jeu des ceintures des IA
+// (interface/banc-essais-ceintures-page.js ; saab, 2026-11-05 : « le fichier exporté n'a pas les couleurs ») :
+// comme une partie gagnee ou perdue par l'essai. Une fin d'un autre genre : sans couleur.
+const ISSUES_DES_CEINTURES_BANC = { '✓ réussi': 'banc-essai', '✗ raté': 'banc-perdue', '= nulle': 'banc-nulle' };
 function classeDuResultatBanc(fin, essaiNoir) {
   if (fin === 'noir' || fin === 'blanc') return (fin === 'noir') === essaiNoir ? 'banc-essai' : 'banc-perdue';
-  return fin.startsWith('nulle') ? 'banc-nulle' : '';
+  return ISSUES_DES_CEINTURES_BANC[fin] ?? (fin.startsWith('nulle') ? 'banc-nulle' : '');
 }
 
 function partiesHtmlDuBanc(essais, parties) {
@@ -148,7 +151,14 @@ th { color: #9a9a9a; font-weight: normal; vertical-align: bottom; } th.banc-refe
 .banc-mieux td:first-child { color: #3fcf7a; } .banc-moins td:first-child { color: #e0832a; } .banc-essai { color: #3fcf7a; } .banc-perdue { color: #e05a5a; } .banc-nulle { color: #4aa8ff; }
 .banc-coups { font-family: monospace; font-size: 12px; max-width: 900px; } .banc-tour { color: #7a7a7a; margin-left: 4px; }
 .banc-essai-noir td { color: #8c8c8c; } .banc-essai-blanc td { color: #ffffff; }
-.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-occ { color: #5aa0ff; } .banc-occ sup { font-size: 9px; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }`;
+.banc-livre { color: #3fcf7a; } .banc-livre-actif { color: #e0832a; } .banc-occ { color: #5aa0ff; } .banc-occ sup { font-size: 9px; } .banc-rate { color: #e05a5a; } .banc-moins-sur { color: #d9b62b; }
+.resultat-reussi { color: #3fbf5a; font-weight: bold; } .resultat-rate { color: #e04848; font-weight: bold; } .resultat-nul { color: #4aa8ff; font-weight: bold; }
+.suite-reussie { color: #3fbf5a; } .suite-ratee { color: #e0832a; } .suite-reinitialisee { color: #e04848; font-weight: bold; }
+.suite-ceinture, .suite-regression { font-weight: bold; padding: 0 4px; border-radius: 3px; } .suite-ceinture { background: #d9b62b; color: #1e1e1e; } .suite-regression { background: #c62828; color: #fff; }
+.ceinture { display: inline-block; width: 26px; height: 10px; border-radius: 3px; border: 1px solid #777; vertical-align: middle; } .nom-ceinture { display: inline-block; vertical-align: middle; line-height: 1.1; } .dan-ceinture { font-size: 11px; color: #bbb; }
+.ceinture-noire { position: relative; } .ceinture-noire::after { content: ''; position: absolute; right: 2px; top: 1px; bottom: 1px; width: calc(var(--barrettes) * 4px); background: repeating-linear-gradient(90deg, #d9b62b 0 2px, transparent 2px 4px); }
+.ceinture-dan-1 { --barrettes: 1; } .ceinture-dan-2 { --barrettes: 2; } .ceinture-dan-3 { --barrettes: 3; } .ceinture-dan-4 { --barrettes: 4; } .ceinture-dan-5 { --barrettes: 5; }
+.ceinture.ceinture-blanche-rouge { background: repeating-linear-gradient(90deg, #f2f2f2 0 5px, #d22f2f 5px 10px) !important; }`;
 
 // `donnees` : le bloc des parties, pour les revoir (moteur/banc-fichiers.js), ou ''.
 function pageDuBanc(html, titre, donnees = '') {

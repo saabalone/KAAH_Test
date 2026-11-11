@@ -12,8 +12,9 @@
 // nomDeLaCeinture (interface/entrainement-ceintures.js), profilEntrainementActif
 // (interface/profils-entrainement.js), echapperBanc (interface/banc-essais-page.js),
 // formaterDateKAAWA (interface/sauvegarde.js), nomDuFichierDesCeintures
-// (moteur/banc-noms.js), nomDeMachineDuBanc (interface/banc-essais-choix.js) viennent de
-// fichiers charges avant celui-ci.
+// (moteur/banc-noms.js), nomDeMachineDuBanc (interface/banc-essais-choix.js), PREMIERS_COUPS_VARIES,
+// MARGE_DES_COUPS_VARIES (moteur/banc-essais.js), marqueDuResultatDuPassage (interface/banc-essais-ceintures.js)
+// viennent de fichiers charges avant celui-ci.
 
 const cleDeLIA = (candidat) => `${candidat.nom}|niv${candidat.niveau}|${candidat.temps}s`;
 
@@ -38,9 +39,42 @@ function etatDuPassageHtml(passage) {
   return `${nomDeLaCeinture(ceintureDuGrade(passage.ceinture))}<br>${etat}${grades.length ? `<br>${grades.join('<br>')}` : ''}`;
 }
 
+// La suite d'un jeu (l'evenement de moteur/entrainement-serie.js, apresUnResultat), a l'ecran
+// (saab, 2026-11-05 : « Il faudrait mettre des couleurs sur jeu reussi, ceinture, essai rate, jeu
+// reinitialise, regression / Mettre aussi les accents ... Mettre en majuscule CEINTURE, REGRESSION ») :
+// en vert ce qui avance, en orange un essai rate, en rouge ce qui remet a zero ; la ceinture obtenue et
+// la regression en majuscules, sur fond dore ou rouge. Puis (saab, 2026-11-06 : « ce n'est pas vraiment une
+// régression c'est juste un ECHEC car je dois juste retenter la Noire 4 ») : l'ECHEC de la serie, ou l'on
+// garde sa ceinture (moteur/entrainement-serie.js, reinitialiser).
+const SUITES_DU_PASSAGE = {
+  victoire: { texte: 'victoire', classe: 'suite-reussie' },
+  'jeu reussi': { texte: 'jeu réussi', classe: 'suite-reussie' },
+  confirmation: { texte: 'confirmation', classe: 'suite-reussie' },
+  'ceinture confirmee': { texte: 'ceinture confirmée', classe: 'suite-reussie' },
+  ceinture: { texte: 'CEINTURE', classe: 'suite-ceinture' },
+  'essai rate': { texte: 'essai raté', classe: 'suite-ratee' },
+  rattrapage: { texte: 'rattrapage', classe: 'suite-ratee' },
+  'jeu reinitialise': { texte: 'jeu réinitialisé', classe: 'suite-reinitialisee' },
+  echec: { texte: 'ÉCHEC', classe: 'suite-regression' },
+  refuse: { texte: 'refusé' },
+};
+function suiteDuPassageHtml(evenement) {
+  const { texte = evenement, classe } = SUITES_DU_PASSAGE[evenement] ?? {};
+  return classe ? `<span class="${classe}">${echapperBanc(texte)}</span>` : echapperBanc(texte);
+}
+
+// ✓ en vert, ✗ en rouge, = (une nulle) en bleu.
+const CLASSES_DES_MARQUES_DU_PASSAGE = { '✓': 'resultat-reussi', '✗': 'resultat-rate', '=': 'resultat-nul' };
+// Dans le fichier des parties (interface/banc-essais-page.js, ISSUES_DES_CEINTURES_BANC, leurs couleurs).
+const ISSUES_DES_JEUX_DU_PASSAGE = { '✓': '✓ réussi', '✗': '✗ raté', '=': '= nulle' };
+function marqueDuResultatHtml(reussi) {
+  const marque = marqueDuResultatDuPassage(reussi);
+  return `<span class="${CLASSES_DES_MARQUES_DU_PASSAGE[marque]}">${marque}</span>`;
+}
+
 function journalDuPassageHtml(passage, nom) {
   // Un jeu joue se regarde sur le petit plateau (son numero : serieDesCeinturesDesIA).
-  const lignes = passage.journal.map((jeu, rang) => `<tr${jeu.numero === undefined ? '' : ` data-partie-banc="${jeu.numero}" title="Toucher : la revoir sur le petit plateau"`}><td>${rang + 1}</td><td>${echapperBanc(CEINTURES[jeu.ceinture].nom)}</td><td>${echapperBanc(jeu.nom)}</td><td>${SENS_DU_PASSAGE[passage.sorte][jeu.sens]}</td><td>${jeu.reussi ? '<span class="resultat-reussi">✓</span>' : '<span class="resultat-rate">✗</span>'}</td><td>${echapperBanc(jeu.issue ?? '')}</td><td>${echapperBanc(jeu.evenement)}</td></tr>`);
+  const lignes = passage.journal.map((jeu, rang) => `<tr${jeu.numero === undefined ? '' : ` data-partie-banc="${jeu.numero}" title="Toucher : la revoir sur le petit plateau"`}><td>${rang + 1}</td><td>${echapperBanc(CEINTURES[jeu.ceinture].nom)}</td><td>${echapperBanc(jeu.nom)}</td><td>${SENS_DU_PASSAGE[passage.sorte][jeu.sens]}</td><td>${marqueDuResultatHtml(jeu.reussi)}</td><td>${echapperBanc(jeu.issue ?? '')}</td><td>${suiteDuPassageHtml(jeu.evenement)}</td></tr>`);
   return `<details><summary>${echapperBanc(nom)} — ${LIBELLES_SORTES_DU_PASSAGE[passage.sorte]} (${passage.journal.length} jeux)</summary><table class="banc-tableau"><tr><th>#</th><th>Ceinture</th><th>Jeu</th><th>Sens</th><th></th><th>Issue</th><th>Suite</th></tr>${lignes.join('')}</table></details>`;
 }
 
@@ -59,7 +93,9 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
   const grades = Array.from({ length: gradeLePlusHaut + 1 }, (_, rang) => gradeLePlusHaut - rang);
   const taches = toutTester ? passages.flatMap(({ essai, sorte }) => grades.map((grade) => ({ essai, sorte, grade }))) : passages.map(({ essai, sorte }) => ({ essai, sorte }));
   const finies = new Set();
-  const serie = { taches, unite: toutTester ? 'grades' : 'passages', fait: () => finies.size };
+  // « 1 / 2 passages finis (un par profil en Variantes, un en PZL) » (saab, 2026-11-06 : « c'est quoi un passage ? »).
+  const unite = toutTester ? 'grades' : `passages finis (un par profil en ${sortes.map((sorte) => LIBELLES_SORTES_DU_PASSAGE[sorte]).join(', un en ')})`;
+  const serie = { taches, unite, fait: () => finies.size };
   // Les parties jouees, a regarder sur le petit plateau (saab, 2026-10-22 : « on ne voit pas au
   // clic la partie ceinture en test en mini plateau » ; interface/banc-essais-regarder.js) :
   // numero -> { numero, position, coups, titre, joueurs }.
@@ -74,7 +110,7 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
     return {
       parties: jouees.map(({ numero, jeu, position, essai, adversaire, essaiNoir, coups }) => {
         const issue = jeux.get(numero);
-        return { numero, variante: jeu, position, essai, reference: adversaire, essaiNoir, coups, fin: issue ? (issue.reussi ? '✓ réussi' : '✗ raté') : '—', score: issue?.issue ?? '' };
+        return { numero, variante: jeu, position, essai, reference: adversaire, essaiNoir, coups, fin: issue ? ISSUES_DES_JEUX_DU_PASSAGE[marqueDuResultatDuPassage(issue.reussi)] : '—', score: issue?.issue ?? '' };
       }),
     };
   };
@@ -92,7 +128,11 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
       const nom = essais[tache.essai].nom;
       numeroEnCours = parties.size + 1;
       parties.set(numeroEnCours, { numero: numeroEnCours, position, coups: [], titre: `${nom} — ${titre}`, joueurs: essaiNoir ? { noir: nom, blanc: adversaire } : { noir: adversaire, blanc: nom }, jeu: titre, essai: nomDeMachineDuBanc(essais[tache.essai]), adversaire, essaiNoir });
-      return suiviDuBanc({ numero: numeroEnCours, position, essaiNoir, nomDuProfil: nom, nomAdverse: adversaire, titreDeLaPartie: `${nom} — ${titre}`, coupsJoues: [] });
+      // Rien de la partie d'avant sur sa ligne : ni son dernier coup, ni « jeu fini » (interface/banc-essais-ceintures-passage.js).
+      // Et le jeu en clair (saab, 2026-11-06 : « On ne sait plus sur quelle la variante ou le PZL l'essai est en cours ») :
+      // « Normal v5ElP6Ph2 — Variantes, Marron, Catcheurs (aller) ».
+      const libelle = `${nom} — ${LIBELLES_SORTES_DU_PASSAGE[tache.sorte]}, ${titre}`;
+      return suiviDuBanc({ numero: numeroEnCours, position, essaiNoir, nomDuProfil: nom, nomAdverse: adversaire, titreDeLaPartie: `${nom} — ${titre}`, libelle, coupsJoues: [], coup: null, etape: null });
     };
     suivi.numero = () => numeroEnCours;
     return suivi;
@@ -153,12 +193,13 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
     });
     const journaux = passages.filter((passage) => passage.journal.length > 0).map((passage) => journalDuPassageHtml(passage, essais[passage.essai].nom));
     const depart = cibleDeDepart === null ? '' : ` Il vise d'abord la ceinture ${echapperBanc(CEINTURES[cibleDeDepart].nom.toLowerCase())} : les ceintures sautées sont à confirmer.`;
+    const commun = `La machine d'un grade tire ses ${PREMIERS_COUPS_VARIES} premiers coups parmi les bons (à ${MARGE_DES_COUPS_VARIES} points au plus du meilleur), pour que les essais d'un même jeu ne redonnent pas la même partie, puis prend ses coups dans le livre, comme contre un joueur. Une nulle (=) est un essai raté ; les essais finis, s'il y a eu une nulle, une partie de plus : gagnée ou nulle, le jeu est réussi (la règle « rattrapage sur nulle » du profil). Sans pendule : chaque IA réfléchit sa réflexion max. Dans un PZL, l'IA testée cherche sans élagage, pas plus loin que les tours qui restent.`;
     if (toutTester) {
-      return `<p class="note-reglages">Tout tester : chaque profil joue la série de chaque grade, de la ceinture ${echapperBanc(CEINTURES[cibleDeDepart ?? LA_JAUNE].nom.toLowerCase())} jusqu'à la blanche, que celle du dessus soit réussie ou ratée (les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} », sans les confirmations). ✓ : série réussie ; ✗ : ratée (assez d'essais ratés pour redescendre). La ceinture affichée est la plus haute réussie. La machine d'un grade prend ses coups dans le livre ; entre IA, une partie nulle se rejoue (3 essais) et, si elle le reste, compte comme réussie. Sans pendule : chaque IA réfléchit sa réflexion max. Dans un PZL, l'IA testée cherche sans élagage, pas plus loin que les tours qui restent.</p>
+      return `<p class="note-reglages">Tout tester : chaque profil joue la série de chaque grade, de la ceinture ${echapperBanc(CEINTURES[cibleDeDepart ?? LA_JAUNE].nom.toLowerCase())} jusqu'à la blanche, que celle du dessus soit réussie ou ratée (les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} », sans les confirmations). ✓ : série réussie ; ✗ : ratée (ÉCHEC : assez d'essais ratés sur ce grade). La ceinture affichée est la plus haute réussie. ${commun}</p>
 <table class="banc-tableau"><tr><th>Profil</th><th>Niv.</th><th>Réfl.</th><th>Variantes</th><th>PZL</th></tr>${lignes.join('')}</table>
 <h3>Les jeux</h3>${journaux.join('') || '<p class="note-reglages">Aucun jeu fini pour l’instant.</p>'}`;
     }
-    return `<p class="note-reglages">Chaque profil part sans ceinture (la blanche à gagner d'abord) et suit les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} » contre la machine de chaque grade ; le passage s'arrête à sa première régression (ou au sommet, ou faute de jeu), et sa plus haute ceinture lui est attribuée.${depart}${cibleDeDepart === null ? '' : ' Un échec avant toute ceinture redescend d\x27un cran (ce qui est réussi au-dessus vaut en dessous) ; la première ceinture obtenue ainsi est la sienne.'} La machine d'un grade prend ses coups dans le livre, comme contre un joueur ; entre IA, une partie nulle se rejoue (3 essais) et, si elle le reste, compte comme réussie. Sans pendule : chaque IA réfléchit sa réflexion max. Dans un PZL, l'IA testée cherche sans élagage, pas plus loin que les tours qui restent.</p>
+    return `<p class="note-reglages">Un passage : le parcours d'un profil, en Variantes ou en PZL, de ceinture en ceinture. Chaque profil part sans ceinture (la blanche à gagner d'abord) et suit les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} » contre la machine de chaque grade ; le passage s'arrête à son premier ÉCHEC (assez d'essais ratés sur la ceinture visée ; il garde la sienne), au sommet, ou faute de jeu, et sa plus haute ceinture lui est attribuée.${depart}${cibleDeDepart === null ? '' : ' Un échec avant toute ceinture redescend d\x27un cran (ce qui est réussi au-dessus vaut en dessous) ; la première ceinture obtenue ainsi est la sienne.'} ${commun}</p>
 <table class="banc-tableau"><tr><th>Profil</th><th>Niv.</th><th>Réfl.</th><th>Variantes</th><th>PZL</th></tr>${lignes.join('')}</table>
 <h3>Les jeux</h3>${journaux.join('') || '<p class="note-reglages">Aucun jeu fini pour l’instant.</p>'}`;
   };

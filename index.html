@@ -381,6 +381,15 @@
           <span class="icone-bouton icone-texte" aria-hidden="true">🧪</span><span class="libelle-bouton">Banc d'essais (LabAlone)</span>
         </button>
       </div>
+      <!-- Le Solveur sur la position affichee (saab, 2026-11-06 : « il manque un btn, non ? » ; « On ne met ce btn que
+           dans version travail pour le moment et dans la barre d'outils » ; « met le btn au dessus du btn Test » ;
+           « pour le moment le solver ne sera que sur PC » : banc-ordinateur, comme le Banc d'essais) :
+           interface/solveur-position.js. -->
+      <div class="groupe-boutons seulement-version-de-travail banc-ordinateur">
+        <button id="bouton-solveur-position" title="Solveur : le gain forcé le plus court sur la position affichée, ses solutions au 1er coup et leurs séquences, et le PZL My à créer">
+          <span class="icone-bouton icone-texte" aria-hidden="true">🔎</span><span class="libelle-bouton">Solveur</span>
+        </button>
+      </div>
       <!-- L'apercu de KAAH_Test (saab, 2026-10-10) : seulement dans une version de
            travail (styles.css, version-locale) ; interface/apercu-test.js. -->
       <div class="groupe-boutons bouton-version-locale">
@@ -885,13 +894,13 @@
       <ul>
         <li>Au début d'une partie (<b>Nouvelle partie</b> ou <b>Variantes</b>), la boîte du mode de pendule a une rubrique <b>Joueurs (Noir commence)</b> : Noir et Blanc sont chacun <b>Humain</b> ou <b>KAI++</b> (la machine, en C++) — deux machines peuvent jouer l'une contre l'autre, pour comparer deux profils. (KAI, l'ancienne machine en JavaScript, figée et 40 à 80 fois plus lente, ne se choisit plus ; elle rejoue les parties d'avant qui l'avaient.)<br>Pour chaque machine : son <b>niveau</b>, son <b>profil IA</b> et son <b>temps de réflexion maximum</b> (décimales permises, ex. 1,2 ; boutons <b>−</b> / <b>+</b> de palier en palier : 0,5 1 2 3 5 10 15 20 30 45 60 90 120 180 300 s, puis <b>∞</b>, sans limite — le champ vide ; la réflexion <b>proposée</b> pour son niveau est en <b>marron</b> : assez pour finir le niveau d'habitude, même sur un téléphone — elle suit le niveau tant qu'on n'y touche pas). La boîte retient votre dernier choix ; la toute première fois, une machine est proposée en <b>KAI++</b>, <b>niveau 1</b> (pour qu'un débutant puisse gagner : montez ensuite), avec l'IA par défaut.</li>
         <li><b>Type</b> de la partie (boîtes Nouvelle partie, Variantes, PZL, et <b>Pendule</b> pour le changer en cours de partie) : ce que le titre de la partie écrit après la date (2610300407, <b>Amical</b>, Marguerite Belge…). Tapez ce que vous voulez (Tournoi, Club…), ou touchez <b>Amical</b> ou <b>Test</b>.<br>Une partie <b>Test</b> (une IA contre une autre, recopiée à la main — AbaPro contre KAI++, par exemple) sert à corriger une erreur de copie vue plusieurs coups plus tard :<br>— <b>supprimer n'importe quel coup</b> de la partie (son ✕ dans la Séquence), avec tout ce qui le suit ;<br>— si la vraie suite a été jouée en branche, la faire <b>remonter</b> au-dessus de la partie (le <b>▲</b> du choix de la branche, quand « Coup suivant » arrive à l'embranchement) : elle <b>devient la partie</b>, jusqu'à son bout, et l'ancienne suite devient une branche, à supprimer par son ✕. Le titre suit : <b>Br_</b> tant qu'il reste une branche, plus rien sinon.<br>Dans les autres parties, seul le dernier coup se reprend et la partie reste toujours la première ligne (comme l'« Origine protégée » de KAAWA).<br>Une nouvelle partie propose le type de la précédente (une série de Test reste en Test), jusqu'à ce que vous le changiez ; Revanche et Same le gardent.</li>
-        <li><b>Quelle force ?</b> L'IA par défaut, la plus récente (<b>Normal v5ElP6Ph2</b>), bat <b>AbaPro niveau 6</b> dans les 2 camps (6-3 et 6-2, en KAI++ niveau 6, sans livre) et <b>AbaPro niveau 8</b> en Noir (6-2) ; en Blanc, le niveau 8 la bat encore (2-6). Si elle est trop forte pour vous, entraînez-vous d'abord contre d'autres IA : un niveau plus bas, ou un autre profil IA (Agressif, Défensif, versions plus anciennes), puis remontez peu à peu.</li>
+        <li><b>Quelle force ?</b> L'IA par défaut, la plus récente (<b>Normal v5ElP8Ph2</b>), est la <b>Normal v5ElP6Ph2</b> qui bat <b>AbaPro niveau 6</b> dans les 2 camps (6-3 et 6-2, en KAI++ niveau 6, sans livre) et <b>AbaPro niveau 8</b> en Noir (6-2) — en Blanc, le niveau 8 la bat encore (2-6) —, avec en plus une meilleure fin de partie quand elle mène : elle tient <b>e5</b> sur ses 3 axes tant que l'adversaire est en bloc, accepte de perdre des billes tant qu'elle mène de 2 billes ou plus, et voit venir les nulles par répétition. En deux blocs avec 3 ou 4 billes d'avance, elle n'a perdu aucune des 92 positions essayées (59 gagnées, 33 nulles). Si elle est trop forte pour vous, entraînez-vous d'abord contre d'autres IA : un niveau plus bas, ou un autre profil IA (Agressif, Défensif, versions plus anciennes), puis remontez peu à peu.</li>
         <li><b>Élagage (El)</b>, pour chaque machine (boîte du mode de pendule et boîte du nom) : le nombre de coups qu'elle garde à chaque position. Vide (le nombre en <b>marron</b>) : celui de son profil ; un nombre le remplace, quel que soit le profil — pratique pour comparer plusieurs profils au même élagage, contre AbaPro par exemple ; <b>0</b> : sans élagage. Son nom le dit (KAI++6_Nor_30s_v5<b>El4</b>P5).<br><b>Attention : une machine sans élagage peut être très, très longue</b> aux niveaux hauts (sur un ordinateur : quelques secondes par coup au niveau 6, une minute ou plus au niveau 7, et au niveau 8 elle ne finit pratiquement jamais ; un téléphone est plusieurs fois plus lent). À éviter, ou gardez une <b>réflexion max</b> courte : elle joue alors le meilleur coup trouvé dans ce temps (mais voit moins loin). Avec élagage, au niveau 8, quelques secondes par coup suffisent d'habitude (au niveau 9, 10 à 20 s ; au niveau 10, environ une minute) ; la réflexion <b>∞</b> (sans limite) la laisse toujours finir son niveau, et son nom le dit (KAI++8_Nor_<b>inf</b>_v5El10P5).</li>
         <li>Son nom dit tout : <b>KAI2_Nor_5s</b> = niveau 2, style Normal (Agr, Nor, Def), 5 s de réflexion (1s2 pour 1,2 s) ; <b>KAI++</b> pour la machine en C++, <b>_v2</b> au bout pour la version 2. Le fichier de la partie garde tous ses réglages, pour comparer.<br>Ses couleurs : en <b>marron</b>, ce qui est à sa valeur par défaut (KAI++, le niveau 1, la réflexion proposée pour son niveau, et le style et le profil de l'IA par défaut telle quelle) ; sinon le style (Nor) prend la couleur de ses réglages : <b>orange</b> pour une retouche pas encore validée (un élagage forcé, par exemple), vert ou jaune pour une validation récente ou ancienne.</li>
         <li><b>KAI et KAI++</b> jugent exactement pareil (vérifié) : aux niveaux 1 et 2, ils jouent aussi bien l'un que l'autre ; au niveau 3, chacun va aussi loin que son temps le permet — KAI jusqu'à 4 coups d'avance, KAI++ jusqu'à 8.</li>
         <li><b>Version 1 ou 2</b> (profils IA) : la version 2 compte aussi les <b>sumitos</b> possibles de chaque camp (3 contre 1, 3 contre 2, 2 contre 1), un peu plus ceux qui éjectent, et bien plus une <b>fourchette</b> (pousser dans les deux sens, ou plusieurs sumitos à la fois : l'adversaire n'en pare qu'un). Profils « Agressif v2 », « Normal v2 », « Défensif v2 ». La version 1 reste jouable telle quelle.<br><b>Version 2el</b> (« el » pour élaguer) : la 2, mais à chaque position, elle ne cherche que les <b>n</b> meilleurs coups (réglage <b>Élagage</b>, 10 au départ, avec − et +) : ceux qui donnent la meilleure valeur juste après le coup. Elle va donc bien plus loin dans le même temps, au risque de manquer un coup qui ne paie qu'après plusieurs coups. Son nom le dit : KAI2_Nor_5s_<b>v2el10</b>. Le tableau Recherche par 1er coup n'en montre plus que n. Trois profils de base l'ont déjà, avec 10 coups : <b>Agressif v2el</b>, <b>Normal v2el</b>, <b>Défensif v2el</b>.<br><b>Version 3</b> (version de travail, jouée par KAI++ ; KAI aussi, mais lentement) : la 2, plus trois choses. <b>Les cases</b> : chacune des 9 cases distinctes du plateau (<b>e5 d4 c4 c3 b4 b2 a3 a2 a1</b>, chacune valant aussi pour les cases qui lui ressemblent par rotation ou miroir) a une valeur en plus du Centre, pour une bille à soi, l'opposé pour une bille adverse ; au départ, les 2 couronnes éjectables sont négatives (b : −5, a : −10, coin a1 : −12). <b>La compacité</b> : la distance moyenne, en coups, entre ses billes deux à deux — plus elle est petite, plus le bloc est compact ; son poids compte par coup de distance de moins que l'adversaire. <b>Gain et Perte (score)</b> : chaque éjection déjà faite rend la suivante plus précieuse (la 2e prise rapporte Gain + Gain (score), la 3e Gain + 2 × Gain (score)…), de même pour les pertes : en fin de partie, la machine sait s'il vaut mieux attaquer ou se défendre. Profils <b>Agressif v3</b>, <b>Normal v3</b>, <b>Défensif v3</b> ; version <b>3el</b> pour élaguer.<br>Chaque poids a aussi sa <b>case</b> : décochée, il ne compte plus (0), recochée, il reprend sa valeur. <b>Version 5</b> (version de travail) : la 4, le poids <b>Sumito</b> séparé en trois, un par sorte de poussée — <b>Sumito 3/2</b>, <b>3/1</b>, <b>2/1</b> ; par défaut chacun vaut le Sumito de la 4, pour qu'elle joue d'abord exactement comme elle (profils … v5 et … v5el). <b>Version 4</b> (version de travail) : la 3, plus le <b>Piège</b> — chaque bille adverse des couronnes b et a qui ne peut faire aucun pas vers le centre (seule, avec ses amies en ligne, ou en poussant : le triangle a3 contre b3 b4 c4) rapporte ce poids, chacune des siennes le coûte. Le vrai piège (les deux camps jouent) est trop long pour chaque position : la version 4 n'en regarde que l'immobilité. Profils <b>Agressif v4</b>, <b>Normal v4</b>, <b>Défensif v4</b> ; version <b>4el</b> pour élaguer.<br>Dans le choix d'une machine (début de partie, boîte du nom), la petite liste devant le profil n'en montre qu'un <b>style</b> (Agr, Nor, Déf ou Tous), et chaque profil à vous est suivi de ses <b>anciennes versions</b> (« ↳ h2 · 03/10 14:10 »), jouables telles quelles (la machine s'appelle alors …_h2). Les boutons du bas de ces boîtes restent toujours visibles. Les profils de base sont rangés <b>par style</b>, puis par force : Agressif, Agressif v2, v2el, v3, v3el, v4, v4el, puis Normal…, puis Défensif… — pour opposer deux machines du même style en ne changeant que la version. Chaque version à partir de la 2 a son profil « el », qui garde ce marqueur quand on le retouche (Normal v3el_v2).<br><b>Livre d'ouvertures</b> : chaque profil dit s'il s'en sert (case Livre, coche par défaut) ; choisir le profil au début de la partie reprend sa case, que Réglages > Machine > Livre d'ouvertures peut interdire à toutes les machines.<br><b>Comparer</b> : tous les profils côte à côte ; les cases e5 à a1 y montrent la <b>valeur totale</b> d'une bille à soi sur elles (Centre × ses pas, plus sa valeur propre en version 3 ; le bord a ses poids à part) ; toucher le titre <b>Centre</b> cache ou montre les cases d4 à a2 (e5 et a1 restent) ; tirer le bord droit d'un titre élargit ou rétrécit sa colonne.<br><b>Sur ordinateur</b>, survoler une case affiche sa notation, ses coordonnées axiales et ce qui l'occupe ; le <b>clic droit</b> sur une bille ouvre son panneau, à côté du plateau sur la ligne e (à déplacer par son titre) : ce qu'elle apporte à chaque terme, de Gain à Fourchette (l'évaluation avec elle moins sans elle) et leur <b>total</b>, pour la machine et pour d'autres profils IA côte à côte ; puis sa distance moyenne aux siennes, la bille adverse la plus proche, si elle est poussée ou éjectable, et, pour une bille des couronnes b et a, son <b>Piège</b> : KAI++ cherche, les deux camps jouant (l'adversaire peut lui couper la route), si elle sort de la zone éjectable en 4 de ses coups au plus quoi que fasse l'adversaire — « sort en 2 coups, d'abord … », « piégée : aucune sortie en 4 coups », ou « piégée sur 3 coups (au-delà : trop long) » ; quelques secondes au plus, sans gêner la machine qui joue. La <b>Course</b> en est la mesure rapide, sans réponse de l'adversaire (les autres billes ne bougent pas). Le bouton <b>Aire</b> (vert ; orange pendant le dessin) : appuyer (bouton gauche ou droit de la souris) sur une case et glisser jusqu'à relâcher — 2 cases suffisent (une ligne, un sumito) —, le trait suit les cases survolées (et celles que la souris saute, en ligne droite : les 6 coins suffisent pour tout le plateau), le lien de fermeture apparaît en revenant sur la première, relâcher le ferme ; le bouton <b>Plateau</b> prend tout le plateau d'un coup (Échap annule ; le plateau ne joue pas pendant ce temps). Les billes des deux camps dans l'aire forment une position, évaluée terme par terme pour le camp de la bille — tout le plateau donne exactement l'évaluation de la machine. Pour chaque profil, deux colonnes : <b>seule</b> (l'aire comme si rien d'autre n'existait, ni les éjections de la partie : Gain et Perte y valent 0) et <b>avec l'ext.</b> (ce que les billes de l'aire apportent à toute la position : avec elles moins sans elles ; Gain et Perte : les éjections déjà faites dans la partie ; le réglage de chaque terme en gris, « +5000/+1000 ») — tout le plateau (bouton <b>Plateau</b>) y donne l'évaluation de la machine ; depuis une case vide, l'aire est celle du camp au trait ; le profil de la machine en orange. Un clic droit sur une bille adverse ouvre la même aire pour son camp, dans un 2e panneau collé au 1er. Les panneaux s'agrandissent ou rétrécissent par leur coin en bas à droite. Le bouton ⚙ choisit les termes, les profils, les mesures et les champs du survol.<br><b>Affiner les IA, c'est sur ordinateur</b> : le <b>Graphique</b> (son icône, avec Séquence/Commentaires/Occurrences, ou Réglages > Profil IA ; au-dessus de la Séquence) montre les courbes (chaque éjection en pointillé vertical : vert quand l'adversaire du camp choisi perd une bille, rouge quand c'est le camp choisi) et, sous elles, les <b>barres</b> du coup (chaque terme, sa valeur et sa part de l'évaluation) ; sa <b>poignée de gauche</b> élargit la colonne de droite aux dépens du plateau (comme celle de la Séquence), son coin en bas à droite l'allonge, et les barres se détachent par leur poignée pour se poser où l'on veut. Sur téléphone, trop petit, seulement un aperçu : les courbes, sans les barres.</li>
-        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI++ si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
-        <li>Le <b>nom d'un profil IA</b> se calcule de ses réglages : <b>Normal v5ElP2_v3</b> — le style, la version, <b>El</b> s'il élague, <b>P2</b> son jeu d'<b>ajouts</b> (chaque suffixe a sa majuscule : Sv, Ec, Ef… ; un même jeu garde toujours le même numéro, quelle que soit la version : si P2 = EcEf, alors v4ElP2 a aussi Ec et Ef), puis <b>_v3</b> son jeu de <b>poids</b> dans cette famille (le premier n'en a pas ; valider une retouche des poids prend le suivant, changer les ajouts change de P). Avec les phases au score (l'IA change de réglages selon le score : ouverture, milieu, fin), le seuil suit le P : <b>P6Ph2</b> (le milieu dès 2 billes sorties) ; Ph 1 et Ph 2 gardent le même P. La machine reprend ce nom : <b>KAI++8_Nor_30s_v5El10P2_v3</b> (niveau, réflexion, élagage) ; <b>_h2</b> : la version 2 de l'historique d'un profil retouché — la courante, ou une ancienne jouée telle quelle (« ↳ h2 » dans les listes) ; deux parties au même nom ont ainsi toujours les mêmes réglages. Survoler un profil montre ses ajouts en clair et, pour un profil d'avant ces noms, son ancien nom. Les numéros P des jeux d'ajouts des profils intégrés sont <b>les mêmes sur tous les appareils</b> (P1 à P6 : l'IA par défaut est partout Normal v5ElP6Ph2), pour comparer ; vos propres jeux d'ajouts, eux, s'appellent P<i>n</i>M<i>m</i> (ci-dessous). Au banc, ce qu'on fait varier s'abrège : ScGain80, E5+30, A1-10, Sv sans.</li>
+        <li>Sur le plateau, son nom est sur fond <b>vert</b>. Touchez son nom : <b>Arrêt de la machine</b> la fait jouer tout de suite son meilleur coup si elle réfléchit, puis elle ne joue plus (nom sur fond gris) — pour essayer un coup à sa place ; <b>Marche</b> la relance.<br>Tant que la boîte du nom est ouverte, la machine et les pendules sont <b>arrêtées</b> : elles reprennent en la fermant. La boîte montre son choix (KAI ou KAI++, niveau, profil IA, réflexion) et ses <b>poids</b> en colonne : le changer vaut pour la suite de la partie (son nom suit, sauf un nom que vous lui avez donné ; effacez-le pour qu'elle reprenne son nom automatique) ; <b>Humain</b> la remplace par un joueur.<br>Pour un humain, le bouton <b>IA</b> de la même boîte ouvre ce choix : une machine joue à sa place pour la suite. Le bouton <b>Suggestion</b> demande seulement son coup à la machine choisie (KAI++ si vous n'en choisissez pas) : il s'affiche dans Réflexion IA (« Sugg. → a1b2 », touchez-le pour le jouer), et le coup que vous jouez ensuite — celui-là ou un autre — reçoit la suggestion en commentaire, en rouge.</li>
+        <li>Le <b>nom d'un profil IA</b> se calcule de ses réglages : <b>Normal v5ElP2_v3</b> — le style, la version, <b>El</b> s'il élague, <b>P2</b> son jeu d'<b>ajouts</b> (chaque suffixe a sa majuscule : Sv, Ec, Ef… ; un même jeu garde toujours le même numéro, quelle que soit la version : si P2 = EcEf, alors v4ElP2 a aussi Ec et Ef), puis <b>_v3</b> son jeu de <b>poids</b> dans cette famille (le premier n'en a pas ; valider une retouche des poids prend le suivant, changer les ajouts change de P). Avec les phases au score (l'IA change de réglages selon le score : ouverture, milieu, fin), le seuil suit le P : <b>P6Ph2</b> (le milieu dès 2 billes sorties) ; Ph 1 et Ph 2 gardent le même P. La machine reprend ce nom : <b>KAI++8_Nor_30s_v5El10P2_v3</b> (niveau, réflexion, élagage) ; <b>_h2</b> : la version 2 de l'historique d'un profil retouché — la courante, ou une ancienne jouée telle quelle (« ↳ h2 » dans les listes) ; deux parties au même nom ont ainsi toujours les mêmes réglages. Survoler un profil montre ses ajouts en clair et, pour un profil d'avant ces noms, son ancien nom. Les numéros P des jeux d'ajouts des profils intégrés sont <b>les mêmes sur tous les appareils</b> (P1 à P8 : l'IA par défaut est partout Normal v5ElP8Ph2), pour comparer ; vos propres jeux d'ajouts, eux, s'appellent P<i>n</i>M<i>m</i> (ci-dessous). Au banc, ce qu'on fait varier s'abrège : ScGain80, E5+30, A1-10, Sv sans.</li>
         <!-- Saab, 2026-11-01 : « Au fait dans le tableau des suffixes et dans Aide, je ne vois pas l'explication de Mn de
              PnMn pour mes versions de poids » — un paragraphe a lui, et ceux de l'appareil en clair (interface/aide.js). -->
         <li><b>Vos jeux d'ajouts : P<i>n</i>M<i>m</i></b>. Cocher ou décocher des ajouts sur un profil (Réglages > Machine, chaque ajout écrit sur sa ligne : Pr, Et, Ech…) en fait un jeu à vous. Il prend le nom du jeu de KAAH le plus proche (P1 à P5), puis <b>M</b> et son numéro sur cet appareil : <b>P5M1</b> est la 1re modification de P5 vue ici, <b>P5M2</b> la 2e… (comme _k et _v pour les poids). La suite P1, P2… reste celle de KAAH : un jeu à vous que KAAH adopte devient le P suivant. Ces M sont propres à cet appareil (« Exporter tout » les emporte ; un profil importé reçoit ceux d'ici). Ceux de cet appareil, chacun avec ce qu'il retire (−) ou ajoute (+) à son P : <span id="aide-jeux-d-ajouts-a-soi"></span></li>
@@ -916,11 +925,11 @@
         <li><b data-icone="bouton-entrainement">Entraînement</b> : pour s'exercer. On choisit la ceinture qu'on veut (la blanche au départ, puis la dernière essayée), un jeu parmi ceux proposés, et on joue. Rien ne se gagne ni ne se perd ; tout est noté dans l'historique.</li>
         <li><b>Ceinture</b> : pour monter de grade. On part sans ceinture : la blanche se gagne aussi (un nouveau joueur la vise d'abord). On vise une ceinture (la suivante, ou plus loin) et on réussit sa série ; une fois obtenue, la blanche ne se perd plus ; les mêmes conditions de jeu qu'à l'Entraînement.</li>
         <li><b>Les grades</b> : 6 ceintures — blanche (celle de départ), jaune, orange, verte, bleue, marron —, puis les Dans : <b>noire</b> du 1er au 5e Dan, <b>blanche et rouge</b> du 6e au 8e, <b>rouge</b> 9e et 10e.</li>
-        <li><b>La boîte</b> : votre nom (obligatoire ; les noms déjà donnés sont dessous, ☆ pour un favori ; <b>C'est moi</b> : l'icône prend vos ceintures), <b>Variantes</b> ou <b>PZL</b>, le <b>Tableau des réglages</b>, l'<b>Historique</b>, puis le tableau de vos ceintures : la machine et les pendules de chaque grade, ou ses PZL.</li>
-        <li><b>Choisir un jeu</b> : touchez <b>🎯 visée</b> (ou <b>Choisir</b> en Entraînement) : les jeux proposés s'affichent sous la ceinture (📌 : imposé). Touchez un jeu pour le voir, puis lancez <b>Noir</b> ou <b>Blanc</b> (en PZL aussi : Noir d'abord — il joue le premier, vous cherchez vous-même le 1er bon coup). Au-dessus des jeux : l'<b>Objectif</b> de la ceinture, ce qu'on y apprend. En PZL, les billes du camp qui doit perdre sont petites dès le départ ; <b>Billes à leur taille</b> (sous le bandeau du PZL) les remet à leur taille, pour les PZL suivants aussi. Si des PZL sont ajoutés à une ceinture déjà acquise, <b>⚠ nouveaux PZL à valider</b> s'affiche sur la plus haute ceinture réussie : ils y sont proposés en Entraînement, validés dès qu'ils sont gagnés. Au chargement, une alerte rappelle le temps qui reste avant de devoir reconfirmer chaque ceinture.</li>
-        <li><b>La série</b> (réglage de départ) : un jeu (une variante, un PZL) à réussir, par une victoire ; une victoire = l'aller <b>et</b> la revanche (en PZL : Noir puis Blanc — avec le camp qui doit gagner, vous attaquez et la machine défend au mieux ; avec l'autre, vous défendez : réussi si vous tenez jusqu'au dernier tour), chaque fois dans une autre orientation. Sur 2 ou 3 jeux (les Dans blanche et rouge), chaque jeu réussi reste acquis ; un jeu imposé garde sa place dans la série.</li>
-        <li><b>Rater</b> : une défaite (ou une nulle) est un essai raté sur ce jeu ; ce qui est gagné reste. Au bout de 3 essais ratés, s'il y a eu au moins une nulle, une partie de plus est accordée : une nulle (ou une victoire) la réussit. Sinon, ce jeu repart de zéro (aux Dans blanche et rouge, toute la série) ; au bout de 3 jeux repartis de zéro, on redescend d'une ceinture. Une partie où vous n'avez joué aucun coup ne compte pas.</li>
-        <li><b>La confirmation</b> : la série réussie, il faut confirmer <b>chaque ceinture sautée</b>, dans l'ordre qu'on veut — sans saut, celle d'en dessous : ses jeux imposés (📌) que vous n'avez pas gagnés à la ceinture visée, tous (aller et revanche) ; s'ils y sont tous, elle est confirmée d'office (ex. en passant la jaune, la blanche demande ses PZL en ligne, que la jaune n'a pas). Une ceinture sans jeux imposés : un jeu gagné. Alors la ceinture visée est obtenue. Après plus de 30 jours (réglable) sans jouer à son grade ou plus haut, ce grade est à reconfirmer aussi ; 3 essais ratés, 3 fois, et l'on redescend.</li>
+        <li><b>La boîte</b> : votre nom (obligatoire en Ceinture ; en Entraînement, il peut attendre la fin du jeu, et laissé vide, la date le remplace ; les noms déjà donnés sont dessous, ☆ pour un favori, ✕ pour le retirer de la liste — ses parties, son historique et ses ceintures restent ; <b>C'est moi</b> : l'icône prend vos ceintures), <b>Variantes</b> ou <b>PZL</b>, le <b>Tableau des réglages</b>, l'<b>Historique</b>, puis le tableau de vos ceintures : la machine et les pendules de chaque grade, ou ses PZL.</li>
+        <li><b>Choisir un jeu</b> : touchez <b>🎯 visée</b> (ou <b>Choisir</b> en Entraînement) : les jeux proposés s'affichent sous la ceinture (📌 : imposé). Touchez un jeu pour le voir, puis lancez <b>Noir</b> ou <b>Blanc</b> (en PZL aussi : Noir d'abord — il joue le premier, vous cherchez vous-même le 1er bon coup). Au-dessus des jeux : l'<b>Objectif</b> de la ceinture, ce qu'on y apprend. En PZL, les billes du camp qui doit perdre sont petites dès le départ ; <b>Billes à leur taille</b> (sous le bandeau du PZL) les remet à leur taille, pour les PZL suivants aussi. Si des PZL sont ajoutés à une ceinture déjà acquise, <b>⚠ nouveaux PZL à valider</b> s'affiche sur la plus haute ceinture réussie : ils y sont proposés en Entraînement, validés dès qu'ils sont gagnés. Au chargement, une alerte rappelle le temps qui reste avant de redescendre d'une ceinture (90 jours sans jouer à son grade ou plus haut).</li>
+        <li><b>La série</b> (réglage de départ) : un jeu (une variante, un PZL) à réussir, par une victoire ; une victoire = l'aller <b>et</b> la revanche (en PZL : l'attaque d'abord, avec le camp qui doit gagner, et le solveur défend au mieux ; puis la défense, avec l'autre camp : réussi si vous tenez jusqu'au dernier tour), chaque fois dans une autre orientation. Sur 2 ou 3 jeux (les Dans blanche et rouge), chaque jeu réussi reste acquis ; un jeu imposé garde sa place dans la série.</li>
+        <li><b>Rater</b> : une défaite (ou une nulle) est un essai raté sur ce jeu ; ce qui est gagné reste. Au bout de 3 essais ratés, s'il y a eu au moins une nulle, une partie de plus est accordée : une nulle (ou une victoire) la réussit. Sinon, ce jeu repart de zéro (aux Dans blanche et rouge, toute la série) ; au bout de 3 jeux repartis de zéro, c'est l'<b>échec</b> de la ceinture visée : sa série repart de zéro, vous gardez la vôtre et la retentez quand vous voulez. Une partie où vous n'avez joué aucun coup ne compte pas.</li>
+        <li><b>La confirmation</b> : la série réussie, il faut confirmer <b>chaque ceinture sautée</b>, dans l'ordre qu'on veut — sans saut, celle d'en dessous : ses jeux imposés (📌) que vous n'avez pas gagnés à la ceinture visée, tous (aller et revanche) ; s'ils y sont tous, elle est confirmée d'office (ex. en passant la jaune, la blanche demande ses PZL en ligne, que la jaune n'a pas). Une ceinture sans jeux imposés : un jeu gagné. Alors la ceinture visée est obtenue. Après plus de 90 jours (réglable) sans jouer à son grade ou plus haut, on redescend d'une ceinture, une seule fois même après une très longue pause : la ceinture perdue devient la visée, à repasser (avec la confirmation d'en dessous), et la série qu'on visait reprend là où elle en était.</li>
         <li><b>La machine et les pendules</b> (Variantes) : la machine est l'IA par défaut (son style, sa version, ses poids) ; jusqu'à la marron, elle joue au niveau du grade (1 à 6) en ne cherchant, à chaque position, que ses meilleurs coups (le niveau + 1 : 2 coups au niveau 1), avec 5:00 sans bonus ; vous, de 15:00 (Bonus +2 s, +2 s par éjection) à 7:00 (Délai 2 s). Aux Dans, la machine joue au niveau 8, sans limite de temps (∞) ni élagage ; votre temps baisse de 5:00 à 2:30. Aux ceintures rouges, vous partez avec 1 puis 2 billes éjectées. Si la machine perd au temps, elle a 1 minute de plus à sa prochaine partie de la même couleur. Pour ne pas attendre la machine pour rien (elle peut réfléchir longtemps aux Dans) : touchez <b>sa pendule</b> — elle passe en <b>orange</b> et la machine continue de chercher ; quand elle a trouvé, sa pendule passe au <b>vert</b>, son coup attend et le temps est arrêté ; touchez-la pour jouer son coup et reprendre (sans limite ; touchée encore en orange, la demande s'annule). <b>Votre pendule</b>, elle, met la partie en pause (le gros bouton).</li>
         <li><b>Les PZL par grade</b> : Mini 2 tours (blanche), 2 tours, Mini 3, 3, Mini 4, 4 tours (marron), puis 5, 6, 7 tours et plus (1er au 3e Dan), puis les plus difficiles avec un temps par puzzle (de 3:00 à 1:00) et, aux rouges, sans Annuler. La pendule des PZL se règle à part de celle des Variantes (son mode Bonus ou Délai, son bonus, son délai). Seulement les PZL à solution unique, sauf si la règle « Aussi les PZL à plusieurs solutions » est cochée ; les PZL douteux (⚠ dans la liste des PZL d'un grade) ne sont jamais proposés d'eux-mêmes.</li>
         <li><b>Pendant un jeu</b> : le plateau seul (Conseils, Menaces, Séquence, Commentaires, Occurrences et Réglages bloqués ; évaluation et réflexion de la machine cachées), pas d'IA ni de Suggestion pour soi, 3 pauses au plus (« plus que 2 » sur le gros bouton Pause ; seule votre pendule met en pause, celle de la machine fait attendre son coup), la navigation grisée jusqu'à la fin (pas de branche pour chercher la solution), et Annuler une seule fois par coup, comme dans toutes les parties.</li>
@@ -971,6 +980,7 @@
         <li>Le calcul commence <b>dès que vous sortez d'un chemin déjà connu</b>, sans attendre la fin : quelques secondes pour un puzzle court, jusqu'à une vingtaine sur ordinateur pour un puzzle à 6 tours (davantage sur un téléphone).</li>
         <li>Une solution confirmée est mise en cache : la suivante, identique, est reconnue tout de suite.</li>
         <li>« C'est peut-être la solution... » (orange) : le calcul a dépassé sa limite de temps, rien n'est prouvé ni dans un sens ni dans l'autre.</li>
+        <li class="seulement-version-de-travail banc-ordinateur"><b data-icone="bouton-solveur-position">Solveur</b> (version de travail, sur ordinateur, au-dessus de Test) : le solveur sur la <b>position affichée</b>, dans un panneau de la colonne de droite (sous les Conseils ; l'icône l'ouvre et le ferme). Choisissez qui doit gagner (au départ, le camp au trait), jusqu'à combien de tours chercher et le temps laissé à chaque recherche (il suit les tours maxi, à peu près ce qu'il faut sur une position pleine, puis se change à la main), puis <b>Chercher</b>, comme le solveur de KAAWA : le gain forcé le plus court, une ligne par tour (1 tour, puis 2…), puis le <b>tableau de recherche</b> : chaque premier coup du camp au trait, jugé par le solveur au fur et à mesure (« gagne en 3 », « pas en 3 » ; le perdant au trait : « meilleure défense », ou « perd plus vite » quand le gagnant gagne alors plus tôt), et chaque solution avec sa <b>séquence</b> dès qu'elle est trouvée, chaque coup accepté par le solveur (pour le perdant, sa meilleure défense). Par défaut, la recherche s'arrête à la première solution ; <b>Chercher toutes les solutions</b> (plus long) les juge toutes, donne le nombre de solutions et, le perdant au trait, en combien de tours chaque défense qui « perd plus vite » est battue, avec sa séquence. À la fin, les solutions passent en tête, en vert, la plus longue séquence d'abord. Un clic sur une ligne qui a une séquence la montre sur le <b>petit plateau</b>. <b>Perd</b> (à la place de Noir ou Blanc) : les coups du camp au trait qui <b>perdent</b>, ceux après lesquels l'adversaire gagne de force en Tours maxi ou moins (« perd en 2 », avec sa séquence) ; les autres « tiennent » : ce sont eux à essayer, même quand l'adversaire n'a pas de gain forcé au départ (Gagne laisse alors le tableau vide). Plus long que Gagne : une recherche par coup. Le haut du panneau suit le plateau (la position que cherchera le prochain <b>Chercher</b>), même pendant une partie qui se joue ; les résultats restent jusqu'à la recherche suivante, avec la position cherchée. Sans gain forcé dans les tours maxi, le tableau reste vide : il n'y a aucun coup à juger.<br><b>Créer le PZL My</b> ouvre la boîte d'un nouveau puzzle déjà remplie (position, tours, séquences des solutions ; le nombre de solutions, dans le nom, seulement si toutes ont été cherchées) : il reste à le nommer et à l'enregistrer.<br>Sur une position pleine, 4 tours se prouvent en quelques secondes, 5 en une minute environ, 6 en plusieurs minutes ; avec peu de billes (mini PZL), bien plus loin (jusqu'à 30 tours maxi). <b>Arrêter</b> coupe une recherche trop longue.</li>
       </ul>
     </details>
 
@@ -1319,7 +1329,14 @@
         <label class="ligne-couleur poids-ajout" title="Ajout es (KAI++) : les coups suivants de la machine qui cherche (son coup d'après : 2 ; et le suivant : 4) sont classés après la réponse de l'adversaire, comme er pour les premiers coups. Plus lent">Élagage, coups suivants (es) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageSuite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout ef (KAI++) : dès qu'un camp a ce nombre de billes éjectées, la machine n'élague plus (elle regarde tous les coups) — en fin de partie, les combinaisons forcées que l'élagage jetait sont vues. 0 : jamais">Élagage coupé en fin de partie (ef) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageFin" class="nombre-reglage" type="number" step="1" min="0" max="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout fn (KAI++) : ef seulement jusqu'à ce niveau ; au-delà, la machine élague même en fin de partie (au niveau 8, sans élagage, la profondeur ne finit plus en 30 s). 0 : ef à tous les niveaux">ef jusqu'au niveau (fn) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageFinNiveau" class="nombre-reglage" type="number" step="1" min="0" max="10" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+         <!-- Saab, 2026-11-06 : « Oui, bonne idée » — l'ajout Ms (moteur/ia-phase.js, reglageDeLaPhase). -->
+         <label class="ligne-couleur poids-ajout" title="Ajout Ms (mort subite) : quand les deux camps ont 5 billes sorties (la prochaine éjection gagne), la machine cherche au plus à ce niveau, sans élagage — en mort subite, la machine marron (niveau 6, sans élagage) a battu KAI++8 élagué à 10 six fois sur six, et KAI++8 sans élagage mettait de 32 s à plus de 3 min par coup. Jamais dans un PZL">Mort subite : niveau, sans élagage (Ms) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-niveauMortSubite" class="nombre-reglage" type="number" step="1" min="1" max="10" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Eg (KAI++) : en plus de ses el meilleurs coups, l'élagage garde toujours les éjections (1), ou toutes les poussées (2) — la valeur juste après une éjection perd la menace qu'elle comptait déjà, et l'élagage la jetait. 0 : rien de plus">L'élagage garde (Eg) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageGarde" class="nombre-reglage" type="number" step="1" min="0" max="2" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-11-07 : « on n'a pas un suffixe qui ne fait pas d'élagage sur les profondeur 1 à n » ; « on pourrait lui donner
+             une limite aussi pour moins ralentir » — les ajouts Ed et Dp (solveur/kai-plus.cpp, elagage_a_la_distance). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Ed (KAI++) : au début de la recherche, l'élagage garde ce nombre de coups au lieu de el (99 : tous) — des coups que l'élagage du profil jetait peuvent alors être joués. Plus lent : environ 2 fois pour tous les premiers coups">Élagage au début (Ed) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageDebut" class="nombre-reglage" type="number" step="1" min="0" max="99" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Dp (KAI++) : Ed vaut sur ce nombre de demi-coups (1 : les premiers coups de la machine ; 2 : aussi les réponses de l'adversaire, bien plus lent)">Ed, demi-coups (Dp) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-elagageDebutPlis" class="nombre-reglage" type="number" step="1" min="1" max="4" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Nr (KAI++) : 1, l'élagage garde toujours les coups qui font nulle par répétition (la position déjà vue deux fois). Il les jetait : sur le plateau ils ne valent rien de plus. Le meneur voit alors venir la répétition et l'évite ; le mené la trouve plus loin, et la cherche quand il est dominé. 0 : comme avant">Répétitions gardées (Nr) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-repetitionsGardees" class="nombre-reglage" type="number" step="1" min="0" max="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <!-- Saab, 2026-11-01 : « si on remet par défaut P5 on aura tjs le même pb du bloc qui n'éjecte plus » — l'ajout
              Et (solveur/kai-plus.cpp, bonus_de_l_ejection_tot). -->
         <label class="ligne-couleur poids-ajout" title="Ajout Et (KAI++) : chaque éjection de la machine qui cherche rapporte en plus ce poids fois les demi-coups qui restaient à chercher — plus tôt elle vient, plus elle vaut (au niveau 6, tout de suite : 6 fois ; deux demi-coups plus tard : 4 fois), et l'élagage garde ses éjections. Pour qu'un bloc éjecte au lieu de garder ses menaces. 0 : rien">Éjection au plus tôt (Et) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-ejectionTot" class="nombre-reglage" type="number" step="1" min="0" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1336,6 +1353,8 @@
         <label class="ligne-couleur poids-ajout ligne-phases" title="Ajout Ct (centre tenu) : tant que la machine a moins de Ct billes sur e5 et ses 6 voisines, elle joue ce profil ; dès qu'elle les a, le profil du milieu choisi à côté (une copie : le changer ou le supprimer ensuite ne change rien ici) ; elle revient à ce profil si elle perd le centre. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit lequel elle joue">Centre tenu (Ct) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centreTenu" class="nombre-reglage" type="number" step="1" min="1" max="7" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <span class="listes-des-phases"><select id="select-profil-milieu-ia" title="Le profil du milieu : ses réglages sont copiés dans ce profil quand on le choisit"></select></span></label>
         <!-- Saab, 2026-11-04 : l'ajout Ph, les phases au score (moteur/ia-phase.js) — et les copies des profils de fin. -->
         <label class="ligne-couleur poids-ajout ligne-phases" title="Ajout Ph (phases au score) : ce profil joue l'ouverture, jusqu'à Ph billes sorties, les deux camps ensemble (1 : la première bille sortie la finit ; 2 : elle en fait encore partie). Ensuite le profil du milieu (la liste de Centre tenu, juste au-dessus). Dès qu'un camp a perdu 4 billes, le profil de fin, ou celui de fin en avance si le camp qui joue mène ; ce dernier aussi dès 3 billes d'avance en bonne position (groupé, au plus 1 bille dehors, face à un camp coupé). Des copies : les changer ou les supprimer ensuite ne change rien ici. Sans copie pour une phase, celle de la phase d'avant. Jamais dans un PZL. Le cadre de son évaluation, à côté du plateau, dit laquelle il joue">Phases au score (Ph) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-phasesAuScore" class="nombre-reglage" type="number" step="1" min="1" max="2" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span> <span class="listes-des-phases"><select id="select-profil-fin-ia" title="Le profil de fin : ses réglages sont copiés dans ce profil quand on le choisit"></select> <select id="select-profil-fin-avance-ia" title="Le profil de fin quand le camp qui joue mène : ses réglages sont copiés dans ce profil quand on le choisit"></select></span></label>
+        <!-- Saab, 2026-11-11 : « ok » — l'ajout Fa, la fin en avance selon l'avance (moteur/ia-phase.js, phaseAuScore). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Fa, avec Ph : le profil de fin en avance (celui qui sacrifie des billes) joue dès que le camp qui joue mène de Fa billes, quelle que soit la position, et jamais en dessous : en dessous, le profil du milieu, ou celui de fin si un camp a perdu 4 billes. Aux essais 69 à 73, le meneur qui sacrifiait perdait toutes ses parties perdues en sacrifiant encore à 1 bille d'avance, puis à égalité">Fin en avance dès ces billes d'avance (Fa) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-avancePourLaFinEnAvance" class="nombre-reglage" type="number" step="1" min="1" max="5" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Par paire de ses billes voisines">Cohésion <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-cohesion" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-3" title="La distance moyenne, en coups, entre ses billes deux à deux : plus elle est petite, plus le bloc est compact. Ce poids par coup de distance en moins que l'adversaire">Compacité <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-compacite" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout Gs (KAI++) : chaque groupe de billes voisines en plus du premier (une bille seule compte pour un groupe) coûte ce poids, et le rapporte chez l'adversaire — pour ne pas se disperser">Groupes séparés (Gs) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-groupesSepares" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1349,6 +1368,13 @@
              (moteur/ia-groupe-principal.js). -->
         <label class="ligne-couleur poids-ajout" title="Ajout Hp (KAI++) : chaque bille en dehors de mon plus grand groupe de billes voisines coûte ce poids (négatif), et le rapporte chez l'adversaire — Gs ne paie que la réunion complète, Hp chaque bille ramenée">Hors du groupe principal (Hp) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesHorsDuGroupePrincipal" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-ajout" title="Ajout He (KAI++) : Hp qui grandit avec l'écart au score : chaque bille hors du groupe principal coûte encore ce poids (négatif) par bille d'écart, et le rapporte chez l'adversaire ; à égalité au score, il ne compte pas. Avec Hp −20 et He −20 : −40 à 1 bille d'écart, −60 à 2, −80 à 3">Hors du groupe, par bille d'écart au score (He) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesHorsDuGroupeSelonLEcart" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Co (KAI++) : le coin du bloc adverse le moins au bord (une bille du bloc qui a au plus 3 voisines dans le bloc, au plus près du centre) ; chaque axe de ce coin où l'on a une ligne de 3 billes qui le vise compte, au carré (1, 4, 9 : l'adversaire ne pare pas tout), fois ce poids, et contre soi chez l'adversaire — seulement pour le camp qui mène de 3 billes ou plus (avec 2, l'adversaire peut toujours bloquer)">Coin du bloc adverse (Co) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-lignesSurLeCoin" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Ca (KAI++) : comme Co, mais un axe du coin ne compte que si sa ligne de 3 billes peut le POUSSER tout de suite (derrière le coin, 1 ou 2 billes adverses puis une case vide ou le bord) ; au carré, fois ce poids, contre soi chez l'adversaire, seulement pour le camp qui mène de 3 billes ou plus — il récompense une position d'où l'on pousse, pas une position à garder">Coin attaqué (Ca) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-lignesQuiPoussentLeCoin" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <label class="ligne-couleur poids-ajout" title="Ajout Ce (KAI++) : quand l'adversaire tient e5, chaque axe de e5 où l'on a une ligne de 3 billes qui le vise compte 3 billes, jusqu'à 2 axes ; une fois ces 2 axes pleins, le 3e compte ses billes alignées vers e5, au plus 2 (en attente : le remplir ne rapporte rien de plus) ; fois ce poids, contre soi chez l'adversaire, seulement pour le camp qui mène de 3 billes ou plus. Coché, Co et Ca visent alors un coin ailleurs que e5 et ses voisines">Centre adverse (Ce) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-centreAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-11-11 : « Prendre e5, c'est le contrôler au maximum » ; « ok » — l'ajout Cc (moteur/ia-coin.js, termeDuControleDuCentre). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Cc (KAI++) : quand on tient e5 face à un adversaire en bloc (au plus 1 bille hors de son groupe principal), sur chacun des 3 axes de e5, la ligne de ses billes qui passe par e5 compte jusqu'à 3 billes (à 3, e5 ne se pousse plus sur cet axe) ; fois ce poids, contre soi quand l'adversaire tient e5, quel que soit le score. Les 3 axes pleins : 9 billes, e5 imprenable. Quand l'adversaire n'est plus en bloc, rien : quitter e5 ne coûte plus. À garder sous la valeur d'une bille, pour qu'un 3/2 qui éjecte depuis e5 reste joué">Contrôle du centre (Cc) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-controleDuCentre" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
+        <!-- Saab, 2026-11-11 : « Dans ULA il compte les billes amies » ; « Donc tu vois pour les billes amies? » — l'ajout Ba (moteur/ia-groupe-principal.js, termeDesBillesAmies). -->
+        <label class="ligne-couleur poids-ajout" title="Ajout Ba (KAI++), les billes amies d'ULA : chaque bille vaut selon le nombre de ses voisines de son camp, la table de debutsaab9 (Réglages ULA) — 0 amie −2, 1 : 0, 2 : 1, 3 : 3, 4 : 5, 5 : 6, 6 : 7 (le cœur d'une marguerite) ; la somme de ses billes moins celle de l'adversaire, fois ce poids. La Cohésion paie chaque paire de voisines au même prix ; Ba paie surtout la bille très entourée, et fait payer la bille seule">Billes amies (Ba) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-billesAmies" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Pénalité par bille à soi sur le bord">Bord (les miennes) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordSoi" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur" title="Bonus par bille adverse sur le bord">Bord (adverses) <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-bordAdverse" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
         <label class="ligne-couleur poids-version-2" title="Par sumito possible (les siens comptent pour elle, ceux de l'adversaire contre elle)">Sumito <span class="nombre-avec-boutons"><button class="bouton-pas" type="button" data-pas="-1" aria-label="Moins">−</button><input id="poids-ia-sumito" class="nombre-reglage" type="number" step="1" /><button class="bouton-pas" type="button" data-pas="1" aria-label="Plus">+</button></span></label>
@@ -1534,7 +1560,7 @@
              version de travail seulement. -->
         <div class="seulement-version-de-travail banc-mode-ceintures">
           <p class="banc-titre">Ceintures des IA</p>
-          <p class="note-reglages">Chaque profil coché (son niveau, sa réflexion) part sans ceinture (la blanche à gagner d'abord) et suit le parcours d'un joueur — les règles et les machines du profil d'Entraînement actif — jusqu'à sa première régression : sa plus haute ceinture lui est attribuée. Long : une série, c'est déjà plusieurs parties entières.</p>
+          <p class="note-reglages">Chaque profil coché (son niveau, sa réflexion) part sans ceinture (la blanche à gagner d'abord) et suit le parcours d'un joueur — les règles et les machines du profil d'Entraînement actif — jusqu'à son premier échec : sa plus haute ceinture lui est attribuée. Long : une série, c'est déjà plusieurs parties entières.</p>
           <label class="ligne-reglage"><input id="banc-ceintures-variantes" type="checkbox" checked /> Variantes</label>
           <label class="ligne-reglage"><input id="banc-ceintures-pzl" type="checkbox" checked /> PZL</label>
           <label class="ligne-reglage" title="Plus haut que la jaune : la série se joue tout de suite à ce grade, puis chaque ceinture sautée est à confirmer">Viser d'abord <select id="banc-ceintures-cible"></select></label>
@@ -1894,11 +1920,29 @@
     </div>
   </dialog>
 
+  <!-- Importer des variantes cochees (saab, 2026-11-08 : « il faudrait que je puisse charger que ce que je veux » ;
+       interface/import-variantes.js). -->
+  <dialog id="dialogue-import-variantes" class="dialogue">
+    <h2>Importer des variantes</h2>
+    <p id="fichier-import-variantes" class="note-reglages"></p>
+    <label class="ligne-reglage"><input id="case-tout-cocher-variantes" type="checkbox" /> Tout cocher</label>
+    <div id="liste-import-variantes" class="liste-import-parties"></div>
+    <p id="message-import-variantes" class="note-reglages message-import-parties"></p>
+    <div class="boutons-dialogue-cote-a-cote">
+      <button id="bouton-importer-variantes-cochees" class="bouton-dialogue bouton-a-faire" type="button" title="Ajoute les variantes cochées à vos variantes My">Importer</button>
+      <button id="bouton-fermer-import-variantes" class="bouton-dialogue" type="button" title="Ferme cette fenêtre sans rien importer">Fermer</button>
+    </div>
+  </dialog>
+
   <dialog id="dialogue-noms-fin" class="dialogue">
     <h2>Partie finie : les noms</h2>
-    <p class="note-reglages">Un champ vide garde son nom (Joueur_1, Joueur_2).</p>
+    <p id="note-noms-fin" class="note-reglages">Un champ vide garde son nom (Joueur_1, Joueur_2).</p>
     <label id="ligne-nom-fin-blanc" class="ligne-nom-fin" data-camp="blanc"><span>Blanc</span><input type="text" maxlength="30" autocomplete="off" placeholder="Joueur_2" title="Le nom de Blanc : vide, il reste Joueur_2" /></label>
+    <div id="noms-connus-fin-blanc" class="noms-connus" hidden></div>
     <label id="ligne-nom-fin-noir" class="ligne-nom-fin" data-camp="noir"><span>Noir</span><input type="text" maxlength="30" autocomplete="off" placeholder="Joueur_1" title="Le nom de Noir : vide, il reste Joueur_1" /></label>
+    <!-- Les noms deja donnes, a toucher, sous chaque champ (saab, 2026-11-07 : « En fin de partie, la boite Nom de joueur si pas
+         nommé ne propose pas la liste des joueurs, elle y est bien en début » ; interface/noms-connus.js). -->
+    <div id="noms-connus-fin-noir" class="noms-connus" hidden></div>
     <button id="bouton-valider-noms-fin" class="bouton-dialogue bouton-a-faire" type="button" title="Garde les noms tapés ; un champ vide garde son nom">Valider</button>
   </dialog>
 
@@ -1929,7 +1973,7 @@
       </div>
       <div id="choix-ia-nom-joueur" class="choix-joueur" hidden>
         <!-- Saab, 2026-11-04 : changer le profil avant Same changeait le titre de la partie finie, sans rien dire. -->
-        <p id="note-partie-finie-nom-joueur" class="note-reglages" hidden>Partie finie : elle garde son titre et la machine qui l'a jouée. Votre choix vaudra pour une branche et pour la partie suivante (Same, Revanche).</p>
+        <p id="note-partie-finie-nom-joueur" class="note-reglages" hidden>Partie finie : elle garde son titre, ses noms et la machine qui l'a jouée. Votre choix (nom ou machine) vaudra pour une branche et pour la partie suivante (Same, Revanche).</p>
         <div class="ligne-choix-machine">
           <span>Joueur</span>
           <button class="bouton-filtre" type="button" data-role="humain" title="Ce joueur est un humain">Humain</button>
@@ -2079,6 +2123,8 @@
           <button type="button" data-bouton-plateau="nav-lecture" title="Lecture : jouer la séquence coup après coup">▶&#xFE0E;</button>
           <button type="button" data-bouton-plateau="nav-suivant" title="Coup suivant">&gt;&gt;</button>
           <button type="button" data-bouton-plateau="nav-fin" title="Aller au dernier coup">&gt;&gt;|</button>
+          <button type="button" data-bouton-plateau="nav-ejection-precedente" title="Éjection précédente">&lt;●</button>
+          <button type="button" data-bouton-plateau="nav-ejection-suivante" title="Éjection suivante">●&gt;</button>
         </div>
     </details>
     <!-- Rappel (phase 27) : visible tant qu'aucune pendule n'a ete touchee
@@ -2129,6 +2175,9 @@
     <button id="nav-lecture" title="Lecture : jouer la séquence coup après coup">▶&#xFE0E;</button>
     <button id="nav-suivant" title="Coup suivant">&gt;&gt;</button>
     <button id="nav-fin" title="Aller au dernier coup">&gt;&gt;|</button>
+    <!-- L'ejection precedente et suivante sur la ligne regardee (saab, 2026-11-10 ; moteur/resume-sequence.js, cheminDeLEjection). -->
+    <button id="nav-ejection-precedente" title="Éjection précédente (le dernier coup où une bille est sortie, avant celui-ci)">&lt;●</button>
+    <button id="nav-ejection-suivante" title="Éjection suivante (le prochain coup de cette ligne où une bille sort)">●&gt;</button>
     <!-- Sur ordinateur, la barre monte ou descend entre les tableaux (saab,
          2026-10-06 ; interface/navigation-colonne.js). -->
     <button id="nav-monter" class="bouton-place-navigation" title="Monter la barre au-dessus du tableau précédent">▲&#xFE0E;</button>
@@ -2239,6 +2288,8 @@
       <div id="commentaires-barre" hidden>
         <button id="commentaires-repli-tout" type="button" title="Replie tous les commentaires">▼ Tout replier</button>
         <input id="commentaires-recherche" type="text" placeholder="Recherche... (ex: occ)" />
+        <button id="commentaires-seulement" type="button" title="Seulement les coups qui ont un commentaire">Commentés</button>
+        <button id="commentaires-resume" type="button" title="Résumé, le même que dans la Séquence : seulement les coups qui portent le nom d'une IA, les débuts de branche et les fins">Résumé</button>
         <button id="commentaires-copier" type="button" title="Copie les commentaires dans le presse-papier">Copier</button>
       </div>
       <!-- Copie de la sequence (kaa_tab_manager_ClO_Co.py : "Copie séquence
@@ -2247,6 +2298,9 @@
       <div id="sequence-barre">
         <button id="copie-sequence-nacre" type="button" title="Copier la suite des coups en notation Nacre">Copie séquence Nacre</button>
         <button id="copie-sequence-abapro" type="button" title="Copier la suite des coups en notation AbaPro">Copie séquence AP</button>
+        <!-- Le resume et les branches de branche (saab, 2026-11-10 ; interface/sequence.js, moteur/resume-sequence.js). -->
+        <button id="sequence-resume" type="button" title="Résumé : seulement les coups qui portent le nom d'une IA, les débuts de branche et les fins — le nom de l'IA en vert si elle gagne, rouge si elle perd, bleu nulle, violet si ses branches finissent différemment">Résumé</button>
+        <button id="sequence-br-de-br" type="button" class="arbre-repli-replier" title="Replier les branches ouvertes à l'intérieur d'une branche">▼ Br de Br</button>
       </div>
       <div id="arbre"></div>
       <div id="commentaires-liste" hidden></div>
@@ -2270,6 +2324,7 @@
          fait maintenant les deux a lui seul, comme Commentaires/Occurrences/
          Sequence — un seul bouton par panneau dans toute la colonne. -->
     <div id="panneau-conseils" hidden>
+      <div class="poignee-largeur-panneau" title="Glisser vers la gauche : la colonne s'élargit, le plateau rétrécit (vers la droite : l'inverse)"></div>
       <div class="entete-conseils"><h2>Conseils</h2><button id="bouton-fermer-conseils" class="bouton-dialogue" type="button" title="Ferme les Conseils (l'ampoule les rouvre)">Fermer</button></div>
       <!-- Coup, Gagne, Nul, Perdu — cet ordre precis (Nul avant Perdu) demande
            par saab, voir interface/next-move.js. En-tete fixe, jamais
@@ -2286,6 +2341,38 @@
         <span>Coup</span><span>G</span><span>N</span><span>P</span>
       </div>
       <div id="liste-conseils" class="liste-dialogue"></div>
+      <div class="poignee-hauteur-panneau" title="Glisser pour changer la hauteur des Conseils"></div>
+    </div>
+
+    <!-- Le Solveur sur la position affichee (saab, 2026-11-06 : « il faudrait mettre dans la colonne de droite le
+         tableau de recherche du solveur ») : un panneau de cette colonne, comme Conseils ; version de travail, sur
+         ordinateur (interface/solveur-position.js). Le camp qui doit gagner (au depart, celui au trait), jusqu'a
+         combien de tours chercher, le temps laisse a chaque recherche, toutes les solutions ou la premiere ; puis le
+         tableau de recherche, un premier coup par ligne, avec la sequence de chaque solution (un clic la montre sur le
+         petit plateau). -->
+    <div id="panneau-solveur-position" class="seulement-version-de-travail banc-ordinateur" hidden>
+      <div class="poignee-largeur-panneau" title="Glisser vers la gauche : la colonne s'élargit, le plateau rétrécit (vers la droite : l'inverse)"></div>
+      <div class="entete-conseils"><h2>Solveur</h2><button id="bouton-fermer-solveur-position" class="bouton-dialogue" type="button" title="Ferme le Solveur (une recherche en cours continue ; l'icône Solveur le rouvre)">Fermer</button></div>
+      <p id="position-solveur-position" class="position-solveur-position"></p>
+      <div class="ligne-solveur-position">
+        <span>Gagne</span>
+        <button class="bouton-filtre" type="button" data-gagnant="noir" title="Noir doit gagner">Noir</button>
+        <button class="bouton-filtre" type="button" data-gagnant="blanc" title="Blanc doit gagner">Blanc</button>
+        <button id="bouton-perd-solveur-position" class="bouton-filtre" type="button" title="Le camp au trait : ses coups qui perdent (l'adversaire gagne en Tours maxi ou moins) ; les autres tiennent, ce sont eux à essayer. Plus long que Gagne : une recherche par coup">Perd</button>
+        <label title="Le solveur essaie 1 tour, puis 2… jusqu'à ce nombre : sur une position pleine, 4 tours en quelques secondes, 5 en une minute environ, 6 en plusieurs minutes ; avec peu de billes (mini PZL), bien plus loin. Arrêter coupe une recherche trop longue">Tours maxi <input id="tours-max-solveur-position" class="nombre-reglage" type="number" min="1" max="30" value="5" /></label>
+        <label title="Le temps laissé au solveur pour chaque recherche ; au-delà, rien n'est prouvé. Il suit Tours maxi (à peu près ce qu'il faut sur une position pleine), puis se change à la main">Temps max <input id="minutes-solveur-position" class="nombre-reglage" type="number" min="1" max="120" value="5" /> min</label>
+        <label title="Plus long : chaque premier coup est jugé, chaque solution reçoit sa séquence, et le nombre de solutions entre dans le nom du PZL. Sinon, le solveur s'arrête à la première solution"><input id="toutes-solveur-position" type="checkbox" /> Chercher toutes les solutions</label>
+      </div>
+      <div class="ligne-solveur-position">
+        <button id="bouton-chercher-solveur-position" class="bouton-dialogue bouton-a-faire" type="button" title="Lance le solveur sur cette position">Chercher</button>
+        <button id="bouton-arreter-solveur-position" class="bouton-dialogue bouton-danger" type="button" hidden title="Arrête la recherche en cours">Arrêter</button>
+        <button id="bouton-pzl-solveur-position" class="bouton-dialogue bouton-a-faire" type="button" disabled title="Ouvre la boîte d'un nouveau PZL My, déjà remplie : position, tours, solutions et séquence">Créer le PZL My</button>
+      </div>
+      <p id="etat-solveur-position" class="note-reglages"></p>
+      <div id="resultat-solveur-position" class="resultat-solveur-position"></div>
+      <div class="ligne-liste ligne-solveur ligne-conseil-entete"><span>Coup</span><span>Solveur</span></div>
+      <div id="liste-solveur-position" class="liste-dialogue"></div>
+      <div class="poignee-hauteur-panneau" title="Glisser pour changer la hauteur du Solveur"></div>
     </div>
 
     <!-- Panneau "Occurrences" (phase 18, suite) : Occ/Ref (la sequence en
@@ -2302,9 +2389,11 @@
            portrait. Voir interface/occurrences.js,
            activerRedimensionnementOccurrencesPortrait. -->
       <div id="occurrences-poignee-hauteur" title="Glisser pour changer la hauteur maximale des occurrences"></div>
+      <div class="poignee-largeur-panneau" title="Glisser vers la gauche : la colonne s'élargit, le plateau rétrécit (vers la droite : l'inverse)"></div>
       <h2>Occurrences</h2>
       <div id="occurrences-entete"></div>
       <div id="liste-occurrences"></div>
+      <div class="poignee-hauteur-panneau" title="Glisser pour changer la hauteur des Occurrences"></div>
     </div>
   </div>
 
@@ -2321,6 +2410,7 @@
   <script src="./moteur/partie.js"></script>
   <script src="./moteur/position-calme.js"></script>
   <script src="./moteur/arbre.js"></script>
+  <script src="./moteur/resume-sequence.js"></script>
   <script src="./moteur/bilan-sequence.js"></script>
   <script src="./moteur/historique-navigation.js"></script>
   <script src="./moteur/notation.js"></script>
@@ -2345,6 +2435,7 @@
   <script src="./moteur/ia-poussees.js"></script>
   <script src="./moteur/ia-triangles.js"></script>
   <script src="./moteur/ia-groupe-principal.js"></script>
+  <script src="./moteur/ia-coin.js"></script>
   <script src="./moteur/ia-etendue.js"></script>
   <script src="./moteur/ia-ajouts.js"></script>
   <!-- Les groupes de l'evaluation : l'ordre des reglages et des termes, avant ceux qui les listent. -->
@@ -2459,6 +2550,7 @@
   <script src="./interface/apercu-test.js"></script>
   <script src="./interface/sauvegarde-complete.js"></script>
   <script src="./interface/import-parties.js"></script>
+  <script src="./interface/import-variantes.js"></script>
   <script src="./interface/stockage-plein.js"></script>
   <script src="./interface/objectifs-ceintures.js"></script>
   <script src="./interface/entrainement-ceintures.js"></script>
@@ -2497,6 +2589,7 @@
   <script src="./moteur/banc-noms.js"></script>
   <script src="./moteur/banc-fichiers.js"></script>
   <script src="./moteur/banc-puzzles.js"></script>
+  <script src="./moteur/solveur-position.js"></script>
   <script src="./interface/banc-essais-page.js"></script>
   <script src="./interface/banc-essais-page-puzzles.js"></script>
   <script src="./interface/banc-essais-partie.js"></script>
@@ -2523,6 +2616,10 @@
   <script src="./interface/corbeille.js"></script>
   <script src="./interface/editeur-position.js"></script>
   <script src="./interface/formulaire-position-my.js"></script>
+  <script src="./interface/solveur-position-tableau.js"></script>
+  <script src="./interface/solveur-position-recherche.js"></script>
+  <script src="./interface/solveur-position-perd.js"></script>
+  <script src="./interface/solveur-position.js"></script>
   <script src="./interface/fermeture-dialogues.js"></script>
   <script src="./interface/ordre-colonne.js"></script>
   <script src="./interface/choix-icones.js"></script>
@@ -2701,7 +2798,7 @@
     }
     const { positionChoisie, dateDebut, variantName, joueurs, reglagesPendules, pendulesReprises, arbreDepart, plateauRetourne, machines, essai, prefixe } =
       etatDepart;
-    // Le nom et la machine qui ont joue une partie finie, quand on change ensuite de machine (moteur/revanche.js).
+    // Le nom et la machine qui ont joue une partie finie, quand on change ensuite de machine ou de nom (moteur/revanche.js).
     let identiteGardee = RIEN_DE_GARDE;
     // Le type de la partie : il change en cours de partie par la boite Pendule (changerLeTypeDeLaPartie).
     let evenement = etatDepart.evenement;
@@ -2927,6 +3024,8 @@
     // s'execute apres chaque coup) en a besoin, mais `conseils` lui-meme
     // n'est cree qu'apres `partie` (il a besoin de partie.jouerCoupTexte).
     let conseils;
+    // Meme raison : le panneau Solveur (interface/solveur-position.js) reprend la position apres chaque coup.
+    let solveurPosition;
     // Meme raison (phase 19) : `menaces` a aussi besoin de `partie` pour
     // connaitre la position REGARDEE (obtenirArbre), mais le rappel
     // `surChangement` ci-dessous doit deja pouvoir l'appeler.
@@ -3168,7 +3267,9 @@
         else petitPlateau?.montrer(depart, coups, titre, { aLaFin, joueurs });
       },
       // Ce que fait la machine de la partie suivie (une ligne sur le petit plateau).
-      (texte) => petitPlateau?.reflexion(texte)
+      (texte) => petitPlateau?.reflexion(texte),
+      // Arreter la serie se confirme (interface/confirmation.js).
+      confirmation.demander
     );
     const boiteReglages = demarrerReglages(
       {
@@ -3380,6 +3481,8 @@
         fin: document.getElementById('nav-fin'),
         annuler: document.getElementById('nav-annuler'),
         lecture: document.getElementById('nav-lecture'),
+        ejectionPrecedente: document.getElementById('nav-ejection-precedente'),
+        ejectionSuivante: document.getElementById('nav-ejection-suivante'),
       },
       confirmation.demander,
       embranchement.demander,
@@ -3406,6 +3509,8 @@
         poigneeHauteur: document.getElementById('arbre-poignee-hauteur'),
         poigneeLargeur: document.getElementById('arbre-poignee-largeur'),
         barreCopie: document.getElementById('sequence-barre'),
+        boutonResume: document.getElementById('sequence-resume'),
+        boutonBrDeBr: document.getElementById('sequence-br-de-br'),
       },
       {
         bouton: document.getElementById('bouton-commentaires'),
@@ -3414,6 +3519,8 @@
         barreRecherche: document.getElementById('commentaires-recherche'),
         boutonReplierTout: document.getElementById('commentaires-repli-tout'),
         boutonCopier: document.getElementById('commentaires-copier'),
+        boutonSeulementCommentes: document.getElementById('commentaires-seulement'),
+        boutonResume: document.getElementById('commentaires-resume'),
       },
       {
         bouton: document.getElementById('bouton-occurrences'),
@@ -3436,6 +3543,7 @@
         // etre declenche qu'apres un coup ou une navigation, donc apres
         // que tout le reste de ce script ait fini de s'executer.
         conseils?.actualiser();
+        solveurPosition?.actualiser();
         infosCase?.actualiser();
         demanderLesNomsALaFin(arbre);
         // La position regardee a change : les fleches de menaces
@@ -3876,21 +3984,43 @@
         setTimeout(() => finEntrainement?.montrer(`${nonJouee ? 'Partie non jouée' : 'Partie nulle'} : elle ne compte pas.`, entrainementEnCours), DELAI_MESSAGE_ENTRAINEMENT_MS);
         return;
       }
+      // Un Entrainement lance sans nom (saab, 2026-11-06 : « faire comme pour les parties, càd le redemander à la fin ») :
+      // le nom d'abord, puis le resultat sous ce nom, avec la partie renommee.
+      if (entrainementEnCours.joueur) noterLeJeuDEntrainement(entrainementEnCours, arbre, donnees, reussi);
+      else nommerLeJoueurDEntrainement(entrainementEnCours.campDuJoueur, (joueur) => noterLeJeuDEntrainement({ ...entrainementEnCours, joueur }, partie.obtenirArbre(), arbreVersDonnees(partie.obtenirArbre(), metadonneesActuelles(partie.obtenirPerteAuTemps())), reussi));
+    }
+
+    // Sans nom, il devient la date (saab : « on peut même mettre par défaut la date yymmjjhhmm au lieu de laisser Joueur en
+    // fin si on ne veut pas remplir ») : la boite des noms de fin la propose, un champ vide (ou Echap) la garde. La boite
+    // Entrainement se rouvrira avec le nom tape, pas avec la date : sans nom, elle le redemandera.
+    function nommerLeJoueurDEntrainement(camp, suite) {
+      nomsJoueurs.nommer(camp, formaterDateKAAWA(new Date()));
+      nomsDeFin.ouvrir([camp], {
+        note: 'Votre nom, pour votre historique d’entraînement. Laissé vide, la date le remplace.',
+        apres: () => {
+          sauvegarderMaintenant(partie.obtenirArbre(), partie.obtenirPerteAuTemps());
+          if (!estUnNomDate(joueurs[camp])) retenirJoueurDEntrainement(joueurs[camp]);
+          suite(joueurs[camp]);
+        },
+      });
+    }
+
+    function noterLeJeuDEntrainement(enCours, arbre, donnees, reussi) {
       // La machine perdue au temps : du temps en plus a sa prochaine partie de cette couleur.
-      if (entrainementEnCours.sorte === 'variantes' && reussi && donnees.Term === STATUT_TEMPS_ECOULE) {
-        const campMachine = entrainementEnCours.campDuJoueur === 'noir' ? 'blanc' : 'noir';
-        ajouterSupplementDeLaMachine(entrainementEnCours.joueur, campMachine, reglagesDeLEntrainement().supplementIAApresTemps);
+      if (enCours.sorte === 'variantes' && reussi && donnees.Term === STATUT_TEMPS_ECOULE) {
+        const campMachine = enCours.campDuJoueur === 'noir' ? 'blanc' : 'noir';
+        ajouterSupplementDeLaMachine(enCours.joueur, campMachine, reglagesDeLEntrainement().supplementIAApresTemps);
       }
-      const jeuxDeLaSorte = entrainementEnCours.sorte === 'pzl' ? puzzlesDisponibles : variantesDisponibles;
-      const typesDe = (nom) => typesDuJeu(entrainementEnCours.sorte, jeuxDeLaSorte.find((jeu) => jeu.nom === nom) ?? { nom });
+      const jeuxDeLaSorte = enCours.sorte === 'pzl' ? puzzlesDisponibles : variantesDisponibles;
+      const typesDe = (nom) => typesDuJeu(enCours.sorte, jeuxDeLaSorte.find((jeu) => jeu.nom === nom) ?? { nom });
       // Une nulle (comptee comme une defaite) peut valoir une partie de plus
       // (moteur/entrainement-serie.js, suiteDUnEssai).
-      const proposablesDe = (grade) => nomsProposablesDuGrade(reglagesDeLEntrainement(), grade, entrainementEnCours.sorte, jeuxDeLaSorte, KAA_PZL_SOLUTIONS);
-      const resultat = noterResultatDEntrainement(entrainementEnCours, donnees.Term === STATUT_NULLE ? RESULTAT_NULLE : reussi, typesDe, proposablesDe);
+      const proposablesDe = (grade) => nomsProposablesDuGrade(reglagesDeLEntrainement(), grade, enCours.sorte, jeuxDeLaSorte, KAA_PZL_SOLUTIONS);
+      const resultat = noterResultatDEntrainement(enCours, donnees.Term === STATUT_NULLE ? RESULTAT_NULLE : reussi, typesDe, proposablesDe);
       // Saab, 2026-10-10 : « le titre de la partie, le tps et réussi/échoué ».
-      noterDansLHistoriqueDEntrainement(entrainementEnCours, reussi, nomDeFichierKAAWA(donnees), tempsCumules(arbre)[entrainementEnCours.campDuJoueur]);
-      const suivant = jeuSuivantDEntrainement(entrainementEnCours, resultat.evenement, resultat.parcours);
-      setTimeout(() => finEntrainement?.montrer(messageDEntrainement(resultat, entrainementEnCours), suivant), DELAI_MESSAGE_ENTRAINEMENT_MS);
+      noterDansLHistoriqueDEntrainement(enCours, reussi, nomDeFichierKAAWA(donnees), tempsCumules(arbre)[enCours.campDuJoueur]);
+      const suivant = jeuSuivantDEntrainement(enCours, resultat.evenement, resultat.parcours);
+      setTimeout(() => finEntrainement?.montrer(messageDEntrainement(resultat, enCours), suivant), DELAI_MESSAGE_ENTRAINEMENT_MS);
     }
 
     function sauvegarderMaintenant(arbre, perteAuTemps) {
@@ -4261,6 +4391,12 @@
     // Nom d'un joueur : un clic sur son cadre, sur le plateau (interface/
     // noms-joueurs.js). Changer un nom change la sauvegarde (Players) et le
     // nom de la partie affiche : on sauvegarde donc tout de suite.
+    // Une partie finie ou un coup au moins a ete joue garde ses noms et sa machine (moteur/revanche.js) — pas un abandon
+    // d'emblee (saab, 2026-11-07).
+    function partieQuiGardeSonIdentite() {
+      const arbre = partie.obtenirArbre();
+      return laPartieGardeSonIdentite(finDeLaPartie(arbre) !== null, arbre.racine.enfants.length);
+    }
     const nomsJoueurs = demarrerNomsJoueurs(
       svg,
       {
@@ -4285,7 +4421,12 @@
       // Saab, 2026-10-08 : « interdire de se servir de l'IA pour les PZL dans
       // KAAH_Test » — permise seulement dans une version de travail.
       () => !optionsEntrainement?.interdireIA && (!puzzleEnCours || SUFFIXE_VERSION_KAAH_TEST !== ''),
-      () => finDeLaPartie(partie.obtenirArbre()) !== null
+      partieQuiGardeSonIdentite,
+      // Une partie finie et nommee garde ses noms (saab, 2026-11-07 : « Ok, étends au nom ») : le nouveau vaut pour une
+      // branche et la partie suivante (moteur/revanche.js) ; un nom par defaut se nomme encore a la fin.
+      (camp, ancienNom) => {
+        if (partieQuiGardeSonIdentite()) identiteGardee = garderLeNomDeLaPartieFinie(identiteGardee, camp, ancienNom, machines[camp]);
+      }
     );
     // Les noms, demandes a la FIN de la partie (saab, 2026-10-27 : « L'obligation de mettre les noms en
     // début de partie est gênant, on va le demander en fin de partie, avec btn vert donnant la possibilité
@@ -4304,7 +4445,9 @@
     const nomsDeFin = demarrerNomsDeFinDePartie(
       {
         dialogue: document.getElementById('dialogue-noms-fin'),
-        lignes: { noir: document.getElementById('ligne-nom-fin-noir'), blanc: document.getElementById('ligne-nom-fin-blanc') },
+        note: document.getElementById('note-noms-fin'),
+        lignes:{ noir: document.getElementById('ligne-nom-fin-noir'), blanc: document.getElementById('ligne-nom-fin-blanc') },
+        nomsConnus: { noir: document.getElementById('noms-connus-fin-noir'), blanc: document.getElementById('noms-connus-fin-blanc') },
         valider: document.getElementById('bouton-valider-noms-fin'),
       },
       joueurs,
@@ -4494,6 +4637,47 @@
       }
     );
 
+    // Le Solveur sur la position affichee (saab, 2026-11-06), version de travail : un panneau de la colonne de droite
+    // (interface/solveur-position.js). Son PZL s'ouvre dans la boite My ci-dessus, deja rempli.
+    solveurPosition = demarrerSolveurPosition(
+      {
+        bouton: document.getElementById('bouton-solveur-position'),
+        panneau: document.getElementById('panneau-solveur-position'),
+        position: document.getElementById('position-solveur-position'),
+        boutonsGagnant: [...document.querySelectorAll('#panneau-solveur-position [data-gagnant]')],
+        perd: document.getElementById('bouton-perd-solveur-position'),
+        toursMax: document.getElementById('tours-max-solveur-position'),
+        minutes: document.getElementById('minutes-solveur-position'),
+        toutes: document.getElementById('toutes-solveur-position'),
+        etat: document.getElementById('etat-solveur-position'),
+        resultat: document.getElementById('resultat-solveur-position'),
+        liste: document.getElementById('liste-solveur-position'),
+        chercher: document.getElementById('bouton-chercher-solveur-position'),
+        arreter: document.getElementById('bouton-arreter-solveur-position'),
+        creerPzl: document.getElementById('bouton-pzl-solveur-position'),
+        fermer: document.getElementById('bouton-fermer-solveur-position'),
+      },
+      {
+        etatActuel: () => etatCourant(partie.obtenirArbre()),
+        creerPuzzleMy: (formulaire) => formulairePositionMy.ouvrir('puzzles', formulaire),
+        // Le petit plateau de la sequence prevue (saab, 2026-11-06 : « il faudrait montrer au clic sur le coup (ou la
+        // ligne) la séquence dans le mini plateau »).
+        montrerSequence: (etat, coups, titre) => petitPlateau?.montrer(etat, coups, titre),
+      }
+    );
+
+    // Les poignees des panneaux de la colonne de droite qui n'en avaient pas (saab, 2026-11-06 : « il y a une poignée
+    // sur le solveur? Profites en pour en mettre une sur tout ce qui est dans la colonne de droite » ; « la poignée doit
+    // être aussi sur la largeur de la colonne ») : celles de la Sequence (interface/sequence.js), ordinateur seulement
+    // (styles.css) — la hauteur au bas du panneau, la largeur de la colonne sur son bord gauche, comme la Sequence, le
+    // Graphique et Reflexion IA (le Graphique a sa hauteur dans son coin, Reflexion IA remplit la hauteur libre,
+    // interface/hauteurs-colonne.js).
+    for (const id of ['panneau-conseils', 'panneau-solveur-position', 'panneau-occurrences']) {
+      const panneau = document.getElementById(id);
+      activerRedimensionnementHauteur(panneau, panneau.querySelector('.poignee-hauteur-panneau'));
+      activerRedimensionnementLargeur(panneau, panneau.querySelector('.poignee-largeur-panneau'));
+    }
+
     // Nouvelle / Modifier / Exporter My, dans la boite Variantes. « Modifier »
     // agit sur la variante previsualisee et la COPIE dans My (comme KAAWA).
     const boutonModifierVariante = document.getElementById('bouton-modifier-variante-my');
@@ -4530,6 +4714,19 @@
     // celui d'un autre joueur) dans les siennes, en renommant les doublons
     // (moteur/positions-my.js, fusionnerEntreesMy) plutot que de les perdre
     // comme KAAWA.
+    // Seulement les variantes cochees (saab, 2026-11-08 ; interface/import-variantes.js) : la boite les montre toutes.
+    const importDesVariantes = demarrerImportDesVariantes(
+      {
+        dialogue: document.getElementById('dialogue-import-variantes'),
+        fichier: document.getElementById('fichier-import-variantes'),
+        toutCocher: document.getElementById('case-tout-cocher-variantes'),
+        liste: document.getElementById('liste-import-variantes'),
+        importer: document.getElementById('bouton-importer-variantes-cochees'),
+        fermer: document.getElementById('bouton-fermer-import-variantes'),
+        message: document.getElementById('message-import-variantes'),
+      },
+      () => demarrerRechargement()
+    );
     document.getElementById('bouton-importer-variantes-my').addEventListener('click', () => {
       demarrerImportation(
         (donnees) => {
@@ -4538,20 +4735,7 @@
             window.alert('Aucune variante trouvée dans ce fichier.');
             return;
           }
-          let renommees;
-          try {
-            renommees = importerEntreesMy('variantes', importees);
-          } catch (erreur) {
-            window.alert(`Fichier illisible : ${erreur.message}`);
-            return;
-          }
-          if (renommees === null) {
-            window.alert("Impossible d'enregistrer (stockage du navigateur indisponible).");
-            return;
-          }
-          const suffixe = renommees.length > 0 ? `, dont ${renommees.length} renommée(s) (nom déjà pris)` : '';
-          window.alert(`${importees.length} variante(s) importée(s)${suffixe}.`);
-          demarrerRechargement();
+          importDesVariantes.ouvrir(importees);
         },
         (message) => window.alert(message)
       );
@@ -4879,6 +5063,22 @@
       // Une machine dans un PZL (saab, 2026-10-10) : la reponse de la defense gardee dans la
       // solution (dans l'orientation d'origine : on la repermute, et on ne la joue que si
       // elle se lit bien ici), et la profondeur utile (moteur/entrainement.js).
+      // En ceinture, le SOLVEUR joue la machine d'un PZL (saab, 2026-11-10 : « en ceinture il faut que se soit tjs le solver
+      // qui joue » — KAI++ ne jouait pas toujours la meilleure defense) : sa suite depuis le depart du PZL, apres les coups
+      // joues (solveur/kaah-solveur.cpp, kaah_sequence : la defense la plus resistante, ou le gain le plus court). Cree au
+      // premier coup de la machine, garde ensuite (sa table reste chaude). Son coup est relu par sa position (le texte Nacre
+      // peut etre ambigu) ; rien dans la limite : KAI++ cherche (interface/ia.js).
+      let solveurDeLaCeinture = null;
+      const coupDuSolveur = async (arbre) => {
+        solveurDeLaCeinture ??= creerSolveur({ limiteDepart: LIMITE_DU_SOLVEUR_EN_CEINTURE_S, limiteParCoup: LIMITE_DU_SOLVEUR_EN_CEINTURE_S });
+        const { reponse } = await solveurDeLaCeinture.sequence({ position: ecrirePosition(arbre.racine.etat), noirGagne: puzzleEnCours.campGagnant === 'noir', toursMaximum: puzzleEnCours.toursMaximum, coups: coupsJoues(arbre) });
+        const lue = lireSequenceDuSolveur(reponse);
+        if (lue.verdict !== 'valide' || lue.coups.length === 0) return null;
+        const etat = etatCourant(arbre);
+        const coup = coupsDesPositions(etat, [lue.coups[0].position])[0];
+        if (!coup) return null;
+        return { coup: ecrireCoupNacreSansAmbiguite(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, coup), sequence: lue.coups.map((c) => c.nacre) };
+      };
       const aideDuPuzzle = (arbre, camp) => {
         if (!puzzleEnCours) return null;
         const joues = coupsJoues(arbre).map((coup) => coup.toLowerCase());
@@ -4888,7 +5088,7 @@
         const affiche = garde && permuterCoupNacre(garde, indexPermutationActivePuzzle);
         const etat = etatCourant(arbre);
         const lisible = affiche && lireCoupNacre(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, affiche);
-        return { coup: lisible ? affiche : null, plis: plisUtilesDuPuzzle(puzzleEnCours.toursMaximum, coupsDuGagnant, machineGagnante) };
+        return { coup: lisible ? affiche : null, plis: plisUtilesDuPuzzle(puzzleEnCours.toursMaximum, coupsDuGagnant, machineGagnante), ...(entrainementEnCours && !lisible ? { solveur: () => coupDuSolveur(arbre) } : {}) };
       };
       const commandeMachines = demarrerMachines({
         partie,
@@ -4925,7 +5125,7 @@
         ...commandeMachines,
         // Avant le changement : `joueurs` et `machines` disent encore qui a joue la partie finie.
         definirMachine: (camp, machine) => {
-          if (finDeLaPartie(partie.obtenirArbre()) !== null) identiteGardee = garderLaMachineDeLaPartieFinie(identiteGardee, camp, joueurs[camp], machines[camp]);
+          if (partieQuiGardeSonIdentite()) identiteGardee = garderLaMachineDeLaPartieFinie(identiteGardee, camp, joueurs[camp], machines[camp]);
           commandeMachines.definirMachine(camp, machine);
         },
       });

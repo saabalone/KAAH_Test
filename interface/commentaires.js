@@ -35,17 +35,21 @@
 // (moteur/arbre.js), SEUIL_NULLE_PAR_DEFAUT (moteur/nulle.js),
 // positionCanonique (moteur/permutations.js), noeudsDeLArbre
 // (moteur/occurrences.js), dessinerCommentaires (rendu/commentaires-html.js)
-// et garderNoeudActifVisible (interface/sequence.js) viennent tous des
+// et garderNoeudActifVisible, basculerRepli (interface/sequence.js) viennent tous des
 // fichiers charges avant celui-ci dans index.html.
 
 // `elements` : { conteneur, barreRecherche, boutonReplierTout,
-// boutonCopier }. `rappels` : { surClicNoeud(chemin),
-// surCommentaireModifie(chemin, texte) } — fournis par interface/saisie.js
-// (voir la meme convention que interface/sequence.js).
-function demarrerAffichageCommentaires(elements, rappels) {
-  const cheminsReplies = new Set();
+// boutonCopier, boutonSeulementCommentes }. `rappels` : { surClicNoeud(chemin),
+// surCommentaireModifie(chemin, texte), surAffichageChange() } — fournis par
+// interface/saisie.js (voir la meme convention que interface/sequence.js).
+// `affichage` : { cheminsReplies, masquerBrDeBr, resume }, PARTAGE avec la Sequence
+// (interface/sequence.js) : les memes branches ouvertes, et le meme resume, des deux
+// cotes (saab, 2026-11-11 : « il faut que Commentaire et Séquence soient repliés pareil »).
+function demarrerAffichageCommentaires(elements, rappels, affichage = { cheminsReplies: new Set(), masquerBrDeBr: false, resume: false }) {
+  const { cheminsReplies } = affichage;
   const cheminsDeplies = new Set();
   let filtreTexte = '';
+  let seulementCommentes = false;
   let touteReplie = false;
   let dernierArbre = null;
 
@@ -54,9 +58,31 @@ function demarrerAffichageCommentaires(elements, rappels) {
     if (dernierArbre) rafraichir(dernierArbre);
   });
 
+  // Les coups commentes seulement (saab, 2026-11-10 : « rechercher tous les coups qui ont un commentaire ») : orange
+  // quand c'est actif.
+  elements.boutonSeulementCommentes?.addEventListener('click', () => {
+    seulementCommentes = !seulementCommentes;
+    elements.boutonSeulementCommentes.classList.toggle('bouton-actif', seulementCommentes);
+    if (dernierArbre) rafraichir(dernierArbre);
+  });
+
+  // Le resume, le meme que celui de la Sequence (rendu/commentaires-html.js) : orange quand il est actif.
+  elements.boutonResume?.addEventListener('click', () => {
+    affichage.resume = !affichage.resume;
+    if (dernierArbre) rafraichir(dernierArbre);
+    rappels.surAffichageChange?.();
+  });
+
+  // Vert pour tout deplier, orange pour tout replier, comme les triangles.
+  const marquerReplierTout = () => {
+    elements.boutonReplierTout.textContent = touteReplie ? '▶ Tout deplier' : '▼ Tout replier';
+    elements.boutonReplierTout.classList.toggle('arbre-repli-deplier', touteReplie);
+    elements.boutonReplierTout.classList.toggle('arbre-repli-replier', !touteReplie);
+  };
+  marquerReplierTout();
   elements.boutonReplierTout.addEventListener('click', () => {
     touteReplie = !touteReplie;
-    elements.boutonReplierTout.textContent = touteReplie ? '▶ Tout deplier' : '▼ Tout replier';
+    marquerReplierTout();
     cheminsReplies.clear();
     if (touteReplie && dernierArbre) {
       // Replie chaque noeud qui a des enfants, sauf ceux sur le chemin
@@ -64,6 +90,7 @@ function demarrerAffichageCommentaires(elements, rappels) {
       marquerReplisSaufChemin(dernierArbre.racine, [], dernierArbre.chemin, cheminsReplies);
     }
     if (dernierArbre) rafraichir(dernierArbre);
+    rappels.surAffichageChange?.();
   });
 
   elements.boutonCopier.addEventListener('click', () => copierEnBloc());
@@ -77,18 +104,23 @@ function demarrerAffichageCommentaires(elements, rappels) {
   }
 
   function rafraichir(arbre) {
+    elements.boutonResume?.classList.toggle('bouton-actif', affichage.resume);
     const etat = {
       cheminsReplies,
       cheminsDeplies,
       filtreTexte,
+      seulementCommentes,
+      masquerBrDeBr: affichage.masquerBrDeBr,
+      resume: affichage.resume,
       etiquettesOccurrences: calculerEtiquettesOccurrences(arbre),
     };
     dessinerCommentaires(elements.conteneur, arbre, etat, {
       surClicNoeud: rappels.surClicNoeud,
+      // Deplier ouvre toute la suite de la branche (interface/sequence.js, basculerRepli).
       surClicRepli: (cle) => {
-        if (cheminsReplies.has(cle)) cheminsReplies.delete(cle);
-        else cheminsReplies.add(cle);
+        basculerRepli(cheminsReplies, arbre, cle);
         rafraichir(arbre);
+        rappels.surAffichageChange?.();
       },
       surClicDeplier: (cle) => {
         if (cheminsDeplies.has(cle)) cheminsDeplies.delete(cle);
@@ -134,10 +166,11 @@ function demarrerAffichageCommentaires(elements, rappels) {
 
 // Replie tous les noeuds-avec-enfants SAUF LES ANCETRES du coup regarde :
 // "Tout replier" ne doit jamais faire disparaitre le coup qu'on est en
-// train de regarder lui-meme.
+// train de regarder lui-meme. Ni la racine ("Depart") : la Sequence n'a pas de
+// ligne pour elle, les deux doivent rester repliees pareil (saab, 2026-11-11).
 function marquerReplisSaufChemin(noeud, chemin, cheminActuel, cheminsReplies) {
   const estAncetreDuChemin = chemin.length < cheminActuel.length && chemin.every((v, i) => v === cheminActuel[i]);
-  if (noeud.enfants.length > 0 && !estAncetreDuChemin) {
+  if (noeud.enfants.length > 0 && !estAncetreDuChemin && chemin.length > 0) {
     cheminsReplies.add(chemin.join('.'));
   }
   noeud.enfants.forEach((enfant, index) => marquerReplisSaufChemin(enfant, [...chemin, index], cheminActuel, cheminsReplies));

@@ -21,10 +21,38 @@
 // variantes nommees, phase 13). `rappels` : { surClicNoeud(chemin),
 // surClicSupprimer(chemin) }, tous deux fournis par interface/saisie.js
 // (seul endroit qui possede `arbre`).
+// `affichage` : { cheminsReplies, masquerBrDeBr, resume }, PARTAGE avec Commentaires
+// (interface/saisie.js) : les memes branches ouvertes des deux cotes (saab,
+// 2026-11-08 : « il faudrait avoir les même Br ouvertes que je regarde dans
+// Séquence et Commentaire ») ; `rappels.surAffichageChange()` les redessine.
 // Renvoie { actualiser(arbre), enregistrerDate(chemin) }.
-function demarrerAffichageSequence(elementsArbre, texteEnTete, rappels) {
-  const cheminsReplies = new Set();
+function demarrerAffichageSequence(elementsArbre, texteEnTete, rappels, affichage = { cheminsReplies: new Set(), masquerBrDeBr: false, resume: false }) {
+  const { cheminsReplies } = affichage;
   const datesParChemin = new Map();
+  let dernierArbre = null;
+
+  // Le resume et les branches de branche (saab, 2026-11-10 ; rendu/arbre-html.js) :
+  // orange quand le resume est actif ; « Br de Br » montre ce qu'il fera, vert pour
+  // deplier, orange pour replier, comme les triangles.
+  function marquerBoutons() {
+    elementsArbre.boutonResume?.classList.toggle('bouton-actif', affichage.resume);
+    const bouton = elementsArbre.boutonBrDeBr;
+    if (!bouton) return;
+    bouton.textContent = affichage.masquerBrDeBr ? '▶ Br de Br' : '▼ Br de Br';
+    bouton.title = affichage.masquerBrDeBr ? 'Déplier les branches ouvertes à l’intérieur d’une branche' : 'Replier les branches ouvertes à l’intérieur d’une branche';
+    bouton.classList.toggle('arbre-repli-deplier', affichage.masquerBrDeBr);
+    bouton.classList.toggle('arbre-repli-replier', !affichage.masquerBrDeBr);
+  }
+  elementsArbre.boutonResume?.addEventListener('click', () => {
+    affichage.resume = !affichage.resume;
+    if (dernierArbre) actualiser(dernierArbre);
+    rappels.surAffichageChange?.();
+  });
+  elementsArbre.boutonBrDeBr?.addEventListener('click', () => {
+    affichage.masquerBrDeBr = !affichage.masquerBrDeBr;
+    if (dernierArbre) actualiser(dernierArbre);
+    rappels.surAffichageChange?.();
+  });
 
   // `title` (pas seulement `textContent`) : le CSS tronque cette ligne a
   // une seule (styles.css, "…" en fin) quand la position compressee est
@@ -40,17 +68,27 @@ function demarrerAffichageSequence(elementsArbre, texteEnTete, rappels) {
   activerRedimensionnementLargeur(elementsArbre.panneau, elementsArbre.poigneeLargeur);
 
   function actualiser(arbre) {
+    dernierArbre = arbre;
+    // Les boutons suivent l'etat partage, que les Commentaires ont pu changer.
+    marquerBoutons();
     elementsArbre.entete.classList.toggle('arbre-courant', arbre.chemin.length === 0);
 
-    dessinerArbre(elementsArbre.conteneur, arbre, cheminsReplies, datesParChemin, {
-      surClicNoeud: rappels.surClicNoeud,
-      surClicSupprimer: rappels.surClicSupprimer,
-      surClicRepli: (cle) => {
-        if (cheminsReplies.has(cle)) cheminsReplies.delete(cle);
-        else cheminsReplies.add(cle);
-        actualiser(arbre); // redessine avec le nouvel etat de repli, sans changer de noeud
+    dessinerArbre(
+      elementsArbre.conteneur,
+      arbre,
+      cheminsReplies,
+      datesParChemin,
+      {
+        surClicNoeud: rappels.surClicNoeud,
+        surClicSupprimer: rappels.surClicSupprimer,
+        surClicRepli: (cle) => {
+          basculerRepli(cheminsReplies, arbre, cle);
+          actualiser(arbre); // redessine avec le nouvel etat de repli, sans changer de noeud
+          rappels.surAffichageChange?.();
+        },
       },
-    });
+      { resume: affichage.resume, masquerBrDeBr: affichage.masquerBrDeBr }
+    );
 
     garderNoeudActifVisible(elementsArbre.conteneur);
   }
@@ -71,6 +109,26 @@ function demarrerAffichageSequence(elementsArbre, texteEnTete, rappels) {
   }
 
   return { actualiser, enregistrerDate };
+}
+
+// Replier ou deplier la branche de `cle` (Sequence et Commentaires, qui partagent
+// `cheminsReplies`) : deplier ouvre d'un coup toute la suite de la branche — le
+// premier enfant a chaque coup — (saab, 2026-11-08 : « qd je replie tout les
+// commentaires, il faudrait que je puisse déplier que la Br que je veux [...] elles
+// ouvrent coup par coup ») ; ses sous-branches gardent leur repli.
+function basculerRepli(cheminsReplies, arbre, cle) {
+  if (!cheminsReplies.has(cle)) {
+    cheminsReplies.add(cle);
+    return;
+  }
+  let chemin = cle === '' ? [] : cle.split('.').map(Number);
+  let noeud = noeudA(arbre, chemin);
+  cheminsReplies.delete(cle);
+  while (noeud.enfants.length > 0) {
+    chemin = [...chemin, 0];
+    noeud = noeud.enfants[0];
+    cheminsReplies.delete(chemin.join('.'));
+  }
 }
 
 // Le coup actif (.arbre-courant) doit toujours rester dans la partie

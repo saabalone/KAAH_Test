@@ -6,9 +6,9 @@
 // ecrirePosition (moteur/notation.js), appliquerCoup (moteur/partie.js),
 // poidsEnTexte, lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence
 // (moteur/ia.js), hasardDuBanc, coupDeLaReferenceAuLivre, dansLeLivre,
-// finDeLaPartieDuBanc (moteur/banc-essais.js), coupDuLivre (moteur/ia.js), reglageDeLaPhase
-// (moteur/ia-phase.js) viennent de
-// fichiers charges avant celui-ci.
+// finDeLaPartieDuBanc, bonsCoupsDuDepart, PROFONDEUR_DES_COUPS_VARIES (moteur/banc-essais.js), coupDuLivre (moteur/ia.js),
+// reglageDeLaPhase (moteur/ia-phase.js), tousLesCoupsLegaux (moteur/regles.js), couleursDuPlateau (moteur/partie.js) viennent de
+// fichiers charges avant celui-ci ; RECHERCHE_SANS_LIMITE_MS (interface/banc-essais-puzzles.js), seulement a l'usage.
 
 const POSITION_DEPART_BANC = '0a12b123c23g78h789i89_0a45b456c56g45h456i56'; // la Marguerite belge
 const GRAINE_MAX_BANC = 1e9;
@@ -48,7 +48,14 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     const reglage = (etat.joueurAuTrait === 'noir') === tache.referenceNoir ? reference : essai;
     // L'essai aussi dans le livre (saab, 2026-10-19 : « la recherche avec le livre pour les 2,
     // ce sera plus juste ») : ses coups du livre, jamais les coups au hasard de la reference.
-    let coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : parametres.livreEssai ? coupDuLivre(livre, etat, hasard)?.coup ?? null : null;
+    let coup = null;
+    if (reglage === reference && coupsDeLaReference < (parametres.premiersCoupsVaries ?? 0)) {
+      suivi({ coup: coups.length + 1, camp: 'référence', debut: performance.now(), score: scoreDuBanc(etat), profondeur: null, evaluation: null });
+      coup = await unBonCoupAuHasard(etat, reglage, kai, hasard, historique);
+      if (!coup) return null; // interrompu
+    } else {
+      coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : parametres.livreEssai ? coupDuLivre(livre, etat, hasard)?.coup ?? null : null;
+    }
     if (reglage === reference) coupsDeLaReference++;
     if (!coup) {
       const debut = performance.now();
@@ -58,7 +65,7 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
       const texte = await kai.chercher({
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
-        profondeur: reglage.niveau,
+        profondeur: jouee.niveau, // l'ajout Ms le baisse en mort subite (moteur/ia-phase.js)
         poids: poidsEnTexte(jouee.poids),
         version: jouee.version,
         graine: Math.floor(hasard() * GRAINE_MAX_BANC),
@@ -83,4 +90,24 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     fin = finDeLaPartieDuBanc(etat, historique, coups.length);
   }
   return { ...tache, fin, etats, coups, livre: dansLivre, occurrences: occurrencesDesCoups(historique), tours: Math.ceil(coups.length / 2), score: scoreDuBanc(etat), secondesEssai };
+}
+
+// Un des premiers coups varies de la reference (`parametres.premiersCoupsVaries` : les ceintures des IA, moteur/banc-essais.js,
+// bonsCoupsDuDepart) : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES avec les poids de sa
+// phase, sans elagage ; un coup tire au hasard parmi les bons. Un coup qui gagne est joue tout de suite. null : interrompu.
+async function unBonCoupAuHasard(etat, reglage, kai, hasard, historique) {
+  const jouee = reglageDeLaPhase(reglage, etat);
+  const valeurs = [];
+  for (const coup of tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait)) {
+    const apres = appliquerCoup(etat, coup).etat;
+    if (apres.vainqueur) return coup;
+    const position = ecrirePosition(apres);
+    const sansSuivi = () => {}; // chaque profondeur finie : rien a montrer, la ligne dit deja « cherche… »
+    const texte = await kai.chercher({ position, joueurNoir: apres.joueurAuTrait === 'noir', profondeur: PROFONDEUR_DES_COUPS_VARIES, poids: poidsEnTexte(jouee.poids), version: jouee.version, graine: 0, dureeMs: RECHERCHE_SANS_LIMITE_MS, historique: [...historique, position].join('\n'), elagage: 0 }, sansSuivi);
+    const reponse = lireReponseKaiPlus(texte);
+    if (!reponse) return null;
+    valeurs.push({ coup, valeur: -reponse.evaluation });
+  }
+  const bons = bonsCoupsDuDepart(valeurs);
+  return bons[Math.floor(hasard() * bons.length)].coup;
 }

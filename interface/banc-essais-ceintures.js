@@ -9,7 +9,7 @@
 // Ici, les JEUX (une variante, un PZL) ; le deroulement est dans
 // interface/banc-essais-ceintures-passage.js.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, campDuSens, plisUtilesDuPuzzle, issueDuPuzzle
+// Pas d'import ni d'export (voir moteur/plateau.js) : CEINTURES, campDansLePuzzle, plisUtilesDuPuzzle, issueDuPuzzle
 // (moteur/entrainement.js), positionAvecHandicap (moteur/entrainement-reglages.js),
 // machineDesCeintures,
 // NIVEAU_MAX_DES_PUZZLES, ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE (interface/entrainement-partie.js),
@@ -17,53 +17,56 @@
 // (moteur/ia.js), jouerUnePartieDuBanc, GRAINE_MAX_BANC, MILLISECONDES_PAR_SECONDE_BANC
 // (interface/banc-essais-partie.js), etatDuPuzzle (moteur/puzzles.js), ecrirePosition
 // (moteur/notation.js), appliquerCoup (moteur/partie.js), nomDeLaCeinture
-// (interface/entrainement-ceintures.js) viennent de fichiers charges avant celui-ci.
+// (interface/entrainement-ceintures.js), RESULTAT_NULLE (moteur/entrainement-serie.js),
+// PREMIERS_COUPS_VARIES (moteur/banc-essais.js) viennent de fichiers charges avant celui-ci.
 
 const CLE_CEINTURES_DES_IA = 'kaah-ceintures-ia';
-// Les fins de partie du banc qui sont des nulles : « nulle (répétition) », « nulle (limite) »
-// (moteur/banc-essais.js, finDeLaPartieDuBanc).
+// Les fins de partie du banc qui sont des nulles : « nulle (répétition) », « nulle (blocs) »,
+// « nulle (limite) » (moteur/banc-essais.js, finDeLaPartieDuBanc).
 const DEBUT_D_UNE_NULLE_DU_BANC = 'nulle';
-// Les parties rejouees sur une nulle, quand les essais ne sont pas limites (regle decochee).
-const ESSAIS_SUR_UNE_NULLE = 3;
 const JEUX_MAX_DU_PASSAGE = 1000; // garde-fou : un passage ne tourne jamais sans fin
 const LIBELLES_SORTES_DU_PASSAGE = { variantes: 'Variantes', pzl: 'PZL' };
 const SENS_DU_PASSAGE = { variantes: { aller: 'Noir', revanche: 'Blanc' }, pzl: { aller: 'Noir', revanche: 'Blanc' } };
 
-// Une machine de l'Entrainement, en reglage du banc ({ niveau, temps, elagage, poids, version }).
+// Une machine de l'Entrainement, en reglage du banc ({ niveau, temps, elagage, poids, version }), avec
+// les copies de ses phases (milieu, fin, finEnAvance : moteur/ia-phase.js, reglageDeLaPhase) — sans
+// elles, elle jouait toute la partie avec ses poids d'ouverture, quand elle change de phase contre un
+// joueur (constate le 2026-11-05 en relisant les defaites de LabAlCeint). Dans un PZL, comme contre un
+// joueur, elle n'en change jamais (jouerLePuzzleDuPassage ne les lit pas).
 function reglageDuBancPourLaMachine(brut) {
-  const machine = lireMachine(brut);
-  return { niveau: machine.niveau, temps: machine.reflexionMax, elagage: machine.elagage, poids: machine.poids, version: machine.version };
+  const { niveau, reflexionMax, elagage, poids, version, milieu, fin, finEnAvance } = lireMachine(brut);
+  return { niveau, temps: reflexionMax, elagage, poids, version, ...(milieu ? { milieu } : {}), ...(fin ? { fin } : {}), ...(finEnAvance ? { finEnAvance } : {}) };
 }
 
 // Une variante du grade : l'IA joue Noir (aller) ou Blanc (revanche) contre la machine
-// du grade, avec le handicap du grade. La machine prend ses coups dans le livre (`base`)
-// tant qu'elle y est, comme contre un joueur : entre deux machines sans livre, la meme
-// partie se rejouerait a l'identique (essai du 2026-10-11 : 9 defaites pareilles de suite).
-// Les NULLES (saab, 2026-10-11 : « entre IA on va dire que nulle est réussi, car surtout
-// en Standard on arrive en nulle ... tu peux quand même tester sur les 3 essais pour voir
-// si elle gagne, mais si elle échoue on notera réussi par nulle ») : une partie nulle se
-// rejoue, jusqu'a `essais` parties ; gagnee ou perdue, c'est son resultat ; toutes nulles,
-// elle est reussie par nulle. Contre un joueur, une nulle reste une defaite.
-// Renvoie { reussi, issue (chaque partie jouee) } ou null (arretee).
-async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, essais, kai, controle, suivi) {
+// du grade, avec le handicap du grade. La machine tire ses premiers coups parmi les bons
+// (moteur/banc-essais.js, PREMIERS_COUPS_VARIES ; saab, 2026-11-06 : « Le mieux est de varier
+// ces 1 ou 2 1er coups »), puis prend ses coups dans le livre (`base`) tant qu'elle y est, comme
+// contre un joueur : sans cela, la meme partie se rejouait a l'identique (Fers a Cheval : 6
+// defaites de 162 coups, la meme partie et son miroir).
+// Les NULLES (saab, 2026-11-06 : « Comme il y a 3 tentatives, si on fait une nulle et qu'on rate 2,
+// on fait une 4eme tentative et si nulle ou gagnée on valide ») : comme pour un joueur, une nulle
+// est un essai rate, et la regle « rattrapage sur nulle » de la serie (moteur/entrainement-serie.js,
+// suiteDUnEssai) accorde la partie de plus. Avant, une nulle se rejouait dans le meme essai.
+// Renvoie { reussi (vrai, faux ou RESULTAT_NULLE), issue } ou null (arretee).
+async function jouerLaVarianteDuPassage(jeu, variante, candidat, grade, base, kai, controle, suivi) {
   const campDeLIA = jeu.sens === 'aller' ? 'noir' : 'blanc';
   const machine = reglageDuBancPourLaMachine(machineDesCeintures({ niveau: grade.niveau, elagage: grade.ia.elagage, reflexionMax: grade.ia.reflexion, livre: true }));
   const position = positionAvecHandicap(variante.texteBrut, campDeLIA, grade.handicap);
-  const jouees = [];
-  for (let essai = 0; essai < essais; essai++) {
-    const tache = { referenceNoir: campDeLIA === 'blanc', graine: Math.floor(Math.random() * GRAINE_MAX_BANC), position };
-    // Une partie a regarder sur le petit plateau (interface/banc-essais-ceintures-page.js).
-    suivi({ partie: { position, essaiNoir: campDeLIA === 'noir', adversaire: `machine ${CEINTURES[jeu.ceinture].nom.toLowerCase()} (niv. ${grade.niveau})`, titre: `${CEINTURES[jeu.ceinture].nom}, ${variante.nom} (${jeu.sens})` } });
-    const partie = await jouerUnePartieDuBanc(tache, machine, candidat, { hasard: 0, livre: true }, kai, base, controle, suivi);
-    if (!partie) return null;
-    jouees.push(`${partie.fin} ${partie.score}, ${partie.coups.length} coups`);
-    if (!partie.fin.startsWith(DEBUT_D_UNE_NULLE_DU_BANC)) return { reussi: partie.fin === campDeLIA, issue: jouees.join(' ; ') };
-  }
-  return { reussi: true, issue: `réussi par nulle — ${jouees.join(' ; ')}` };
+  const tache = { referenceNoir: campDeLIA === 'blanc', graine: Math.floor(Math.random() * GRAINE_MAX_BANC), position };
+  // Une partie a regarder sur le petit plateau (interface/banc-essais-ceintures-page.js).
+  suivi({ partie: { position, essaiNoir: campDeLIA === 'noir', adversaire: `machine ${CEINTURES[jeu.ceinture].nom.toLowerCase()} (niv. ${grade.niveau})`, titre: `${CEINTURES[jeu.ceinture].nom}, ${variante.nom} (${jeu.sens})` } });
+  const partie = await jouerUnePartieDuBanc(tache, machine, candidat, { hasard: 0, livre: true, premiersCoupsVaries: PREMIERS_COUPS_VARIES }, kai, base, controle, suivi);
+  if (!partie) return null;
+  const reussi = partie.fin.startsWith(DEBUT_D_UNE_NULLE_DU_BANC) ? RESULTAT_NULLE : partie.fin === campDeLIA;
+  return { reussi, issue: `${partie.fin} ${partie.score}, ${partie.coups.length} coups` };
 }
 
-// Un PZL du grade : l'IA en Noir a l'aller, en Blanc a la revanche — elle attaque avec le
-// camp gagnant, defend sinon (moteur/entrainement.js, attaqueDansLePuzzle) ; la machine ne cherche que les tours qui restent, sans elagage (comme
+// Le resultat d'un jeu en une marque : ✓ gagne, ✗ perdu, = nulle (un essai rate, voir plus haut).
+const marqueDuResultatDuPassage = (reussi) => (reussi === RESULTAT_NULLE ? '=' : reussi ? '✓' : '✗');
+
+// Un PZL du grade : l'IA attaque a l'aller avec le camp gagnant, defend a la revanche avec l'autre
+// (moteur/entrainement.js, campDansLePuzzle) ; la machine ne cherche que les tours qui restent, sans elagage (comme
 // contre un joueur), l'IA avec ses propres reglages, mais elle non plus pas plus loin que les
 // tours qui restent — comme la machine d'une partie face a un PZL (interface/ia.js, aide.plis).
 // Saab, 2026-10-22 : KAI++8 « échoue sur PZL_E_0005 » : a 8 demi-coups, l'elagage jette a la
@@ -75,12 +78,12 @@ async function jouerLePuzzleDuPassage(jeu, puzzle, candidat, options, kai, contr
   let etat = puzzle.position;
   const historique = [ecrirePosition(etat)];
   const coups = [];
-  suivi({ partie: { position: historique[0], essaiNoir: campDuSens(jeu.sens) === 'noir', adversaire: 'machine du PZL', titre: `${CEINTURES[jeu.ceinture].nom}, ${puzzle.nom} (${jeu.sens})` } });
+  suivi({ partie: { position: historique[0], essaiNoir: campDansLePuzzle(jeu.sens, puzzle.campGagnant) === 'noir', adversaire: 'machine du PZL', titre: `${CEINTURES[jeu.ceinture].nom}, ${puzzle.nom} (${jeu.sens})` } });
   for (;;) {
     if (controle.arret) return null;
     if (controle.pause) await new Promise((resoudre) => (controle.reprendre = resoudre));
     const attaque = etat.joueurAuTrait === puzzle.campGagnant;
-    const iaAuTrait = etat.joueurAuTrait === campDuSens(jeu.sens);
+    const iaAuTrait = etat.joueurAuTrait === campDansLePuzzle(jeu.sens, puzzle.campGagnant);
     const coupsDuGagnant = coups.filter((_, rang) => rang % 2 === (puzzle.campGagnant === 'blanc' ? 1 : 0)).length;
     const plis = Math.min(NIVEAU_MAX_DES_PUZZLES, plisUtilesDuPuzzle(puzzle.toursMaximum, coupsDuGagnant, attaque));
     const reglage = iaAuTrait ? { ...candidat, niveau: Math.min(candidat.niveau, plis), elagage: 0 } : reglageDuBancPourLaMachine(machineDesCeintures({ niveau: plis, elagage: options.pzlSansElagage ? 0 : ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE, reflexionMax: options.reflexionPzl, livre: false }));

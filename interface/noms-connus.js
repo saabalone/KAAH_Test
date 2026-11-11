@@ -7,9 +7,13 @@
 // L'ordre (moteur/noms-connus.js) : le plus utilise, puis les favoris, puis les
 // autres, « comme pour les favoris des Variantes ».
 //
-// Retenus ici (`kaah-noms-connus` : { utilisations, favoris }) : chaque nom
-// valide compte une utilisation ; les parties de l'historique des joueurs
-// (phase 35) comptent aussi. Jamais un nom par defaut ni celui d'une machine.
+// Retenus ici (`kaah-noms-connus` : { utilisations, favoris, masques }) : chaque
+// nom valide compte une utilisation ; les parties de l'historique des joueurs
+// (phase 35) comptent aussi. Jamais un nom par defaut, une date (le nom d'un
+// Entrainement laisse sans nom, index.html) ni celui d'une machine.
+// La ✕ d'un nom le masque (saab, 2026-11-06 : « comment supprimer un nom de la
+// liste des joueurs ? ») : ses parties, son historique et ses ceintures restent,
+// et le valider de nouveau le fait revenir.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : ordreDesNomsConnus
 // (moteur/noms-connus.js), estUnNomParDefaut (moteur/filtre-parties.js),
@@ -20,19 +24,22 @@
 const CLE_NOMS_CONNUS = 'kaah-noms-connus';
 const NOMBRE_MAX_NOMS_CONNUS = 12;
 
-const nomAProposer = (nom) => typeof nom === 'string' && nom !== '' && !estUnNomParDefaut(nom) && !estUneMachine(nom);
+// La date yymmjjhhmm de KAAWA (interface/sauvegarde.js, formaterDateKAAWA) : le nom d'un Entrainement laisse sans nom.
+const NOM_DATE = /^\d{10}$/;
+const estUnNomDate = (nom) => NOM_DATE.test(nom);
+const nomAProposer = (nom) => typeof nom === 'string' && nom !== '' && !estUnNomParDefaut(nom) && !estUnNomDate(nom) && !estUneMachine(nom);
 
-// { utilisations: { nom: n }, favoris: [nom] } ; l'ancienne liste de noms (avant
-// les favoris) compte une utilisation par nom.
+// { utilisations: { nom: n }, favoris: [nom], masques: [nom] } ; l'ancienne liste de
+// noms (avant les favoris) compte une utilisation par nom.
 function lireNomsRetenus() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_NOMS_CONNUS) ?? 'null');
-    if (Array.isArray(brut)) return { utilisations: Object.fromEntries(brut.filter(nomAProposer).map((nom) => [nom, 1])), favoris: [] };
-    if (brut && typeof brut.utilisations === 'object') return { utilisations: brut.utilisations, favoris: Array.isArray(brut.favoris) ? brut.favoris : [] };
+    if (Array.isArray(brut)) return { utilisations: Object.fromEntries(brut.filter(nomAProposer).map((nom) => [nom, 1])), favoris: [], masques: [] };
+    if (brut && typeof brut.utilisations === 'object') return { utilisations: brut.utilisations, favoris: Array.isArray(brut.favoris) ? brut.favoris : [], masques: Array.isArray(brut.masques) ? brut.masques : [] };
   } catch {
     // illisible : on repart de rien
   }
-  return { utilisations: {}, favoris: [] };
+  return { utilisations: {}, favoris: [], masques: [] };
 }
 
 function ecrireNomsRetenus(retenus) {
@@ -43,11 +50,20 @@ function ecrireNomsRetenus(retenus) {
   }
 }
 
-// Un nom valide : une utilisation de plus.
+// Un nom valide : une utilisation de plus (et il revient s'il etait masque).
 function retenirNomConnu(nom) {
   if (!nomAProposer(nom)) return;
   const retenus = lireNomsRetenus();
   retenus.utilisations[nom] = (retenus.utilisations[nom] ?? 0) + 1;
+  retenus.masques = retenus.masques.filter((autre) => autre !== nom);
+  ecrireNomsRetenus(retenus);
+}
+
+function masquerNomConnu(nom) {
+  const retenus = lireNomsRetenus();
+  delete retenus.utilisations[nom];
+  retenus.favoris = retenus.favoris.filter((autre) => autre !== nom);
+  retenus.masques = [...new Set([...retenus.masques, nom])];
   ecrireNomsRetenus(retenus);
 }
 
@@ -58,11 +74,12 @@ function basculerNomFavori(nom) {
 }
 
 function nomsConnus() {
-  const { utilisations, favoris } = lireNomsRetenus();
-  const toutes = { ...utilisations };
+  const { utilisations, favoris, masques } = lireNomsRetenus();
+  const toutes = Object.fromEntries(Object.entries(utilisations).filter(([nom]) => nomAProposer(nom)));
   for (const joueur of joueursDeLHistorique(resumesDeLHistorique())) {
     if (nomAProposer(joueur.nom)) toutes[joueur.nom] = (toutes[joueur.nom] ?? 0) + joueur.parties;
   }
+  for (const nom of masques) delete toutes[nom];
   return { noms: ordreDesNomsConnus(toutes, favoris).slice(0, NOMBRE_MAX_NOMS_CONNUS), favoris };
 }
 
@@ -74,6 +91,12 @@ function afficherNomsConnus(conteneur, champ) {
   const { noms, favoris } = nomsConnus();
   conteneur.hidden = noms.length === 0;
   conteneur.classList.add('liste-noms-connus', 'liste-repliee');
+  // Redessinee, la liste reste depliee si elle l'etait.
+  const redessiner = () => {
+    const deplie = !conteneur.classList.contains('liste-repliee');
+    afficherNomsConnus(conteneur, champ);
+    conteneur.classList.toggle('liste-repliee', !deplie);
+  };
   conteneur.replaceChildren(
     ...noms.map((nom) => {
       const ligne = document.createElement('div');
@@ -87,15 +110,35 @@ function afficherNomsConnus(conteneur, champ) {
       etoile.addEventListener('click', (evenement) => {
         evenement.stopPropagation(); // ne choisit pas le nom
         basculerNomFavori(nom);
-        const deplie = !conteneur.classList.contains('liste-repliee');
-        afficherNomsConnus(conteneur, champ);
-        conteneur.classList.toggle('liste-repliee', !deplie);
+        redessiner();
       });
       const texte = document.createElement('span');
       texte.className = 'ligne-liste-texte';
       texte.textContent = nom;
-      ligne.append(etoile, texte);
+      // La ✕, en deux touchers (saab : « avec confirmation ») : le premier demande « Retirer ? » en rouge, le second
+      // masque le nom ; toucher la ligne entre les deux renonce.
+      const retirer = document.createElement('button');
+      retirer.type = 'button';
+      retirer.className = 'bouton-retirer-nom';
+      retirer.textContent = '✕';
+      retirer.title = 'Retirer ce nom de la liste : ses parties, son historique et ses ceintures restent ; il revient si on le valide de nouveau';
+      retirer.addEventListener('click', (evenement) => {
+        evenement.stopPropagation(); // ne choisit pas le nom
+        if (!ligne.classList.contains('nom-a-retirer')) {
+          ligne.classList.add('nom-a-retirer');
+          retirer.textContent = 'Retirer ?';
+          return;
+        }
+        masquerNomConnu(nom);
+        redessiner();
+      });
+      ligne.append(etoile, texte, retirer);
       ligne.addEventListener('click', () => {
+        if (ligne.classList.contains('nom-a-retirer')) {
+          ligne.classList.remove('nom-a-retirer');
+          retirer.textContent = '✕';
+          return;
+        }
         champ.value = nom;
         champ.dispatchEvent(new Event('input'));
         conteneur.classList.add('liste-repliee');

@@ -20,7 +20,8 @@
 // propre a KAAH, comme NullesRefusees : KAAWA l'ignore) pour survivre a un
 // rechargement.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js).
+// Pas d'import ni d'export (voir moteur/plateau.js) : estUnNomParDefaut vient de moteur/filtre-parties.js, charge
+// avant celui-ci dans index.html.
 
 // Les noms d'un joueur qui n'en a pas choisi : « Joueur_1 » pour Noir, « Joueur_2 »
 // pour Blanc (KAAWA : Player_1 / Player_2). Seule source de ces noms — index.html et
@@ -68,9 +69,24 @@ function partieSuivante(choix, { joueurs, plateauRetourne, machines = null }) {
 // son fichier, et donc son titre, gardent le nom et la machine d'avant le premier changement.
 const RIEN_DE_GARDE = { joueurs: {}, machines: {} };
 
+// Seulement une partie finie ou un coup au moins a ete joue (saab, 2026-11-07 : « une partie non jouée, qui normalement
+// n'est pas enregistrée, donc changer le nom était certainement possible, non? » ; « Oui ») : un abandon d'emblee n'a
+// rien a garder. `coupsJoues` : les coups de l'arbre depuis le depart (au moins le premier).
+function laPartieGardeSonIdentite(finie, coupsJoues) {
+  return finie && coupsJoues > 0;
+}
+
 function garderLaMachineDeLaPartieFinie(gardee, camp, nom, machine) {
   if (camp in gardee.joueurs) return gardee;
   return { joueurs: { ...gardee.joueurs, [camp]: nom }, machines: { ...gardee.machines, [camp]: machine } };
+}
+
+// Le NOM aussi (saab, 2026-11-07 : « une partie terminée et nommée ne devrait pas pouvoir être renommée, si on change le
+// nom on fait une nouvelle partie » ; « Ok, étends au nom ») : renommer un joueur d'une partie finie vaut pour une branche
+// et pour la partie suivante, le fichier garde le nom d'avant (et sa machine). Sauf un nom par defaut (Joueur_1,
+// Joueur_2R... : moteur/filtre-parties.js, estUnNomParDefaut) : la fin de partie demande justement de le remplacer.
+function garderLeNomDeLaPartieFinie(gardee, camp, ancienNom, machine) {
+  return estUnNomParDefaut(ancienNom) ? gardee : garderLaMachineDeLaPartieFinie(gardee, camp, ancienNom, machine);
 }
 
 // Ce que le fichier doit ecrire. Une partie qui n'est plus finie (sa fin retiree dans une partie Test)

@@ -18,7 +18,7 @@
 // innerHTML — cette regle ne vise pas cette liste, ni l'apercu ci-dessous
 // qui est un <svg> totalement independant du plateau principal).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau,
+// Pas d'import ni d'export (voir moteur/plateau.js) : dessinerPlateau, dessinerNoirEnBas,
 // poserBille (rendu/plateau-svg.js), dessinerEjectionsApercu
 // (rendu/ejections-apercu.js) et depuisNotation (moteur/plateau.js)
 // viennent tous des fichiers charges avant celui-ci dans index.html.
@@ -201,15 +201,14 @@ function demarrerSelectionVariantes(elements, variantes, surChargement, surPrevi
   // dans le meme document HTML, les id doivent rester uniques partout).
   function afficherApercu(variante) {
     elements.apercu.innerHTML = '';
-    dessinerPlateau(elements.apercu);
-    for (const [notation, bille] of Object.entries(variante.position.plateau)) {
-      const { q, r } = depuisNotation(notation);
-      poserBille(elements.apercu, { id: `apercu-${bille.id}`, q, r, couleur: bille.couleur });
-    }
-    dessinerEjectionsApercu(
-      elements.apercu,
-      variante.position.billesEjecteesNoires,
-      variante.position.billesEjecteesBlanches
-    );
+    // Noir en bas, comme la partie que la variante ouvrira (rendu/plateau-svg.js, dessinerNoirEnBas).
+    dessinerNoirEnBas(() => {
+      dessinerPlateau(elements.apercu);
+      for (const [notation, bille] of Object.entries(variante.position.plateau)) {
+        const { q, r } = depuisNotation(notation);
+        poserBille(elements.apercu, { id: `apercu-${bille.id}`, q, r, couleur: bille.couleur });
+      }
+      dessinerEjectionsApercu(elements.apercu, variante.position.billesEjecteesNoires, variante.position.billesEjecteesBlanches);
+    });
   }
 }

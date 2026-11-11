@@ -15,15 +15,17 @@
 // le joueur defend), assez profond pour voir la fin du puzzle.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : parcoursNeuf, parcoursAJour,
-// apresUnResultat, tirerPropositions (moteur/entrainement-serie.js),
+// apresUnResultat, tirerPropositions, regressionApresUnePause (moteur/entrainement-serie.js),
+// historiqueDEntrainement (interface/entrainement-historique.js, seulement a l'usage),
 // pendulesDeLaCeinture, pendulesDuPuzzle, positionAvecHandicap (moteur/entrainement-reglages.js),
-// campDuSens, attaqueDansLePuzzle (moteur/entrainement.js),
+// campDuSens, campDansLePuzzle, attaqueDansLePuzzle (moteur/entrainement.js),
 // reglesDeSerieDuGrade (moteur/entrainement-lecture.js), reglagesDeLEntrainement
 // (interface/profils-entrainement.js),
 // toutesLesPermutations (moteur/permutations.js), definirPositionDepartSuivante,
-// oublierPartieActive (interface/sauvegarde.js), machineDuProfil (moteur/profils-ia.js),
+// oublierPartieActive (interface/sauvegarde.js), machineDuProfil (moteur/profils-ia.js), avecLElagageForce
+// (interface/choix-joueurs.js),
 // nomDuProfilIAParDefaut (interface/profils-ia.js), profilDuChoix
-// (interface/liste-profils-choix.js) viennent de fichiers charges avant celui-ci.
+// (interface/liste-profils-choix.js), NOMS_PAR_DEFAUT (moteur/revanche.js) viennent de fichiers charges avant celui-ci.
 
 const CLE_PARCOURS_ENTRAINEMENT = 'kaah-entrainement';
 const CLE_ENTRAINEMENT_EN_COURS = 'kaah-entrainement-en-cours';
@@ -34,9 +36,11 @@ const PARCOURS_ENTRAINEMENT = ['variantes', 'pzl'];
 // La machine des ceintures : l'IA par defaut (saab, 2026-10-18 : « l'IA par défaut sera
 // toujours celle utilisée pour les ceintures ») — son style, sa version et ses poids ; le
 // niveau, l'elagage et la reflexion viennent de la ceinture (ou des options des PZL). Le
-// livre : en Variantes, pas en PZL.
+// livre : en Variantes, pas en PZL. L'elagage du grade vaut a toutes ses phases (avecLElagageForce,
+// interface/choix-joueurs.js) : la copie du milieu ou de la fin gardait celui du profil (10), si bien
+// qu'une machine des Dans, sans elagage, elaguait des la 2e bille sortie (constate le 2026-11-05).
 function machineDesCeintures({ niveau, reflexionMax, elagage, livre }) {
-  return { ...machineDuProfil(profilDuChoix(nomDuProfilIAParDefaut()), { niveau, reflexionMax, moteur: 'kai++', livre }), elagage };
+  return avecLElagageForce(machineDuProfil(profilDuChoix(nomDuProfilIAParDefaut()), { niveau, reflexionMax, moteur: 'kai++', livre }), elagage);
 }
 const NIVEAU_MAX_DES_PUZZLES = 8; // NIVEAU_MAX_IA (moteur/ia-recherche.js)
 const ELAGAGE_DES_PUZZLES_AVEC_ELAGAGE = 10; // la case « sans elagage » decochee
@@ -80,8 +84,15 @@ function ajouterSupplementDeLaMachine(joueur, camp, secondes) {
 // la boite ne s'ouvrait plus avec ses parcours d'essai).
 function parcoursDuJoueur(joueur, sorte) {
   // Un parcours d'avant le 2026-10-22 encore a la blanche donnee repart sans ceinture (parcoursAJour).
-  return parcoursAJour({ ...parcoursNeuf(), ...lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {})[joueur]?.[sorte] });
+  const lu = parcoursAJour({ ...parcoursNeuf(), ...lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {})[joueur]?.[sorte] });
+  // Trop de jours sans jouer a son grade ou plus haut : il redescend d'une ceinture, une seule fois pour cette pause
+  // (moteur/entrainement-serie.js, regressionApresUnePause), et c'est retenu des qu'on le lit.
+  const apresLaPause = regressionApresUnePause(lu, derniereDateAuGrade(joueur, sorte, lu.ceinture), Date.now(), reglagesDeLEntrainement().serie.joursAvantRegression);
+  if (apresLaPause !== lu) enregistrerParcours(joueur, sorte, apresLaPause);
+  return apresLaPause;
 }
+// Le dernier jeu de `joueur` dans `sorte` a `ceinture` ou plus haut, les deux modes (interface/entrainement-historique.js) : sa date (ms), ou null.
+const derniereDateAuGrade = (joueur, sorte, ceinture) => historiqueDEntrainement(joueur).find((ligne) => ligne.sorte === sorte && ligne.ceinture >= ceinture)?.date ?? null;
 function enregistrerParcours(joueur, sorte, parcours) {
   const tous = lireStockageEntrainement(CLE_PARCOURS_ENTRAINEMENT, {});
   tous[joueur] = { ...tous[joueur], [sorte]: parcours };
@@ -116,8 +127,9 @@ function lancerJeuDEntrainement({ joueur, sorte, ceinture, sens, mode = 'ceintur
   let campDuJoueur;
   let machine;
   let reglagesPendules; // en PZL : ceux par defaut de la partie
-  // Noir a l'aller, Blanc a la revanche, en partie comme en PZL (moteur/entrainement.js, campDuSens).
-  campDuJoueur = campDuSens(sens);
+  // En partie, Noir a l'aller, Blanc a la revanche (moteur/entrainement.js, campDuSens) ; en PZL, l'aller attaque avec le
+  // camp gagnant, la revanche defend (campDansLePuzzle).
+  campDuJoueur = sorte === 'pzl' ? campDansLePuzzle(sens, position.campGagnant) : campDuSens(sens);
   if (sorte === 'variantes') {
     const grade = reglages.ceintures[ceinture];
     machine = machineDesCeintures({ niveau: grade.niveau, reflexionMax: grade.ia.reflexion, elagage: grade.ia.elagage, livre: true });
@@ -162,7 +174,8 @@ function lancerJeuDEntrainement({ joueur, sorte, ceinture, sens, mode = 'ceintur
   });
   oublierPartieActive();
   definirPositionDepartSuivante(texteBrut, position.nom, {
-    joueurs: { [campDuJoueur]: joueur, [campOppose(campDuJoueur)]: '' },
+    // Lance sans nom (en Entrainement) : le nom par defaut de son camp, demande a la fin (index.html, nommerLeJoueurDEntrainement).
+    joueurs: { [campDuJoueur]: joueur || NOMS_PAR_DEFAUT[campDuJoueur], [campOppose(campDuJoueur)]: '' },
     machines: { [campDuJoueur]: null, [campOppose(campDuJoueur)]: machine },
     // La machine toujours en haut, le joueur en bas (saab, 2026-10-14) : avec les Blancs,
     // le plateau se retourne, comme a une Revanche (moteur/revanche.js).
@@ -209,11 +222,7 @@ function noterResultatDEntrainement(enCours, resultat, typesDe, proposablesDe = 
   if (enCours.mode === 'entrainement') return { evenement: resultat === true ? 'reussi' : 'rate', parcours: null, avant: null, regles: null };
   const avant = parcoursDuJoueur(enCours.joueur, enCours.sorte);
   const regles = reglesDeSerieDuGrade(reglagesDeLEntrainement(), avant.cible ?? enCours.ceinture, enCours.sorte, typesDe, proposablesDe);
-  // Le dernier jeu joue avant celui-ci a son grade ou plus haut (les deux modes) : une
-  // pause trop longue fait reconfirmer le grade (interface/entrainement-historique.js).
-  const derniere = historiqueDEntrainement(enCours.joueur).find((ligne) => ligne.sorte === enCours.sorte && ligne.ceinture >= avant.ceinture);
-  const contexte = { date: Date.now(), derniereActivite: derniere?.date ?? null };
-  const { parcours, evenement } = apresUnResultat(avant, enCours.ceinture, enCours.nom, enCours.sens, resultat, regles, contexte);
+  const { parcours, evenement } = apresUnResultat(avant, enCours.ceinture, enCours.nom, enCours.sens, resultat, regles);
   enregistrerParcours(enCours.joueur, enCours.sorte, parcours);
   return { evenement, parcours, avant, regles };
 }

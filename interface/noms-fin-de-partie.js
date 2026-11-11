@@ -7,12 +7,13 @@
 // je veux laisser qu'un seule nom »). Fermer (Echap) ne change rien.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : brancherSaisieNomJoueur (interface/noms-joueurs.js),
-// nomJoueurAutorise (moteur/nom-partie.js), NOM_CAMP (rendu/ejections.js) viennent de fichiers charges avant
-// celui-ci.
+// nomJoueurAutorise (moteur/nom-partie.js), NOM_CAMP (rendu/ejections.js), afficherNomsConnus (interface/noms-connus.js)
+// viennent de fichiers charges avant celui-ci.
 
-// `elements` : { dialogue, lignes ({ noir, blanc } : chaque ligne, avec son champ), valider }. `joueurs` : les
+// `elements` : { dialogue, note, lignes ({ noir, blanc } : chaque ligne, avec son champ), nomsConnus ({ noir, blanc } :
+// la liste des noms deja donnes sous chaque champ), valider }. `joueurs` : les
 // noms en jeu ; `nomsJoueurs` : la boite du nom (interface/noms-joueurs.js, nommer) ; `confirmation` :
-// interface/confirmation.js ; `surChangement()` : sauvegarder, une fois. Renvoie { ouvrir(camps) }.
+// interface/confirmation.js ; `surChangement()` : sauvegarder, une fois. Renvoie { ouvrir(camps, { note, apres }) }.
 function demarrerNomsDeFinDePartie(elements, joueurs, nomsJoueurs, confirmation, surChangement) {
   const champDe = (camp) => elements.lignes[camp].querySelector('input');
   for (const camp of ['noir', 'blanc']) {
@@ -21,15 +22,30 @@ function demarrerNomsDeFinDePartie(elements, joueurs, nomsJoueurs, confirmation,
       if (evenement.key === 'Enter') valider();
     });
   }
+  const noteDesParties = elements.note.textContent;
   let campsANommer = [];
+  // Ce qui attend les noms (le resultat d'un Entrainement lance sans nom, index.html) : appele a la fermeture, de
+  // toute facon, Echap compris.
+  let apresLaFermeture = null;
+  elements.dialogue.addEventListener('close', () => {
+    const suite = apresLaFermeture;
+    apresLaFermeture = null;
+    suite?.();
+  });
 
-  function ouvrir(camps) {
+  function ouvrir(camps, { note = noteDesParties, apres = null } = {}) {
     campsANommer = camps;
     for (const camp of ['noir', 'blanc']) {
       elements.lignes[camp].hidden = !camps.includes(camp);
       champDe(camp).value = '';
       champDe(camp).placeholder = joueurs[camp];
+      // Les noms deja donnes, sous chaque champ, comme dans la boite du nom (saab, 2026-11-07 : « En fin de partie, la boite
+      // Nom de joueur si pas nommé ne propose pas la liste des joueurs, elle y est bien en début »).
+      afficherNomsConnus(elements.nomsConnus[camp], champDe(camp));
+      if (!camps.includes(camp)) elements.nomsConnus[camp].hidden = true;
     }
+    elements.note.textContent = note;
+    apresLaFermeture = apres;
     elements.dialogue.showModal();
     champDe(camps[0]).focus();
   }

@@ -144,8 +144,11 @@ function plisUtilesDuPuzzle(toursMaximum, coupsDuGagnantJoues, machineGagnante) 
 // bon coup de la defense : une indication). Noir joue toujours le premier : a l'aller, le
 // joueur cherche lui-meme le 1er bon coup.
 const campDuSens = (sens) => (sens === 'aller' ? 'noir' : 'blanc');
-// En PZL, on attaque si son camp est celui qui doit gagner, sinon on defend.
-const attaqueDansLePuzzle = (sens, campGagnant) => campDuSens(sens) === campGagnant;
+// En PZL, l'aller est l'attaque, avec le camp qui doit gagner, et la revanche la defense (saab, 2026-11-10 : dans un PZL ou
+// Blanc gagne, « il faut donc que le joueur commence en jouant Blanc pour trouver la sol, au lieu de commencer en Noir qui
+// défend et donc le solver lui donnerait la sol pour la revanche » ; du 2026-10-17 a la, l'aller etait en Noir).
+const campDansLePuzzle = (sens, campGagnant) => (sens === 'aller' ? campGagnant : campGagnant === 'noir' ? 'blanc' : 'noir');
+const attaqueDansLePuzzle = (sens, campGagnant) => campDansLePuzzle(sens, campGagnant) === campGagnant;
 
 // L'issue d'un PZL d'entrainement (`etat` : moteur/puzzles.js, etatDuPuzzle) :
 // vrai, faux, ou null tant qu'il n'est pas fini. En attaque (`attaque`) : resolu,

@@ -207,7 +207,7 @@ function lireMachine(brut) {
 // la machine), sans son propre Ct : jamais de bascule en chaine.
 function lireProfilDuMilieu(brut) {
   const { profil, version, elagage, style, poids } = lireMachine({ ...brut, milieu: undefined, fin: undefined, finEnAvance: undefined });
-  const { centreTenu, phasesAuScore, ...sansBascule } = poids;
+  const { centreTenu, phasesAuScore, avancePourLaFinEnAvance, niveauMortSubite, ...sansBascule } = poids;
   return { profil, version, elagage, style, poids: sansBascule };
 }
 

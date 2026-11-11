@@ -441,6 +441,17 @@ function marquerCommentaire(arbre, chemin, texte) {
   return { ...arbre, racine };
 }
 
+// Le nom du profil qui joue, en commentaire de son coup, en partie Test (saab, 2026-11-08 : « pour voir qui jouait comme j'ai
+// changé de KAI, il faudrait mettre en commentaire sur sa 1ère Br le nom du profil qui joue, ajouter une autre ligne si un coup
+// est joué par plusieurs profils »). `commentaire` : celui du coup ; `machine` : le nom de celle qui le joue ; `precedente` : celle
+// qui a joue le coup precedent du meme camp sur la ligne (null : un humain, ou aucun) ; `dejaLa` : celle dont le coup garde la
+// reflexion (le coup existait deja : celle qui l'a joue la premiere). Renvoie le commentaire a poser, ou null s'il ne change pas.
+function commentaireDuProfil(commentaire, machine, precedente, dejaLa) {
+  if (commentaire.split('\n').includes(machine)) return null;
+  if (precedente === machine && dejaLa === machine) return null;
+  return commentaire ? `${commentaire}\n${machine}` : machine;
+}
+
 // Numero de tour a partir du nombre de coups deja joues depuis la racine —
 // meme formule que KAAWA (display_turn = (history_index+1)//2, jamais sous
 // 1). Vit ICI, et pas dans l'interface qui l'affiche : c'est une regle de

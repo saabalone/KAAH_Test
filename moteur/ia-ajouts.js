@@ -61,12 +61,30 @@
 //     (moteur/ia-phase.js ; il choisit le profil, il ne compte pas dans l'evaluation) ;
 //   - He : Hp qui grandit avec l'ecart au score (moteur/ia-groupe-principal.js) — saab, 2026-11-04 ;
 //   - Ph : les phases au score — apres Ph billes sorties, la machine joue la copie du milieu, puis celle de la fin — saab, 2026-11-04
-//     (moteur/ia-phase.js ; comme Ct, il choisit le profil).
+//     (moteur/ia-phase.js ; comme Ct, il choisit le profil) ;
+//   - Ms : la mort subite — quand la prochaine ejection gagne pour les deux camps, la machine cherche au plus au niveau Ms, sans
+//     elagage — saab, 2026-11-06 (moteur/ia-phase.js ; comme Ph, il choisit la recherche) ;
+//   - Co : le coin du bloc adverse — chaque axe d'un coin du bloc adverse, le moins au bord, ou l'on a une ligne de 3 qui le vise,
+//     au carre (moteur/ia-coin.js) — saab, 2026-11-06 ;
+//   - Ca : le coin attaque — comme Co, mais un axe ne compte que si sa ligne peut pousser le coin tout de suite (moteur/ia-coin.js,
+//     termeDuCoinAttaque) — saab, 2026-11-11 ;
+//   - Ce : le centre adverse — quand l'adversaire tient e5, garder 2 axes pleins vers e5 et des billes en attente sur le 3e ;
+//     Co et Ca visent alors un coin ailleurs (moteur/ia-coin.js, termeDuCentreAdverse) — saab, 2026-11-11 ;
+//   - Cc : le controle du centre — quand on tient e5 face a un adversaire en bloc, sur chaque axe de e5, la ligne de ses
+//     billes qui passe par e5, jusqu'a 3 (moteur/ia-coin.js, termeDuControleDuCentre) — saab, 2026-11-11 ;
+//   - Ba : les billes amies d'ULA — chaque bille vaut selon le nombre de ses voisines de son camp, la table de debutsaab9
+//     (moteur/ia-groupe-principal.js, termeDesBillesAmies) — saab, 2026-11-11 ;
+//   - Nr : l'elagage garde les coups qui font nulle par repetition — sur le plateau ils ne valent rien de plus, il les jetait :
+//     le meneur laissait le mene repeter sans le prevoir (KAI++ seulement : solveur/kai-plus.cpp, meilleurs_coups) — saab,
+//     2026-11-11 ;
+//   - Ed et Dp : l'elagage au debut de la recherche — sur les Dp premiers demi-coups (1 : les premiers coups), l'elagage
+//     garde Ed coups au lieu de El, tous si Ed depasse leur nombre (KAI++ seulement : solveur/kai-plus.cpp,
+//     elagage_a_la_distance) — saab, 2026-11-07.
 // `terme` : il a sa colonne (Essai, panneaux) ; da, ep, gf, pf et ceux du piege n'en ont pas, ils changent d'autres termes.
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : STYLES_IA, STYLES_IA_V2
 // (ia-evaluation.js, ia-evaluation-v2.js), termeDuSumitoVide, termeDuSumitoContre, termesDesBillesVulnerables
-// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees, termeDeLaMenaceDeCoupure (ia-poussees.js), termeDesAnglesDeTriangles (ia-triangles.js), termeDesBillesHorsDuGroupePrincipal (ia-groupe-principal.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
+// (ia-sumito-vide.js), termeDesBillesPousseesAEffet, termeDesPousseesRetournees, termeDeLaMenaceDeCoupure (ia-poussees.js), termeDesAnglesDeTriangles (ia-triangles.js), termeDesBillesHorsDuGroupePrincipal, termeDesBillesAmies (ia-groupe-principal.js), termeDuCoin, termeDuCoinAttaque, termeDuCentreAdverse, termeDuControleDuCentre (ia-coin.js), termesDeLEtendue, PROFONDEUR_D_ETENDUE_PAR_DEFAUT (ia-etendue.js), couleurAdverse
 // (regles.js), couleursDuPlateau (partie.js), CASES_VOISINES_IA (ia-evaluation-v2.js) viennent de fichiers
 // charges avant celui-ci.
 
@@ -106,10 +124,23 @@ const OPTIONS_IA = [
   { cle: 'anglesDeTriangles', suffixe: 'At', terme: true },
   { cle: 'billesHorsDuGroupePrincipal', suffixe: 'Hp', terme: true },
   { cle: 'billesHorsDuGroupeSelonLEcart', suffixe: 'He', terme: true },
+  { cle: 'lignesSurLeCoin', suffixe: 'Co', terme: true },
+  { cle: 'elagageDebut', suffixe: 'Ed', terme: false },
+  { cle: 'elagageDebutPlis', suffixe: 'Dp', terme: false },
+  { cle: 'lignesQuiPoussentLeCoin', suffixe: 'Ca', terme: true },
+  { cle: 'centreAdverse', suffixe: 'Ce', terme: true },
+  // Nr : l'elagage garde les coups qui font nulle par repetition (KAI++ seulement : solveur/kai-plus.cpp, meilleurs_coups).
+  { cle: 'repetitionsGardees', suffixe: 'Nr', terme: false },
+  { cle: 'controleDuCentre', suffixe: 'Cc', terme: true },
+  { cle: 'billesAmies', suffixe: 'Ba', terme: true },
   // Le centre tenu (moteur/ia-phase.js) choisit le profil qui cherche : KAI++ ne le voit jamais.
   { cle: 'centreTenu', suffixe: 'Ct', terme: false, horsDeKaiPlus: true },
   // Les phases au score, de meme (moteur/ia-phase.js).
   { cle: 'phasesAuScore', suffixe: 'Ph', terme: false, horsDeKaiPlus: true },
+  // La fin en avance selon l'avance, avec Ph (moteur/ia-phase.js).
+  { cle: 'avancePourLaFinEnAvance', suffixe: 'Fa', terme: false, horsDeKaiPlus: true },
+  // La mort subite choisit le niveau et l'elagage de la recherche (moteur/ia-phase.js).
+  { cle: 'niveauMortSubite', suffixe: 'Ms', terme: false, horsDeKaiPlus: true },
 ];
 // Chaque suffixe avec sa majuscule (saab, 2026-10-16 : « v5elecef est un peu confus, il
 // vaudrait mieux repérer chaque suffixe par une majuscule, v5ElEcEf »).
@@ -184,12 +215,31 @@ const BILLES_HORS_DU_GROUPE_PRINCIPAL_PROPOSEES = -10;
 // Avec Hp -20 : -40 a 1 bille d'ecart, -60 a 2, -80 a 3. Dans 2611040956, les coups changent a 4-1 a partir de -60 a -80
 // (tours 36, 40, 43, 44). Une base a regler.
 const BILLES_HORS_DU_GROUPE_SELON_L_ECART_PROPOSEES = -20;
+// Co : un axe vaut 15, deux 60, trois 135 (plus que Gs 20 pour un groupe coupe). Une base a regler.
+const LIGNES_SUR_LE_COIN_PROPOSEES = 15;
+// Ed : 20 premiers coups au lieu de 10 (mesure, JOURNAL.md, 2026-11-07), sur les premiers coups seulement (Dp 1).
+const ELAGAGE_DEBUT_PROPOSE = 20;
+const ELAGAGE_DEBUT_PLIS_PROPOSES = 1;
+// Ca : comme Co, un axe qui pousse vaut 15, deux 60, trois 135. Une base a regler (essai 69).
+const LIGNES_QUI_POUSSENT_LE_COIN_PROPOSEES = 15;
+// Ce : par bille ; 2 axes pleins vers e5 valent 60, comme 2 axes de Co 15, et chaque bille en attente 10. Une base a regler.
+const CENTRE_ADVERSE_PROPOSE = 10;
+// Nr : 1, l'elagage garde les nulles par repetition (0 : il peut les jeter, comme avant).
+const REPETITIONS_GARDEES_PROPOSEES = 1;
+// Cc : par bille ; e5 imprenable (3 axes pleins) vaut 90, moins qu'une bille gagnee (saab : « les 2 billes gagnées pèsent lourd »).
+const CONTROLE_DU_CENTRE_PROPOSE = 10;
+// Ba : chez ULA (debutsaab9), une bille ejectee vaut 30 a 37 et la compacite compte a 80 % ; chez KAI++, 300 au milieu.
+const BILLES_AMIES_PROPOSEES = 6;
 // La 1re bille sortie finit l'ouverture ; 2 la laisse encore dans l'ouverture (saab : « les 2 possibilités »).
 const PHASES_AU_SCORE_PROPOSEES = 1;
+// Fa : il sacrifie tant qu'il mene de 2 billes, plus a 1 (aux essais 69 a 73, c'est de 1 bille d'avance a l'egalite que tout bascule).
+const AVANCE_POUR_LA_FIN_EN_AVANCE_PROPOSEE = 2;
+// La mort subite au niveau de la machine marron, qui a battu KAI++8 6 fois sur 6 (1 a 9 s par coup).
+const NIVEAU_DE_LA_MORT_SUBITE_PROPOSE = 6;
 const POIDS_PROPOSES_OPTIONS_IA = Object.fromEntries(
   Object.keys(STYLES_IA).map((style) => [
     style,
-    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, ejectionTot: EJECTION_TOT_PROPOSEE, ejectionTotSansEchange: EJECTION_TOT_SANS_ECHANGE_PROPOSEE, pousseeRetournableJouee: POUSSEE_RETOURNABLE_JOUEE_PROPOSEE, pousseeRetournableJoueeMachineSeule: POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE, menaceDeCoupure: MENACE_DE_COUPURE_PROPOSEE, anglesDeTriangles: ANGLES_DE_TRIANGLES_PROPOSES, billesHorsDuGroupePrincipal: BILLES_HORS_DU_GROUPE_PRINCIPAL_PROPOSEES, billesHorsDuGroupeSelonLEcart: BILLES_HORS_DU_GROUPE_SELON_L_ECART_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE, phasesAuScore: PHASES_AU_SCORE_PROPOSEES },
+    { sumitoVide: -STYLES_IA_V2[style].sumito, etendueCentre: STYLES_IA[style].centre, etendueCases: PART_DES_CASES_ETENDUE, etendueReference: BILLES_DE_REFERENCE_ETENDUE, elagageReponse: DISTANCE_ELAGAGE_PAR_REPONSE, elagageSuite: DISTANCE_ELAGAGE_SUITE, etendueProfondeur: PROFONDEUR_D_ETENDUE_PAR_DEFAUT, elagageFin: EJECTIONS_SANS_ELAGAGE_PROPOSEES, elagageFinNiveau: NIVEAU_MAX_SANS_ELAGAGE_EN_FIN_PROPOSE, gainFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, perteFibonacci: PREMIER_TERME_DU_SCORE_PROGRESSIF, piegeProgressifAdverse: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeProgressifMien: PREMIER_TERME_DU_PIEGE_PROGRESSIF, piegeGagnantAdverse: PIEGE_GAGNANT_PROPOSE, piegeGagnantMien: PIEGE_GAGNANT_PROPOSE, piegeFinAdverse: PIEGE_GAGNANT_PROPOSE, piegeFinMien: PIEGE_GAGNANT_PROPOSE, elagageGarde: ELAGAGE_GARDE_LES_EJECTIONS, groupesSepares: GROUPES_SEPARES_PROPOSES, sumitoContre: -STYLES_IA_V2[style].sumito, ...BILLES_VULNERABLES_PROPOSEES, billesPousseesAEffet: BILLES_POUSSEES_A_EFFET_PROPOSEES, pousseesRetournees: POUSSEES_RETOURNEES_PROPOSEES, ejectionTot: EJECTION_TOT_PROPOSEE, ejectionTotSansEchange: EJECTION_TOT_SANS_ECHANGE_PROPOSEE, pousseeRetournableJouee: POUSSEE_RETOURNABLE_JOUEE_PROPOSEE, pousseeRetournableJoueeMachineSeule: POUSSEE_RETOURNABLE_JOUEE_MACHINE_SEULE_PROPOSEE, menaceDeCoupure: MENACE_DE_COUPURE_PROPOSEE, anglesDeTriangles: ANGLES_DE_TRIANGLES_PROPOSES, billesHorsDuGroupePrincipal: BILLES_HORS_DU_GROUPE_PRINCIPAL_PROPOSEES, billesHorsDuGroupeSelonLEcart: BILLES_HORS_DU_GROUPE_SELON_L_ECART_PROPOSEES, lignesSurLeCoin: LIGNES_SUR_LE_COIN_PROPOSEES, elagageDebut: ELAGAGE_DEBUT_PROPOSE, elagageDebutPlis: ELAGAGE_DEBUT_PLIS_PROPOSES, lignesQuiPoussentLeCoin: LIGNES_QUI_POUSSENT_LE_COIN_PROPOSEES, centreAdverse: CENTRE_ADVERSE_PROPOSE, repetitionsGardees: REPETITIONS_GARDEES_PROPOSEES, controleDuCentre: CONTROLE_DU_CENTRE_PROPOSE, billesAmies: BILLES_AMIES_PROPOSEES, centreTenu: CENTRE_TENU_PROPOSE, phasesAuScore: PHASES_AU_SCORE_PROPOSEES, avancePourLaFinEnAvance: AVANCE_POUR_LA_FIN_EN_AVANCE_PROPOSEE, niveauMortSubite: NIVEAU_DE_LA_MORT_SUBITE_PROPOSE },
   ])
 );
 
@@ -235,6 +285,11 @@ function termesDesAjouts(etat, camp, poids) {
   if ('anglesDeTriangles' in poids) vulnerables.anglesDeTriangles = termeDesAnglesDeTriangles(etat, camp, poids);
   if ('billesHorsDuGroupePrincipal' in poids) vulnerables.billesHorsDuGroupePrincipal = termeDesBillesHorsDuGroupePrincipal(etat, camp, poids);
   if ('billesHorsDuGroupeSelonLEcart' in poids) vulnerables.billesHorsDuGroupeSelonLEcart = termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids);
+  if ('lignesSurLeCoin' in poids) vulnerables.lignesSurLeCoin = termeDuCoin(etat, camp, poids);
+  if ('lignesQuiPoussentLeCoin' in poids) vulnerables.lignesQuiPoussentLeCoin = termeDuCoinAttaque(etat, camp, poids);
+  if ('centreAdverse' in poids) vulnerables.centreAdverse = termeDuCentreAdverse(etat, camp, poids);
+  if ('controleDuCentre' in poids) vulnerables.controleDuCentre = termeDuControleDuCentre(etat, camp, poids);
+  if ('billesAmies' in poids) vulnerables.billesAmies = termeDesBillesAmies(etat, camp, poids);
   return { ...termes, ...vulnerables };
 }
 
@@ -258,5 +313,10 @@ function valeurAvecLesAjouts(valeur, etat, camp, poids) {
   if (poids.anglesDeTriangles) total += termeDesAnglesDeTriangles(etat, camp, poids);
   if (poids.billesHorsDuGroupePrincipal) total += termeDesBillesHorsDuGroupePrincipal(etat, camp, poids);
   if (poids.billesHorsDuGroupeSelonLEcart) total += termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids);
+  if (poids.lignesSurLeCoin) total += termeDuCoin(etat, camp, poids);
+  if (poids.lignesQuiPoussentLeCoin) total += termeDuCoinAttaque(etat, camp, poids);
+  if (poids.centreAdverse) total += termeDuCentreAdverse(etat, camp, poids);
+  if (poids.controleDuCentre) total += termeDuControleDuCentre(etat, camp, poids);
+  if (poids.billesAmies) total += termeDesBillesAmies(etat, camp, poids);
   return total;
 }

@@ -29,6 +29,11 @@ function billesHorsDuGroupePrincipal(couleurs, camp) {
   return total - plusGrand;
 }
 
+// Un camp EN BLOC : au plus BILLES_DEHORS_D_UN_BLOC billes hors de son groupe principal (saab, 2026-11-04, pour les phases :
+// « groupé, au plus 1 bille dehors » ; moteur/ia-phase.js et l'ajout Cc, moteur/ia-coin.js).
+const BILLES_DEHORS_D_UN_BLOC = 1;
+const estEnBloc = (couleurs, camp) => billesHorsDuGroupePrincipal(couleurs, camp) <= BILLES_DEHORS_D_UN_BLOC;
+
 // L'ajout « He », Hp qui grandit avec l'ecart au score (saab, 2026-11-04 : « 2 blocs complets sur le centre avec seulement 2
 // billes d'écart au score ne peut faire que Nulle si pas d'erreur, donc il faut éviter que l'adversaire qui à un retard de 2
 // billes ne se regroupe » ; « Ok pour He »). A 2 billes d'ecart, sur 20 tours, deux blocs : rien dans 3 cas sur 4 ; celui qui
@@ -39,6 +44,29 @@ function termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   const ecart = Math.abs(etat.billesEjecteesNoires - etat.billesEjecteesBlanches);
   return poids.billesHorsDuGroupeSelonLEcart * ecart * (billesHorsDuGroupePrincipal(couleurs, camp) - billesHorsDuGroupePrincipal(couleurs, couleurAdverse(camp)));
+}
+
+// L'ajout « Ba », les BILLES AMIES d'ULA (saab, 2026-11-11 : « Dans ULA il compte les billes amies, càd celles avec qui une bille est en
+// contacte, 6 c'est les 7 billes en marguerite » ; « Donc tu vois pour les billes amies? ») : chaque bille vaut selon le nombre de ses
+// voisines de son camp, la table de debutsaab9 (« Cl_#saab, Réglages ULA », compacite, contact avec amies). La Cohesion de KAI++
+// paie chaque paire de voisines au meme prix ; ULA paie surtout la bille tres entouree, et fait payer la bille seule.
+const VALEUR_SELON_LES_BILLES_AMIES = [-2, 0, 1, 3, 5, 6, 7];
+
+// Ba pour `camp`, en points d'ULA : la somme, sur ses billes, de la valeur de leur nombre de billes amies.
+function valeurDesBillesAmies(couleurs, camp) {
+  let valeur = 0;
+  for (const [notation, couleur] of Object.entries(couleurs)) {
+    if (couleur !== camp) continue;
+    const amies = CASES_VOISINES_IA[notation].filter((voisine) => voisine !== null && couleurs[voisine] === camp).length;
+    valeur += VALEUR_SELON_LES_BILLES_AMIES[amies];
+  }
+  return valeur;
+}
+
+// Le terme Ba pour `camp` : le sien moins celui de l'adversaire, fois le poids.
+function termeDesBillesAmies(etat, camp, poids) {
+  const couleurs = couleursDuPlateau(etat.plateau);
+  return poids.billesAmies * (valeurDesBillesAmies(couleurs, camp) - valeurDesBillesAmies(couleurs, couleurAdverse(camp)));
 }
 
 // Le terme Hp pour `camp` : ses billes hors du groupe principal moins celles de l'adversaire, fois le poids (negatif).
