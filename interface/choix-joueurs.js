@@ -12,8 +12,8 @@
 // cours de partie (saab, 2026-10-01 : interface/noms-joueurs.js). Niveaux 1 a
 // NIVEAU_MAX_IA : le niveau n regarde n coups d'avance (moteur/ia-recherche.js).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT,
-// NOMS_STYLES_IA (moteur/ia.js), NIVEAU_MAX_IA (moteur/ia-recherche.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : MACHINE_PAR_DEFAUT (moteur/ia.js),
+// NIVEAU_MAX_IA (moteur/ia-recherche.js),
 // REFLEXION_SANS_LIMITE_S (moteur/ia.js), brancherConseilDeTemps (interface/conseil-temps-ia.js),
 // palierVoisin, reflexionProposee (interface/reflexion-machine.js),
 // machineDuProfil (moteur/profils-ia.js), listerProfilsIA, trouverProfilIA
@@ -244,7 +244,7 @@ function brancherChoixMachine(element, surChangement) {
 // partie, meme s'il est modifie ou supprime ensuite —, ou null pour un humain.
 function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
-  const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
+  const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(nomDuProfilIAParDefaut());
   const machine = machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), moteur: choix.role, livre: choix.livre });
   return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
 }

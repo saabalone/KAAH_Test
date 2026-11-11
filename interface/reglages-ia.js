@@ -16,13 +16,12 @@
 // L'essai (interface/essai-ia.js) montre, sans rien enregistrer, ce que les
 // poids affiches font jouer sur la position du plateau.
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : NOMS_STYLES_IA (moteur/ia.js),
-// lireProfilIA (moteur/profils-ia.js),
+// Pas d'import ni d'export (voir moteur/plateau.js) : lireProfilIA (moteur/profils-ia.js),
 // demarrerHistoriqueIA, validerVersionIA, choisirVersionIA, memesReglagesIA
 // (moteur/historique-profil-ia.js), couleursDesReglagesIA, couleurLaPlusForte,
 // couleurDuProfilIA (moteur/couleurs-profil-ia.js), listerProfilsIA,
 // trouverProfilIA, estProfilIAIntegre, enregistrerProfilIA,
-// enregistrerSousLeNomDeSaVersion, lireProfilIAMontre, retenirProfilIAMontre
+// enregistrerSousLeNomDeSaVersion, lireProfilIAMontre, retenirProfilIAMontre, nomDuProfilIAParDefaut
 // (interface/profils-ia.js), poserCouleurIA,
 // colorerListeProfilsIA (interface/couleurs-ia.js), afficherHistoriqueIA
 // (interface/historique-ia.js), formaterDateKAAWA (interface/sauvegarde.js),
@@ -46,7 +45,9 @@ const CLASSES_RUBRIQUE_IA = { dernier: 'rubrique-valide-dernier', ancien: 'rubri
 function demarrerReglagesIA(elements) {
   // Le dernier profil montre, ou celui du joueur regarde (interface/profils-ia.js,
   // lireProfilIAMontre) — jamais toujours Normal (saab, 2026-10-07).
-  let nomActuel = lireProfilIAMontre() ?? NOMS_STYLES_IA.normal;
+  // Sans profil retenu : l'IA par defaut (saab, 2026-11-11 : « Réglages/Version de l'IA est à 1??? [...] c'est 5El qui doit être par
+  // défaut pour avoir P8 ») — avant, le profil integre Normal, de version 1.
+  let nomActuel = lireProfilIAMontre() ?? nomDuProfilIAParDefaut();
   let brouillon = null; // les valeurs retouchees pas encore validees, ou null
   // Le brouillon d'avant chaque retouche : Annuler, en pied de Reglages
   // (interface/reglages.js), y revient (saab, 2026-10-02 : « je ne peux plus
@@ -104,7 +105,7 @@ function demarrerReglagesIA(elements) {
       nomActuel = voulu;
       retouchesPrecedentes = [];
     }
-    if (!profils.some((profil) => profil.nom === nomActuel)) nomActuel = NOMS_STYLES_IA.normal;
+    if (!profils.some((profil) => profil.nom === nomActuel)) nomActuel = nomDuProfilIAParDefaut();
     elements.select.replaceChildren(
       ...profils.map((profil) => {
         const option = document.createElement('option');

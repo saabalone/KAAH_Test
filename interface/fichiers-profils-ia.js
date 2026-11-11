@@ -8,9 +8,8 @@
 // puis 2026-10-06 : un prefixe, saab_Normal_v2_(P4)) ; Importer le met devant
 // le nom (moteur/profils-ia.js, nomDuProfilImporte).
 //
-// Pas d'import ni d'export (voir moteur/plateau.js) : NOMS_STYLES_IA
-// (moteur/ia.js), lireProfilIA, nomDuProfilImporte (moteur/profils-ia.js),
-// demarrerHistoriqueIA (moteur/historique-profil-ia.js), listerProfilsIA,
+// Pas d'import ni d'export (voir moteur/plateau.js) : lireProfilIA, nomDuProfilImporte
+// (moteur/profils-ia.js), demarrerHistoriqueIA (moteur/historique-profil-ia.js), nomDuProfilIAParDefaut, listerProfilsIA,
 // estProfilIAIntegre, enregistrerProfilIA, supprimerProfilIA,
 // nomNouveauProfilIA (interface/profils-ia.js), formaterDateKAAWA
 // (interface/sauvegarde.js), telechargerPartie, demarrerImportation
@@ -56,7 +55,7 @@ function brancherFichiersProfilsIA(elements, { profilActuel, nomActuel, brouillo
     }
     if (!window.confirm(`Supprimer le profil IA « ${nomActuel()} » ?`)) return;
     supprimerProfilIA(nomActuel());
-    choisir(NOMS_STYLES_IA.normal);
+    choisir(nomDuProfilIAParDefaut());
   });
 
   // Le profil valide, historique compris (jamais le brouillon), avec le nom de

@@ -7,8 +7,8 @@
 // montre sur le petit plateau, et dans les 4 groupes (interface/graphique-groupes.js).
 //
 // Pas d'import ni d'export (voir moteur/plateau.js) : machineDuProfil (moteur/profils-ia.js),
-// remplirListeProfils, profilDuChoix (interface/liste-profils-choix.js), trouverProfilIA
-// (interface/profils-ia.js), NOMS_STYLES_IA (moteur/ia.js) viennent de fichiers charges
+// remplirListeProfils, profilDuChoix (interface/liste-profils-choix.js), trouverProfilIA, nomDuProfilIAParDefaut
+// (interface/profils-ia.js) viennent de fichiers charges
 // avant celui-ci.
 
 const NIVEAU_CONSEIL_IA_PAR_DEFAUT = 6;
@@ -26,7 +26,7 @@ function demarrerConseilIA(elements, suggerer) {
   // Les profils changent (Reglages) : la liste se refait a chaque fois qu'on la touche.
   elements.profil.addEventListener('pointerdown', remplir);
   elements.reflechir.addEventListener('click', () => {
-    const profil = profilDuChoix(elements.profil.value) ?? trouverProfilIA(NOMS_STYLES_IA.normal);
+    const profil = profilDuChoix(elements.profil.value) ?? trouverProfilIA(nomDuProfilIAParDefaut());
     const niveau = Math.max(1, Math.round(Number(elements.niveau.value)) || NIVEAU_CONSEIL_IA_PAR_DEFAUT);
     const reflexionMax = Math.max(1, Number(elements.reflexion.value) || REFLEXION_CONSEIL_IA_PAR_DEFAUT_S);
     suggerer(machineDuProfil(profil, { niveau, reflexionMax, moteur: 'kai++', livre: false }));
