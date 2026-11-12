@@ -756,26 +756,29 @@ function demarrerPartie(
     if (arbre.racine !== arbreAvant.racine) arbre = marquerPendulesSnapshot(arbre, arbre.chemin, pendules.etatActuel());
     if (reflexionIA && arbre.racine !== arbreAvant.racine) arbre = marquerReflexionIA(arbre, arbre.chemin, reflexionIA);
     if (commentaire && arbre.racine !== arbreAvant.racine) arbre = marquerCommentaire(arbre, arbre.chemin, commentaire);
-    // En partie Test, le nom du profil qui joue (moteur/arbre.js, commentaireDuProfil) — meme sur un coup deja joue, ou un
-    // autre profil ajoute sa ligne.
+    // Le nom du profil qui joue (moteur/arbre.js, commentaireDuProfil) — meme sur un coup deja joue, ou un autre profil ajoute
+    // sa ligne. Dans toute partie (saab, 2026-11-12 : « Ecrire tjs l'IA dans n'importe quel évènement » ; jusque-la en partie
+    // Test seulement, pas dans une partie LabAl revue).
     // Une branche ouverte depuis son coup precedent (ce coup ou celui d'avant n'est pas le 1er enfant) : son nom au debut de la
     // branche (saab, 2026-11-08 : « je ne les vois [...] seulement sur le 1er coup, pas sur les Br ? Il faudrait donc le mettre
     // sur le début des Br, et aussi en fin de partie »).
-    if (arbre.lignePrincipaleLibre && reflexionIA?.machine) {
+    if (reflexionIA?.machine) {
       const noeud = noeudCourant(arbre);
       const brancheOuverte = arbre.chemin.slice(-2).some((indice) => indice !== 0);
       const precedente = arbre.chemin.length >= 2 && !brancheOuverte ? (noeudA(arbre, arbre.chemin.slice(0, -2)).reflexionIA?.machine ?? null) : null;
       const texte = commentaireDuProfil(noeud.commentaire ?? '', reflexionIA.machine, precedente, noeud.reflexionIA?.machine ?? null);
       if (texte !== null) arbre = marquerCommentaire(arbre, arbre.chemin, texte);
     }
-    // En fin de partie, la machine de cette branche (celle de ce coup, ou du coup d'avant si c'est l'humain qui finit).
-    if (arbre.lignePrincipaleLibre && resultat.etat.vainqueur && arbre.chemin.length >= 1) {
-      const parent = noeudA(arbre, arbre.chemin.slice(0, -1));
+    // En fin de partie, la machine de cette branche (celle de ce coup, ou du coup d'avant si c'est l'humain qui finit) — dans
+    // toute partie ou une machine a joue ; une partie entre humains reste sans commentaire.
+    const parentDuDernier = resultat.etat.vainqueur && arbre.chemin.length >= 1 ? noeudA(arbre, arbre.chemin.slice(0, -1)) : null;
+    const machinesDeLaFin = parentDuDernier ? [...new Set([reflexionIA?.machine, parentDuDernier.reflexionIA?.machine].filter(Boolean))] : [];
+    if (machinesDeLaFin.length > 0) {
       // Et le score final (saab, 2026-11-10 : « ajoute aussi le score final dans le commentaire »), comme dans le titre
       // des parties : « Fin -3-6tr37 ».
       const { billesEjecteesNoires, billesEjecteesBlanches } = resultat.etat;
       const score = `Fin -${billesEjecteesNoires}-${billesEjecteesBlanches}tr${numeroDeTour(arbre.chemin.length)}`;
-      for (const ligne of [...new Set([reflexionIA?.machine, parent.reflexionIA?.machine].filter(Boolean)), score]) {
+      for (const ligne of [...machinesDeLaFin, score]) {
         const texte = commentaireDuProfil(noeudCourant(arbre).commentaire ?? '', ligne, null, ligne);
         if (texte !== null) arbre = marquerCommentaire(arbre, arbre.chemin, texte);
       }
