@@ -42,6 +42,12 @@ function optionDeProfil(valeur, texte) {
   return option;
 }
 
+// Les profils integres sans elagage (Agressif, Normal, Defensif, v1 a v5) ne se choisissent plus (saab, 2026-11-15 : « ok
+// cache ») : sans limite de temps, la reflexion par defaut, leur niveau 8 ne finirait jamais. Ils restent pour les parties
+// d'avant (la machine d'une partie en cours garde le sien), les Reglages et le banc.
+const NOMS_DES_PROFILS_CACHES_DU_CHOIX = new Set(PROFILS_IA_INTEGRES.filter((profil) => !profil.elagage).map((profil) => profil.nom));
+const profilCacheDuChoix = (profil) => NOMS_DES_PROFILS_CACHES_DU_CHOIX.has(profil.nom) && !profil.elagage;
+
 // Remplit `select` : les profils du style `filtreStyle` (tous si vide), chacun
 // suivi de ses anciennes versions ; `profilGarde`, un profil qui n'existe plus
 // (celui d'une machine deja en jeu), en tete. Renvoie la valeur choisie :
@@ -53,6 +59,7 @@ function remplirListeProfils(select, { voulue, filtreStyle, profilGarde }) {
   // Dans l'ordre de Profils IA compares (interface/noms-profils-ia.js).
   for (const profil of listerProfilsIADansLOrdre()) {
     if (filtreStyle !== TOUS_LES_STYLES_IA && profil.style !== filtreStyle) continue;
+    if (profilCacheDuChoix(profil) && profil.nom !== profilGarde) continue;
     const option = optionDeProfil(profil.nom, libelleAvecSaVersion(profil));
     option.title = infobulleDuProfilIA(profil);
     marquerSiProfilParDefaut(option, profil.nom);

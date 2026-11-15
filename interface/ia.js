@@ -59,7 +59,8 @@
 // (moteur/sequence-prevue.js), reflechirAvecKai,
 // reflechirAvecKaiPlus, MILLISECONDES_PAR_SECONDE, ATTENTE_SUSPENSION_MS
 // (interface/ia-reflexion.js), creerKaiPlus (interface/kai-plus.js),
-// phaseDeLaPartie (moteur/ia-evaluation.js), phaseDuReglage, reglageDeLaPhase (moteur/ia-phase.js),
+// phaseDeLaPartie (moteur/ia-evaluation.js), phaseDuReglage, reglageDeLaPhase (moteur/ia-phase.js), toursDuSolveurEnFin
+// (moteur/solveur-en-fin.js), demanderAuSolveurEnFin (interface/solveur.js, a l'usage),
 // etatCourant, noeudCourant
 // (moteur/arbre.js), positionsDepuisLaRacine (interface/nulle.js),
 // marquerNomMachine, colorerLeNom (rendu/ligne-joueur.js), morceauxColoresDuNom
@@ -285,9 +286,10 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
         for (const solution of solutionsDeLaSequence(etat, sequence, evaluation)) solutions.set(solution.cle, { ...solution, machine });
         // La machine d'en face le sait aussi : elle joue sa part de la fin sans
         // chercher (saab, 2026-10-02 : « il faut qu'elle sache qu'elle a perdu »).
-        // Pas si cette fin a ete vue en elaguant : rien ne dit qu'elle est forcee.
+        // Pas si cette fin a ete vue en elaguant : rien ne dit qu'elle est forcee. Celle du solveur (l'ajout So) l'est toujours
+        // (saab, 2026-11-12 : « dès qu'il y a une sol le meneur sait aussi et donc ne recalcule pas »).
         const adverse = machines[camp === 'noir' ? 'blanc' : 'noir'];
-        if (adverse && !machine.elagage) {
+        if (adverse && (!machine.elagage || source === 'solveur')) {
           for (const solution of solutionsDeLAdversaire(etat, sequence, evaluation)) if (!solutions.has(solution.cle)) solutions.set(solution.cle, { ...solution, machine: adverse });
         }
         // Sa pause demandee : le coup attend le clic sur sa pendule (voir l'en-tete).
@@ -323,6 +325,17 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       });
       return;
     }
+    // L'ajout So (moteur/solveur-en-fin.js) : en partie, quand la derniere bille adverse est piegee, le solveur d'abord ; rien de lui
+    // (pas de gain dans ses tours, ou trop long) : KAI++ cherche, comme avant.
+    const toursDuSolveur = genre === 'jeu' && !aide ? toursDuSolveurEnFin(machine, etat) : 0;
+    if (toursDuSolveur > 0) {
+      demanderAuSolveurEnFin(etat, toursDuSolveur).then((trouve) => {
+        if (!positionInchangee(etat, genre)) return finir();
+        if (trouve) return jouer({ texte: trouve.texte, source: 'solveur', profondeur: trouve.sequence.length, evaluation: trouve.evaluation, noeuds: 0, sequence: trouve.sequence });
+        chercherAvecLaMachine();
+      });
+      return;
+    }
     chercherAvecLaMachine();
 
     function chercherAvecLaMachine() {
@@ -340,7 +353,9 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };
       if (machine.moteur === 'kai++') {
         kaiPlus ??= creerKaiPlus();
-        reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
+        // Ses premiers coups tires parmi les bons (moteur/coups-varies.js) : en partie seulement, jamais dans un PZL.
+        const varier = genre === 'jeu' && !aide && varierCeCoup(machine, historique);
+        reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours, varier });
       } else {
         reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, genre) && (genre === 'suggestion' || machines[camp] === machine) });
       }

@@ -7,8 +7,9 @@
 // poidsEnTexte, lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence
 // (moteur/ia.js), hasardDuBanc, coupDeLaReferenceAuLivre, dansLeLivre,
 // finDeLaPartieDuBanc, bonsCoupsDuDepart, PROFONDEUR_DES_COUPS_VARIES (moteur/banc-essais.js), coupDuLivre (moteur/ia.js),
-// reglageDeLaPhase (moteur/ia-phase.js), tousLesCoupsLegaux (moteur/regles.js), couleursDuPlateau (moteur/partie.js) viennent de
-// fichiers charges avant celui-ci ; RECHERCHE_SANS_LIMITE_MS (interface/banc-essais-puzzles.js), seulement a l'usage.
+// reglageDeLaPhase (moteur/ia-phase.js), tousLesCoupsLegaux (moteur/regles.js), couleursDuPlateau (moteur/partie.js), lireCoupNacre
+// (moteur/notation.js), toursDuSolveurEnFin, questionAuSolveurEnFin, coupDuSolveurEnFin (moteur/solveur-en-fin.js), cleDeSolution,
+// solutionsDeLaSequence, solutionsDeLAdversaire (moteur/sequence-prevue.js) viennent de fichiers charges avant celui-ci ; RECHERCHE_SANS_LIMITE_MS (interface/banc-essais-puzzles.js), seulement a l'usage.
 
 const POSITION_DEPART_BANC = '0a12b123c23g78h789i89_0a45b456c56g45h456i56'; // la Marguerite belge
 const GRAINE_MAX_BANC = 1e9;
@@ -42,6 +43,8 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
   let coupsDeLaReference = 0;
   let secondesEssai = 0;
   let fin = null;
+  const suiteDuSolveur = new Map(); // cleDeSolution -> texte du coup, pour les deux camps
+
   while (!fin) {
     if (controle.arret) return null;
     if (controle.pause) await new Promise((resoudre) => (controle.reprendre = resoudre));
@@ -51,12 +54,15 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     let coup = null;
     if (reglage === reference && coupsDeLaReference < (parametres.premiersCoupsVaries ?? 0)) {
       suivi({ coup: coups.length + 1, camp: 'référence', debut: performance.now(), score: scoreDuBanc(etat), profondeur: null, evaluation: null });
-      coup = await unBonCoupAuHasard(etat, reglage, kai, hasard, historique);
+      coup = (await unBonCoupAuHasard(etat, reglage, kai, hasard, historique))?.coup;
       if (!coup) return null; // interrompu
     } else {
       coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : parametres.livreEssai ? coupDuLivre(livre, etat, hasard)?.coup ?? null : null;
     }
     if (reglage === reference) coupsDeLaReference++;
+    // L'ajout So (moteur/solveur-en-fin.js) : une suite du solveur deja trouvee, jouee par les deux camps ; sinon, quand la derniere
+    // bille adverse est piegee, le solveur d'abord (`kai.solveur`, le banc en ligne de commande seulement).
+    if (!coup) coup = await coupDeLaFinParLeSolveur(etat, reglage, kai, suiteDuSolveur);
     if (!coup) {
       const debut = performance.now();
       suivi({ coup: coups.length + 1, camp: reglage === reference ? 'référence' : 'essai', debut, score: scoreDuBanc(etat), profondeur: null, evaluation: null });
@@ -92,15 +98,30 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
   return { ...tache, fin, etats, coups, livre: dansLivre, occurrences: occurrencesDesCoups(historique), tours: Math.ceil(coups.length / 2), score: scoreDuBanc(etat), secondesEssai };
 }
 
+// Le coup de la fin par le SOLVEUR (l'ajout So), ou null : la suite deja trouvee, sinon sa reponse si la derniere bille adverse est
+// piegee ; une suite trouvee est gardee pour les deux camps (saab, 2026-11-12 : « dès qu'il y a une sol le meneur sait aussi et donc ne
+// recalcule pas »).
+async function coupDeLaFinParLeSolveur(etat, reglage, kai, suiteDuSolveur) {
+  const connu = suiteDuSolveur.get(cleDeSolution(etat));
+  if (connu) return lireCoupNacre(couleursDuPlateau(etat.plateau), etat.joueurAuTrait, connu);
+  const tours = kai.solveur ? toursDuSolveurEnFin(reglage, etat) : 0;
+  if (tours === 0) return null;
+  const trouve = coupDuSolveurEnFin(etat, await kai.solveur(questionAuSolveurEnFin(etat), tours));
+  if (!trouve) return null;
+  for (const solution of [...solutionsDeLaSequence(etat, trouve.sequence, trouve.evaluation), ...solutionsDeLAdversaire(etat, trouve.sequence, trouve.evaluation)]) suiteDuSolveur.set(solution.cle, solution.coup);
+  return trouve.coup;
+}
+
 // Un des premiers coups varies de la reference (`parametres.premiersCoupsVaries` : les ceintures des IA, moteur/banc-essais.js,
 // bonsCoupsDuDepart) : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES avec les poids de sa
-// phase, sans elagage ; un coup tire au hasard parmi les bons. Un coup qui gagne est joue tout de suite. null : interrompu.
+// phase, sans elagage ; un coup tire au hasard parmi les bons : { coup, valeur } (aussi les premiers coups varies d'une partie,
+// interface/ia-reflexion.js). Un coup qui gagne est joue tout de suite. null : interrompu.
 async function unBonCoupAuHasard(etat, reglage, kai, hasard, historique) {
   const jouee = reglageDeLaPhase(reglage, etat);
   const valeurs = [];
   for (const coup of tousLesCoupsLegaux(couleursDuPlateau(etat.plateau), etat.joueurAuTrait)) {
     const apres = appliquerCoup(etat, coup).etat;
-    if (apres.vainqueur) return coup;
+    if (apres.vainqueur) return { coup, valeur: VALEUR_VICTOIRE_IA };
     const position = ecrirePosition(apres);
     const sansSuivi = () => {}; // chaque profondeur finie : rien a montrer, la ligne dit deja « cherche… »
     const texte = await kai.chercher({ position, joueurNoir: apres.joueurAuTrait === 'noir', profondeur: PROFONDEUR_DES_COUPS_VARIES, poids: poidsEnTexte(jouee.poids), version: jouee.version, graine: 0, dureeMs: RECHERCHE_SANS_LIMITE_MS, historique: [...historique, position].join('\n'), elagage: 0 }, sansSuivi);
@@ -109,5 +130,5 @@ async function unBonCoupAuHasard(etat, reglage, kai, hasard, historique) {
     valeurs.push({ coup, valeur: -reponse.evaluation });
   }
   const bons = bonsCoupsDuDepart(valeurs);
-  return bons[Math.floor(hasard() * bons.length)].coup;
+  return bons[Math.floor(hasard() * bons.length)];
 }

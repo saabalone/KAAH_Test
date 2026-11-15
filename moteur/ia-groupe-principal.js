@@ -12,9 +12,14 @@
 // CASES_VOISINES_IA (ia-evaluation-v2.js) viennent d'autres fichiers du jeu, appeles seulement a l'usage.
 
 // Les billes de `camp` sur `couleurs` (notation -> couleur) hors de son plus grand groupe ; aucune bille, aucune.
-function billesHorsDuGroupePrincipal(couleurs, camp) {
+// L'ajout « Pm », les PETITS MORCEAUX seulement (saab, 2026-11-12 : « Je ne sais pas si c'est une question d'El, mais plutôt un vision
+// du jeu, non? » ; « Ok pour l'ajout ») : avec `petitsMorceaux` > 0, seulement les billes des morceaux de moins de `petitsMorceaux`
+// billes — un morceau de BILLES_MAX_PAR_COUP billes peut pousser et se defendre. Dans 2611121807 (le P9 contre AP6), au coup 53, la
+// branche de saab e3h6 coupait Noir en deux groupes de 6 et 8 : 6 billes dehors, -120 a 4-0, et le tri de la racine la rangeait 26e.
+function billesHorsDuGroupePrincipal(couleurs, camp, petitsMorceaux = 0) {
   const restantes = new Set(Object.keys(couleurs).filter((notation) => couleurs[notation] === camp));
-  const total = restantes.size;
+  const estCompte = (taille) => !(petitsMorceaux > 0) || taille < petitsMorceaux;
+  let comptees = 0;
   let plusGrand = 0;
   while (restantes.size > 0) {
     const aVoir = [restantes.values().next().value];
@@ -24,9 +29,10 @@ function billesHorsDuGroupePrincipal(couleurs, camp) {
       taille++;
       for (const voisine of CASES_VOISINES_IA[aVoir.pop()]) if (voisine !== null && restantes.delete(voisine)) aVoir.push(voisine);
     }
+    if (estCompte(taille)) comptees += taille;
     plusGrand = Math.max(plusGrand, taille);
   }
-  return total - plusGrand;
+  return estCompte(plusGrand) ? comptees - plusGrand : comptees;
 }
 
 // Un camp EN BLOC : au plus BILLES_DEHORS_D_UN_BLOC billes hors de son groupe principal (saab, 2026-11-04, pour les phases :
@@ -43,7 +49,8 @@ const estEnBloc = (couleurs, camp) => billesHorsDuGroupePrincipal(couleurs, camp
 function termeDesBillesHorsDuGroupeSelonLEcart(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   const ecart = Math.abs(etat.billesEjecteesNoires - etat.billesEjecteesBlanches);
-  return poids.billesHorsDuGroupeSelonLEcart * ecart * (billesHorsDuGroupePrincipal(couleurs, camp) - billesHorsDuGroupePrincipal(couleurs, couleurAdverse(camp)));
+  const morceaux = poids.petitsMorceaux ?? 0;
+  return poids.billesHorsDuGroupeSelonLEcart * ecart * (billesHorsDuGroupePrincipal(couleurs, camp, morceaux) - billesHorsDuGroupePrincipal(couleurs, couleurAdverse(camp), morceaux));
 }
 
 // L'ajout « Ba », les BILLES AMIES d'ULA (saab, 2026-11-11 : « Dans ULA il compte les billes amies, càd celles avec qui une bille est en
@@ -72,5 +79,6 @@ function termeDesBillesAmies(etat, camp, poids) {
 // Le terme Hp pour `camp` : ses billes hors du groupe principal moins celles de l'adversaire, fois le poids (negatif).
 function termeDesBillesHorsDuGroupePrincipal(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
-  return poids.billesHorsDuGroupePrincipal * (billesHorsDuGroupePrincipal(couleurs, camp) - billesHorsDuGroupePrincipal(couleurs, couleurAdverse(camp)));
+  const morceaux = poids.petitsMorceaux ?? 0;
+  return poids.billesHorsDuGroupePrincipal * (billesHorsDuGroupePrincipal(couleurs, camp, morceaux) - billesHorsDuGroupePrincipal(couleurs, couleurAdverse(camp), morceaux));
 }

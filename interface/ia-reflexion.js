@@ -68,9 +68,10 @@ function detailEnTextes(etat, { profondeur, detail }) {
 // (moteur/ia.js, coupsDesPositions). La meme profondeur que KAI a niveau egal
 // (NIVEAUX_IA), atteinte bien plus souvent dans le temps imparti. `enCours` (la reflexion en cours, interface/
 // ia.js) recoit arreterTout() et abandonner() ; `kaiPlus` : le worker.
-function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus, enCours, jouer, finir }) {
+function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus, enCours, jouer, finir, varier = false }) {
   const duLivre = coupDuLivre(livre, etat, Math.random);
   if (duLivre) return jouer({ texte: duLivre.texte, source: 'livre', profondeur: 0, evaluation: null, noeuds: 0, sequence: [duLivre.texte] });
+  if (varier) return jouerUnCoupVarie({ etat, machine, historique, kaiPlus, enCours, jouer, finir });
   let derniere = null; // la derniere profondeur annoncee
   let abandonnee = false;
   enCours.arreterTout = () => {
@@ -108,4 +109,21 @@ function reflechirAvecKaiPlus({ etat, machine, suivi, historique, livre, kaiPlus
       const textes = textesDeLaSequence(etat, coupsDesPositions(etat, reponse.positions));
       jouer({ texte: textes[0], source: 'recherche', profondeur: reponse.profondeur, evaluation: reponse.evaluation, noeuds: reponse.noeuds, sequence: textes });
     });
+}
+
+// Un des premiers coups varies (moteur/coups-varies.js) : tire au hasard parmi les bons, comme ceux des ceintures du banc
+// (interface/banc-essais-partie.js, unBonCoupAuHasard — la meme regle, jamais recopiee). Il se joue comme une recherche a
+// PROFONDEUR_DES_COUPS_VARIES, sous la source 'varie' : le tableau et le commentaire le disent (moteur/sequence-prevue.js).
+function jouerUnCoupVarie({ etat, machine, historique, kaiPlus, enCours, jouer, finir }) {
+  let abandonnee = false;
+  enCours.arreterTout = () => {}; // il n'y a pas de meilleur coup en cours a jouer : il faut finir le tirage
+  enCours.abandonner = () => {
+    abandonnee = true;
+    kaiPlus.interrompre();
+  };
+  unBonCoupAuHasard(etat, machine, kaiPlus, Math.random, historique).then((tire) => {
+    if (abandonnee || !tire) return finir();
+    const [texte] = textesDeLaSequence(etat, [tire.coup]);
+    jouer({ texte, source: 'varie', profondeur: PROFONDEUR_DES_COUPS_VARIES, evaluation: tire.valeur, noeuds: 0, sequence: [texte] });
+  });
 }

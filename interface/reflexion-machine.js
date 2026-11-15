@@ -18,7 +18,9 @@ function palierVoisin(valeur, sens) {
 }
 
 // La reflexion proposee pour un niveau (saab, 2026-10-22 : « le faire évoluer en fonction du
-// niveau pour être à peu près sûr de l'atteindre ») : le premier palier qui couvre MARGE fois
+// niveau pour être à peu près sûr de l'atteindre ») : sans limite pour une machine qui elague (saab,
+// 2026-11-15 : « pour être sûr d'atteindre le niveau on ne mets pas de limite par défaut ») ; sans
+// elagage (« Attention aux profiles sans El »), dont le niveau 8 ne finirait jamais : le premier palier qui couvre MARGE fois
 // le temps qui suffit le plus souvent (la mesure du conseil de temps, sur un ordinateur — un
 // telephone est plusieurs fois plus lent), jamais moins que l'ancienne reflexion par defaut,
 // au plus le dernier palier avant ∞ (la machine joue des que son niveau est fini : une
@@ -26,8 +28,8 @@ function palierVoisin(valeur, sens) {
 const MARGE_DE_LA_REFLEXION_PROPOSEE = 4;
 const RANG_DU_TEMPS_LE_PLUS_SOUVENT = 1; // [mediane, 80 %]
 function reflexionProposee(niveau, elague) {
-  const table = elague ? TEMPS_DES_NIVEAUX_KAI_PLUS_S.avecElagage : TEMPS_DES_NIVEAUX_KAI_PLUS_S.sansElagage;
-  const voulue = (table[niveau]?.[RANG_DU_TEMPS_LE_PLUS_SOUVENT] ?? 0) * MARGE_DE_LA_REFLEXION_PROPOSEE;
+  if (elague) return REFLEXION_SANS_LIMITE_S;
+  const voulue = (TEMPS_DES_NIVEAUX_KAI_PLUS_S.sansElagage[niveau]?.[RANG_DU_TEMPS_LE_PLUS_SOUVENT] ?? 0) * MARGE_DE_LA_REFLEXION_PROPOSEE;
   const paliers = PALIERS_REFLEXION_S.filter((palier) => palier !== REFLEXION_SANS_LIMITE_S && palier >= MACHINE_PAR_DEFAUT.reflexionMax);
   return paliers.find((palier) => palier >= voulue) ?? paliers.at(-1);
 }

@@ -52,7 +52,8 @@ const NIVEAUX_IA = Object.fromEntries(Array.from({ length: NIVEAU_MAX_IA }, (_, 
 // quand elle a vu la fin de la partie (une victoire ou une defaite forcee :
 // chercher plus loin n'y changerait rien).
 function rechercheEcourtee({ source, profondeur, evaluation }, niveau) {
-  if (source === 'livre') return false;
+  // Ni un premier coup varie (moteur/coups-varies.js) : tire a la profondeur voulue.
+  if (source === 'livre' || source === 'varie') return false;
   if (Number.isFinite(evaluation) && Math.abs(evaluation) > VALEUR_VICTOIRE_IA / 2) return false;
   return profondeur < NIVEAUX_IA[niveau].profondeur;
 }

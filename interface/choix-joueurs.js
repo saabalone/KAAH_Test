@@ -49,6 +49,9 @@ const CHOIX_JOUEUR_PAR_DEFAUT = {
   profil: nomDuProfilIAParDefaut(), // interface/profils-ia.js
   reflexionMax: null,
   livre: MACHINE_PAR_DEFAUT.livre,
+  // Cochee d'office (saab, 2026-11-15 : « ok ») : contre un humain, KAI++ sans livre rejouait toujours la meme partie
+  // (moteur/coups-varies.js). A decocher pour une partie de mesure (contre AP).
+  premiersCoupsVaries: true,
   elagage: null,
 };
 
@@ -91,7 +94,9 @@ function lireDerniersJoueurs() {
     // L'elagage du profil (10), jamais un elagage force retenu d'une partie d'avant (saab, 2026-11-07 : « je viens de voir
     // que El est à 20, j'avais demandé de mettre 10 par défaut dans la boite Joueur, non ? » — un El 20 tape en octobre
     // dans Nouvelle partie revenait encore) : on peut toujours le forcer, pour cette partie.
-    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA, ...profilQuiSuitLeDefaut(brut?.[camp]), elagage: null }]));
+    // La reflexion de meme (saab, 2026-11-15 : « ok » — Boulet jouait encore a 15 s au niveau 10, KAI++ n'y finissait que 8 ou 9
+    // coups d'avance) : celle proposee pour le niveau, sans limite s'il elague ; un temps se choisit pour cette partie seulement.
+    return Object.fromEntries(CAMPS_JOUEURS.map((camp) => [camp, { ...CHOIX_JOUEUR_PAR_DEFAUT, ...brut?.[camp], role: role(brut?.[camp]), moteur: MOTEUR_PROPOSE_IA, ...profilQuiSuitLeDefaut(brut?.[camp]), elagage: null, reflexionMax: null }]));
   } catch {
     return { noir: { ...CHOIX_JOUEUR_PAR_DEFAUT }, blanc: { ...CHOIX_JOUEUR_PAR_DEFAUT } };
   }
@@ -156,6 +161,7 @@ function brancherChoixMachine(element, surChangement) {
     champReflexion.value = reflexion === REFLEXION_SANS_LIMITE_S ? '' : reflexion;
     champReflexion.classList.toggle('valeur-par-defaut', choix.reflexionMax === null);
     element.querySelector('.choix-livre').checked = choix.livre;
+    element.querySelector('.choix-coups-varies').checked = choix.premiersCoupsVaries;
     const champElagage = element.querySelector('.choix-elagage');
     champElagage.value = choix.elagage ?? '';
     const duProfil = profilDuChoix(choix.profil)?.elagage ?? 0;
@@ -208,6 +214,7 @@ function brancherChoixMachine(element, surChangement) {
     changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value), reflexionMax: null });
   });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
+  element.querySelector('.choix-coups-varies').addEventListener('change', (evenement) => changer({ premiersCoupsVaries: evenement.target.checked }));
   // Vide : celui du profil ; garde d'un profil a l'autre (pour les comparer au meme El).
   element.querySelector('.choix-elagage').addEventListener('change', (evenement) => {
     const valeur = evenement.target.value.trim();
@@ -245,7 +252,7 @@ function brancherChoixMachine(element, surChangement) {
 function machineDuChoix(choix) {
   if (choix.role === ROLE_HUMAIN) return null;
   const profil = profilDuChoix(choix.profil) ?? trouverProfilIA(nomDuProfilIAParDefaut());
-  const machine = machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), moteur: choix.role, livre: choix.livre });
+  const machine = machineDuProfil(profil, { niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), moteur: choix.role, livre: choix.livre, premiersCoupsVaries: choix.premiersCoupsVaries });
   return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
 }
 

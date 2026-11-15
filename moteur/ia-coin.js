@@ -172,6 +172,9 @@ function termeDuCentreAdverse(etat, camp, poids) {
 // chacun des 3 axes de e5, la ligne de ses billes qui passe par e5 : a BILLES_MAX_PAR_COUP, e5 ne se pousse plus sur cet axe (on ne
 // pousse qu'en surnombre, a 3 billes au plus). Son poids reste sous la valeur d'une bille : un 3/2 qui ejecte en quittant e5 reste
 // joue (saab : « les 2 billes gagnées pèsent lourd »).
+// La condition du bloc reste (essai 82, 2026-11-12) : sans elle, le P8 garde e5 toute la partie face a un P7 coupe, sans en rien faire,
+// et tombe de 25-7-8 a 11-9-20 depuis la Marguerite Belge. Elle a un defaut connu : le camp qui ne tient pas e5 « eteint » le Cc
+// adverse en restant coupe (a l'essai 78, le P8 est coupe dans 90 % de ses coups quand le P7 tient e5, contre 69 a 78 % pour le P6).
 const LA_BILLE_DE_E5 = 1;
 
 // Cc pour `camp`, en billes : rien s'il ne tient pas e5, ou si l'adversaire n'est plus en bloc ; sinon, sur chaque axe de e5, la

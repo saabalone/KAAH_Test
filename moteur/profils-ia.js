@@ -100,13 +100,27 @@ const NOMS_PROFILS_IA_PUBLIES = [NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL, 'Agressif 
 // Le profil HOMOLOGUE de `nom` dans le style `style` (saab, 2026-11-10 : « qd on est sur le profil IA par défaut, et qu'on veut
 // changer Nor en Agr ou Def, le profil de l'IA se mets sur le 1er de la liste des profil, ce n'est pas pratique, il faut qu'il
 // reste sur le profil d'origine ») : un profil publie, celui du nouveau style ; sinon le meme nom, son style change (« Agressif
-// P5M1 » -> « Défensif P5M1 ») ; sinon null. `profils` : [{ nom, style }], ceux qu'on peut choisir.
+// P5M1 » -> « Défensif P5M1 »), s'il a le meme jeu d'ajouts ; sinon le dernier du nouveau style avec ce jeu d'ajouts (saab,
+// 2026-11-14 : le P10 est « Normal v5el_v16 », son Agressif « Agressif v5el_v15 » ; « Normal v5el_v15 » est le P9) ; sinon null.
+// Le meme jeu d'ajouts se juge d'abord avec ses seuils, comme le nom les dit (Ph2Fa1 : l'Agressif du P10 avec Fa 1 n'est pas
+// l'homologue du P10 Normal), puis sans eux (depuis lui, le Normal reste le P10). Un profil de KAAH (sans indice) passe aussi au
+// meme jeu de poids (saab, 2026-11-15 : le P10 au milieu regle sur AP, _k2 dans les trois styles) ; un profil perso, au meme nom.
+// `profils` : [{ nom, style, poids, numeroDePoids?, indice? }], ceux qu'on peut choisir (sans poids : le nom seul decide).
 function profilHomologue(nom, style, profils, publies = NOMS_PROFILS_IA_PUBLIES) {
-  const deCeStyle = (candidat) => profils.find((profil) => profil.nom === candidat && profil.style === style)?.nom ?? null;
+  const deCeStyle = (candidat) => profils.find((profil) => profil.nom === candidat && profil.style === style) ?? null;
   const publie = publies.includes(nom) ? publies.map(deCeStyle).find(Boolean) : null;
-  if (publie) return publie;
+  if (publie) return publie.nom;
+  const depart = profils.find((profil) => profil.nom === nom);
+  const poids = depart?.poids ?? null;
+  const jeuDePoids = (profil) => profil.numeroDePoids ?? 1;
+  const memeJeuDePoids = (profil) => Boolean(depart?.indice || profil.indice) || jeuDePoids(profil) === jeuDePoids(depart);
+  const memeCode = (profil) => !poids || !profil.poids || (codeDesAjoutsDansLeNom(profil.poids) === codeDesAjoutsDansLeNom(poids) && memeJeuDePoids(profil));
   const motDuStyle = Object.values(NOMS_STYLES_IA).find((mot) => nom.startsWith(`${mot} `));
-  return motDuStyle && NOMS_STYLES_IA[style] ? deCeStyle(`${NOMS_STYLES_IA[style]}${nom.slice(motDuStyle.length)}`) : null;
+  const memeNom = motDuStyle && NOMS_STYLES_IA[style] ? deCeStyle(`${NOMS_STYLES_IA[style]}${nom.slice(motDuStyle.length)}`) : null;
+  if (memeNom && memeCode(memeNom)) return memeNom.nom;
+  if (poids === null) return null;
+  const dernierAvecLeCode = (code) => profils.filter((profil) => profil.style === style && profil.poids && code(profil.poids) === code(poids) && memeJeuDePoids(profil)).at(-1)?.nom;
+  return dernierAvecLeCode(codeDesAjoutsDansLeNom) ?? dernierAvecLeCode(codeDesAjouts) ?? null;
 }
 // Normal v5ElP4_v4 : la compacite a 50, la base des profils P5.
 const POIDS_NORMAL_V5EL_V9 = { ...POIDS_NORMAL_V5EL_V8, compacite: 50 };
@@ -169,6 +183,60 @@ function profilDuP8(nom, style, description) {
     poids: { ...p6.poids, avancePourLaFinEnAvance: AVANCE_POUR_LA_FIN_EN_AVANCE_P8 },
     finEnAvance: { ...p6.finEnAvance, profil: `Fin en avance perte${PERTE_DE_LA_FIN_EN_AVANCE_P8}`, poids: { ...p6.finEnAvance.poids, perte: PERTE_DE_LA_FIN_EN_AVANCE_P8 } },
   };
+}
+
+// Le P9 (saab, 2026-11-12 : « ok, lance P9 ») : le P8 avec, a chaque phase, Ed 20 Dp 2 (20 premiers coups et 20 reponses examines au
+// lieu de 10 : l'elagage ne cache plus les coups qui gagnent ou qui sauvent) et So 4 (le solveur de saab des que la derniere bille
+// adverse est piegee). A l'essai 86, en deux blocs contre KAI8 : 45-0-47, aucune perdue, contre 21-4-67 pour le P8 ; So seul ne
+// changeait rien (21-5-66), il raccourcit les fins. Le prix : 2 fois le temps par coup. Depuis la Marguerite Belge contre le P7 (essai 87) : Normal 15-7-18
+// (le P8 : 25-7-8), Agressif 26-4-10 (15-6-19), Defensif 14-3-23 (17-6-17).
+const AJOUTS_EN_PLUS_DU_P9 = { elagageDebut: 20, elagageDebutPlis: 2, solveurEnFin: 4 };
+
+function profilDuP9(nom, style, description) {
+  const p8 = profilDuP8(nom, style, description);
+  const avecLesAjouts = (copie) => ({ ...copie, poids: { ...copie.poids, ...AJOUTS_EN_PLUS_DU_P9 } });
+  return { ...avecLesAjouts(p8), milieu: avecLesAjouts(p8.milieu), fin: avecLesAjouts(p8.fin), finEnAvance: avecLesAjouts(p8.finEnAvance) };
+}
+
+// Le P10 (saab, 2026-11-13 : « ok ») : le P9 avec, a chaque phase, er 3 — les premiers coups classes avant l'elagage par une recherche
+// de 2 demi-coups au lieu de la seule position d'apres (saab : « c'est donc que l'évaluation ne sait pas mettre des meilleurs coups
+// dans El10 »). Sur les 60 positions perdues contre AP6 et AP8, 34 bons coups retrouves au lieu de 16. Essais 92 et 93 : Normal
+// 27-3-10 (le P9 : 15-7-18), Agressif 31-1-8 (26-4-10), Defensif 19-4-17 (14-3-23) depuis la Marguerite Belge contre le P7 ; 60-0-32
+// en deux blocs contre KAI8 (45-0-47). Contre AP6 en Noir, ou le P9 faisait nulle, il gagne (Br_2611131747).
+const AJOUTS_EN_PLUS_DU_P10 = { elagageReponse: 3 };
+
+function profilDuP10(nom, style, description) {
+  const p9 = profilDuP9(nom, style, description);
+  const avecLesAjouts = (copie) => ({ ...copie, poids: { ...copie.poids, ...AJOUTS_EN_PLUS_DU_P10 } });
+  return { ...avecLesAjouts(p9), milieu: avecLesAjouts(p9.milieu), fin: avecLesAjouts(p9.fin), finEnAvance: avecLesAjouts(p9.finEnAvance) };
+}
+
+// L'Agressif du P10 avec Fa 1 (saab, 2026-11-14 : « oui, pour P11 », « Agressif seul ») : il sacrifie des 1 bille d'avance. Essai 96
+// (les 19 positions ou le P10 piétine en menant 3-2 contre AP8, partie 2611132105, contre le P10 niveau 8) : 14-0-5, l'Agressif du P10
+// 11-0-8, et il conclut 10 tours plus tot ; le Normal avec Fa 1 : 5-0-14. Toujours le jeu d'ajouts P10 : Fa1 se lit dans le nom.
+const AVANCE_POUR_LA_FIN_EN_AVANCE_DE_L_AGRESSIF_P10_FA1 = 1;
+
+function profilDuP10AvecFa1(nom, style, description) {
+  const p10 = profilDuP10(nom, style, description);
+  const avecFa1 = (copie) => ({ ...copie, poids: { ...copie.poids, avancePourLaFinEnAvance: AVANCE_POUR_LA_FIN_EN_AVANCE_DE_L_AGRESSIF_P10_FA1 } });
+  return { ...avecFa1(p10), milieu: avecFa1(p10.milieu), fin: avecFa1(p10.fin), finEnAvance: avecFa1(p10.finEnAvance) };
+}
+
+// Le P10 aux poids du milieu regles sur AP (saab, 2026-11-15 : « Lance Niveau 8 et mets P10M1 pour tester AP ») : les poids du milieu
+// qui retrouvent le plus de coups d'AbaPro dans vos parties (mesure A, essais/reglage-poids-ap.json ; +3,2 points au niveau 6). Essai
+// 97, contre le P10 depuis la Marguerite Belge au niveau 6 : 22-10-8. Les rapports au milieu du P10 Normal, pour que l'Agressif et
+// le Defensif gardent l'ecart de leur style. L'ouverture ne gagnait rien au niveau 6 : elle reste. Le meme jeu d'ajouts : _k2.
+const RAPPORTS_DU_MILIEU_REGLE_SUR_AP = {
+  gainFibonacci: 0.9375, perteFibonacci: 1.25, compacite: 1.5, bordAdverse: 1.5, controleDuCentre: 0.5, billesHorsDuGroupePrincipal: 0.5,
+  caseE5: 0.5, caseC4: 0.625, caseB2: 1.25, caseA3: 1.5625, caseA2: 1.25, fourchette: 0.75, sumito21: 0.5, billesPoussablesBord: 1.25,
+};
+const JEU_DE_POIDS_DU_MILIEU_REGLE_SUR_AP = 2;
+
+function profilDuP10AuMilieuRegleSurAP(nom, style, description) {
+  const p10 = profilDuP10(nom, style, description);
+  const regles = Object.fromEntries(Object.entries(RAPPORTS_DU_MILIEU_REGLE_SUR_AP).map(([cle, rapport]) => [cle, p10.milieu.poids[cle] * rapport]));
+  const poids = { ...p10.milieu.poids, ...regles };
+  return { ...p10, numeroDePoids: JEU_DE_POIDS_DU_MILIEU_REGLE_SUR_AP, milieu: { ...p10.milieu, profil: `Milieu comp${poids.compacite} centre${poids.centre} AP`, poids } };
 }
 
 const PROFILS_IA_DE_TRAVAIL = [
@@ -288,6 +356,24 @@ const PROFILS_IA_DE_TRAVAIL = [
     'normal',
     "L'IA par défaut depuis le 11/11/2026 : Normal v5ElP8Ph2, sans livre — Normal v5ElP6Ph2 avec, à chaque phase, Nr (la recherche voit venir les nulles par répétition) et Cc 10 (garder e5, face à un adversaire en bloc, sur ses 3 axes) ; Fa 2 (le profil de fin en avance dès 2 billes d'avance, jamais en dessous) et une bille perdue à 150 dans ce profil (sacrifier tant qu'on mène). En deux blocs avec 3 ou 4 billes d'avance (92 positions, niveau 6, contre Normal v5ElP7Ph2 qui cherche la nulle par répétition) : 59 gagnées, 0 perdue, 33 nulles (Normal v5ElP7Ph2 lui-même : 38-0-54). Pas encore joué depuis la Marguerite Belge ni contre AbaPro."
   ),
+  // Le P9 (saab, 2026-11-12 : « ok, lance P9 »).
+  profilDuP9(
+    'Normal v5el_v15',
+    'normal',
+    "Le P9 (2026-11-12) : Normal v5ElP8Ph2 avec, à chaque phase, Ed 20 Dp 2 (20 premiers coups et 20 réponses examinés au lieu de 10) et So 4 (le solveur dès que la dernière bille adverse est piégée), sans livre. En deux blocs avec 3 ou 4 billes d'avance (92 positions, niveau 6, contre Normal v5ElP8Ph2 au niveau 8) : 45 gagnées, 0 perdue, 47 nulles (Normal v5ElP8Ph2 lui-même : 21-4-67). Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 15-7-18 (Normal v5ElP8Ph2 : 25-7-8). Environ 2 fois plus long par coup."
+  ),
+  // Le P10 (saab, 2026-11-13 : « ok »).
+  profilDuP10(
+    'Normal v5el_v16',
+    'normal',
+    "Le P10 (2026-11-13) : le P9 avec, à chaque phase, er 3 — les premiers coups classés avant l'élagage par une recherche de 2 demi-coups au lieu de la seule position d'après —, sans livre. Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 27 gagnées, 3 perdues, 10 nulles (le P9 : 15-7-18). En deux blocs avec 3 ou 4 billes d'avance contre Normal v5ElP8Ph2 au niveau 8 : 60-0-32 (le P9 : 45-0-47). Contre AP6 en Noir, où le P9 faisait nulle, il gagne 6-2 et 6-3 (Br_2611131747)."
+  ),
+  // Le P10 au milieu regle sur AP (saab, 2026-11-15 : « mets P10M1 pour tester AP »).
+  profilDuP10AuMilieuRegleSurAP(
+    'Normal v5el_v17',
+    'normal',
+    "Le P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les poids qui retrouvent le plus de coups d'AbaPro dans les parties de saab — moins de pénalité pour une bille hors du groupe principal (−10), compacité 75, e5 10, contrôle du centre 5, coins b2, a2, a3 plus évités. Au niveau 6, il retrouve le coup d'AP dans 46,0 % des positions de milieu au lieu de 42,8 %. Depuis la Marguerite Belge contre le P10, au niveau 6 : 22 gagnées, 8 perdues, 10 nulles. L'ouverture et la fin restent celles du P10."
+  ),
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
   // — le gain x1,25 fait courir apres les ejections et perd (4-15 au niveau 8), x1,5 aussi (7-10).
@@ -345,6 +431,30 @@ const PROFILS_IA_DE_TRAVAIL = [
     'agressif',
     "L'Agressif de l'IA par défaut (2026-11-11) : l'Agressif v5ElP6Ph2 avec les changements du P8 — Nr et Cc 10 à chaque phase, Fa 2, une bille perdue à 150 en fin en avance —, sans livre. Pas encore essayé au banc."
   ),
+  // L'Agressif du P9 (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP9(
+    'Agressif v5el_v14',
+    'agressif',
+    "L'Agressif du P9 (2026-11-12) : l'Agressif v5ElP8Ph2 avec, à chaque phase, Ed 20 Dp 2 et So 4, sans livre. Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 26 gagnées, 4 perdues, 10 nulles (l'Agressif v5ElP8Ph2 : 15-6-19)."
+  ),
+  // L'Agressif du P10 (saab, 2026-11-13 : « ok »).
+  profilDuP10(
+    'Agressif v5el_v15',
+    'agressif',
+    "L'Agressif du P10 (2026-11-13) : l'Agressif du P9 avec, à chaque phase, er 3 (les premiers coups classés par une recherche de 2 demi-coups avant l'élagage), sans livre. Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 31 gagnées, 1 perdue, 8 nulles (l'Agressif du P9 : 26-4-10)."
+  ),
+  // L'Agressif du P10 avec Fa 1 (saab, 2026-11-14 : « oui, pour P11 »).
+  profilDuP10AvecFa1(
+    'Agressif v5el_v16',
+    'agressif',
+    "L'Agressif du P10 avec Fa 1 (2026-11-14) : il passe en fin en avance (il accepte de sacrifier des billes pour conclure) dès 1 bille d'avance au lieu de 2, sans livre. Sur les 19 positions où le P10 piétinait en menant 3-2 contre AP8 (partie 2611132105), contre le P10 au niveau 8 : 14 gagnées, 0 perdue, 5 nulles (l'Agressif du P10 : 11-0-8), en concluant vers le tour 30 au lieu de 40. Le Normal avec Fa 1 ne fait que 5-0-14 : seul l'Agressif."
+  ),
+  // L'Agressif du P10 au milieu regle sur AP (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP10AuMilieuRegleSurAP(
+    'Agressif v5el_v17',
+    'agressif',
+    "L'Agressif du P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les mêmes rapports que le Normal v5ElP10Ph2_k2 appliqués à l'Agressif du P10 (bille hors du groupe principal deux fois moins pénalisée, compacité ×1,5, e5 et contrôle du centre ÷2…), sans livre. Pas encore essayé au banc."
+  ),
   // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
   // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le
   // livre pour les deux camps, 6 gagnees, 2 perdues, 12 nulles contre elle.
@@ -399,6 +509,24 @@ const PROFILS_IA_DE_TRAVAIL = [
     'Défensif v5el_v13',
     'defensif',
     "Le Défensif de l'IA par défaut (2026-11-11) : le Défensif v5ElP6Ph2 avec les changements du P8 — Nr et Cc 10 à chaque phase, Fa 2, une bille perdue à 150 en fin en avance —, sans livre. Pas encore essayé au banc."
+  ),
+  // Le Defensif du P9 (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP9(
+    'Défensif v5el_v14',
+    'defensif',
+    "Le Défensif du P9 (2026-11-12) : le Défensif v5ElP8Ph2 avec, à chaque phase, Ed 20 Dp 2 et So 4, sans livre. Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 14 gagnées, 3 perdues, 23 nulles (le Défensif v5ElP8Ph2 : 17-6-17)."
+  ),
+  // Le Defensif du P10 (saab, 2026-11-13 : « ok »).
+  profilDuP10(
+    'Défensif v5el_v15',
+    'defensif',
+    "Le Défensif du P10 (2026-11-13) : le Défensif du P9 avec, à chaque phase, er 3 (les premiers coups classés par une recherche de 2 demi-coups avant l'élagage), sans livre. Depuis la Marguerite Belge contre Normal v5ElP7Ph2, au niveau 6 : 19 gagnées, 4 perdues, 17 nulles (le Défensif du P9 : 14-3-23)."
+  ),
+  // Le Defensif du P10 au milieu regle sur AP (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP10AuMilieuRegleSurAP(
+    'Défensif v5el_v16',
+    'defensif',
+    "Le Défensif du P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les mêmes rapports que le Normal v5ElP10Ph2_k2 appliqués au Défensif du P10 (bille hors du groupe principal deux fois moins pénalisée, compacité ×1,5, e5 et contrôle du centre ÷2…), sans livre. Pas encore essayé au banc."
   ),
 ];
 
@@ -456,9 +584,9 @@ function nomDuProfilImporte(nom, auteur, nomsPris, moi = '') {
 // Le reglage d'une machine qui joue avec `profil` (voir moteur/ia.js,
 // lireMachine) : tout le profil, pour que le fichier de la partie le garde.
 // `moteur` : 'kai' ou 'kai++' (moteur/ia.js).
-// `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js).
-function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true }) {
-  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, milieu: profil.milieu, fin: profil.fin, finEnAvance: profil.finEnAvance, reflexionMax, livre });
+// `livre` : jouer l'ouverture dans la base de coups (moteur/ia.js) ; `premiersCoupsVaries` : moteur/coups-varies.js.
+function machineDuProfil(profil, { niveau, reflexionMax, moteur = 'kai', livre = true, premiersCoupsVaries = false }) {
+  return lireMachine({ moteur, version: profil.version, elagage: profil.elagage, niveau, style: profil.style, profil: profil.nom, indiceProfil: profil.indice, versionProfil: profil.courante, numeroDesAjouts: profil.numeroDesAjouts, numeroDePoids: profil.numeroDePoids, versionHistorique: profil.versionHistorique, poids: profil.poids, milieu: profil.milieu, fin: profil.fin, finEnAvance: profil.finEnAvance, reflexionMax, livre, premiersCoupsVaries });
 }
 
 // Les profils dans l'ordre (saab, 2026-10-16 : « mets ces profils dans l'ordre Agr/Nor/Def

@@ -110,7 +110,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     if (choix.role === ROLE_HUMAIN) return null;
     if (enJeu && choix.profil === valeurDuProfilDeLaMachine(enJeu)) {
       const elagage = choix.elagage ?? retrouverProfilDeLaMachine(enJeu)?.elagage ?? enJeu.elagage;
-      const machine = lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, elagage });
+      const machine = lireMachine({ ...enJeu, moteur: choix.role, niveau: choix.niveau, reflexionMax: reflexionDuChoix(choix), livre: choix.livre, premiersCoupsVaries: choix.premiersCoupsVaries, elagage });
       return choix.elagage === null || choix.elagage === undefined ? machine : avecLElagageForce(machine, choix.elagage);
     }
     return machineDuChoix(choix);
@@ -200,7 +200,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     const elagageDuProfil = profilDuJeu?.elagage ?? 0;
     choixIA.definir(
       machine
-        ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre, elagage: machine.elagage === elagageDuProfil ? null : machine.elagage }
+        ? { role: machine.moteur, niveau: machine.niveau, profil: valeurDuProfilDeLaMachine(machine), reflexionMax: machine.reflexionMax, livre: machine.livre, premiersCoupsVaries: machine.premiersCoupsVaries === true, elagage: machine.elagage === elagageDuProfil ? null : machine.elagage }
         : { ...choixProposeDansLaBoite(campEnCours), role: ROLE_HUMAIN },
       profilDuJeu ? profilDuJeu.nom : machine?.profil
     );

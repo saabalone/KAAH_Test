@@ -35,6 +35,10 @@ function commentaireDeReflexion(nomMachine, { source, profondeur, evaluation, no
   } else if (source === 'solution') {
     morceaux.push('fin déjà vue');
     morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
+  } else if (source === 'varie') {
+    // Un premier coup tire parmi les bons (moteur/coups-varies.js), a la profondeur du tirage.
+    morceaux.push(`coup varié (prof. ${profondeur})`);
+    morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
   } else {
     const ecourtee = niveau && rechercheEcourtee({ source, profondeur, evaluation }, niveau);
     morceaux.push(ecourtee ? `prof. ${profondeur}/${niveau} (temps)` : `prof. ${profondeur}`, `${noeuds} positions`);

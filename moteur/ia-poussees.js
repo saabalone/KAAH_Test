@@ -102,3 +102,32 @@ function termeDeLaMenaceDeCoupure(etat, camp, poids) {
   const couleurs = couleursDuPlateau(etat.plateau);
   return poids.menaceDeCoupure * (coupuresPossibles(couleurs, camp) - coupuresPossibles(couleurs, couleurAdverse(camp)));
 }
+
+// L'ajout « Td », les lignes 3/2 OUVERTES (saab, 2026-11-12 : « la case e5 évite les éjections 3/2 adverse dans l'axe et on pourrait
+// repérer les autres cases qui évitent aussi les 3/2 sur les 2 couronnes » ; « ok, essaie les 2 »). Une ejection 3/2 : 5 cases alignees,
+// les 3 premieres a l'attaquant, les 2 dernieres au defenseur, la derniere au bord dans cette direction. Tenir une des 3 premieres
+// l'empeche : e5 en ferme 6, chaque case de l'anneau 1 et chaque case de l'anneau 2 sur les axes de e5 en ferment 5. Td compte, comme Bp
+// mais avant la menace, les lignes ou deux de ses billes sont ainsi au bord sans qu'aucune des 3 cases de l'attaquant soit a soi.
+const BILLES_DE_L_ATTAQUANT_DU_TROIS_DEUX = 3;
+const BILLES_DU_DEFENSEUR_DU_TROIS_DEUX = 2;
+const CASES_D_UNE_EJECTION_TROIS_DEUX = BILLES_DE_L_ATTAQUANT_DU_TROIS_DEUX + BILLES_DU_DEFENSEUR_DU_TROIS_DEUX;
+
+function lignesTroisDeuxOuvertes(couleurs, camp) {
+  let ouvertes = 0;
+  for (const depart of Object.keys(CASES_VOISINES_IA)) {
+    for (let index = 0; index < CASES_VOISINES_IA[depart].length; index++) {
+      const ligne = Array.from({ length: CASES_D_UNE_EJECTION_TROIS_DEUX }, (_, pas) => caseApresDesPas(depart, index, pas));
+      if (ligne.includes(null) || CASES_VOISINES_IA[ligne.at(-1)][index] !== null) continue; // la derniere au bord
+      const defenseur = ligne.slice(BILLES_DE_L_ATTAQUANT_DU_TROIS_DEUX);
+      const attaquant = ligne.slice(0, BILLES_DE_L_ATTAQUANT_DU_TROIS_DEUX);
+      if (defenseur.every((notation) => couleurs[notation] === camp) && !attaquant.some((notation) => couleurs[notation] === camp)) ouvertes++;
+    }
+  }
+  return ouvertes;
+}
+
+// Le terme Td pour `camp` : ses lignes ouvertes moins celles de l'adversaire, fois le poids (negatif).
+function termeDesLignesTroisDeuxOuvertes(etat, camp, poids) {
+  const couleurs = couleursDuPlateau(etat.plateau);
+  return poids.lignesTroisDeuxOuvertes * (lignesTroisDeuxOuvertes(couleurs, camp) - lignesTroisDeuxOuvertes(couleurs, couleurAdverse(camp)));
+}

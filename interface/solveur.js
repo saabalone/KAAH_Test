@@ -25,6 +25,8 @@ const LIMITE_PAR_COUP_S = 60;
 // Quand il joue la machine d'un PZL en ceinture (index.html, coupDuSolveur) : au-dela, KAI++ joue, pour que le joueur
 // n'attende jamais longtemps son coup.
 const LIMITE_DU_SOLVEUR_EN_CEINTURE_S = 30;
+// L'ajout So (moteur/solveur-en-fin.js) : de meme en fin de partie, au-dela KAI++ cherche.
+const LIMITE_DU_SOLVEUR_EN_FIN_S = 30;
 
 const CODE_DU_WORKER_SOLVEUR = `
   const solveur = (${codeDuSolveurKaa.toString()})();
@@ -120,4 +122,15 @@ function creerSolveur({ limiteDepart = LIMITE_RECHERCHE_DEPART_S, limiteParCoup 
   }
 
   return { verifier, sequence, arreter };
+}
+
+// L'ajout So, le solveur en FIN DE PARTIE (moteur/solveur-en-fin.js ; interface/ia.js) : le gain force le plus court du camp au trait de
+// `etat` en `tours` tours au plus, ou null. Un seul solveur pour toutes les fins, cree a la premiere demande (une partie qui n'en a
+// jamais besoin ne reserve pas sa memoire), puis garde : sa table reste chaude d'un coup a l'autre.
+let solveurDesFins = null;
+async function demanderAuSolveurEnFin(etat, tours) {
+  solveurDesFins ??= creerSolveur({ limiteDepart: LIMITE_DU_SOLVEUR_EN_FIN_S, limiteParCoup: LIMITE_DU_SOLVEUR_EN_FIN_S });
+  const { position, noirGagne } = questionAuSolveurEnFin(etat);
+  const { reponse } = await solveurDesFins.sequence({ position, noirGagne, toursMaximum: tours, coups: [] });
+  return coupDuSolveurEnFin(etat, reponse);
 }

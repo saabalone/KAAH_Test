@@ -188,6 +188,8 @@ function lireMachine(brut) {
     // est explicitement refuse — un fichier d'avant ce reglage le garde.
     livre: brut.livre !== false,
     elagage,
+    // Ses premiers coups tires parmi les bons (moteur/coups-varies.js) : seulement si le fichier le dit.
+    ...(brut.premiersCoupsVaries === true ? { premiersCoupsVaries: true } : {}),
     // Les copies des phases (les ajouts Ct et Ph, moteur/ia-phase.js) : le milieu avec l'un ou l'autre, la fin seulement avec Ph.
     ...(('centreTenu' in poids || 'phasesAuScore' in poids) && brut.milieu && typeof brut.milieu === 'object' ? { milieu: lireProfilDuMilieu(brut.milieu) } : {}),
     ...('phasesAuScore' in poids && brut.fin && typeof brut.fin === 'object' ? { fin: lireProfilDuMilieu(brut.fin) } : {}),
@@ -207,7 +209,7 @@ function lireMachine(brut) {
 // la machine), sans son propre Ct : jamais de bascule en chaine.
 function lireProfilDuMilieu(brut) {
   const { profil, version, elagage, style, poids } = lireMachine({ ...brut, milieu: undefined, fin: undefined, finEnAvance: undefined });
-  const { centreTenu, phasesAuScore, avancePourLaFinEnAvance, niveauMortSubite, ...sansBascule } = poids;
+  const { centreTenu, phasesAuScore, avancePourLaFinEnAvance, niveauMortSubite, solveurEnFin, ...sansBascule } = poids;
   return { profil, version, elagage, style, poids: sansBascule };
 }
 
@@ -226,10 +228,10 @@ function lireMachines(machines, ancienAdversaire) {
   return lues.noir || lues.blanc ? lues : null;
 }
 
-// « 1s2 » pour 1,2 s (saab : « 1,2 n'est pas possible » dans un nom), « 5s » ; « inf » sans limite.
+// « 1s2 » pour 1,2 s (saab : « 1,2 n'est pas possible » dans un nom), « 5s ». Sans limite, le nom ne dit
+// aucun temps (morceauxDuNomDeLaMachine).
 const DIXIEMES_PAR_SECONDE_IA = 10;
 function formaterTempsReflexion(secondes) {
-  if (secondes === REFLEXION_SANS_LIMITE_S) return 'inf';
   const dixiemes = Math.round(secondes * DIXIEMES_PAR_SECONDE_IA);
   const entier = Math.floor(dixiemes / DIXIEMES_PAR_SECONDE_IA);
   const reste = dixiemes % DIXIEMES_PAR_SECONDE_IA;
@@ -282,13 +284,15 @@ function morceauxDuNomDeLaMachine(machine) {
   // Le profil d'une machine perso a un indice (moteur/profils-ia.js, machineDuProfil) ; un profil de KAAH, non.
   const poids = machine.numeroDePoids > 1 ? `_${lettreDuJeuDePoids(Boolean(machine.indiceProfil))}${machine.numeroDePoids}` : '';
   const profil = `${version}${poids}${suffixeDeLaVersionDuProfil(machine)}`;
+  // Sans limite, la reflexion par defaut : rien (saab, 2026-11-15 : « au lieu de mettre inf dans le titre on ne met rien et ça
+  // réduit le titre ») ; un temps choisi, toujours.
+  const temps = machine.reflexionMax === REFLEXION_SANS_LIMITE_S ? [] : [{ cle: 'separateur', texte: '_' }, { cle: 'temps', texte: formaterTempsReflexion(machine.reflexionMax) }];
   return [
     { cle: 'moteur', texte: PREFIXES_MOTEURS_IA[machine.moteur ?? 'kai'] },
     { cle: 'niveau', texte: String(machine.niveau) },
     { cle: 'separateur', texte: '_' },
     { cle: 'style', texte: ABREVIATIONS_STYLES_IA[machine.style] },
-    { cle: 'separateur', texte: '_' },
-    { cle: 'temps', texte: formaterTempsReflexion(machine.reflexionMax) },
+    ...temps,
     ...(profil ? [{ cle: 'profil', texte: profil }] : []),
   ];
 }
