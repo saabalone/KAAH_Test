@@ -39,6 +39,8 @@ const NUMEROS_FIXES_DES_AJOUTS = Object.freeze({
   SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHeEdDpNrCcPhFaSo: 9,
   // Le P9 avec er 3 a chaque phase (2026-11-13 : « ok ») : le P10, son Agressif et son Defensif.
   SvErEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHeEdDpNrCcPhFaSo: 10,
+  // Le P6 avec So 4 et Ms 6 (2026-11-16 : « on va ajouter So et Ms sur profile défaut ») : l'IA par defaut, son Agressif et son Defensif.
+  SvEpEfFnGfPfPpaPpmPgaPgmBpBmpBpbAtHpHePhMsSo: 11,
 });
 
 // Un jeu d'ajouts A SOI (saab, 2026-10-31 : « On pourrait faire comme v et k pour P, càd si je modifie Pn il devient

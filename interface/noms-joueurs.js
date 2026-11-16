@@ -251,6 +251,7 @@ function demarrerNomsJoueurs(svg, elements, joueurs, nomsParDefaut, surChangemen
     elements.champ.placeholder = `Nom du Joueur (${NOM_CAMP[campEnCours]})`;
     elements.titre.textContent = `Joueur ${NOM_CAMP[campEnCours]}`;
     elements.dialogue.classList.toggle('dialogue-retourne', campEnCours === 'blanc' && document.body.classList.contains('face-a-face'));
+    elements.dialogue.dataset.camp = campEnCours; // sa couleur, comme dans la Nouvelle partie (styles.css)
     const enJeu = machineEnJeu();
     nomSuitLeChoix = !enJeu || estLeNomDeLaMachine(joueurs[campEnCours], enJeu);
     nomPropose = joueurs[campEnCours];

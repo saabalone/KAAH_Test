@@ -6934,6 +6934,21 @@ body.apercu-kaah-test .note-apercu-test { display: block; }
 .choix-joueur[data-camp="blanc"] .note-reglages {
   color: #333333;
 }
+/* Chaque joueur entoure de vert (saab, 2026-11-16 : « entourer en vert chaque Joueur Blanc /Noir ») ; la boite Joueur aussi, et en
+   blanc pour le Joueur Blanc, comme dans la Nouvelle partie. */
+.choix-joueur[data-camp] {
+  border: 2px solid var(--vert-demande);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.section-adversaire > .choix-joueur[data-camp='noir'] { border-top: 2px solid var(--vert-demande); }
+#dialogue-nom-joueur[data-camp] { border: 2px solid var(--vert-demande); }
+#dialogue-nom-joueur[data-camp="blanc"] { background: #e8e8e8; color: #111111; }
+#dialogue-nom-joueur[data-camp="blanc"] .note-reglages { color: #333333; }
+/* Et chaque bouton du choix : Humain, KAI++ et chaque niveau (saab, 2026-11-16 : « Mets aussi cadre vert pour Humain et KAI++ et
+   chaque niveaux »). */
+.choix-joueur .bouton-filtre[data-role],
+.choix-joueur .ligne-niveaux .bouton-filtre { border: 2px solid var(--vert-demande); }
 .choix-joueur .choix-nom-joueur {
   width: 12em;
   min-height: var(--hauteur-commande);

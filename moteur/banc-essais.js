@@ -162,7 +162,8 @@ function nulleDesBlocs(historique, nombreDeCoups) {
 
 // Les PREMIERS COUPS VARIES de la machine d'une ceinture (saab, 2026-11-06 : « Le mieux est de varier ces 1 ou 2 1er coups ») : sans
 // eux, les essais d'un meme jeu redonnaient la meme partie (les deux KAI++ sont deterministes). Ses PREMIERS_COUPS_VARIES premiers coups
-// sont tires parmi les bons : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES
+// sont tires parmi les meilleurs du livre (moteur/coups-varies.js, coupVarieDuLivre ; saab, 2026-11-16 : « ok, fais les ceintures ») ;
+// une position que le livre ne connait pas (la plupart des variantes), parmi les bons : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES
 // (interface/banc-essais-partie.js), ceux a MARGE_DES_COUPS_VARIES points au plus du meilleur. Mesure au depart de 7 variantes : a 10
 // ou 20 points, seulement le meilleur et son symetrique (la meme partie en miroir) ; a 50, 2 a 4 coups vraiment differents.
 const PREMIERS_COUPS_VARIES = 2;

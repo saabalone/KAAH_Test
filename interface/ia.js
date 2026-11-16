@@ -350,12 +350,15 @@ function demarrerMachines({ partie, machines, obtenirBase, svg, reflexion, evalu
       const sansLimite = { ...jouee, reflexionMax: reflexionPourChercher(machine.reflexionMax), ...(aide ? { poids: poidsPourUnPuzzle(machine.poids) } : {}) };
       const pourChercher = aide?.plis ? { ...sansLimite, niveau: Math.min(machine.niveau, aide.plis) } : aide ? sansLimite : { ...sansLimite, reflexionMax: reflexionDeLaPosition(etat, sansLimite.reflexionMax) };
 
-      const recherche = { etat, machine: pourChercher, suivi, historique, livre, jouer, finir };
+      // L'ajout Pc (moteur/ia-phase.js) : les poids des phases, jamais dans un PZL.
+      const recherche = { etat, machine: pourChercher, phases: aide ? '' : phasesPourKaiPlus(machine, etat), suivi, historique, livre, jouer, finir };
       if (machine.moteur === 'kai++') {
         kaiPlus ??= creerKaiPlus();
-        // Ses premiers coups tires parmi les bons (moteur/coups-varies.js) : en partie seulement, jamais dans un PZL.
-        const varier = genre === 'jeu' && !aide && varierCeCoup(machine, historique);
-        reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours, varier });
+        // Ses premiers coups tires parmi les meilleurs du livre (moteur/coups-varies.js) : en partie seulement, jamais dans un PZL ;
+        // hors du livre, elle cherche.
+        const varie = genre === 'jeu' && !aide && varierCeCoup(machine, historique) ? coupVarieDuLivre(base.size > 0 ? base : null, etat, Math.random) : null;
+        if (varie) return jouer({ texte: varie.texte, source: 'varie', profondeur: 0, evaluation: null, noeuds: 0, sequence: [varie.texte] });
+        reflechirAvecKaiPlus({ ...recherche, kaiPlus, enCours: reflexionEnCours });
       } else {
         reflechirAvecKai({ ...recherche, debut, maintenant, estSuspendue, encoreUtile: () => positionInchangee(etat, genre) && (genre === 'suggestion' || machines[camp] === machine) });
       }

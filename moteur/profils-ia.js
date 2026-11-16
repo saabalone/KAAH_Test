@@ -85,17 +85,20 @@ const POIDS_NORMAL_V5EL_V7 = {
 // l'Agressif et du Defensif.
 const POIDS_NORMAL_V5EL_V8 = { ...POIDS_NORMAL_V5EL_V7, cohesion: 15, gainFibonacci: 20, perteFibonacci: 20, sumito32: 6, sumito31: 4, sumito21: 2 };
 // L'IA par defaut, aussi dans la version publiee (interface/profils-ia.js, nomDuProfilIAParDefaut) :
-// Normal v5ElP8Ph2 depuis le 2026-11-11 (saab : « On va déjà publier avec nouveau P7 par défaut » — le P6Ph2 avec Nr, Cc 10, Fa 2 et la
+// Normal v5ElP11Ph2 depuis le 2026-11-16 (saab : « on va ajouter So et Ms sur profile défaut » — le P6Ph2 avec So 4 et Ms 6) ;
+// Normal v5ElP6Ph2 le 16/11 (saab : « ok met le en défaut » — le seul profil a 3 victoires sur 4 contre AbaPro sans
+// livre : AP6 dans les deux camps, AP8 en Noir ; en Blanc, AP8 la bat encore) ;
+// Normal v5ElP8Ph2 du 11 au 16/11 (saab : « On va déjà publier avec nouveau P7 par défaut » — le P6Ph2 avec Nr, Cc 10, Fa 2 et la
 // fin en avance a perte 150 : aucune perdue en deux blocs avec 3 billes d'avance) ;
 // Normal v5ElP7Ph2 du 7 au 11/11 (saab : « Ok, adopte » — le P6Ph2 avec Co 15, qui conclut les fins en blocs) ;
 // Normal v5ElP6Ph2 du 5 au 7/11 (saab : « passer la Nor en défaut avant de publier » — elle bat AP6 sans livre
 // dans les 2 camps) ; avant, Normal v5ElP5 (du 2 au 5/11 ; saab : « on repasse P5 en défaut »), Normal v5ElP5_k2 (du
 // 28/10 au 2/11 ; saab : « il attaque qd même s'il est en bloc »), Normal v5ElP5 (du 22 au 28/10), Normal v5ElP4_k4
 // (du 20 au 22/10).
-const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v14';
+const NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL = 'Normal v5el_v18';
 // Les profils de travail publies pour les testeurs (saab, 2026-11-05 : « On pourra publier aussi Agr et Def, de toutes façons on est tjs en test donc autant
 // faire tester ») : l'IA par defaut, son Agressif et son Defensif ; les autres restent dans la version de travail.
-const NOMS_PROFILS_IA_PUBLIES = [NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL, 'Agressif v5el_v13', 'Défensif v5el_v13'];
+const NOMS_PROFILS_IA_PUBLIES = [NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL, 'Agressif v5el_v18', 'Défensif v5el_v17'];
 
 // Le profil HOMOLOGUE de `nom` dans le style `style` (saab, 2026-11-10 : « qd on est sur le profil IA par défaut, et qu'on veut
 // changer Nor en Agr ou Def, le profil de l'IA se mets sur le 1er de la liste des profil, ce n'est pas pratique, il faut qu'il
@@ -239,6 +242,15 @@ function profilDuP10AuMilieuRegleSurAP(nom, style, description) {
   return { ...p10, numeroDePoids: JEU_DE_POIDS_DU_MILIEU_REGLE_SUR_AP, milieu: { ...p10.milieu, profil: `Milieu comp${poids.compacite} centre${poids.centre} AP`, poids } };
 }
 
+// Le P11 (saab, 2026-11-16 : « on va ajouter So et Ms sur profile défaut ») : le P6Ph2, le seul profil a 3 victoires sur 4 contre AbaPro
+// sans livre, avec So (le solveur des que la derniere bille adverse est piegee, a chaque phase comme au P9) et Ms (la mort subite au
+// niveau 6, sans elagage ; dans le profil seulement, comme Ph : moteur/ia-phase.js). Les valeurs proposees de moteur/ia-ajouts.js.
+function profilDuP11(nom, style, description) {
+  const p6 = profilAuxPhasesDuP6(nom, style, description);
+  const avecSo = (copie) => ({ ...copie, poids: { ...copie.poids, solveurEnFin: TOURS_DU_SOLVEUR_EN_FIN_PROPOSES } });
+  return { ...p6, poids: { ...avecSo(p6).poids, niveauMortSubite: NIVEAU_DE_LA_MORT_SUBITE_PROPOSE }, milieu: avecSo(p6.milieu), fin: avecSo(p6.fin), finEnAvance: avecSo(p6.finEnAvance) };
+}
+
 const PROFILS_IA_DE_TRAVAIL = [
   {
     nom: 'Normal v5el_v4',
@@ -337,11 +349,11 @@ const PROFILS_IA_DE_TRAVAIL = [
     poids: { ...POIDS_NORMAL_V5EL_V9, ...BILLES_POUSSABLES_DU_P5, menaceEjection: 10 },
     description: "L'IA par défaut du 28/10 au 2/11/2026 : Normal v5ElP5_k2, le P5 avec la menace d'éjection à 10 au lieu de 20 — il éjecte au lieu de garder ses menaces. Au niveau 6 contre P5 (80 parties, essais 32 et 33) : 51 gagnées, 10 perdues, 19 nulles, contre 35-5-40 pour P5 lui-même ; contre P5 au niveau 7 : 15-17 (8 nulles), P5 au niveau 6 : 14-18.",
   },
-  // Le Ph 2 de saab (2026-11-05 : « Ah, enfin ça gagne dans les 2 camps ») : l'IA par defaut du 5 au 7/11. Le premier jeu de poids de sa famille (P6).
+  // Le Ph 2 de saab (2026-11-05 : « Ah, enfin ça gagne dans les 2 camps ») : l'IA par defaut du 5 au 7/11, et le 16/11. Le premier jeu de poids de sa famille (P6).
   profilAuxPhasesDuP6(
     'Normal v5el_v12',
     'normal',
-    "L'IA par défaut du 5 au 7/11/2026 : Normal v5ElP6Ph2, sans livre. Elle change de réglages selon le score : se regrouper au centre jusqu'à 2 billes sorties, puis attaquer ; quand un camp a perdu 4 billes, une bille perdue compte plus, sauf si elle mène. En KAI++ niveau 6, elle bat AbaPro niveau 6 dans les 2 camps (6-3 en Noir, 6-2 en Blanc) et le niveau 8 en Noir (6-2) ; en Blanc, le niveau 8 la bat encore (2-6). Au niveau 6 contre Normal v5ElP5, avec une bille perdue à 150 quand elle mène : 31 gagnées, 4 perdues, 5 nulles."
+    "L'IA par défaut du 5 au 7/11/2026, et le 16/11 : Normal v5ElP6Ph2, sans livre. Elle change de réglages selon le score : se regrouper au centre jusqu'à 2 billes sorties, puis attaquer ; quand un camp a perdu 4 billes, une bille perdue compte plus, sauf si elle mène. En KAI++ niveau 6, elle bat AbaPro niveau 6 dans les 2 camps (6-3 en Noir, 6-2 en Blanc, et de nouveau le 16/11, sans limite de temps) et le niveau 8 en Noir (6-2) ; en Blanc, le niveau 8 la bat encore (2-6, de nouveau le 16/11) : le seul profil à 3 victoires sur 4. Au niveau 6 contre Normal v5ElP5, avec une bille perdue à 150 quand elle mène : 31 gagnées, 4 perdues, 5 nulles."
   ),
   // Le P7 (saab, 2026-11-07 : « Ok, adopte ») : l'IA par defaut du 7 au 11/11.
   profilAuxPhasesDuP6(
@@ -350,11 +362,11 @@ const PROFILS_IA_DE_TRAVAIL = [
     "L'IA par défaut du 7 au 11/11/2026 : Normal v5ElP7Ph2, sans livre — Normal v5ElP6Ph2 avec, à chaque phase, l'ajout Co 15 (des lignes de 3 billes sur les axes du coin le moins au bord du bloc adverse), qui ne compte que quand on mène de 3 billes ou plus : avant, elle joue comme Normal v5ElP6Ph2. En blocs avec 3 billes d'avance ou plus, contre Normal v5ElP6Ph2 : au niveau 6, 54 gagnées, 2 perdues, 28 nulles (Normal v5ElP6Ph2 lui-même : 41-1-42) ; sur 27 autres blocs, 17-0-10 (12-2-13) ; au niveau 8, 48-4-32 (41-1-42). Pas encore joué contre AbaPro.",
     AJOUTS_EN_PLUS_DU_P7
   ),
-  // Le P8 (saab, 2026-11-11 : « On va déjà publier avec nouveau P7 par défaut ») : l'IA par defaut depuis le 11/11.
+  // Le P8 (saab, 2026-11-11 : « On va déjà publier avec nouveau P7 par défaut ») : l'IA par defaut du 11 au 16/11.
   profilDuP8(
-    NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    'Normal v5el_v14',
     'normal',
-    "L'IA par défaut depuis le 11/11/2026 : Normal v5ElP8Ph2, sans livre — Normal v5ElP6Ph2 avec, à chaque phase, Nr (la recherche voit venir les nulles par répétition) et Cc 10 (garder e5, face à un adversaire en bloc, sur ses 3 axes) ; Fa 2 (le profil de fin en avance dès 2 billes d'avance, jamais en dessous) et une bille perdue à 150 dans ce profil (sacrifier tant qu'on mène). En deux blocs avec 3 ou 4 billes d'avance (92 positions, niveau 6, contre Normal v5ElP7Ph2 qui cherche la nulle par répétition) : 59 gagnées, 0 perdue, 33 nulles (Normal v5ElP7Ph2 lui-même : 38-0-54). Pas encore joué depuis la Marguerite Belge ni contre AbaPro."
+    "L'IA par défaut du 11 au 16/11/2026 : Normal v5ElP8Ph2, sans livre — Normal v5ElP6Ph2 avec, à chaque phase, Nr (la recherche voit venir les nulles par répétition) et Cc 10 (garder e5, face à un adversaire en bloc, sur ses 3 axes) ; Fa 2 (le profil de fin en avance dès 2 billes d'avance, jamais en dessous) et une bille perdue à 150 dans ce profil (sacrifier tant qu'on mène). En deux blocs avec 3 ou 4 billes d'avance (92 positions, niveau 6, contre Normal v5ElP7Ph2 qui cherche la nulle par répétition) : 59 gagnées, 0 perdue, 33 nulles (Normal v5ElP7Ph2 lui-même : 38-0-54). Pas encore joué depuis la Marguerite Belge ni contre AbaPro."
   ),
   // Le P9 (saab, 2026-11-12 : « ok, lance P9 »).
   profilDuP9(
@@ -373,6 +385,12 @@ const PROFILS_IA_DE_TRAVAIL = [
     'Normal v5el_v17',
     'normal',
     "Le P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les poids qui retrouvent le plus de coups d'AbaPro dans les parties de saab — moins de pénalité pour une bille hors du groupe principal (−10), compacité 75, e5 10, contrôle du centre 5, coins b2, a2, a3 plus évités. Au niveau 6, il retrouve le coup d'AP dans 46,0 % des positions de milieu au lieu de 42,8 %. Depuis la Marguerite Belge contre le P10, au niveau 6 : 22 gagnées, 8 perdues, 10 nulles. L'ouverture et la fin restent celles du P10."
+  ),
+  // Le P11 (saab, 2026-11-16 : « on va ajouter So et Ms sur profile défaut ») : l'IA par defaut depuis le 16/11.
+  profilDuP11(
+    NOM_PROFIL_IA_PAR_DEFAUT_DE_TRAVAIL,
+    'normal',
+    "L'IA par défaut depuis le 16/11/2026 : Normal v5ElP11Ph2, sans livre — Normal v5ElP6Ph2, le seul profil à 3 victoires sur 4 contre AbaPro sans livre (AP6 dans les 2 camps, AP8 en Noir), avec So 4 (le solveur dès que la dernière bille adverse est piégée) et Ms 6 (à 5-5, la recherche au niveau 6 au plus, sans élagage). Pas encore joué contre AbaPro ni au banc."
   ),
   // Son Agressif (saab, 2026-10-19 : « Ok, 1 et 2 » ; « Agr plus fort que Nor, on peut la mettre
   // mais pas en défaut ») : plus de pression (menace, sumitos, bord adverse), mais le gain garde
@@ -455,6 +473,12 @@ const PROFILS_IA_DE_TRAVAIL = [
     'agressif',
     "L'Agressif du P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les mêmes rapports que le Normal v5ElP10Ph2_k2 appliqués à l'Agressif du P10 (bille hors du groupe principal deux fois moins pénalisée, compacité ×1,5, e5 et contrôle du centre ÷2…), sans livre. Pas encore essayé au banc."
   ),
+  // L'Agressif du P11 (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP11(
+    'Agressif v5el_v18',
+    'agressif',
+    "L'Agressif de l'IA par défaut (2026-11-16) : l'Agressif v5ElP6Ph2 avec So 4 et Ms 6, sans livre. Pas encore essayé au banc."
+  ),
   // Son Defensif (saab, 2026-10-19 : « Ok, 1 et 2 ») : partir de l'IA par defaut et serrer le
   // bloc battait les rapports des styles (essais/outils-banc) — au niveau 8 sans limite, le
   // livre pour les deux camps, 6 gagnees, 2 perdues, 12 nulles contre elle.
@@ -527,6 +551,12 @@ const PROFILS_IA_DE_TRAVAIL = [
     'Défensif v5el_v16',
     'defensif',
     "Le Défensif du P10 au milieu réglé sur AbaPro (2026-11-15) : en milieu de partie, les mêmes rapports que le Normal v5ElP10Ph2_k2 appliqués au Défensif du P10 (bille hors du groupe principal deux fois moins pénalisée, compacité ×1,5, e5 et contrôle du centre ÷2…), sans livre. Pas encore essayé au banc."
+  ),
+  // Le Defensif du P11 (saab, 2026-11-11 : « penser à faire aussi Agr/Def ç chaque nouveau défaut »).
+  profilDuP11(
+    'Défensif v5el_v17',
+    'defensif',
+    "Le Défensif de l'IA par défaut (2026-11-16) : le Défensif v5ElP6Ph2 avec So 4 et Ms 6, sans livre. Pas encore essayé au banc."
   ),
 ];
 

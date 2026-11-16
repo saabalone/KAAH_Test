@@ -6,7 +6,8 @@
 // ecrirePosition (moteur/notation.js), appliquerCoup (moteur/partie.js),
 // poidsEnTexte, lireReponseKaiPlus, coupsDesPositions, textesDeLaSequence
 // (moteur/ia.js), hasardDuBanc, coupDeLaReferenceAuLivre, dansLeLivre,
-// finDeLaPartieDuBanc, bonsCoupsDuDepart, PROFONDEUR_DES_COUPS_VARIES (moteur/banc-essais.js), coupDuLivre (moteur/ia.js),
+// finDeLaPartieDuBanc, bonsCoupsDuDepart, PROFONDEUR_DES_COUPS_VARIES (moteur/banc-essais.js), coupDuLivre (moteur/ia.js), coupVarieDuLivre
+// (moteur/coups-varies.js),
 // reglageDeLaPhase (moteur/ia-phase.js), tousLesCoupsLegaux (moteur/regles.js), couleursDuPlateau (moteur/partie.js), lireCoupNacre
 // (moteur/notation.js), toursDuSolveurEnFin, questionAuSolveurEnFin, coupDuSolveurEnFin (moteur/solveur-en-fin.js), cleDeSolution,
 // solutionsDeLaSequence, solutionsDeLAdversaire (moteur/sequence-prevue.js) viennent de fichiers charges avant celui-ci ; RECHERCHE_SANS_LIMITE_MS (interface/banc-essais-puzzles.js), seulement a l'usage.
@@ -54,7 +55,9 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
     let coup = null;
     if (reglage === reference && coupsDeLaReference < (parametres.premiersCoupsVaries ?? 0)) {
       suivi({ coup: coups.length + 1, camp: 'référence', debut: performance.now(), score: scoreDuBanc(etat), profondeur: null, evaluation: null });
-      coup = (await unBonCoupAuHasard(etat, reglage, kai, hasard, historique))?.coup;
+      // Un des meilleurs coups du livre (moteur/coups-varies.js ; saab, 2026-11-16 : « ok, fais les ceintures ») ; une position qu'il ne
+      // connait pas (la plupart des variantes des ceintures) : un des bons coups cherches, sinon la meme partie se rejouerait.
+      coup = coupVarieDuLivre(livre, etat, hasard)?.coup ?? (await unBonCoupAuHasard(etat, reglage, kai, hasard, historique))?.coup;
       if (!coup) return null; // interrompu
     } else {
       coup = reglage === reference ? coupDeLaReferenceAuLivre(livre, etat, hasard, coupsDeLaReference, parametres.hasard, parametres.livre) : parametres.livreEssai ? coupDuLivre(livre, etat, hasard)?.coup ?? null : null;
@@ -72,7 +75,7 @@ async function jouerUnePartieDuBanc(tache, reference, essai, parametres, kai, ba
         position: ecrirePosition(etat),
         joueurNoir: etat.joueurAuTrait === 'noir',
         profondeur: jouee.niveau, // l'ajout Ms le baisse en mort subite (moteur/ia-phase.js)
-        poids: poidsEnTexte(jouee.poids),
+        poids: poidsEnTexte(jouee.poids) + phasesPourKaiPlus(reglage, etat), // l'ajout Pc (moteur/ia-phase.js)
         version: jouee.version,
         graine: Math.floor(hasard() * GRAINE_MAX_BANC),
         dureeMs: dureeDeReflexionDuBancMs(reglage.temps),
@@ -112,10 +115,10 @@ async function coupDeLaFinParLeSolveur(etat, reglage, kai, suiteDuSolveur) {
   return trouve.coup;
 }
 
-// Un des premiers coups varies de la reference (`parametres.premiersCoupsVaries` : les ceintures des IA, moteur/banc-essais.js,
-// bonsCoupsDuDepart) : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES avec les poids de sa
-// phase, sans elagage ; un coup tire au hasard parmi les bons : { coup, valeur } (aussi les premiers coups varies d'une partie,
-// interface/ia-reflexion.js). Un coup qui gagne est joue tout de suite. null : interrompu.
+// Un des premiers coups varies de la reference, quand le livre ne connait pas la position (`parametres.premiersCoupsVaries` : les
+// ceintures des IA, moteur/banc-essais.js, bonsCoupsDuDepart) : chaque coup legal, la position d'apres cherchee par KAI++ a PROFONDEUR_DES_COUPS_VARIES avec les poids de sa
+// phase, sans elagage ; un coup tire au hasard parmi les bons : { coup, valeur } (les premiers coups varies d'une partie, eux,
+// se tirent dans le livre : moteur/coups-varies.js). Un coup qui gagne est joue tout de suite. null : interrompu.
 async function unBonCoupAuHasard(etat, reglage, kai, hasard, historique) {
   const jouee = reglageDeLaPhase(reglage, etat);
   const valeurs = [];

@@ -13,7 +13,7 @@
 // (interface/profils-entrainement.js), echapperBanc (interface/banc-essais-page.js),
 // formaterDateKAAWA (interface/sauvegarde.js), nomDuFichierDesCeintures
 // (moteur/banc-noms.js), nomDeMachineDuBanc (interface/banc-essais-choix.js), PREMIERS_COUPS_VARIES,
-// MARGE_DES_COUPS_VARIES (moteur/banc-essais.js), marqueDuResultatDuPassage (interface/banc-essais-ceintures.js)
+// MARGE_DES_COUPS_VARIES (moteur/banc-essais.js), COUPS_DU_LIVRE_POUR_VARIER (moteur/coups-varies.js), marqueDuResultatDuPassage (interface/banc-essais-ceintures.js)
 // viennent de fichiers charges avant celui-ci.
 
 const cleDeLIA = (candidat) => `${candidat.nom}|niv${candidat.niveau}|${candidat.temps}s`;
@@ -193,7 +193,7 @@ function serieDesCeinturesDesIA(essais, sortes, jeux, obtenirControle, cibleDeDe
     });
     const journaux = passages.filter((passage) => passage.journal.length > 0).map((passage) => journalDuPassageHtml(passage, essais[passage.essai].nom));
     const depart = cibleDeDepart === null ? '' : ` Il vise d'abord la ceinture ${echapperBanc(CEINTURES[cibleDeDepart].nom.toLowerCase())} : les ceintures sautées sont à confirmer.`;
-    const commun = `La machine d'un grade tire ses ${PREMIERS_COUPS_VARIES} premiers coups parmi les bons (à ${MARGE_DES_COUPS_VARIES} points au plus du meilleur), pour que les essais d'un même jeu ne redonnent pas la même partie, puis prend ses coups dans le livre, comme contre un joueur. Une nulle (=) est un essai raté ; les essais finis, s'il y a eu une nulle, une partie de plus : gagnée ou nulle, le jeu est réussi (la règle « rattrapage sur nulle » du profil). Sans pendule : chaque IA réfléchit sa réflexion max. Dans un PZL, l'IA testée cherche sans élagage, pas plus loin que les tours qui restent.`;
+    const commun = `La machine d'un grade tire ses ${PREMIERS_COUPS_VARIES} premiers coups parmi les ${COUPS_DU_LIVRE_POUR_VARIER} meilleurs du livre, ou, sur une position qu'il ne connaît pas, parmi les bons (à ${MARGE_DES_COUPS_VARIES} points au plus du meilleur), pour que les essais d'un même jeu ne redonnent pas la même partie, puis prend ses coups dans le livre, comme contre un joueur. Une nulle (=) est un essai raté ; les essais finis, s'il y a eu une nulle, une partie de plus : gagnée ou nulle, le jeu est réussi (la règle « rattrapage sur nulle » du profil). Sans pendule : chaque IA réfléchit sa réflexion max. Dans un PZL, l'IA testée cherche sans élagage, pas plus loin que les tours qui restent.`;
     if (toutTester) {
       return `<p class="note-reglages">Tout tester : chaque profil joue la série de chaque grade, de la ceinture ${echapperBanc(CEINTURES[cibleDeDepart ?? LA_JAUNE].nom.toLowerCase())} jusqu'à la blanche, que celle du dessus soit réussie ou ratée (les règles du profil « ${echapperBanc(profilEntrainementActif().nom)} », sans les confirmations). ✓ : série réussie ; ✗ : ratée (ÉCHEC : assez d'essais ratés sur ce grade). La ceinture affichée est la plus haute réussie. ${commun}</p>
 <table class="banc-tableau"><tr><th>Profil</th><th>Niv.</th><th>Réfl.</th><th>Variantes</th><th>PZL</th></tr>${lignes.join('')}</table>

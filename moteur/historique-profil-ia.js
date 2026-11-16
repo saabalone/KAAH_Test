@@ -63,6 +63,7 @@ const LIBELLES_REGLAGES_IA = {
   centreTenu: 'Centre tenu, puis le profil du milieu (Ct)',
   phasesAuScore: 'Phases au score : billes sorties pour le milieu (Ph)',
   avancePourLaFinEnAvance: "Fin en avance dès ces billes d'avance (Fa)",
+  phaseDeChaquePosition: 'Phase de chaque position (Pc)',
   niveauMortSubite: 'Mort subite : niveau, sans élagage (Ms)',
   solveurEnFin: 'Solveur en fin de partie : tours (So)',
   groupesSepares: 'Groupes séparés (Gs)',

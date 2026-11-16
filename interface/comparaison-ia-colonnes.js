@@ -34,6 +34,7 @@ const ABREVIATIONS_COLONNES_COMPARAISON_IA = {
   elagageFin: 'Ef',
   elagageFinNiveau: 'Fn',
   avancePourLaFinEnAvance: 'Fa',
+  phaseDeChaquePosition: 'Pc',
   niveauMortSubite: 'Ms',
   solveurEnFin: 'So',
   elagageGarde: 'Eg',

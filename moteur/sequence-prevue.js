@@ -36,9 +36,9 @@ function commentaireDeReflexion(nomMachine, { source, profondeur, evaluation, no
     morceaux.push('fin déjà vue');
     morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
   } else if (source === 'varie') {
-    // Un premier coup tire parmi les bons (moteur/coups-varies.js), a la profondeur du tirage.
-    morceaux.push(`coup varié (prof. ${profondeur})`);
-    morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
+    // Un premier coup tire parmi les meilleurs du livre (moteur/coups-varies.js) ; avant le 16/11, parmi les bons a la profondeur du tirage.
+    morceaux.push(profondeur ? `coup varié (prof. ${profondeur})` : 'coup varié du livre');
+    if (Number.isFinite(evaluation)) morceaux.push(`éval. ${phase ? `${ABREVIATIONS_PHASES[phase]} ` : ''}${libelleEvaluation(evaluation)}`);
   } else {
     const ecourtee = niveau && rechercheEcourtee({ source, profondeur, evaluation }, niveau);
     morceaux.push(ecourtee ? `prof. ${profondeur}/${niveau} (temps)` : `prof. ${profondeur}`, `${noeuds} positions`);

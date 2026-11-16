@@ -40,7 +40,7 @@ const GROUPES_DE_L_EVALUATION_IA = [
 
 // Les ajouts qui reglent la recherche, pas l'evaluation (er, es, ef, fn) : listes a part,
 // apres les 4 groupes, sans courbe.
-const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau', 'elagageGarde', 'elagageDebut', 'elagageDebutPlis', 'elagageReponseAdverse', 'repetitionsGardees', 'ejectionTot', 'ejectionTotSansEchange', 'pousseeRetournableJouee', 'pousseeRetournableJoueeMachineSeule', 'centreTenu', 'phasesAuScore', 'avancePourLaFinEnAvance', 'niveauMortSubite', 'solveurEnFin'] };
+const REGLAGE_DE_RECHERCHE_IA = { cle: 'recherche', libelle: 'Recherche', couleur: '#9a9a9a', reglages: ['elagageReponse', 'elagageSuite', 'elagageFin', 'elagageFinNiveau', 'elagageGarde', 'elagageDebut', 'elagageDebutPlis', 'elagageReponseAdverse', 'repetitionsGardees', 'ejectionTot', 'ejectionTotSansEchange', 'pousseeRetournableJouee', 'pousseeRetournableJoueeMachineSeule', 'centreTenu', 'phasesAuScore', 'avancePourLaFinEnAvance', 'phaseDeChaquePosition', 'niveauMortSubite', 'solveurEnFin'] };
 
 // Tous les poids et ajouts, groupe apres groupe.
 const REGLAGES_DANS_L_ORDRE_DES_GROUPES_IA = [...GROUPES_DE_L_EVALUATION_IA, REGLAGE_DE_RECHERCHE_IA].flatMap((groupe) => groupe.reglages);

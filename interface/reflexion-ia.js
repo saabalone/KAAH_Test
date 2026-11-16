@@ -113,7 +113,7 @@ function demarrerReflexionIA(details, sequencePrevue) {
   function celluleProfondeur({ source, profondeur, evaluation, niveau }) {
     if (source === 'livre') return cellule('livre');
     if (source === 'solution') return cellule('fin vue');
-    if (source === 'varie') return cellule(`varié ${profondeur}`); // moteur/coups-varies.js
+    if (source === 'varie') return cellule(`varié ${profondeur || 'livre'}`); // moteur/coups-varies.js (avant le 16/11 : sa profondeur)
     if (!niveau || !rechercheEcourtee({ source, profondeur, evaluation }, niveau)) return cellule(String(profondeur ?? ''));
     const td = cellule(`${profondeur}/${niveau} ⏱`);
     td.className = 'profondeur-ecourtee';

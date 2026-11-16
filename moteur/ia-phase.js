@@ -67,6 +67,23 @@ function copieDeLaPhase(reglage, phase) {
   return phase === 'milieu' ? reglage.milieu : undefined;
 }
 
+// L'ajout Pc, la PHASE DE CHAQUE POSITION (saab, 2026-11-15 : « ok ») : dans 2611151432 et 2611151719, KAI++10 menait de 2 billes en
+// fin en avance (une bille perdue y vaut 150), voyait dans sa suite la bille qu'il allait perdre et la jugeait peu chere ; apres
+// elle, il repassait au milieu (300) et son evaluation sautait de +400 a +45. Avec Pc, KAI++ evalue chaque position de sa recherche
+// avec les poids de SA phase. Contre le risque que dit l'en-tete (franchir un seuil pour lui-meme), jamais depuis l'ouverture, ou la
+// compacite change aussi : seulement entre le milieu, la fin et la fin en avance, et avec Fa (la phase ne depend que du score).
+// Le texte que KAI++ lit apres ses poids (solveur/kai-plus.cpp, lire_les_phases) : « |Ph,Fa|v;poids du milieu|v;fin|v;fin en
+// avance » ; '' sinon.
+const PHASES_POUR_KAI_PLUS = ['milieu', 'fin', 'fin-en-avance'];
+function phasesPourKaiPlus(reglage, etat) {
+  const { phaseDeChaquePosition, phasesAuScore, avancePourLaFinEnAvance } = reglage.poids;
+  if (!(phaseDeChaquePosition > 0) || !(phasesAuScore > 0) || !(avancePourLaFinEnAvance > 0)) return '';
+  if (phaseDuReglage(reglage, etat) === 'ouverture') return '';
+  const copies = PHASES_POUR_KAI_PLUS.map((phase) => copieDeLaPhase(reglage, phase));
+  if (copies.some((copie) => !copie)) return '';
+  return ['', `${phasesAuScore},${avancePourLaFinEnAvance}`, ...copies.map((copie) => `${copie.version};${poidsEnTexte(copie.poids)}`)].join('|');
+}
+
 // L'ajout Ms, la MORT SUBITE (saab, 2026-11-06, a « à 5-5 au niveau 8, chercher sans élagage mais au niveau 6 ? » : « Oui, bonne
 // idée ») : quand les deux camps ont perdu toutes leurs billes sauf une ejection (la prochaine gagne), la machine cherche au plus au
 // niveau Ms, sans elagage. En mort subite, la machine marron (niveau 6, plus d'elagage des 5 billes sorties) a battu KAI++8 elague

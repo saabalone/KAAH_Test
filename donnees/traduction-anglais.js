@@ -236,7 +236,7 @@ const TRADUCTION_ANGLAIS = {
   "Fond de la fenêtre": "Window background",
   "Livre d'ouvertures": "Opening book",
   "Varier les premiers coups": "Vary the first moves",
-  "Ses 3 premiers coups tirés au hasard parmi ses bons coups (à 50 points au plus du meilleur) : la machine ne rejoue pas toujours la même partie. À décocher pour une partie de mesure": "Its first 3 moves drawn at random among its good moves (at most 50 points below the best): the machine does not always replay the same game. Uncheck for a measuring game",
+  "Ses 3 premiers coups tirés au hasard parmi les 3 meilleurs du livre : la machine ne rejoue pas toujours la même partie. À décocher pour une partie de mesure": "Its first 3 moves drawn at random among the 3 best book moves: the machine does not always replay the same game. Uncheck for a measuring game",
   "Bord (les miennes)": "Edge (my own)",
   "Bord (miennes)": "Edge (my own)",
   "tours avant la fin": "turns before the end",

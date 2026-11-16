@@ -39,8 +39,8 @@ function reglageDuBancPourLaMachine(brut) {
 }
 
 // Une variante du grade : l'IA joue Noir (aller) ou Blanc (revanche) contre la machine
-// du grade, avec le handicap du grade. La machine tire ses premiers coups parmi les bons
-// (moteur/banc-essais.js, PREMIERS_COUPS_VARIES ; saab, 2026-11-06 : « Le mieux est de varier
+// du grade, avec le handicap du grade. La machine tire ses premiers coups parmi les meilleurs du livre,
+// ou parmi les bons s'il ne connait pas la position (moteur/banc-essais.js, PREMIERS_COUPS_VARIES ; saab, 2026-11-06 : « Le mieux est de varier
 // ces 1 ou 2 1er coups »), puis prend ses coups dans le livre (`base`) tant qu'elle y est, comme
 // contre un joueur : sans cela, la meme partie se rejouait a l'identique (Fers a Cheval : 6
 // defaites de 162 coups, la meme partie et son miroir).
