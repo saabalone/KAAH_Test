@@ -16,7 +16,7 @@ const REFLEXION_CONSEIL_IA_PAR_DEFAUT_S = 30;
 const PROFIL_CONSEIL_IA_PAR_DEFAUT = nomDuProfilIAParDefaut(); // interface/profils-ia.js
 const TOUS_LES_STYLES_CONSEIL_IA = '';
 
-// `elements` : { profil (select), niveau, reflexion, reflechir } ; `suggerer(machine)` :
+// `elements` : { profil (select), defaut (bouton : l'IA par defaut), niveau, reflexion, reflechir } ; `suggerer(machine)` :
 // interface/ia.js (la machine reflechit sur la position du plateau).
 function demarrerConseilIA(elements, suggerer) {
   const remplir = () => remplirListeProfils(elements.profil, { voulue: elements.profil.value || PROFIL_CONSEIL_IA_PAR_DEFAUT, filtreStyle: TOUS_LES_STYLES_CONSEIL_IA });
@@ -25,6 +25,7 @@ function demarrerConseilIA(elements, suggerer) {
   remplir();
   // Les profils changent (Reglages) : la liste se refait a chaque fois qu'on la touche.
   elements.profil.addEventListener('pointerdown', remplir);
+  elements.defaut.addEventListener('click', () => remplirListeProfils(elements.profil, { voulue: nomDuProfilIAParDefaut(), filtreStyle: TOUS_LES_STYLES_CONSEIL_IA }));
   elements.reflechir.addEventListener('click', () => {
     const profil = profilDuChoix(elements.profil.value) ?? trouverProfilIA(nomDuProfilIAParDefaut());
     const niveau = Math.max(1, Math.round(Number(elements.niveau.value)) || NIVEAU_CONSEIL_IA_PAR_DEFAUT);

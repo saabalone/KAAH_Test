@@ -4327,12 +4327,22 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     border-top: 1px solid #3a3a3a;
   }
 
-  /* Meme priorite que hors face-a-face : Reflexion IA cede sa hauteur la
-     premiere, mais dans l'epaisseur des fenetres tournees, pas la hauteur de
-     l'ecran. 270px : le titre, le rappel, l'en-tete de Reflexion et le haut de
-     la Sequence (sa ligne de depart, ses boutons, quelques coups). */
+  /* Reflexion IA (saab, 2026-11-16 : « c'est ça qui cache tout ») : comme les autres fenetres, toute l'epaisseur (voir plus bas),
+     son tableau tout ce qui reste sous son en-tete (titre, boutons, Recherche par 1er coup : environ 130 px). Avant, il cedait sa
+     hauteur pour laisser voir le haut de la Sequence dans la meme epaisseur, et ne montrait qu'une ligne ou deux. */
   body.face-a-face .reflexion-ia .reflexion-ia-defilement {
-    max-height: clamp(2.6em, calc(var(--epaisseur-fenetres-fa) - 270px), 12em);
+    max-height: max(5em, calc(var(--epaisseur-fenetres-fa) - 130px));
+  }
+  /* Et toute la longueur de la colonne tournee, comme la Sequence (saab, 2026-11-16 : « Reflexion IA ne prend que la moitié de la
+     hauteur en FàF ») : hors face-a-face, il a la largeur de la Sequence (--largeur-sequence, 330 px), soit ici la moitie de la
+     hauteur de l'ecran ; ouvert, toute l'epaisseur, comme les autres fenetres. */
+  body.face-a-face .reflexion-ia {
+    width: 100%;
+    max-width: none;
+    flex: 0 0 auto;
+  }
+  body.face-a-face .reflexion-ia[open] {
+    min-height: var(--epaisseur-fenetres-fa);
   }
 
   body.face-a-face #panneau-conseils,
@@ -4343,6 +4353,21 @@ body.face-a-face #colonne-gauche .badge-mes-parties {
     max-height: none;
     flex: 1 1 0;
     border-left: none;
+  }
+
+  /* Chaque fenetre ouverte prend TOUTE l'epaisseur, et la colonne defile de l'une a l'autre (saab, 2026-11-16 : « En FàF, les
+     tableaux de la colonne de droite sont illisibles, ils ne montrent que les entêtes ») : a se partager l'epaisseur (200 px sur
+     un telephone), leurs en-tetes (Depart, copies, choix de l'IA) prenaient toute la place. Sur l'ecran, la colonne tournee
+     defile de cote. */
+  body.face-a-face #colonne-droite {
+    overflow-y: auto;
+  }
+  body.face-a-face #arbre-panneau,
+  body.face-a-face #panneau-conseils,
+  body.face-a-face #panneau-solveur-position,
+  body.face-a-face #panneau-occurrences {
+    flex: 0 0 auto;
+    height: var(--epaisseur-fenetres-fa);
   }
 
   /* La poignee de LARGEUR n'a plus de sens (les fenetres remplissent tout

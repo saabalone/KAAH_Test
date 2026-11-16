@@ -36,7 +36,7 @@
 // Le titre de la rubrique en vert ou en jaune (l'orange : interface/reglages-champs.js).
 const CLASSES_RUBRIQUE_IA = { dernier: 'rubrique-valide-dernier', ancien: 'rubrique-valide-ancien' };
 
-// `elements` : { rubrique, select, nouveau, supprimer, exporter, importer,
+// `elements` : { rubrique, select, defaut (l'IA par defaut), nouveau, supprimer, exporter, importer,
 // style, version, elagage, livre, description, valider, abandonner, historique,
 // note, essai } — `essai` :
 // interface/essai-ia.js. Les champs des poids sont trouves par leur id,
@@ -151,6 +151,10 @@ function demarrerReglagesIA(elements) {
   elements.select.addEventListener('change', () => {
     if (brouillonAbandonne()) choisir(elements.select.value);
     else elements.select.value = nomActuel;
+  });
+  // Défaut (saab, 2026-11-16 : « un btn Défaut pour le profile IA partout où il y a la liste des IA ») : l'IA par defaut.
+  elements.defaut.addEventListener('click', () => {
+    if (brouillonAbandonne()) choisir(nomDuProfilIAParDefaut());
   });
 
   // Une retouche (style, version, livre ou poids) : le brouillon, relu comme un

@@ -170,6 +170,11 @@ function demarrerGraphiqueDesGroupes(elements, partie) {
   elements.icone.addEventListener('click', () => (ouvert() ? fermer() : ouvrir()));
   elements.fermer.addEventListener('click', fermer);
   elements.profil.addEventListener('change', recalculer);
+  // Défaut : l'IA par defaut (interface/profils-ia.js).
+  elements.defaut.addEventListener('click', () => {
+    remplirListeProfils(elements.profil, { voulue: nomDuProfilIAParDefaut(), filtreStyle: '' });
+    recalculer();
+  });
   elements.camp.addEventListener('click', () => {
     elements.camp.value = elements.camp.value === 'noir' ? 'blanc' : 'noir';
     elements.camp.textContent = elements.camp.value === 'noir' ? 'Noir' : 'Blanc';

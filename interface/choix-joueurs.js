@@ -213,6 +213,14 @@ function brancherChoixMachine(element, surChangement) {
     colorerListeProfilsIA(evenement.target);
     changer({ profil: evenement.target.value, livre: livreDuProfil(evenement.target.value), reflexionMax: null });
   });
+  // Défaut (saab, 2026-11-16 : « mettre aussi un btn Défaut pour le profile IA partout où il y a la liste des IA ») : l'IA par
+  // defaut (interface/profils-ia.js), tous styles affiches.
+  element.querySelector('.choix-profil-ia-defaut').addEventListener('click', () => {
+    choix.filtreStyle = '';
+    choix.profil = nomDuProfilIAParDefaut();
+    remplirProfils();
+    changer({ livre: livreDuProfil(choix.profil), reflexionMax: null });
+  });
   element.querySelector('.choix-livre').addEventListener('change', (evenement) => changer({ livre: evenement.target.checked }));
   element.querySelector('.choix-coups-varies').addEventListener('change', (evenement) => changer({ premiersCoupsVaries: evenement.target.checked }));
   // Vide : celui du profil ; garde d'un profil a l'autre (pour les comparer au meme El).

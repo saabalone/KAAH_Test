@@ -23,14 +23,15 @@
 //     (CLAUDE.md, 1 278 contre 248), rien de commun avec une couleur qui
 //     ne fait que changer un attribut `fill` deja en place ;
 //   - a chaque changement, `actuel` part enregistre dans le PROFIL ACTIF —
-//     "Défaut" cree tout seul un profil `set_kaah_<date du jour>`
+//     un integre (KAAWA, Lune, Terre, Soleil) cree tout seul un profil `set_kaah_<date du jour>`
 //     (interface/reglages-profils.js, sauverProfilActif/nomProfilParDefaut)
 //     et devient ce profil, jamais perdu meme sans cliquer "Sauver..." ;
 //     "Sauver..." (bouton unique, KAAWA en a deux — Sauver et Sous...)
 //     propose seulement de le RENOMMER.
 //
 // Pied de boite, 4 boutons :
-//   - **Défaut** : remet TOUT aux valeurs d'origine de KAAWA, en direct ;
+//   - **Défaut** : choisit Terre, le reglage de depart (depuis le 16/11 ; avant, il remettait
+//     les valeurs de KAAWA dans le profil affiche) ;
 //   - **Annuler** : revient au dernier reglage change (une pile, PAS un
 //     brouillon a part), retouches des profils IA comprises — NE FERME PAS
 //     la boite (saab : "il ne doit pas fermer la boite") ;
@@ -275,10 +276,12 @@ function demarrerReglages(elements, svg, decorFige, demarrerRechargement, baseCo
     terminerGeste();
   });
 
+  // Défaut choisit Terre, le reglage de depart (saab, 2026-11-16 : « Fais le 1 et 2 ») — comme le menu deroulant, sans rien ecrire.
+  // Avant, il ecrivait les reglages de KAAWA dans le profil affiche : un profil a soi perdait les siens, un integre en donnait une
+  // copie set_kaah_<date> de plus.
   elements.defaut.addEventListener('click', () => {
-    const avant = actuel;
-    remplacerReglages(REGLAGES_PAR_DEFAUT);
-    empiler(avant);
+    definirProfilActif(NOM_REGLAGES_DE_DEPART);
+    chargerReglages(lireReglagesActifs());
   });
 
   // Annule le DERNIER reglage change (saab : "ne doit pas fermer la

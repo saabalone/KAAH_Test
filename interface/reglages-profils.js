@@ -4,7 +4,7 @@
 // interface/reglages.js (qui ne fait qu'ouvrir la boite et reagir aux
 // boutons) pour une seule raison : la regle des 200 lignes.
 //
-// « Défaut » n'est PAS un profil enregistre : c'est REGLAGES_PAR_DEFAUT
+// « KAAWA » (avant le 16/11 : « Défaut ») n'est PAS un profil enregistre : c'est REGLAGES_PAR_DEFAUT
 // (moteur/reglages.js) lui-meme, toujours disponible, jamais modifie —
 // l'ecart de secours qui manquait avant cette correction (saab : "je ne
 // peux plus retrouver les reglages d'origine"). Un profil enregistre, lui,
@@ -22,14 +22,18 @@
 // dans index.html.
 
 const CLE_PROFILS_REGLAGES = 'kaah-reglages-profils';
-const NOM_PROFIL_DEFAUT = 'Défaut';
+// Les reglages d'origine de KAAWA, « KAAWA » depuis le 16/11 (saab : « Fais le 1 et 2 ») : avant, « Défaut », que l'on confondait
+// avec Terre, le reglage de depart de KAAH, et avec le bouton Défaut. Un appareil reste sur l'ancien nom passe au nouveau.
+const NOM_PROFIL_DEFAUT = 'KAAWA';
+const ANCIEN_NOM_PROFIL_DEFAUT = 'Défaut';
 const NOMS_REGLAGES_INTEGRES = [NOM_PROFIL_DEFAUT, ...Object.keys(REGLAGES_INTEGRES)];
 const estReglageIntegre = (nom) => NOMS_REGLAGES_INTEGRES.includes(nom);
 
 function lireStockageProfils() {
   try {
     const brut = JSON.parse(window.localStorage.getItem(CLE_PROFILS_REGLAGES) ?? '{}');
-    return { actif: brut.actif ?? NOM_REGLAGES_DE_DEPART, profils: brut.profils ?? {} };
+    const actif = brut.actif === ANCIEN_NOM_PROFIL_DEFAUT ? NOM_PROFIL_DEFAUT : brut.actif;
+    return { actif: actif ?? NOM_REGLAGES_DE_DEPART, profils: brut.profils ?? {} };
   } catch {
     return { actif: NOM_REGLAGES_DE_DEPART, profils: {} };
   }
